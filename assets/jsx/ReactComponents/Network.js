@@ -2,7 +2,6 @@
 
 var _ = require('lodash')
 var React = require('react')
-var ReactTabs = require('react-tabs');
 
 var NetworkPanel = require('./NetworkPanel')
 var GroupPanel = require('./GroupPanel')
