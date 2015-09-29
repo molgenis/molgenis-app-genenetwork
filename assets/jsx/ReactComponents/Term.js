@@ -1,0 +1,240 @@
+"use strict";
+
+var _ = require('lodash')
+var color = require('../../js/color')
+var htmlutil = require('../htmlutil')
+
+var React = require('react')
+var Router = require('react-router')
+var Link = Router.Link
+var Select = require('react-select')
+var DocumentTitle = require('react-document-title')
+var Cookies = require('cookies-js')
+var SVGCollection = require('./SVGCollection.js')
+var Footer = require('./Footer')
+
+var PredictedGeneRow = React.createClass({
+    render: function() {
+        var data = this.props.data
+        var desc = (data.gene.description || 'no description').replace(/\[[^\]]+\]/g, '')
+        return ( <tr className={this.props.num % 2 === 0 ? 'datarow evenrow' : 'datarow oddrow'}>
+                 <td className='text'>
+                 <Link className='nodecoration black' title={desc} to='gene' params={{geneId: data.gene.name}}>
+                 <SVGCollection.Rectangle className='tablerectangle' title={data.gene.biotype.replace(/_/g, ' ')} fill={color.biotype2color[data.gene.biotype] || color.colors.gnblack} />
+                 <span>{data.gene.name}</span>
+                 </Link>
+                 </td>
+                 <td style={{textAlign: 'center'}} dangerouslySetInnerHTML={{__html: htmlutil.pValueToReadable(data.pValue)}}></td>
+                 <td style={{textAlign: 'center'}}>{data.zScore > 0 ? <SVGCollection.TriangleUp className='directiontriangleup' /> : <SVGCollection.TriangleDown className='directiontriangledown' />}</td>
+                 <td style={{textAlign: 'center'}}>{data.annotated ? <SVGCollection.Annotated /> : <SVGCollection.NotAnnotated />}</td>
+                 <td style={{textAlign: 'center'}}>
+                 <a title={'Open network ' + (data.annotated ? 'highlighting ' : 'with ') + data.gene.name} href={GN.urls.networkPage + this.props.termId + ',0!' + data.gene.name} target='_blank'>
+                 <SVGCollection.NetworkIcon />
+                 </a>
+                 </td>
+                 </tr>
+        )
+    }
+})
+
+var AnnotatedGeneRow = React.createClass({
+    render: function() {
+        var data = this.props.data
+        var desc = (data.gene.description || 'no description').replace(/\[[^\]]+\]/g, '')
+        return ( <tr className={this.props.num % 2 === 0 ? 'datarow evenrow' : 'datarow oddrow'}>
+                 <td className='text'>
+                 <Link className='nodecoration black' title={desc} to='gene' params={{geneId: data.gene.name}}>
+                 <SVGCollection.Rectangle className='tablerectangle' title={data.gene.biotype.replace(/_/g, ' ')} fill={color.biotype2color[data.gene.biotype] || color.colors.gnblack} />
+                 {data.gene.name}
+                 </Link>
+                 </td>
+                 <td style={{textAlign: 'center'}}>TBA</td>
+                 <td style={{textAlign: 'center'}}>TBA</td>
+                 <td style={{textAlign: 'center'}}><SVGCollection.Annotated /></td>
+                 <td style={{textAlign: 'center'}}>
+                 <a title={'Open network highlighting ' + data.gene.name} href={GN.urls.networkPage + this.props.termId + ',0!' + data.gene.name} target='_blank'>
+                 <SVGCollection.NetworkIcon />
+                 </a>
+                 </td>
+                 </tr>
+        )
+    }
+})
+
+var GeneTable = React.createClass({
+
+    propTypes: {
+        data: React.PropTypes.object.isRequired,
+        listType: React.PropTypes.string
+    },
+    
+    render: function() {
+
+        // console.log('pdt render, state:', this.state)
+        var that = this
+        var header = null
+        var rows = null
+        if (this.props.listType == 'annotation') {
+            header = (<tr><th className='tabletextheader'>GENE</th><th>P-VALUE</th><th>DIRECTION</th><th>ANNOTATED</th><th>NETWORK</th></tr>)
+            rows = _.map(this.props.data.genes.annotated, function(data, i) {
+                return (<AnnotatedGeneRow key={data.gene.id} termId={that.props.data.pathway.id} data={data} num={i} />)
+            })
+        } else {
+            header = (<tr><th className='tabletextheader'>GENE</th><th>P-VALUE</th><th>DIRECTION</th><th>ANNOTATED</th><th>NETWORK</th></tr>)
+            rows = _.map(this.props.data.genes.predicted, function(data, i) {
+                return (<PredictedGeneRow key={data.gene.id} termId={that.props.data.pathway.id} data={data} num={i} />)
+            })
+        }
+
+        return (
+                <table className='gn-term-table datatable'>
+                <tbody>
+                {header}
+            {rows}
+            </tbody>
+                </table>
+        )
+    }
+})
+
+var Term = React.createClass({
+
+    mixins: [Router.Navigation, Router.State],
+
+    getInitialState: function() {
+        return {
+            listType: Cookies.get('termlist') || 'prediction'
+        }
+    },
+    
+    loadData: function() {
+        // console.log('loading', this.getParams().geneId)
+        $.ajax({
+            url: GN.urls.pathway + '/' + this.getParams().termId + '?verbose',
+            dataType: 'json',
+            success: function(data) {
+                if (this.isMounted()) {
+                    this.setState({
+                        data: data,
+                        error: null
+                    })
+                } else {
+                    console.log('Data for Term received but the component is not mounted.')
+                }
+            }.bind(this),
+            error: function(xhr, status, err) {
+		console.log('Error: ' + xhr)
+                if (this.isMounted()) {
+                    if (err === 'Not Found') {
+                        this.setState({
+                            data: null,
+                            error: 'Term ' + this.getParams().termId + ' not found',
+			    errorTitle: 'Error ' + xhr.status
+                        })
+                    } else {
+                        this.setState({
+                            data: null,
+                            error: 'Please try again later (' + xhr.status + ')',
+			    errorTitle: 'Error ' + xhr.status
+                        })
+                    }
+                } else {
+                    console.log('Error getting data for Term, the component is not mounted.')
+                }
+            }.bind(this)
+        })
+    },
+
+    componentDidMount: function() {
+        var el = React.findDOMNode(this)
+        // console.log(el.offsetWidth, el.offsetHeight)
+        this.setState({
+            w: el.offsetWidth,
+            h: el.offsetHeight
+        })
+        this.loadData()
+    },
+
+    componentWillReceiveProps: function() {
+        this.loadData()
+    },
+
+    onListTypeClick: function(type) {
+        Cookies.set('termlist', type)
+        this.setState({
+            listType: type
+        })
+    },
+    
+    render: function() {
+        if (this.state.error) {
+            return (
+		    <DocumentTitle title={this.state.errorTitle + GN.pageTitleSuffix}>
+                    <div>
+                    <span>{this.state.error}</span>
+                    </div>
+		    </DocumentTitle>
+            )
+        } else if (this.state.data) {
+            var data = this.state.data
+            return (
+		    <DocumentTitle title={data.pathway.name + GN.pageTitleSuffix}>
+                    <div style={{overflowY: 'scroll'}}>
+                    { //
+                    }
+                    <div className='gn-term-description-outer' style={{backgroundColor: color.colors.gnwhite, padding: '20px'}}>
+                    <div className='gn-term-description-inner hflex flexcenter maxwidth'>
+                    <div className='gn-term-description-name'>
+                    <span style={{fontWeight: 'bold', fontFamily: 'GG', fontSize: '1.5em'}}>{data.pathway.name}</span>
+                    </div>
+                    <div className='flex11' />
+                    <div className='gn-term-description-stats' style={{textAlign: 'right'}}>
+                    <span>
+                    <a className='externallink nodecoration black' title={'Open in ' + data.pathway.database + ': ' + data.pathway.name} href={data.pathway.url} target='_blank'>
+                    {data.pathway.database}</a>
+                    </span><br/>
+                    <span>{data.pathway.numAnnotatedGenes} annotated genes</span><br/>
+                    <span>Prediction accuracy {(Math.round(100 * data.pathway.auc) / 100).toPrecision(2)}</span><br/>
+                    </div>
+                    <div className='gn-term-description-networkbutton flexend' style={{padding: '0 0 3px 10px'}}>
+                    <a className='clickable button noselect' title={'Open network: ' + data.pathway.name} href={GN.urls.networkPage + data.pathway.id} target='_blank'>
+                    OPEN NETWORK</a>
+                    </div>
+                    </div>
+                    </div>
+                    <div className='gn-term-container-outer' style={{backgroundColor: color.colors.gnwhite, marginTop: '10px'}}>
+                    <div className='gn-term-container-inner maxwidth' style={{padding: '20px'}}>
+                    <div className='gn-term-menu noselect' style={{paddingBottom: '20px'}}>
+                    <span style={{cursor: 'default', paddingRight: '10px'}}>SHOW</span>
+                    <div className={(this.state.listType == 'prediction') ? 'clickable button selectedbutton' : 'clickable button'}
+                onClick={this.onListTypeClick.bind(null, 'prediction')}>
+                    PREDICTED GENES</div>
+                    <div className={(this.state.listType == 'annotation') ? 'clickable button selectedbutton' : 'clickable button'}
+                onClick={this.onListTypeClick.bind(null, 'annotation')}>
+                    ANNOTATED GENES</div>
+                    </div>
+                    <GeneTable data={data} listType={this.state.listType} />
+                    </div>
+                    </div>
+                    </div>
+		    </DocumentTitle>
+            )
+        } else {
+            return (
+		    <DocumentTitle title={'Loading' + GN.pageTitleSuffix}>
+                    <div className='gn-term-description-outer flex11 vflex flexcenter flexjustifycenter' style={{backgroundColor: color.colors.gnwhite, padding: '20px'}}>
+                    <div>LOADING</div>
+                    </div>
+		    </DocumentTitle>
+            )
+        }
+    }
+})
+
+module.exports = Term
+
+//     <div className='gn-term-container-outer' style={{backgroundColor: color.colors.gnwhite}}>
+//     <div className='gn-term-container-inner'>
+//      (<div style={{position: 'absolute', top: (this.state.h - 100) / 2 + 'px', width: this.state.w + 'px', textAlign: 'center'}}>
+//       loading</div>) : null}
+// </div>

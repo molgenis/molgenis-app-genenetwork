@@ -1,0 +1,23 @@
+<form id="searchform" style="padding: 10px; font-family: GG">
+    <input id="searchtext" type="text" placeholder="Enter words here" style="font-family: GG; font-size: 1.1em; width: 300px; height: 20px;">
+    <input id="overallcheckbox" type="checkbox"> Show by impact factor
+    <button id="go" style="height: 26px; position: absolute; margin-left: 10px; padding-bottom: -15px; font-family: GG; font-size: 1.1em">Show trends</button>
+</form>
+
+<canvas id="chart" style="float: left; padding: 10px" width="780" height="300"></canvas>
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<script src="/js/Chart.min.js"></script>
+<script src="/js/pubminechart.js"></script>
+<script type="text/javascript">
+//<![CDATA[
+<% if(typeof error != 'undefined') { %>
+PUBMINECHART.showError(<%- JSON.stringify(error) %>)
+<% } else { %>
+<% if(typeof data != 'undefined') { %>
+PUBMINECHART.chart(<%- JSON.stringify(data[0]) %>)
+PUBMINECHART.updateForm(<%- JSON.stringify(data[0]) %>)
+<% } %>
+<% } %>
+//]]>
+</script>

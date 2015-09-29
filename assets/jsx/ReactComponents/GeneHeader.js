@@ -1,0 +1,37 @@
+var React = require('react')
+var SVGCollection = require('./SVGCollection')
+var color = require('../../js/color.js')
+
+var GeneHeader = React.createClass({
+    
+    propTypes: {
+        gene: React.PropTypes.object.isRequired
+    },
+    
+    render: function() {
+	var desc = (this.props.gene.description || 'no description').replace(/\[[^\]]+\]/g, '')
+        return (
+                <div className='gn-gene-description-outer' style={{backgroundColor: color.colors.gnwhite, padding: '20px'}}>
+                <div className='gn-gene-description-inner hflex flexcenter maxwidth'>
+                <div className='gn-gene-description-name'>
+                <span style={{fontWeight: 'bold', fontFamily: 'GG', fontSize: '1.5em', paddingRight: '10px'}}>{this.props.gene.name}</span>
+                <span>{desc}</span>
+                </div>
+                <div className='flex11' />
+                <div className='gn-gene-description-chr' style={{textAlign: 'right'}}>
+                <span>chromosome {this.props.gene.chr}</span>
+                <SVGCollection.Chromosome
+            chr={this.props.gene.chr}
+            start={this.props.gene.start}
+            stop={this.props.gene.stop}
+            position={(this.props.gene.stop + this.props.gene.start) / 2}
+                />
+                <div>{this.props.gene.biotype.replace(/_/g, ' ')}</div>
+                </div>
+                </div>
+                </div>
+        )
+    }
+})
+
+module.exports = GeneHeader

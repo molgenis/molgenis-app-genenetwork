@@ -1,0 +1,13 @@
+<div id="networkcontainer"></div>
+<div id="info"><button id="btn">split</button></div>
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<script src="/js/dependencies/sails.io.js"></script>
+<script src="/js/d3.v3.min.js"></script>
+<script src="/js/bundle.js"></script>
+<script src="/js/tinysort.min.js"></script>
+<script>$(function() {
+var graph = new D3FD.graph('#networkcontainer')
+graph.initialise(<%- network %>)
+$('#btn').on('click', function(e) { $(this).attr('disabled', true); graph.split(); $(this).attr('disabled', false) })
+})</script>

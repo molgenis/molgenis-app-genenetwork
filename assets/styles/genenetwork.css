@@ -1,0 +1,13 @@
+.numannotated {
+    font-size: 0.75em;
+    padding-left: 10px;
+}
+
+.gn-network-controlpanel-selectionmode:hover {
+    background-color: rgba(255, 225, 0, 1);
+}
+
+.gn-network-controlpanel-control:hover {
+    background-color: #f5f5f5;
+}
+

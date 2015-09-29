@@ -1,0 +1,48 @@
+<!-- http://blog.nextgenetics.net/?e=44 -->
+   <script src="/js/d3.v3.min.js"></script>
+   <script src="/js/lincrna_tube_clustering.js"></script>
+   <script type="text/javascript">
+   
+      //height of each row in the heatmap
+      var h = 1;
+      //width of each column in the heatmap
+      var w = 8;
+
+      //attach a SVG element to the document's body
+      var mySVG = d3.select("body")
+         .append("svg")
+         .attr("width", (w * cols.length) + 400) 
+         .attr("height", (h * rows.length + 100))
+         .style('position','absolute')
+         .style('top',0)
+         .style('left',0);
+
+      //define a color scale using the min and max expression values
+      var colorScale = d3.scale.linear()
+        .domain([minData, 0, maxData])
+        .range(["blue", "white", "red"]);
+
+      //generate heatmap rows
+      var heatmapRow = mySVG.selectAll(".heatmap")
+         .data(data)
+         .enter().append("g");
+
+      //generate heatmap columns
+      var heatmapRects = heatmapRow
+         .selectAll(".rect")
+         .data(function(d) {
+            return d;
+         }).enter().append("svg:rect")
+         .attr('width',w)
+         .attr('height',h)
+         .attr('x', function(d) {
+            return (d[2] * w) + 25;
+         })
+         .attr('y', function(d) {
+            return (d[1] * h) + 50;
+         })
+         .style('fill',function(d) {
+            return colorScale(d[0]);
+         });
+
+   </script>
