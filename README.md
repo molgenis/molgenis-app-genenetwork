@@ -1,4 +1,4 @@
-# Gene Netwoek
+# Gene Network
 
 Built with Sails and React.
 
