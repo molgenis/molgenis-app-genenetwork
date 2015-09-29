@@ -41,14 +41,14 @@
   "main": "app.js",
   "repository": {
     "type": "git",
-    "url": "git://github.com/molgenis/gn.git"
+    "url": "git://github.com/molgenis/gene-network.git"
   },
   "author": "molgenis",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/molgenis/gn/issues"
+    "url": "https://github.com/molgenis/gene-network/issues"
   },
-  "homepage": "https://github.com/molgenis/gn#readme",
+  "homepage": "https://github.com/molgenis/gene-network#readme",
   "directories": {
     "test": "test"
   },
