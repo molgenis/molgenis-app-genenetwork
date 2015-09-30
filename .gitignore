@@ -40,6 +40,7 @@
 ################################################
 
 config/local.js
+assets/js/ReactBundle.js
 data
 todo.txt
 
