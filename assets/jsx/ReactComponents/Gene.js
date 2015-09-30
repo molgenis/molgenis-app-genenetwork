@@ -158,7 +158,7 @@ var Gene = React.createClass({
                 }.bind(that),
                 error: function(xhr, status, err) {
 		    console.log(xhr)
-                    if (this.isMounted()) {
+                    if (this.isMounted() && task.name !== 'similar') {
                         if (err === 'Not Found') {
                             this.setState({
                                 error: 'Gene ' + this.props.params.geneId + ' not found',

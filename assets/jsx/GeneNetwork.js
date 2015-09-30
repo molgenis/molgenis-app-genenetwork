@@ -154,8 +154,7 @@ var Landing = React.createClass({
     },
 
     onLogoClick: function() {
-        console.log('TODO history.pushState')
-        //this.history.pushState(null, '/')
+        this.history.pushState(null, '/')
     },
     
     render: function() {

@@ -275,7 +275,7 @@ module.exports = function(req, res) {
                         function(err, result) {
                             if (err) {
                                 sails.log.error(err)
-                                if (err.name == 'NotFoundError') res.notFound()
+                                if (err.name == 'NotFoundError' || err.status === 404) res.notFound()
                                 else if (err.name == 'ParameterError') res.badRequest(err.message)
                                 else res.serverError()
                             } else {
