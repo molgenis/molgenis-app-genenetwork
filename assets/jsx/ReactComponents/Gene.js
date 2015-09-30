@@ -127,9 +127,9 @@ var Gene = React.createClass({
 
     loadData: function() {
         // console.log('loading', this.getParams().geneId)
-        var tasks = [{url: GN.urls.gene + '/' + this.getParams().geneId + '?verbose',
+        var tasks = [{url: GN.urls.gene + '/' + this.props.params.geneId + '?verbose',
                       name: 'prediction'},
-                     {url: GN.urls.coregulation + '/' + this.getParams().geneId + '?verbose',
+                     {url: GN.urls.coregulation + '/' + this.props.params.geneId + '?verbose',
                       name: 'similar'}]
         if (this.state.topMenuSelection == 'similar') {
             tasks.reverse()
@@ -161,7 +161,7 @@ var Gene = React.createClass({
                     if (this.isMounted()) {
                         if (err === 'Not Found') {
                             this.setState({
-                                error: 'Gene ' + this.getParams().geneId + ' not found',
+                                error: 'Gene ' + this.props.params.geneId + ' not found',
 			        errorTitle: 'Error ' + xhr.status
                             })
                         } else {

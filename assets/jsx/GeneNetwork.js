@@ -5,11 +5,12 @@ var color = require('../js/color')
 var htmlutil = require('./htmlutil')
 
 var React = require('react')
-var Router = require('react-router')
-var Route = Router.Route
-var DefaultRoute = Router.DefaultRoute
-var RouteHandler = Router.RouteHandler
-var Link = Router.Link
+var ReactRouter = require('react-router')
+var Router = ReactRouter.Router
+var Route = ReactRouter.Route
+var Link = ReactRouter.Link
+var createBrowserHistory = require('history/lib/createBrowserHistory')
+
 var Select = require('react-select')
 var DocumentTitle = require('react-document-title')
 
@@ -28,13 +29,13 @@ GN.menuItems = [{
     route: '/'
 }, {
     name: 'HOW IT WORKS',
-    route: 'how'
+    route: '/how'
 }, {
     name: 'ABOUT US',
-    route: 'about'
+    route: '/about'
 }, {
     name: 'API',
-    route: 'api'
+    route: '/api'
 }]
 
 GN.urls = {
@@ -68,6 +69,7 @@ var MenuBar = React.createClass({
     render: function() {
         var that = this
         var items = _.map(that.props.items, function(item, i) {
+            // return (<Link key={item.name} className={'menuitem ' + (i === 0 ? 'first' : i === that.props.items.length - 1 ? 'last' : '')} to={item.route}>{item.name}</Link>)
             return (<Link key={item.name} className={'menuitem ' + (i === 0 ? 'first' : i === that.props.items.length - 1 ? 'last' : '')} to={item.route}>{item.name}</Link>)
         })
         return (<div className='gn-top-menubar noselect flex00 flexstart' style={this.props.style}>{items}</div>)
@@ -111,7 +113,7 @@ var GeneMain = React.createClass({
 
 var Landing = React.createClass({
 
-    mixins: [Router.State, Router.Navigation],
+    mixins: [ReactRouter.History],
 
     getInitialState: function() {
         return {}
@@ -152,16 +154,15 @@ var Landing = React.createClass({
     },
 
     onLogoClick: function() {
-        this.transitionTo('home')
+        console.log('TODO history.pushState')
+        //this.history.pushState(null, '/')
     },
     
     render: function() {
 
-        // console.log(this.getParams())
-
         var topSearch = (<div className='flex11' />)
         var topBanner = null
-        if (_.size(this.getParams()) === 0) {
+        if (_.size(this.props.params) === 0) {
             topBanner = (<div className='searchcontainer'>
                           <div className='searchheader noselect defaultcursor'>
                           Catchy mantra here
@@ -178,8 +179,8 @@ var Landing = React.createClass({
                          onChange={this.onSelectChange} />
                           </div>
                           <div className='examples noselect defaultcursor'>For example:&nbsp;
-                          <Link className='clickable' title='MYOM1' to='gene' params={{geneId: 'MYOM1'}}>MYOM1</Link>,&nbsp;
-                          <Link className='clickable' title='Interferon signaling' to='term' params={{termId: 'REACTOME_INTERFERON_SIGNALING'}}>Interferon signaling</Link>,&nbsp;
+                         <Link className='clickable' title='MYOM1' to='/gene/MYOM1'>MYOM1</Link>,&nbsp;
+                          <Link className='clickable' title='Interferon signaling' to='/term/REACTOME_INTERFERON_SIGNALING'>Interferon signaling</Link>,&nbsp;
                           <Link className='clickable' title='Schizophrenia' to='network' params={{ids: 'Schizophrenia'}}>Schizophrenia</Link>
                           </div>
                           </div>)
@@ -203,7 +204,7 @@ var Landing = React.createClass({
                 <MenuBar items={GN.menuItems} style={{backgroundColor: color.colors.gnwhite, padding: '20px'}} />
                 </div>
                 {topBanner}
-                <RouteHandler />
+                {this.props.children}
                 <Footer />
       	        </div>
         )
@@ -246,21 +247,20 @@ var SearchFormTextArea = React.createClass({
 })
 
 GN.routes = (
-        <Route name = 'home' path = '/' handler = {Landing}>
-        <Route name = 'how' handler = {How} />
-        <Route name = 'about' handler = {About} />
-        <Route name = 'api' handler = {Api} />
-        <Route name = 'gene' path='/gene/:geneId' handler={Gene} />
-        <Route name = 'term' path='/term/:termId' handler = {Term} />
-        <Route name = 'network' path='/network/:ids' handler = {ManyGenesMaster} />
-        <Route name = 'ontology' path='/ontology/:id' handler = {Ontology} />
+        <Route path='/' component = {Landing}>
+        <Route path='/how' component = {How} />
+        <Route path='/about' component = {About} />
+        <Route path='/api' component = {Api} />
+        <Route path='/gene/:geneId' component={Gene} />
+        <Route path='/term/:termId' component = {Term} />
+        <Route path='/network/:ids' component = {ManyGenesMaster} />
+        <Route path='/ontology/:id' component = {Ontology} />
         </Route>
 )
 
-Router.run(GN.routes, Router.HistoryLocation, function(Handler) {
-// Router.run(GN.routes, function(Handler) {
-    React.render(
-            <Handler />,
-        document.body
-    )
-})
+var history = createBrowserHistory()
+React.render(<Router history={history}>
+             {GN.routes}
+             </Router>,
+             document.body
+            )

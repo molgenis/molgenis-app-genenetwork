@@ -13,8 +13,8 @@ var ManyGenesMaster = React.createClass({
     mixins: [Router.State, Router.Navigation],
 
     loadData: function() {
-        var ids = this.getParams().ids.replace(/(\r\n|\n|\r)/g, ',')
-        console.log('loading', this.getParams())
+        var ids = this.props.params.ids.replace(/(\r\n|\n|\r)/g, ',')
+        console.log('loading', this.props.params)
         this.setState({data: null})
         var data = {
             format: 'network',
@@ -116,9 +116,9 @@ var ManyGenesMaster = React.createClass({
             )
         } else {//if (this.state.data) {
             // console.log('data received')
-            if (this.getParams().ids) {
+            if (this.props.params.ids) {
                 // kludge - textarea value doesn't always update if genes are appended to the url
-                $('#manytextarea').val(this.getParams().ids)
+                $('#manytextarea').val(this.props.params.ids)
             }
             var title = this.state.data ? this.state.data.elements.nodes.length + ' genes - network' + GN.pageTitleSuffix : 'Loading' + GN.pageTitleSuffix
             return (

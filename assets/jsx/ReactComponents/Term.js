@@ -108,9 +108,8 @@ var Term = React.createClass({
     },
     
     loadData: function() {
-        // console.log('loading', this.getParams().geneId)
         $.ajax({
-            url: GN.urls.pathway + '/' + this.getParams().termId + '?verbose',
+            url: GN.urls.pathway + '/' + this.props.params.termId + '?verbose',
             dataType: 'json',
             success: function(data) {
                 if (this.isMounted()) {
@@ -128,7 +127,7 @@ var Term = React.createClass({
                     if (err === 'Not Found') {
                         this.setState({
                             data: null,
-                            error: 'Term ' + this.getParams().termId + ' not found',
+                            error: 'Term ' + this.props.params.termId + ' not found',
 			    errorTitle: 'Error ' + xhr.status
                         })
                     } else {

@@ -72,7 +72,7 @@ var Ontology = React.createClass({
                     if (err === 'Not Found') {
                         this.setState({
                             data: null,
-                            error: 'Term ' + this.getParams().termId + ' not found',
+                            error: 'Term ' + this.props.params.termId + ' not found',
 			    errorTitle: 'Error ' + xhr.status
                         })
                     } else {
