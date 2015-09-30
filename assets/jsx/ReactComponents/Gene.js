@@ -25,7 +25,7 @@ var PredictionRow = React.createClass({
         return (
                 <tr className={cls}>
                 <td className='text'>
-                <Link className='nodecoration black' title={this.props.data.term.numAnnotatedGenes + ' annotated genes, prediction accuracy ' + Math.round(100 * this.props.data.term.auc) / 100} to={'term'} params={{termId: this.props.data.term.id}}>
+                <Link className='nodecoration black' title={this.props.data.term.numAnnotatedGenes + ' annotated genes, prediction accuracy ' + Math.round(100 * this.props.data.term.auc) / 100} to={`/term/${this.props.data.term.id}`}>
                 {this.props.data.term.name}
             </Link>
                 </td>
