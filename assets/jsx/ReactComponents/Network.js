@@ -529,12 +529,12 @@ var Network = React.createClass({
                 
                 </div>
 
-                    <form id='gn-network-svgform' method='post' encType='multipart/form-data' action='http://molgenis27.target.rug.nl/api/v1/svg2pdf'>
+                    <form id='gn-network-svgform' method='post' encType='multipart/form-data' action={GN.urls.svg2pdf}>
                     <input type='hidden' id='data' name='data' value='' />
                     <input type='hidden' id='format' name='format' value='' />
                     </form>
                     
-                    <form id='gn-network-pwaform' method='post' encType='multipart/form-data' action='http://molgenis27.target.rug.nl/api/v1/tabdelim'>
+                    <form id='gn-network-pwaform' method='post' encType='multipart/form-data' action={GN.urls.tabdelim}>
                     <input type='hidden' id='data' name='data' value='' />
                     <input type='hidden' id='name' name='name' value='' />
                     <input type='hidden' id='db' name='db' value='' />
@@ -542,7 +542,7 @@ var Network = React.createClass({
                     <input type='hidden' id='testType' name='testType' value='' />
                     </form>
                     
-                    <form id='gn-network-gpform' method='post' encType='multipart/form-data' action='http://molgenis27.target.rug.nl/api/v1/tabdelim'>
+                    <form id='gn-network-gpform' method='post' encType='multipart/form-data' action={GN.urls.tabdelim}>
                     <input type='hidden' id='data' name='data' value='' />
                     <input type='hidden' id='name' name='name' value='' />
                     <input type='hidden' id='genes' name='genes' value='' />

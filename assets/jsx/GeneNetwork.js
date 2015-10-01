@@ -1,5 +1,7 @@
 'use strict';
 
+var config = require('../config/genenetwork-config')
+
 var _ = require('lodash')
 var color = require('../js/color')
 var htmlutil = require('./htmlutil')
@@ -40,27 +42,25 @@ GN.menuItems = [{
 
 GN.urls = {
 
-    main: 'http://molgenis27.target.rug.nl',
-    gene: 'http://molgenis27.target.rug.nl/api/v1/gene',
-    pathway: 'http://molgenis27.target.rug.nl/api/v1/pathway',
-    coregulation: 'http://molgenis27.target.rug.nl/api/v1/coregulation',
-    cofunction: 'http://molgenis27.target.rug.nl/api/v1/cofunction',
-    pc: 'http://molgenis27.target.rug.nl/api/v1/pc',
+    main: config.domain,
+    gene: config.domain + '/api/v1/gene',
+    pathway: config.domain + '/api/v1/pathway',
+    coregulation: config.domain + '/api/v1/coregulation',
+    cofunction: config.domain + '/api/v1/cofunction',
+    pc: config.domain + '/api/v1/pc',
     
-    suggest: 'http://molgenis27.target.rug.nl/socketapi/suggest',
-    pathwayanalysis: 'http://molgenis27.target.rug.nl/socketapi/pathwayanalysis',
-    geneprediction: 'http://molgenis27.target.rug.nl/socketapi/geneprediction',
-    genescores: 'http://molgenis27.target.rug.nl/socketapi/genescores',
-    genevsnetwork: 'http://molgenis27.target.rug.nl/socketapi/genevsnetwork',
+    suggest: config.domain + '/socketapi/suggest',
+    pathwayanalysis: config.domain + '/socketapi/pathwayanalysis',
+    geneprediction: config.domain + '/socketapi/geneprediction',
+    genescores: config.domain + '/socketapi/genescores',
+    genevsnetwork: config.domain + '/socketapi/genevsnetwork',
 
-    // genePage: 'http://molgenis27.target.rug.nl/#/gene/',
-    // termPage: 'http://molgenis27.target.rug.nl/#/term/',
-    // networkPage: 'http://molgenis27.target.rug.nl/#/network/',
+    genePage: config.domain + '/gene/',
+    termPage: config.domain + '/term/',
+    networkPage: config.domain + '/network/',
 
-    genePage: 'http://molgenis27.target.rug.nl/gene/',
-    termPage: 'http://molgenis27.target.rug.nl/term/',
-    networkPage: 'http://molgenis27.target.rug.nl/network/',
-
+    svg2pdf: config.domain + '/api/v1/svg2pdf',
+    tabdelim: config.domain + '/api/v1/tabdelim',    
 }
 
 GN.pageTitleSuffix = ' - Gene Network'
