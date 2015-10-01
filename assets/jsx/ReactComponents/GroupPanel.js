@@ -58,7 +58,6 @@ var GroupPanel = React.createClass({
         }
 
         var geneStr = this.props.activeGroup.nodes.join(',')
-        var pwaURL = 'http://molgenis27.target.rug.nl/#/analysis/' + geneStr
         // Analyse {that.props.activeGroup.nodes.length} {that.props.activeGroup.nodes.length === 1 ? 'gene' : 'genes'}
         // {that.props.activeGroup.nodes.length === 1 ? <span style={{visibility: 'hidden'}}>s</span> : ''}
         return (
