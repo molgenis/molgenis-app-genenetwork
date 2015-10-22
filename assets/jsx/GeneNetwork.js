@@ -164,12 +164,12 @@ var Landing = React.createClass({
         if (_.size(this.props.params) === 0) {
             topBanner = (<div className='searchcontainer'>
                           <div className='searchheader noselect defaultcursor'>
-                          Catchy mantra here
+                          Predict gene functions. Discover novel disease genes.
                           </div>
                           <div className='selectcontainer'>
                          <Select
                          name='search'
-                         value={'Search doesn\'t work yet -- you have to modify the url for the time being'}
+                         value={'Search here'}
                          matchPos='any'
                          matchProp='label'
                          placeholder=''
@@ -185,7 +185,7 @@ var Landing = React.createClass({
                           </div>)
         } else {
             topSearch = (<div className='gn-top-search flex11' style={{margin: '0 20px'}}>
-                         <Select name='search' value={'Search doesn\'t work yet -- you have to modify the url for the time being'}
+                         <Select name='search' value={'Search here'}
                          matchProp='label' placeholder='' autoload={false} asyncOptions={this.getSuggestions} onChange={this.onSelectChange} />
                          </div>)
         }
