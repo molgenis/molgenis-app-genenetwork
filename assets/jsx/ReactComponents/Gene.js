@@ -13,6 +13,7 @@ var Link = Router.Link
 var GeneHeader = require('./GeneHeader')
 var GeneMenu = require('./GeneMenu')
 var SimilarGenesTable = require('./SimilarGenesTable')
+var Tissues = require('./Tissues')
 var SVGCollection = require('./SVGCollection')
 var Footer = require('./Footer')
 var Cookies = require('cookies-js')
@@ -23,27 +24,27 @@ var PredictionRow = React.createClass({
     render: function() {
         var cls = this.props.num % 2 === 0 ? 'datarow evenrow' : 'datarow oddrow'
         return (
-                <tr className={cls}>
-                <td className='text'>
-                <Link className='nodecoration black' title={this.props.data.term.numAnnotatedGenes + ' annotated genes, prediction accuracy ' + Math.round(100 * this.props.data.term.auc) / 100} to={`/term/${this.props.data.term.id}`}>
-                {this.props.data.term.name}
+            <tr className={cls}>
+            <td className='text'>
+            <Link className='nodecoration black' title={this.props.data.term.numAnnotatedGenes + ' annotated genes, prediction accuracy ' + Math.round(100 * this.props.data.term.auc) / 100} to={`/term/${this.props.data.term.id}`}>
+            {this.props.data.term.name}
             </Link>
-                </td>
-                <td style={{textAlign: 'center'}} dangerouslySetInnerHTML={{__html: htmlutil.pValueToReadable(this.props.data.pValue)}}></td>
-                <td style={{textAlign: 'center'}}>
-                {this.props.data.zScore > 0 ? <SVGCollection.TriangleUp className='directiontriangleup' /> : <SVGCollection.TriangleDown className='directiontriangledown' />}
             </td>
-                <td style={{textAlign: 'center'}}>
-                {this.props.isAnnotated ? <SVGCollection.Annotated /> : <SVGCollection.NotAnnotated />}
+            <td style={{textAlign: 'center'}} dangerouslySetInnerHTML={{__html: htmlutil.pValueToReadable(this.props.data.pValue)}}></td>
+            <td style={{textAlign: 'center'}}>
+            {this.props.data.zScore > 0 ? <SVGCollection.TriangleUp className='directiontriangleup' /> : <SVGCollection.TriangleDown className='directiontriangledown' />}
             </td>
-                <td style={{textAlign: 'center'}}>
-                <a title={'Open network ' + (this.props.data.annotated ? 'highlighting ' : 'with ') + this.props.gene.name} href={GN.urls.networkPage + this.props.data.term.id + ',0!' + this.props.gene.name} target='_blank'>
-                <SVGCollection.NetworkIcon />
-                </a>
-                </td>
-                </tr>
-        )
-    }
+            <td style={{textAlign: 'center'}}>
+            {this.props.isAnnotated ? <SVGCollection.Annotated /> : <SVGCollection.NotAnnotated />}
+            </td>
+            <td style={{textAlign: 'center'}}>
+            <a title={'Open network ' + (this.props.data.annotated ? 'highlighting ' : 'with ') + this.props.gene.name} href={GN.urls.networkPage + this.props.data.term.id + ',0!' + this.props.gene.name} target='_blank'>
+            <SVGCollection.NetworkIcon />
+            </a>
+            </td>
+            </tr>
+            )
+}
 })
 
 var DataTable = React.createClass({
@@ -90,24 +91,24 @@ var DataTable = React.createClass({
 
         if (false && rows.length === 0) {
             return (
-                    <div>{'No ' + this.props.db + (this.props.type == 'prediction' ? ' predictions' : ' annotations') + ' for ' + this.props.data.gene.name}</div>
-            )
+                <div>{'No ' + this.props.db + (this.props.type == 'prediction' ? ' predictions' : ' annotations') + ' for ' + this.props.data.gene.name}</div>
+                )
         } else {
             var annotatedClass = this.state.annotationsOnly ? 'clickable underline' : 'clickable'
             return (
-                    <table className='gn-gene-table datatable'>
-                    <tbody>
-                    <tr>
-                    <th className='tabletextheader'>TERM</th>
-                    <th>P-VALUE</th>
-                    <th>DIRECTION</th>
-                    <th className={annotatedClass} onClick={this.handleAnnotationsClick}>ANNOTATED</th>
-                    <th>NETWORK</th>
-                    </tr>
-                    {rows}
+                <table className='gn-gene-table datatable'>
+                <tbody>
+                <tr>
+                <th className='tabletextheader'>TERM</th>
+                <th>P-VALUE</th>
+                <th>DIRECTION</th>
+                <th className={annotatedClass} onClick={this.handleAnnotationsClick}>ANNOTATED</th>
+                <th>NETWORK</th>
+                </tr>
+                {rows}
                 </tbody>
-                    </table>
-            )
+                </table>
+                )
         }
     }
 })
@@ -128,9 +129,9 @@ var Gene = React.createClass({
     loadData: function() {
         // console.log('loading', this.getParams().geneId)
         var tasks = [{url: GN.urls.gene + '/' + this.props.params.geneId + '?verbose',
-                      name: 'prediction'},
-                     {url: GN.urls.coregulation + '/' + this.props.params.geneId + '?verbose',
-                      name: 'similar'}]
+        name: 'prediction'},
+        {url: GN.urls.coregulation + '/' + this.props.params.geneId + '?verbose',
+        name: 'similar'}]
         if (this.state.topMenuSelection == 'similar') {
             tasks.reverse()
         }
@@ -143,6 +144,7 @@ var Gene = React.createClass({
                     if (this.isMounted() && task.name == 'prediction') {
                         this.setState({
                             gene: data.gene,
+                            celltypes: data.celltypes,
                             prediction: data,
                             topMenuSelection: 'prediction',
                             error: null
@@ -150,6 +152,7 @@ var Gene = React.createClass({
                     } else {
                         this.setState({
                             gene: data.gene,
+                            celltypes: data.celltypes,
                             topMenuSelection: 'prediction',
                             similar: data,
                             error: null
@@ -157,38 +160,38 @@ var Gene = React.createClass({
                     }
                 }.bind(that),
                 error: function(xhr, status, err) {
-		    console.log(xhr)
-                    if (this.isMounted() && task.name !== 'similar') {
-                        if (err === 'Not Found') {
-                            this.setState({
-                                error: 'Gene ' + this.props.params.geneId + ' not found',
-			        errorTitle: 'Error ' + xhr.status
-                            })
-                        } else {
-                            this.setState({
-                                error: 'Please try again later (' + xhr.status + ')',
-			        errorTitle: 'Error ' + xhr.status
-                            })
-                        }
+                  console.log(xhr)
+                  if (this.isMounted() && task.name !== 'similar') {
+                    if (err === 'Not Found') {
+                        this.setState({
+                            error: 'Gene ' + this.props.params.geneId + ' not found',
+                            errorTitle: 'Error ' + xhr.status
+                        })
+                    } else {
+                        this.setState({
+                            error: 'Please try again later (' + xhr.status + ')',
+                            errorTitle: 'Error ' + xhr.status
+                        })
                     }
-                }.bind(that)
-            })
+                }
+            }.bind(that)
         })
-    },
+})
+},
 
-    componentDidMount: function() {
+componentDidMount: function() {
         // $(document).mousedown(function(e) {
         //     console.log(e)
         // })
-        var el = React.findDOMNode(this)
-        this.setState({
-            w: el.offsetWidth,
-            h: el.offsetHeight
-        })
-        this.loadData()
-    },
+var el = React.findDOMNode(this)
+this.setState({
+    w: el.offsetWidth,
+    h: el.offsetHeight
+})
+this.loadData()
+},
 
-    componentWillUnmount: function() {
+componentWillUnmount: function() {
         // $(document).unbind('mousedown')
     },
 
@@ -227,43 +230,49 @@ var Gene = React.createClass({
         } else if (this.state.h) {
             var data = this.state.topMenuSelection == 'prediction' ? this.state.prediction : this.state.similar
             if (data) {
+                var tableContent = null
+                if (this.state.topMenuSelection == 'prediction') {
+                    tableContent = <DataTable data={data} db={this.state.databaseSelection} />
+                } else if (this.state.topMenuSelection == 'similar') {
+                    tableContent = <SimilarGenesTable data={data} />
+                } else if (this.state.topMenuSelection == 'tissues') {
+                    tableContent = <Tissues data={data} celltypes={this.state.celltypes}/>
+                }
                 pageTitle = data.gene.name + GN.pageTitleSuffix
                 contentTop = (
-                        <GeneHeader gene={data.gene} />
-                )
+                    <GeneHeader gene={data.gene} />
+                    )
                 content = (
-                        <div className='gn-gene-container-inner maxwidth' style={{padding: '20px'}}>
-                        <GeneMenu data={data}
+                    <div className='gn-gene-container-inner maxwidth' style={{padding: '20px'}}>
+                    <GeneMenu data={data}
                     onTopMenuClick={this.handleTopMenuClick}
                     onDatabaseClick={this.handleDatabaseClick}
                     onShowTypeClick={this.handleShowTypeClick}
                     topMenuSelection={this.state.topMenuSelection}
                     databaseSelection={this.state.databaseSelection}
                     showTypeSelection={this.state.showTypeSelection} />
-                        {this.state.topMenuSelection == 'prediction' ?
-                         <DataTable data={data} db={this.state.databaseSelection} /> :
-                         <SimilarGenesTable data={data} />}
+                    {tableContent}
                     </div>
-                )
+                    )
             } else {
                 pageTitle = 'Loading' + GN.pageTitleSuffix
                 content = (
-                        <div className='gn-gene-container-inner maxwidth' style={{padding: '20px'}}>
-                        <div style={{position: 'absolute', top: (this.state.h - 100) / 2 + 'px', width: this.state.w + 'px', textAlign: 'center'}}>loading</div>
-                        </div>
-                )
+                    <div className='gn-gene-container-inner maxwidth' style={{padding: '20px'}}>
+                    <div style={{position: 'absolute', top: (this.state.h - 100) / 2 + 'px', width: this.state.w + 'px', textAlign: 'center'}}>loading</div>
+                    </div>
+                    )
             }
         }
         return (
-		<DocumentTitle title={pageTitle}>
-                <div style={{overflowY: 'scroll'}}>
-                {contentTop}
-                <div className={'gn-gene-container-outer'} style={{backgroundColor: color.colors.gnwhite, marginTop: '10px'}}>
-                {content}
-            </div>
-                </div>
-		</DocumentTitle>
-        )
+          <DocumentTitle title={pageTitle}>
+          <div style={{overflowY: 'scroll'}}>
+          {contentTop}
+          <div className={'gn-gene-container-outer'} style={{backgroundColor: color.colors.gnwhite, marginTop: '10px'}}>
+          {content}
+          </div>
+          </div>
+          </DocumentTitle>
+          )
     }
 })
 

@@ -112,6 +112,7 @@ function readGenes() {
             })
         }
     }
+
     sails.log.info(geneObjects.length + ' genes read from ' + sails.config.geneDescFile)
     return geneObjects
 }

@@ -440,23 +440,28 @@ exp.getGeneJSON = function(gene, db, req, callback) {
                     })
             },
             function(cb) {
+
                 celltypedb.createReadStream({
-                    start: gene.id + '!CELLTYPE!',
-                    end: gene.id + '!CELLTYPE!~'
+                    start: gene.id + '!CELLTYPE!BLADDER!',
+                    end: gene.id + '!CELLTYPE!BLADDER~'
                 })
-                .on('data', function(data) {
-                    // var celltype = typeof data.key
-                    var celltype = data.key.substring(data.key.lastIndexOf('!') + 1, data.key.length)
+                    .on('data', function(data) {
+                        var celltype = data.key.substring(data.key.lastIndexOf('!') + 1, data.key.length)
                     r.celltypes.push({
                         celltype: celltype,
                         value: data.value
                     })
-                  
                 })
 
-                .on('end', function() {
-                    cb(null)
-                })
+
+                // .on('data', function(data) {
+                //     var celltype = data.key.substring(data.key.lastIndexOf('!') + 1, data.key.length)
+                //     r.celltypes.push({
+                //         celltype: celltype,
+                //         value: data.value
+                //     })
+                // })
+                cb(null)
             }
         ],
         function(err) {

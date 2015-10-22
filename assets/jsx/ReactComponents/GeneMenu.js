@@ -17,6 +17,8 @@ var GeneMenu = React.createClass({
     
     render: function() {
 
+        function swap(list, i, j){var temp = list[i]; list[i] = list[j]; list[j] = temp}
+
         var that = this
         var numAnnotatedThisDatabase = null
         if ('prediction' == this.props.topMenuSelection) {
@@ -25,8 +27,9 @@ var GeneMenu = React.createClass({
             }).length
         }
 
-        var topButtonStyles = ['button clickable selectedbutton', 'button clickable']
-        if ('similar' == this.props.topMenuSelection) topButtonStyles.reverse()
+        var topButtonStyles = ['button clickable selectedbutton', 'button clickable', 'button clickable']
+        if ('similar' == this.props.topMenuSelection) swap(topButtonStyles, 0, 1)
+        if ('tissues' == this.props.topMenuSelection) swap(topButtonStyles, 0, 2)
         var databaseButtonStyles = ['button clickable selectedbutton', 'button clickable']
         if ('annotation' == this.props.showTypeSelection) {
             databaseButtonStyles.reverse()
@@ -60,6 +63,7 @@ var GeneMenu = React.createClass({
                 <td style={{padding: 0}}>
                 <span className={topButtonStyles[0]} onClick={this.props.onTopMenuClick.bind(null, 'prediction')}>PATHWAYS & PHENOTYPES</span>
                 <span className={topButtonStyles[1]} onClick={this.props.onTopMenuClick.bind(null, 'similar')}>CO-REGULATED GENES</span>
+                <span className={topButtonStyles[2]} onClick={this.props.onTopMenuClick.bind(null, 'tissues')}>TISSUES</span>
                 </td>
                 </tr>
                 {this.props.topMenuSelection == 'prediction' ?
@@ -69,6 +73,7 @@ var GeneMenu = React.createClass({
                          <td style={{backgroundColor: '#4d4d4d', padding: 0}}>{databaseMenuItems}</td>
                          </tr>
                  ) : null }
+           
             { // TODO remove
                 false && this.props.topMenuSelection == 'prediction' ?
                  (
@@ -82,6 +87,7 @@ var GeneMenu = React.createClass({
                          </td>
                          </tr>
                  ) : null }
+
             </tbody>
                 </table>
         )

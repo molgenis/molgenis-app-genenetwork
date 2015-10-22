@@ -33,7 +33,7 @@ GN.menuItems = [{
     name: 'HOW IT WORKS',
     route: '/how'
 }, {
-    name: 'ABOUT US',
+    name: 'ABOUT',
     route: '/about'
 }, {
     name: 'API',
@@ -46,6 +46,7 @@ GN.urls = {
     gene: config.domain + '/api/v1/gene',
     pathway: config.domain + '/api/v1/pathway',
     coregulation: config.domain + '/api/v1/coregulation',
+    tissues: config.domain + '/api/v1/tissues',
     cofunction: config.domain + '/api/v1/cofunction',
     pc: config.domain + '/api/v1/pc',
     
@@ -178,7 +179,7 @@ var Landing = React.createClass({
                          onChange={this.onSelectChange} />
                           </div>
                           <div className='examples noselect defaultcursor'>For example:&nbsp;
-                         <Link className='clickable' title='MYOM1' to='/gene/MYOM1'>MYOM1</Link>,&nbsp;
+                          <Link className='clickable' title='MYOM1' to='/gene/MYOM1'>MYOM1</Link>,&nbsp;
                           <Link className='clickable' title='Interferon signaling' to='/term/REACTOME_INTERFERON_SIGNALING'>Interferon signaling</Link>,&nbsp;
                           <Link className='clickable' title='Schizophrenia' to='network' params={{ids: 'Schizophrenia'}}>Schizophrenia</Link>
                           </div>

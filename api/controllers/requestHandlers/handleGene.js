@@ -15,6 +15,7 @@ module.exports = function(req, res) {
                 res.send(err.status, err)
             } else {
                 res.json(json)
+                
             }
         })
     } else {
