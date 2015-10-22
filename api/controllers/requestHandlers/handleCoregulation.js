@@ -242,7 +242,8 @@ module.exports = function(req, res) {
                         var ensgs = _.map(genes, function(gene) { return gene.id })
                         var sha = crypto.createHash('sha1').update(ensgs.join(',')).digest('hex')
                         var vanity = bs62.encode(parseInt(sha.substring(0, 8), 16))
-                        reqdb.get('coregnetwork!' + vanity, function(err, network) {
+                        //TODO take into account custom coloring
+                        reqdb.get('TODOcoregnetwork!' + vanity, function(err, network) {
                             if (err) {
                                 if (err.name == 'NotFoundError') {
                                     sails.log.verbose('Network requested for previously unseen ' + genes.length + ' genes')
