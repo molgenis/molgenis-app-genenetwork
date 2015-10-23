@@ -7,6 +7,7 @@ var probability = require('../../../stats/probability')
 var quicksort = require('./quicksort')
 var quicksortobj = require('./quicksortobj')
 var sortby = require('./sort').sortby
+var _ = require('lodash')
 //var enc = require('./encoding')
 //var lookup = enc.getLookupArray()
 var lookup = function(value) { return (value - 32768) / 1000 }
@@ -20,9 +21,7 @@ var genedb = level(sails.config.geneDBPath, {
 var pathwaydb = level(sails.config.pathwayDBPath, {
     valueEncoding: 'binary'
 })
-var celltypedb = level(sails.config.celltypeDBPath, {
-    valueEncoding: 'json'
-})
+var celltypedb = level(sails.config.celltypeDBPath)
 
 //var pathwayrankdb = level(sails.config.pathwayRankDBPath, {valueEncoding: 'binary'})
 // var pcdb = level(sails.config.pcDBPath, {
@@ -348,7 +347,14 @@ exp.getGeneJSON = function(gene, db, req, callback) {
             annotated: [],
             predicted: []
         },
-        celltypes: []
+        celltypes: {
+        	header: [],
+        	indices: {},
+        	avg: [], 
+        	stdev: [], 
+        	p: [], 
+        	auc: []
+        }
     }
 
     if (db) { // pathway database given, get all its pathways
@@ -440,20 +446,50 @@ exp.getGeneJSON = function(gene, db, req, callback) {
                     })
             },
             function(cb) {
-                celltypedb.createReadStream({
-                    start: gene.id + '!CELLTYPE!',
-                    end: gene.id + '!CELLTYPE!~'
-                })
-                .on('data', function(data) {
-                    // var celltype = typeof data.key
-                    var celltype = data.key.substring(data.key.lastIndexOf('!') + 1, data.key.length)
-                    r.celltypes.push({
-                        celltype: celltype,
-                        value: data.value
-                    })
-                  
+
+                celltypedb.get('!RNASEQ!CELLTYPE', [{valueEncoding: 'json'}], function(err, data) {
+                	r.celltypes['header'] = JSON.parse(data.toString())
+                	var i = 0;
+                	_.forEach(r.celltypes['header'], function(item){
+                		n = item.name
+                		// r.celltypes['indices']['test'] = item
+                		if ('children' in item){
+                			r.celltypes['indices'][n] = i
+                			i++;
+                			_.forEach(item.children, function(child){
+                				r.celltypes['indices'][child.name] = i
+                				i++;
+                			});
+                		} else {
+                			r.celltypes['indices'][n] = i
+                			i ++;
+                		}
+                		
+                	})
                 })
 
+                celltypedb.createReadStream({
+                    start: 'RNASEQ!' + gene.id + '!CELLTYPE!',
+                    end: 'RNASEQ!' + gene.id + '!CELLTYPE!~'
+                })
+
+                .on('data', function(data) {
+                	                	
+                    if (_.endsWith(data.key, 'AVG')){
+                    	_.forEach(data.value.toString().split(','), function(value){
+                    		r.celltypes['avg'].push((Math.round(parseFloat(value) * 100))/100)
+                    	})
+
+                    } else if (_.endsWith(data.key, 'STDEV')) {
+                    	//
+
+                    } else if (_.endsWith(data.key, 'P')) {
+                    	//
+
+                    } else if (_.endsWith(data.key, 'AUC')) {
+                    	//
+                    }
+                })
                 .on('end', function() {
                     cb(null)
                 })
