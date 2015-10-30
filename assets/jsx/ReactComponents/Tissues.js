@@ -1,21 +1,5 @@
 var _ = require('lodash')
 var React = require('react')
-var Router = require('react-router')
-var Select = require('react-select')
-var ReactCanvas = require('react-canvas')
-var ListView = ReactCanvas.ListView
-var DocumentTitle = require('react-document-title')
-var Route = Router.Route
-var Link = Router.Link
-
-var GeneHeader = require('./GeneHeader')
-var GeneMenu = require('./GeneMenu')
-var SimilarGenesTable = require('./SimilarGenesTable')
-var Tissues = require('./Tissues')
-var SVGCollection = require('./SVGCollection')
-var Footer = require('./Footer')
-var Cookies = require('cookies-js')
-var color = require('../../js/color')
 var htmlutil = require('../htmlutil')
 
 var DataTable = React.createClass({
@@ -25,6 +9,9 @@ var DataTable = React.createClass({
     	
     	var indices = this.props.celltypes.indices
     	var avg = this.props.celltypes.avg
+        var p = this.props.celltypes.p
+        var stdev = this.props.celltypes.stdev
+
     	var sortedItems = _.sortBy(this.props.celltypes.header, function(item){
     		return avg[indices[item.name]]
     	}).reverse()
@@ -33,20 +20,24 @@ var DataTable = React.createClass({
     		var cls = i % 2 === 0 ? 'datarow evenrow' : 'datarow oddrow';
     		return(
     			<tr className = {cls}>
-    				<td>{item.name}</td>
+    				<td className="text">{item.name}</td>
     				<td style={{textAlign: 'center'}}>{item.numSamples}</td>
     				<td style={{textAlign: 'center'}}>{avg[indices[item.name]]}</td>
+                    <td style={{textAlign: 'center'}} dangerouslySetInnerHTML={{__html: htmlutil.pValueToReadable(p[indices[item.name]])}}></td>
+                    <td style={{textAlign: 'center'}} >{stdev[indices[item.name]]}</td>
     			</tr>
     		)
     	})
 
         return (
-         	<table>
+         	<table className>
             <tbody>
             <tr>
-            <th>TISSUE</th>
+            <th className>TISSUE</th>
             <th>NUMBER OF SAMPLES</th>
             <th>AVERAGE EXPRESSION</th>
+            <th>P-VALUE</th>
+            <th>SD</th>
             </tr>
             {rows}
             </tbody>

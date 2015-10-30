@@ -481,10 +481,14 @@ exp.getGeneJSON = function(gene, db, req, callback) {
                     	})
 
                     } else if (_.endsWith(data.key, 'STDEV')) {
-                    	//
+                    	_.forEach(data.value.toString().split(','), function(value){
+                            r.celltypes['stdev'].push((Math.round(parseFloat(value) * 100))/100)
+                        })
 
                     } else if (_.endsWith(data.key, 'P')) {
-                    	//
+                    	_.forEach(data.value.toString().split(','), function(value){
+                            r.celltypes['p'].push(parseFloat(value))
+                        })
 
                     } else if (_.endsWith(data.key, 'AUC')) {
                     	//
