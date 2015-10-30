@@ -5,8 +5,7 @@ var htmlutil = require('../htmlutil')
 var DataTable = React.createClass({
 
     render: function() {
-    	var that = this
-    	
+
     	var indices = this.props.celltypes.indices
     	var avg = this.props.celltypes.avg
         var p = this.props.celltypes.p
@@ -20,7 +19,7 @@ var DataTable = React.createClass({
     		var cls = i % 2 === 0 ? 'datarow evenrow' : 'datarow oddrow';
     		return(
     			<tr className = {cls}>
-    				<td className="text">{item.name}</td>
+    				<td className>{item.name}</td>
     				<td style={{textAlign: 'center'}}>{item.numSamples}</td>
     				<td style={{textAlign: 'center'}}>{avg[indices[item.name]]}</td>
                     <td style={{textAlign: 'center'}} dangerouslySetInnerHTML={{__html: htmlutil.pValueToReadable(p[indices[item.name]])}}></td>
@@ -30,10 +29,10 @@ var DataTable = React.createClass({
     	})
 
         return (
-         	<table className>
+         	<table className='gn-gene-table datatable' style={{width: '50%'}}>
             <tbody>
             <tr>
-            <th className>TISSUE</th>
+            <th style={{textAlign: 'left'}}>TISSUE</th>
             <th>NUMBER OF SAMPLES</th>
             <th>AVERAGE EXPRESSION</th>
             <th>P-VALUE</th>
@@ -52,7 +51,7 @@ var Tissues = React.createClass({
 
 		return (
 			<div>
-				<DataTable celltypes={this.props.celltypes} />
+				<DataTable celltypes={this.props.celltypes}/>
 			</div>
 		)
 	}
