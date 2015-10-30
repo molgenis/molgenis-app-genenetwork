@@ -29,9 +29,10 @@ var DataTable = React.createClass({
     		return avg[indices[item.name]]
     	}).reverse()
 
-    	var rows = _.map(sortedItems, function(item){
+    	var rows = _.map(sortedItems, function(item, i){
+    		var cls = i % 2 === 0 ? 'datarow evenrow' : 'datarow oddrow';
     		return(
-    			<tr>
+    			<tr className = {cls}>
     				<td>{item.name}</td>
     				<td style={{textAlign: 'center'}}>{item.numSamples}</td>
     				<td style={{textAlign: 'center'}}>{avg[indices[item.name]]}</td>

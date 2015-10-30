@@ -30,8 +30,8 @@ var PredictionRow = React.createClass({
 				</td>
 				<td style={{textAlign: 'center'}}>
 					<a title={'Open network ' + (this.props.data.annotated ? 'highlighting ' : 'with ') + this.props.gene.name} href={GN.urls.networkPage + this.props.data.term.id + ',0!' + this.props.gene.name} target='_blank'>
-				<SVGCollection.NetworkIcon />
-				</a>
+						<SVGCollection.NetworkIcon />
+					</a>
 				</td>
 			</tr>
 		)
