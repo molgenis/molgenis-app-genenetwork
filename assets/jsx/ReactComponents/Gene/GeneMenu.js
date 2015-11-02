@@ -1,7 +1,7 @@
 var _ = require('lodash')
 var React = require('react')
-var GeneOpenMenu = require('./GeneOpenMenu')
-var SVGCollection = require('./SVGCollection')
+var GeneOpenMenu = require('../GeneOpenMenu')
+var SVGCollection = require('../SVGCollection')
 
 var GeneMenu = React.createClass({
 
@@ -61,10 +61,16 @@ var GeneMenu = React.createClass({
                 <tr>
                 <td style={{width: '8em'}}>SHOW</td>
                 <td style={{padding: 0}}>
-                <span className={topButtonStyles[0]} onClick={this.props.onTopMenuClick.bind(null, 'prediction')}>PATHWAYS & PHENOTYPES</span>
-                <span className={topButtonStyles[1]} onClick={this.props.onTopMenuClick.bind(null, 'similar')}>CO-REGULATED GENES</span>
-                <span className={topButtonStyles[2]} onClick={this.props.onTopMenuClick.bind(null, 'tissues')}>TISSUES</span>
-                </td>
+                {this.props.available[0] ?
+                 (<span className={topButtonStyles[0]} onClick={this.props.onTopMenuClick.bind(null, 'prediction')}>PATHWAYS & PHENOTYPES</span>) : null
+                }
+            {this.props.available[1] ?
+             (<span className={topButtonStyles[1]} onClick={this.props.onTopMenuClick.bind(null, 'similar')}>CO-REGULATED GENES</span>) : null
+            }
+            {this.props.available[2] ?
+             (<span className={topButtonStyles[2]} onClick={this.props.onTopMenuClick.bind(null, 'tissues')}>TISSUES</span>) : null
+            }
+            </td>
                 </tr>
                 {this.props.topMenuSelection == 'prediction' ?
                  (
@@ -73,21 +79,6 @@ var GeneMenu = React.createClass({
                          <td style={{backgroundColor: '#4d4d4d', padding: 0}}>{databaseMenuItems}</td>
                          </tr>
                  ) : null }
-           
-            { // TODO remove
-                false && this.props.topMenuSelection == 'prediction' ?
-                 (
-                         <tr>
-                         <td>(S)HOW TO DO THIS?</td>
-                         <td style={{padding: 0}}>
-                         <div className={databaseButtonStyles[0]} onClick={this.props.onShowTypeClick.bind(null, 'prediction')}>
-                         PREDICTED</div>
-                         <div className={databaseButtonStyles[1]} onClick={numAnnotatedThisDatabase > 0 ? this.props.onShowTypeClick.bind(null, 'annotation') : null}>
-                         ANNOTATED<span className='numannotated'>{numAnnotatedThisDatabase}</span></div>
-                         </td>
-                         </tr>
-                 ) : null }
-
             </tbody>
                 </table>
         )

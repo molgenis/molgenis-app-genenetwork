@@ -1,6 +1,6 @@
 var React = require('react')
-var GeneOpenMenu = require('./GeneOpenMenu')
-var SVGCollection = require('./SVGCollection')
+var GeneOpenMenu = require('../GeneOpenMenu')
+var SVGCollection = require('../SVGCollection')
 
 var GeneHeaderMenu = React.createClass({
 

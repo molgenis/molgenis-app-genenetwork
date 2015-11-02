@@ -1,22 +1,6 @@
 var _ = require('lodash')
 var React = require('react')
-var Router = require('react-router')
-var Select = require('react-select')
-var ReactCanvas = require('react-canvas')
-var ListView = ReactCanvas.ListView
-var DocumentTitle = require('react-document-title')
-var Route = Router.Route
-var Link = Router.Link
-
-var GeneHeader = require('./GeneHeader')
-var GeneMenu = require('./GeneMenu')
-var SimilarGenesTable = require('./SimilarGenesTable')
-var Tissues = require('./Tissues')
-var SVGCollection = require('./SVGCollection')
-var Footer = require('./Footer')
-var Cookies = require('cookies-js')
-var color = require('../../js/color')
-var htmlutil = require('../htmlutil')
+var HomoSapiens = require('./HomoSapiens')
 
 var DataTable = React.createClass({
 
@@ -32,7 +16,7 @@ var DataTable = React.createClass({
     	var rows = _.map(sortedItems, function(item, i){
     		var cls = i % 2 === 0 ? 'datarow evenrow' : 'datarow oddrow';
     		return(
-    			<tr className = {cls}>
+    			<tr key={item.name} className = {cls}>
     				<td>{item.name}</td>
     				<td style={{textAlign: 'center'}}>{item.numSamples}</td>
     				<td style={{textAlign: 'center'}}>{avg[indices[item.name]]}</td>
@@ -60,8 +44,11 @@ var Tissues = React.createClass({
 	render: function(){
 
 		return (
-			<div>
-				<DataTable celltypes={this.props.celltypes} />
+			<div className="hflex">
+			<DataTable celltypes={this.props.celltypes} />
+                        <div style={{width: '20%'}}>
+                        <HomoSapiens />
+                    </div>
 			</div>
 		)
 	}

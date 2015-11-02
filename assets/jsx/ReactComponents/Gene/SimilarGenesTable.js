@@ -1,10 +1,10 @@
 var _ = require('lodash')
 var React = require('react')
 var Link = require('react-router').Link
-var SVGCollection= require('./SVGCollection')
+var SVGCollection= require('../SVGCollection')
 var Cookies = require('cookies-js')
-var htmlutil = require('../htmlutil')
-var color = require('../../js/color')
+var htmlutil = require('../../htmlutil')
+var color = require('../../../js/color')
 
 var SimilarGenesTable = React.createClass({
 
