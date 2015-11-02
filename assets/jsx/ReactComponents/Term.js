@@ -5,6 +5,7 @@ var color = require('../../js/color')
 var htmlutil = require('../htmlutil')
 
 var React = require('react')
+var ReactDOM = require('react-dom')
 var Router = require('react-router')
 var Link = Router.Link
 var Select = require('react-select')
@@ -145,7 +146,7 @@ var Term = React.createClass({
     },
 
     componentDidMount: function() {
-        var el = React.findDOMNode(this)
+        var el = ReactDOM.findDOMNode(this)
         // console.log(el.offsetWidth, el.offsetHeight)
         this.setState({
             w: el.offsetWidth,

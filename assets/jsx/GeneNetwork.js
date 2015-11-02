@@ -7,6 +7,7 @@ var color = require('../js/color')
 var htmlutil = require('./htmlutil')
 
 var React = require('react')
+var ReactDOM = require('react-dom')
 var ReactRouter = require('react-router')
 var Router = ReactRouter.Router
 var Route = ReactRouter.Route
@@ -259,8 +260,8 @@ GN.routes = (
 )
 
 var history = createBrowserHistory()
-React.render(<Router history={history}>
+ReactDOM.render(<Router history={history}>
              {GN.routes}
              </Router>,
-             document.body
+             document.getElementById('reactcontainer')
             )

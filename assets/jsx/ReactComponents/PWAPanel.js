@@ -4,6 +4,7 @@ var _ = require('lodash')
 var htmlutil = require('../htmlutil.js')
 var color = require('../../js/color.js')
 var React = require('react')
+var ReactDOM = require('react-dom')
 var StatusBar = require('./StatusBar')
 var Disetti = require('./Disetti')
 var SVGCollection = require('./SVGCollection')
@@ -30,7 +31,7 @@ var PWAPanel = React.createClass({
     
     componentDidMount: function() {
         console.log('PWAPanel.componentDidMount: called')
-        this.w = React.findDOMNode(this).offsetWidth - 3 * 10 - 16 // 3 * padding - diskette width
+        this.w = ReactDOM.findDOMNode(this).offsetWidth - 3 * 10 - 16 // 3 * padding - diskette width
         window.addEventListener('resize', this.handleResize)
         this.setSocketListeners()
     },
@@ -48,11 +49,11 @@ var PWAPanel = React.createClass({
     },
     
     componentWillReceiveProps: function(nextProps) {
-        this.w = React.findDOMNode(this).offsetWidth - 3 * 10 - 16 // 3 * padding - diskette width
+        this.w = ReactDOM.findDOMNode(this).offsetWidth - 3 * 10 - 16 // 3 * padding - diskette width
     },
 
     handleResize: function(e) {
-        this.w = React.findDOMNode(this).offsetWidth - 3 * 10 - 16 // 3 * padding - diskette width
+        this.w = ReactDOM.findDOMNode(this).offsetWidth - 3 * 10 - 16 // 3 * padding - diskette width
         this.setState({
             w: this.w
         })

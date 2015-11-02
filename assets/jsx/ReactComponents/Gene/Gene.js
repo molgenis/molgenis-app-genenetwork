@@ -2,6 +2,7 @@
 
 var _ = require('lodash')
 var React = require('react')
+var ReactDOM = require('react-dom')
 var Router = require('react-router')
 var Select = require('react-select')
 var DocumentTitle = require('react-document-title')
@@ -89,7 +90,7 @@ componentDidMount: function() {
         // $(document).mousedown(function(e) {
         //     console.log(e)
         // })
-var el = React.findDOMNode(this)
+var el = ReactDOM.findDOMNode(this)
 this.setState({
     w: el.offsetWidth,
     h: el.offsetHeight

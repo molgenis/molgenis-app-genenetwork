@@ -2,6 +2,7 @@
 
 var _ = require('lodash')
 var React = require('react')
+var ReactDOM = require('react-dom')
 
 var NetworkPanel = require('./NetworkPanel')
 var GroupPanel = require('./GroupPanel')
@@ -27,7 +28,7 @@ var ZOOM_SCALE = [0.05, 10]
 //TODO move to PWAPanel
 var keyListener = function(e) {
     if (e.altKey && e.keyCode === 78) { // alt+n secret key combo easter egg idbeholdi
-        this.state.njetwork && this.state.njetwork.toggleNegative()
+        this.state.network && this.state.network.toggleNegative()
         this.setState({
             hasNegatives: !this.state.hasNegatives
         })
@@ -115,7 +116,7 @@ var Network = React.createClass({
         if (coloring == 'term') coloring = 'biotype'
         console.log('Network.getInitialState: coloring: ' + coloring)
         return {
-            njetwork: null,
+            network: null,
             hasNegatives: false,
             selectionMode: 'move',
             coloring: coloring,
@@ -132,14 +133,13 @@ var Network = React.createClass({
     },
 
     componentDidMount: function() {
-        // console.log('network mount')
+
         var el = document.getElementById('network')//svgcontainer')
-        //el.appendChild()
-        // console.log(el.offsetHeight, React.findDOMNode(this).offsetHeight)
-        var width = React.findDOMNode(this).offsetWidth
-        var height = React.findDOMNode(this).offsetHeight
+        var width = ReactDOM.findDOMNode(this).offsetWidth
+        var height = ReactDOM.findDOMNode(this).offsetHeight
         var ts = new Date()
-        var njetwork = new D3Network(el, {
+
+        var network = new D3Network(el, {
             width: width,
             height: height,
             minZoomScale: ZOOM_SCALE[0],
@@ -158,7 +158,7 @@ var Network = React.createClass({
         this.setState({
             width: width,
             height: height,
-            njetwork: njetwork
+            network: network
         })
         // d3fd.create(el, {
         //     width: that.w,
@@ -179,7 +179,7 @@ var Network = React.createClass({
     componentWillUnmount: function() {
         console.log('Network will unmount')
         var el = this.getDOMNode()
-        // this.state.njetwork.destroy(el)
+        // this.state.network.destroy(el)
         window.removeEventListener('resize', this.handleResize)
         $(document).unbind('keydown')
     },
@@ -215,14 +215,14 @@ var Network = React.createClass({
                 coloring: coloring,
                 coloringOptions: this.state.coloringOptions
             })
-            this.state.njetwork.draw(nextProps.data)
-            this.state.njetwork.colorBy(coloring)
+            this.state.network.draw(nextProps.data)
+            this.state.network.colorBy(coloring)
         }
     },
 
     handleResize: function(e) {
         var el = document.getElementById('network')
-        this.state.njetwork.resize(el.offsetWidth, el.offsetHeight)
+        this.state.network.resize(el.offsetWidth, el.offsetHeight)
     },
     
     setGeneAddSocketListeners: function() {
@@ -238,7 +238,7 @@ var Network = React.createClass({
 
     // TODO remove / fix
     removeGroup: function(groupIndex) {
-        // return this.state.njetwork.removeGroup(groupIndex)
+        // return this.state.network.removeGroup(groupIndex)
     },
 
     // TODO remove
@@ -257,14 +257,14 @@ var Network = React.createClass({
         if (type == 'term') {
             type2 = Cookies.get('termcoloring') || 'prediction'
             // console.log('coloring by ' + type2)
-            this.state.njetwork.colorBy(type2)
+            this.state.network.colorBy(type2)
             this.setState({
                 coloring: type,
                 termColoring: type2
             })
         } else {
             // console.log('coloring by ' + type)
-            this.state.njetwork.colorBy(type)
+            this.state.network.colorBy(type)
             this.setState({
                 coloring: type
             })
@@ -278,7 +278,7 @@ var Network = React.createClass({
         var that = this
         if (!this.state.selectedTerm) {
             this.selectTerm(this.refs.pwa.state.pwaResults[this.refs.pwa.state.currentDatabase][0].pathway, function() {
-                this.state.njetwork.colorBy(type)
+                this.state.network.colorBy(type)
                 Cookies.set('termcoloring', type)
                 that.setState({
                     coloring: 'term',
@@ -286,7 +286,7 @@ var Network = React.createClass({
                 })
             })
         } else {
-            this.state.njetwork.colorBy(type)
+            this.state.network.colorBy(type)
             Cookies.set('termcoloring', type)
             this.setState({
                 coloring: 'term',
@@ -303,7 +303,7 @@ var Network = React.createClass({
         if (!_.isPlainObject(group)) {
             console.warn('Network.updateGroup: argument must be an object, got ' + typeof group)
         }
-        updateD3 && this.state.njetwork.highlightGroup(this.props.data.elements.groups.indexOf(group))
+        updateD3 && this.state.network.highlightGroup(this.props.data.elements.groups.indexOf(group))
         this.setState({
             activeGroup: group
         })
@@ -396,8 +396,8 @@ var Network = React.createClass({
     },
 
     addGene: function(gene, zScores) {
-        this.state.njetwork.addNodeToDataAndNetwork(gene, zScores)
-        this.state.njetwork.colorBy(this.state.coloring)
+        this.state.network.addNodeToDataAndNetwork(gene, zScores)
+        this.state.network.colorBy(this.state.coloring)
         var addedGenes = this.state.addedGenes.slice(0)
         addedGenes.push(gene.id)
         if (this.state.coloring == 'zscore' && this.state.selectedTerm) {
@@ -410,7 +410,7 @@ var Network = React.createClass({
     },
     
     removeGene: function(gene) {
-        this.state.njetwork.removeGeneFromNetwork(gene.id)
+        this.state.network.removeGeneFromNetwork(gene.id)
         var addedGenes = this.state.addedGenes.slice(0)
         var index = addedGenes.indexOf(gene.id)
         if (index > -1) {
@@ -433,7 +433,7 @@ var Network = React.createClass({
     },
     
     onSelectionModeChange: function(type) {
-        this.state.njetwork.setSelectionMode(type)
+        this.state.network.setSelectionMode(type)
         this.setState({
             selectionMode: type
         })
@@ -446,7 +446,7 @@ var Network = React.createClass({
     },
 
     onZoom: function(factor) {
-        var newScale = this.state.njetwork.tweenZoom(factor, 200)
+        var newScale = this.state.network.tweenZoom(factor, 200)
         this.checkZoomBounds(newScale)
     },
 
@@ -508,7 +508,7 @@ var Network = React.createClass({
                  null
                 }
                 {!this.state.isGeneListShown && this.state.activeGroup.nodes.length === 1 ?
-                 (<GenePanel gene={this.props.data.elements.nodes[this.state.njetwork.getNodeById(this.state.activeGroup.nodes[0])].data}
+                 (<GenePanel gene={this.props.data.elements.nodes[this.state.network.getNodeById(this.state.activeGroup.nodes[0])].data}
                   coloring={this.state.coloring} />) :
                  null
                 }

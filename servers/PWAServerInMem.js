@@ -1,6 +1,5 @@
 var _ = require('lodash')
 var async = require('async')
-var Threads = require('webworker-threads')
 var Queue = require('kue').createQueue()
 var ttest = require('../stats/ttest')
 var wilcoxonr = require('../stats/wilcoxonr')
