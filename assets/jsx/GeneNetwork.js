@@ -1,6 +1,6 @@
 'use strict';
 
-var config = require('../config/genenetwork-config')
+var DOMAIN = 'http://molgenis58.target.rug.nl'
 
 var _ = require('lodash')
 var color = require('../js/color')
@@ -43,26 +43,26 @@ GN.menuItems = [{
 
 GN.urls = {
 
-    main: config.domain,
-    gene: config.domain + '/api/v1/gene',
-    pathway: config.domain + '/api/v1/pathway',
-    coregulation: config.domain + '/api/v1/coregulation',
-    tissues: config.domain + '/api/v1/tissues',
-    cofunction: config.domain + '/api/v1/cofunction',
-    pc: config.domain + '/api/v1/pc',
+    main: DOMAIN,
+    gene: DOMAIN + '/api/v1/gene',
+    pathway: DOMAIN + '/api/v1/pathway',
+    coregulation: DOMAIN + '/api/v1/coregulation',
+    tissues: DOMAIN + '/api/v1/tissues',
+    cofunction: DOMAIN + '/api/v1/cofunction',
+    pc: DOMAIN + '/api/v1/pc',
     
-    suggest: config.domain + '/socketapi/suggest',
-    pathwayanalysis: config.domain + '/socketapi/pathwayanalysis',
-    geneprediction: config.domain + '/socketapi/geneprediction',
-    genescores: config.domain + '/socketapi/genescores',
-    genevsnetwork: config.domain + '/socketapi/genevsnetwork',
+    suggest: DOMAIN + '/socketapi/suggest',
+    pathwayanalysis: DOMAIN + '/socketapi/pathwayanalysis',
+    geneprediction: DOMAIN + '/socketapi/geneprediction',
+    genescores: DOMAIN + '/socketapi/genescores',
+    genevsnetwork: DOMAIN + '/socketapi/genevsnetwork',
 
-    genePage: config.domain + '/gene/',
-    termPage: config.domain + '/term/',
-    networkPage: config.domain + '/network/',
+    genePage: DOMAIN + '/gene/',
+    termPage: DOMAIN + '/term/',
+    networkPage: DOMAIN + '/network/',
 
-    svg2pdf: config.domain + '/api/v1/svg2pdf',
-    tabdelim: config.domain + '/api/v1/tabdelim',    
+    svg2pdf: DOMAIN + '/api/v1/svg2pdf',
+    tabdelim: DOMAIN + '/api/v1/tabdelim',    
 }
 
 GN.pageTitleSuffix = ' - Gene Network'
