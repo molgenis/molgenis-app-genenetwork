@@ -26,8 +26,8 @@ var Gene = React.createClass({
 
     getInitialState: function() {
         return {
-            // topMenuSelection: Cookies.get('genetopmenu') || 'prediction',
-            topMenuSelection: 'prediction',
+            topMenuSelection: Cookies.get('genetopmenu') || 'prediction',
+            //topMenuSelection: 'prediction',
             databaseSelection: Cookies.get('genedb') || 'REACTOME',
             // showTypeSelection: Cookies.get('geneshowtype') || 'prediction'
         }
@@ -36,9 +36,9 @@ var Gene = React.createClass({
     loadData: function() {
         // console.log('loading', this.getParams().geneId)
         var tasks = [{url: GN.urls.gene + '/' + this.props.params.geneId + '?verbose',
-        name: 'prediction'},
-        {url: GN.urls.coregulation + '/' + this.props.params.geneId + '?verbose',
-        name: 'similar'}]
+                      name: 'prediction'},
+                     {url: GN.urls.coregulation + '/' + this.props.params.geneId + '?verbose',
+                      name: 'similar'}]
         if (this.state.topMenuSelection == 'similar') {
             tasks.reverse()
         }
@@ -67,39 +67,35 @@ var Gene = React.createClass({
                     }
                 }.bind(that),
                 error: function(xhr, status, err) {
-                  console.log(xhr)
-                  if (this.isMounted() && task.name !== 'similar') {
-                    if (err === 'Not Found') {
-                        this.setState({
-                            error: 'Gene ' + this.props.params.geneId + ' not found',
-                            errorTitle: 'Error ' + xhr.status
-                        })
-                    } else {
-                        this.setState({
-                            error: 'Please try again later (' + xhr.status + ')',
-                            errorTitle: 'Error ' + xhr.status
-                        })
+                    console.log(xhr)
+                    if (this.isMounted() && task.name !== 'similar') {
+                        if (err === 'Not Found') {
+                            this.setState({
+                                error: 'Gene ' + this.props.params.geneId + ' not found',
+                                errorTitle: 'Error ' + xhr.status
+                            })
+                        } else {
+                            this.setState({
+                                error: 'Please try again later (' + xhr.status + ')',
+                                errorTitle: 'Error ' + xhr.status
+                            })
+                        }
                     }
-                }
-            }.bind(that)
+                }.bind(that)
+            })
         })
-})
-},
-
-componentDidMount: function() {
-        // $(document).mousedown(function(e) {
-        //     console.log(e)
-        // })
-var el = ReactDOM.findDOMNode(this)
-this.setState({
-    w: el.offsetWidth,
-    h: el.offsetHeight
-})
-this.loadData()
-},
-
-componentWillUnmount: function() {
-        // $(document).unbind('mousedown')
+    },
+    
+    componentDidMount: function() {
+        var el = ReactDOM.findDOMNode(this)
+        this.setState({
+            w: el.offsetWidth,
+            h: el.offsetHeight
+        })
+        this.loadData()
+    },
+    
+    componentWillUnmount: function() {
     },
 
     componentWillReceiveProps: function() {
@@ -147,10 +143,10 @@ componentWillUnmount: function() {
                 }
                 pageTitle = data.gene.name + GN.pageTitleSuffix
                 contentTop = (
-                    <GeneHeader gene={data.gene} />
-                    )
+                        <GeneHeader gene={data.gene} />
+                )
                 content = (
-                    <div className='gn-gene-container-inner maxwidth' style={{padding: '20px'}}>
+                        <div className='gn-gene-container-inner maxwidth' style={{padding: '20px'}}>
                         <GeneMenu data={data}
                     available={[!!this.state.prediction, !!this.state.similar, !!this.state.celltypes]}
                     onTopMenuClick={this.handleTopMenuClick}
@@ -159,28 +155,28 @@ componentWillUnmount: function() {
                     topMenuSelection={this.state.topMenuSelection}
                     databaseSelection={this.state.databaseSelection}
                     showTypeSelection={this.state.showTypeSelection} />
-                    {tableContent}
+                        {tableContent}
                     </div>
-                    )
+                )
             } else {
                 pageTitle = 'Loading' + GN.pageTitleSuffix
                 content = (
-                    <div className='gn-gene-container-inner maxwidth' style={{padding: '20px'}}>
-                    <div style={{position: 'absolute', top: (this.state.h - 100) / 2 + 'px', width: this.state.w + 'px', textAlign: 'center'}}>loading</div>
-                    </div>
-                    )
+                        <div className='gn-gene-container-inner maxwidth' style={{padding: '20px'}}>
+                        <div style={{position: 'absolute', top: (this.state.h - 100) / 2 + 'px', width: this.state.w + 'px', textAlign: 'center'}}>loading</div>
+                        </div>
+                )
             }
         }
         return (
-          <DocumentTitle title={pageTitle}>
-          <div style={{overflowY: 'scroll'}}>
-          {contentTop}
-          <div className={'gn-gene-container-outer'} style={{backgroundColor: color.colors.gnwhite, marginTop: '10px'}}>
-          {content}
-          </div>
-          </div>
-          </DocumentTitle>
-          )
+                <DocumentTitle title={pageTitle}>
+                <div style={{overflowY: 'scroll'}}>
+                {contentTop}
+                <div className={'gn-gene-container-outer'} style={{backgroundColor: color.colors.gnwhite, marginTop: '10px'}}>
+                {content}
+            </div>
+                </div>
+                </DocumentTitle>
+        )
     }
 })
 

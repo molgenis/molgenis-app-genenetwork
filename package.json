@@ -32,7 +32,6 @@
     "numeric": "^1.2.6",
     "rc": "^0.5.5",
     "react": "^0.14.1",
-    "react-canvas": "0.0.1",
     "react-document-title": "^2.0.1",
     "react-dom": "^0.14.1",
     "react-router": "^1.0.0-rc1",
