@@ -1,6 +1,6 @@
 'use strict';
 
-var DOMAIN = 'http://molgenis58.target.rug.nl'
+var DOMAIN = 'http://molgenis27.target.rug.nl'
 
 var _ = require('lodash')
 var color = require('../js/color')
@@ -23,6 +23,7 @@ var ManyGenesMaster = require('./ReactComponents/ManyGenesMaster')
 var Gene = require('./ReactComponents/Gene/Gene')
 var Term = require('./ReactComponents/Term')
 var Ontology = require('./ReactComponents/Ontology')
+var Diagnosis = require('./ReactComponents/Diagnosis')
 var Footer = require('./ReactComponents/Footer')
 
 var GN = {}
@@ -57,6 +58,8 @@ GN.urls = {
     genescores: DOMAIN + '/socketapi/genescores',
     genevsnetwork: DOMAIN + '/socketapi/genevsnetwork',
 
+    prioritization: DOMAIN + '/api/v1/prioritization',
+    
     genePage: DOMAIN + '/gene/',
     termPage: DOMAIN + '/term/',
     networkPage: DOMAIN + '/network/',
@@ -256,12 +259,13 @@ GN.routes = (
         <Route path='/term/:termId' component = {Term} />
         <Route path='/network/:ids' component = {ManyGenesMaster} />
         <Route path='/ontology/:id' component = {Ontology} />
+        <Route path='/diagnosis/:id' component = {Diagnosis} />
         </Route>
 )
 
 var history = createBrowserHistory()
 ReactDOM.render(<Router history={history}>
-             {GN.routes}
-             </Router>,
-             document.getElementById('reactcontainer')
-            )
+                {GN.routes}
+                </Router>,
+                document.getElementById('reactcontainer')
+               )

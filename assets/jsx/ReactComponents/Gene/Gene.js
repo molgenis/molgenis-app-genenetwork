@@ -7,14 +7,12 @@ var Router = require('react-router')
 var Select = require('react-select')
 var DocumentTitle = require('react-document-title')
 var Route = Router.Route
-var Link = Router.Link
 
 var GeneHeader = require('./GeneHeader')
 var GeneMenu = require('./GeneMenu')
 var SimilarGenesTable = require('./SimilarGenesTable')
 var Tissues = require('./Tissues')
 var SVGCollection = require('../SVGCollection')
-var Footer = require('../Footer')
 var Cookies = require('cookies-js')
 var color = require('../../../js/color')
 var htmlutil = require('../../htmlutil')
@@ -148,7 +146,6 @@ var Gene = React.createClass({
                 content = (
                         <div className='gn-gene-container-inner maxwidth' style={{padding: '20px'}}>
                         <GeneMenu data={data}
-                    available={[!!this.state.prediction, !!this.state.similar, !!this.state.celltypes]}
                     onTopMenuClick={this.handleTopMenuClick}
                     onDatabaseClick={this.handleDatabaseClick}
                     onShowTypeClick={this.handleShowTypeClick}

@@ -6,7 +6,6 @@ var htmlutil = require('../htmlutil')
 
 var React = require('react')
 var Router = require('react-router')
-var Link = Router.Link
 var DocumentTitle = require('react-document-title')
 var Footer = require('./Footer')
 var D3Network = require('../../js/D3Network.js')

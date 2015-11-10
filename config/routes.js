@@ -65,6 +65,10 @@ module.exports.routes = {
         view: 'homepage'
     },
 
+    '/diagnosis*': {
+        view: 'homepage'
+    },
+
     '/how*': {
         view: 'homepage'
     },
