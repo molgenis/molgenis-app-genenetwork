@@ -61,15 +61,9 @@ var GeneMenu = React.createClass({
                 <tr>
                 <td style={{width: '8em'}}>SHOW</td>
                 <td style={{padding: 0}}>
-                {this.props.available[0] ?
-                 (<span className={topButtonStyles[0]} onClick={this.props.onTopMenuClick.bind(null, 'prediction')}>PATHWAYS & PHENOTYPES</span>) : null
-                }
-            {this.props.available[1] ?
-             (<span className={topButtonStyles[1]} onClick={this.props.onTopMenuClick.bind(null, 'similar')}>CO-REGULATED GENES</span>) : null
-            }
-            {this.props.available[2] ?
-             (<span className={topButtonStyles[2]} onClick={this.props.onTopMenuClick.bind(null, 'tissues')}>TISSUES</span>) : null
-            }
+                <span className={topButtonStyles[0]} onClick={this.props.onTopMenuClick.bind(null, 'prediction')}>PATHWAYS & PHENOTYPES</span>
+                <span className={topButtonStyles[1]} onClick={this.props.onTopMenuClick.bind(null, 'similar')}>CO-REGULATED GENES</span>
+                <span className={topButtonStyles[2]} onClick={this.props.onTopMenuClick.bind(null, 'tissues')}>TISSUES</span>
             </td>
                 </tr>
                 {this.props.topMenuSelection == 'prediction' ?

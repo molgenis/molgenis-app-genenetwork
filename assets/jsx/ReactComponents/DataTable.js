@@ -1,7 +1,6 @@
 var _ = require('lodash')
 var React = require('react')
 var Router = require('react-router')
-var Link = Router.Link
 
 var PredictionRow = require('./PredictionRow')
 

@@ -12,7 +12,6 @@ var Select = require('react-select')
 var DocumentTitle = require('react-document-title')
 var Cookies = require('cookies-js')
 var SVGCollection = require('./SVGCollection.js')
-var Footer = require('./Footer')
 
 var PredictedGeneRow = React.createClass({
     render: function() {
