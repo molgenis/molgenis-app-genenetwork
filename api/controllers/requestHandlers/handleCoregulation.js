@@ -6,7 +6,6 @@ var crypto = require('crypto')
 var bs62 = require('base62')
 
 var dbutil = require('../utils/dbutil')
-var formatutil = require('../utils/formatutil')
 var genedesc = require('../utils/genedesc')
 var quicksortobj = require('../utils/quicksortobj')
 var color = require('../../../assets/js/color')

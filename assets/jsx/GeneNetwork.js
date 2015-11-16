@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 
 var DOMAIN = 'http://molgenis27.target.rug.nl'
 

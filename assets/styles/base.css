@@ -41,6 +41,10 @@ h1, h2, h3, h4, h5 {
     margin: 0;
 }
 
+#reactcontainer {
+    height: 100%;
+}
+
 .vflex {
     display: -webkit-box;
     display:    -moz-box;

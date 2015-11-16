@@ -2,11 +2,6 @@ var Queue = require('kue').createQueue()
 var dbutil = require('../utils/dbutil')
 var genedesc = require('../utils/genedesc')
 var quicksortobj = require('../utils/quicksortobj')
-var probability = require('../../../stats/probability')
-var stats = require('../../../stats/stats')
-var ttest = require('../../../stats/ttest')
-// var wilcoxon = require('../../stats/wilcoxon')
-var wilcoxonr = require('../../../stats/wilcoxonr')
 
 var isCoding = {
     'protein_coding': true,
