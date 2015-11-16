@@ -1,17 +1,17 @@
+var _ = require('lodash')
 var fs = require('fs')
-var exp = module.exports
 var level = require('level')
 var genedesc = require('./genedesc')
-var stats = require('../../../stats/stats')
-var probability = require('../../../stats/probability')
+var genstats = require('genstats')
+var descriptives = genstats.descriptives
+var probability = genstats.probability
+var wilcoxon = genstats.wilcoxon
 var quicksort = require('./quicksort')
 var quicksortobj = require('./quicksortobj')
 var sortby = require('./sort').sortby
-var _ = require('lodash')
-//var enc = require('./encoding')
-//var lookup = enc.getLookupArray()
 var lookup = function(value) { return (value - 32768) / 1000 }
-var wilcoxon = require('../../../stats/wilcoxon')
+
+var exp = module.exports
 
 ////////////
 
@@ -825,7 +825,7 @@ exp.getPairwiseCofunctionsJSON = function(genes, dbs, callback) {
         }
         for (var g1 = 0; g1 < genes.length; g1++) {
             for (var g2 = g1 + 1; g2 < genes.length; g2++) {
-                var corr = Number(stats.correlation(results[g1], results[g2]).toPrecision(4))
+                var corr = Number(descriptives.correlation(results[g1], results[g2]).toPrecision(4))
                 r.data.push({
                     genes: [genes[g1].id, genes[g2].id],
                     correlation: corr
@@ -865,7 +865,7 @@ exp.getCofunctionMatrix = function(genes, dbs, callback) {
         for (var g1 = 0; g1 < genes.length; g1++) {
             matrix.push([])
             for (var g2 = g1 + 1; g2 < genes.length; g2++) {
-                var corr = stats.correlation(results[g1], results[g2])
+                var corr = descriptives.correlation(results[g1], results[g2])
                 matrix[g1][g2] = corr
             }
             //            sails.log.debug(genes[g1].name + ' correlations: ' + matrix[g1])
@@ -1006,7 +1006,7 @@ exp.getTermCorrelationMatrix = function(terms, options, callback) {
                     arr.push(lookup(data.readUInt16BE(i * 2)))
                 }
                 if (options && options.standardnormalize) {
-                    stats.standardNormalize(arr)
+                    descriptives.standardNormalize(arr)
                 }
                 cb(null, arr)
             }
@@ -1019,7 +1019,7 @@ exp.getTermCorrelationMatrix = function(terms, options, callback) {
         for (var t1 = 0; t1 < terms.length; t1++) {
             matrix[t1][t1] = 1
             for (var t2 = t1 + 1; t2 < terms.length; t2++) {
-                var corr = stats.correlation(results[t1], results[t2])
+                var corr = descriptives.correlation(results[t1], results[t2])
                 matrix[t1][t2] = corr
                 matrix[t2][t1] = corr
             }
