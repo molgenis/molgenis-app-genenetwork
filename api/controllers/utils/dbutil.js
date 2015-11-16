@@ -71,6 +71,7 @@ var getPathwayDatabasesFromDB = function(db, callback) {
 //TODO genes also to db
 var getPathwaysFromDB = function(db, callback) {
     sails.log.debug('Getting available external databases')
+    sails.log.debug(db)
     var dbArray = []
     var pathways = {}
     db.createReadStream({
