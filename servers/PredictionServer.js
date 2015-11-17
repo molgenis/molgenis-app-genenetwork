@@ -1,10 +1,8 @@
 var _ = require('lodash')
 var Queue = require('kue').createQueue()
-var stats = require('../stats/stats')
-var prob = require('../stats/probability')
-var ttest = require('../stats/ttest')
-var wilcoxon = require('../stats/wilcoxon')
-var wilcoxonr = require('../stats/wilcoxonr')
+var genstats = require('genstats')
+var prob = genstats.probability
+var wilcoxon = genstats.wilcoxon
 var quicksort = require('../api/controllers/utils/quicksort')
 var quicksortobj = require('../api/controllers/utils/quicksortobj')
 var fileutil = require('./fileutil')
@@ -18,7 +16,7 @@ var readData = function(callback) {
         if (err) return callback(err)
         GENEDATA = data
         for (var i = 0; i < GENEDATA.length; i++) {
-            stats.standardNormalize(GENEDATA[i])
+            genstats.standardNormalize(GENEDATA[i])
         }
         COMPDATA = []
         for (var i = 0; i < GENEDATA[0].length; i++) {
@@ -52,7 +50,7 @@ var createComponentProfile = function(foreIndices, testType, excludeIndex) {
             }
         }
         if (testType == 'welch') {
-            var welch = ttest.welch(a1, BACKGROUND_MATRIX[c])
+            var welch = genstats.welch(a1, BACKGROUND_MATRIX[c])
             var z = prob.pToZ(welch.p)
             if (welch.t < 0) {
                 z *= -1
@@ -93,7 +91,7 @@ var predict = function(genes, numGenes, options, callback) {
 
     createBackgroundMatrix(backIndices)
     var profile = createComponentProfile(foreIndices, testType)
-    stats.standardNormalize(profile)
+    genstats.standardNormalize(profile)
     var allZ = []
     
     // first predict genes outside of the set
@@ -101,7 +99,7 @@ var predict = function(genes, numGenes, options, callback) {
     resultsOut.genes = []
     for (var i = 0; i < backIndices.length; i++) {
         // var gene = allGenes[backIndices[i]]
-        var corr = stats.correlationStdNorm(GENEDATA[backIndices[i]], profile)
+        var corr = genstats.correlationStdNorm(GENEDATA[backIndices[i]], profile)
         var p = prob.corrToP(corr, NUM_COMPS)
         var z = prob.pToZ(p)
         if (corr < 0) {
@@ -156,8 +154,8 @@ var predict = function(genes, numGenes, options, callback) {
         //        foreIndices_.splice(i, 1)
         //        profile_ = createComponentProfile(foreIndices_, testType)
         profile_ = createComponentProfile(foreIndices, testType, i)
-        stats.standardNormalize(profile_)
-        corr = stats.correlationStdNorm(GENEDATA[foreIndices[i]], profile_)
+        genstats.standardNormalize(profile_)
+        corr = genstats.correlationStdNorm(GENEDATA[foreIndices[i]], profile_)
         var p = prob.corrToP(corr, NUM_COMPS)
         var z = prob.pToZ(p)
         if (corr < 0) {

@@ -1,7 +1,6 @@
 var dbutil = require('../utils/dbutil')
-    // TODO to node_modules
+// TODO to node_modules
 var graphutil = require('../../../assets/js/graphutil')
-var formatutil = require('../utils/formatutil')
 var genedesc = require('../utils/genedesc')
 
 module.exports = function(req, res) {
@@ -45,7 +44,7 @@ module.exports = function(req, res) {
         })
     }
 
-    //TODO why are there two different ways of getting the same data
+    //TODO nwtwork format
     if (!req.query.format || req.query.format.toLowerCase() === 'json') {
 
         dbutil.getPairwiseCofunctionsJSON(genes, dbs, function(err, result) {
@@ -56,27 +55,6 @@ module.exports = function(req, res) {
             }
         })
 
-        // TODO 'cytoscape' --> 'network'
-    } else if (req.query.format.toLowerCase() === 'cytoscape') {
-
-        dbutil.getCofunctionMatrix(genes, dbs, function(err, results) {
-
-            var correlationThreshold = sails.config.api.defaultCofunctionCorrelationThreshold || 0.3
-            var network = formatutil.cytoscape(genes, results, {
-                correlate: false,
-                correlationThreshold: correlationThreshold,
-                geneColors: geneColors
-            })
-
-            var finalThreshold = graphutil.sparsify(network, 10, correlationThreshold)
-            network.threshold = Math.round(100 * finalThreshold) / 100
-            var neighborLists = graphutil.neighborLists(network.elements.nodes, network.elements.edges)
-            var groups = graphutil.disconnectedSubgraphs(network.elements.nodes, neighborLists)
-            network.elements.groups = groups
-
-            network.href = req.protocol + '://' + req.get('host') + req.originalUrl
-            return res.json(network)
-        })
     } else {
         res.send(400, "Unsupported 'format' parameter")
     }

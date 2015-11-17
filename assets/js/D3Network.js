@@ -541,7 +541,7 @@ D3Network.prototype._initNodes = function() {
         .attr('text-anchor', 'middle')
         .attr('dy', '.35em')
         .style('fill', that._props.labelColor || color.colors.gndarkgray)
-        .style('font-size', that._props.labelSizeEm + 'em')
+        // .style('font-size', that._props.labelSizeEm + 'em')
         .style('font-family', 'GG')
         .style('font-weight', 'bold')
         .attr('displayState', 'y')

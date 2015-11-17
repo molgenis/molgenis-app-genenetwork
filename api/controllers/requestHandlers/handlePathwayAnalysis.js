@@ -2,9 +2,6 @@ var kue = require('kue')
 var dbutil = require('../utils/dbutil')
 var genedesc = require('../utils/genedesc')
 var quicksortobj = require('../utils/quicksortobj')
-var probability = require('../../../stats/probability')
-var stats = require('../../../stats/stats')
-var ttest = require('../../../stats/ttest')
 
 var Queue = kue.createQueue() // this does not create a new queue, it's just redis access
 var lastAnalysisRequest = null

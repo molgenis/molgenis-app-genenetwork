@@ -1,6 +1,10 @@
-'use strict';
+'use strict'
 
+// <<<<<<< HEAD
 var DOMAIN = 'http://molgenis58.target.rug.nl'
+// =======
+// var DOMAIN = 'http://localhost:1337'
+// >>>>>>> 9909a771f7821f1be799c5b7095c7850cbc1d835
 
 var _ = require('lodash')
 var color = require('../js/color')

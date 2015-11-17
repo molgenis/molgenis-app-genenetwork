@@ -1,8 +1,7 @@
 var _ = require('lodash')
 var async = require('async')
 var Queue = require('kue').createQueue()
-var ttest = require('../stats/ttest')
-var wilcoxonr = require('../stats/wilcoxonr')
+var genstats = require('genstats')
 var quicksort = require('../api/controllers/utils/quicksort')
 var quicksortobj = require('../api/controllers/utils/quicksortobj')
 
@@ -61,9 +60,9 @@ var TERM_SERVER = {
 
             var p = -1
             if (testType === 't') {
-                var p = ttest.welch(a1, a2)
+                var p = genstats.welch(a1, a2)
             } else if (testType === 'wilcoxonr') {
-                var p = wilcoxonr(a1, a2).p
+                var p = genstats.wilcoxonRanked(a1, a2).p
             } else {
                 sails.log.warn('PWAServer: Unexpected test type: ' + testType)
             }

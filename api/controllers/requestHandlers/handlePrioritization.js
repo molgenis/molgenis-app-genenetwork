@@ -83,6 +83,7 @@ module.exports = function(req, res) {
             if (genesToGet.length == 0 || genesToGet.indexOf(gene) >= 0) {
                 r.results.push({
                     href: sails.config.version.apiUrl + '/gene/' + gene.id,
+                    predicted: [],
                     weightedZScore: 0
                 })
                 if (req.query.verbose === '' || req.query.verbose === 'true') {
@@ -94,6 +95,7 @@ module.exports = function(req, res) {
         for (var i = 0; i < results.length; i++) {
             for (var j = 0; j < results[i].length; j++) {
                 r.results[j].weightedZScore += results[i][j] / sq
+                r.results[j].predicted[i] = results[i][j]
             }
         }
 
@@ -122,8 +124,8 @@ module.exports = function(req, res) {
         }
 
         if (req.query.permutations && req.query.permutations > 0) {
-            if (req.query.permutations < 1000) {
-                return res.send(400, {status: 400, message: 'At least 1000 permutations are needed'})
+            if (req.query.permutations < 1000 || req.query.permutations > 100000) {
+                return res.send(400, {status: 400, message: 'At least 1000 and at most 100000 permutations are needed'})
             }
             dbutil.getTermCorrelationMatrix(terms, {
                 standardnormalize: true

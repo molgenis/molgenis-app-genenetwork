@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 
 var _ = require('lodash')
 var React = require('react')
@@ -134,7 +134,8 @@ var Network = React.createClass({
 
     componentDidMount: function() {
 
-        var el = document.getElementById('network')//svgcontainer')
+        var el = document.getElementById('network')
+        console.log(el)
         var width = ReactDOM.findDOMNode(this).offsetWidth
         var height = ReactDOM.findDOMNode(this).offsetHeight
         var ts = new Date()
@@ -476,9 +477,10 @@ var Network = React.createClass({
             // console.log('network progress render')
             //<Logo ref='progresslogo' w={55} h={100} progress={[this.state.progress.loadProgress, this.state.progress.initProgress, this.state.progress.layoutProgress]} />
             return (
-                    <div id='network' className='flex10 gn-network' style={{position: 'relative', backgroundColor: color.colors.gnwhite}}>
+                    <div id='network' className='flex10 hflex gn-network' style={{position: 'relative', backgroundColor: color.colors.gnwhite}}>
+                    <div id='loadcontainer' className='vflex flexcenter flexjustifycenter fullwidth'>
                     <span>{loadText}</span>
-                    <div id='networksvgcontainer' />
+                    </div>
                     </div>
             )
         } else {
@@ -547,8 +549,6 @@ var Network = React.createClass({
                     <input type='hidden' id='name' name='name' value='' />
                     <input type='hidden' id='genes' name='genes' value='' />
                     </form>
-
-                    <div id='networksvgcontainer' />
 
                 </div>
             )
