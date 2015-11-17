@@ -477,8 +477,8 @@ var Network = React.createClass({
             // console.log('network progress render')
             //<Logo ref='progresslogo' w={55} h={100} progress={[this.state.progress.loadProgress, this.state.progress.initProgress, this.state.progress.layoutProgress]} />
             return (
-                    <div id='network' className='flex10 gn-network' style={{position: 'relative', backgroundColor: color.colors.gnwhite}}>
-                    <div id='loadcontainer' className='vflex flexcenter flexjustifycenter'>
+                    <div id='network' className='flex10 hflex gn-network' style={{position: 'relative', backgroundColor: color.colors.gnwhite}}>
+                    <div id='loadcontainer' className='vflex flexcenter flexjustifycenter fullwidth'>
                     <span>{loadText}</span>
                     </div>
                     </div>
