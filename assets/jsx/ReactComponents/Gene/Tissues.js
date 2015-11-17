@@ -1,3 +1,5 @@
+'use strict'
+
 var _ = require('lodash')
 var React = require('react')
 var HomoSapiens = require('./HomoSapiens')
@@ -129,6 +131,8 @@ var Tissues = React.createClass({
     
     render: function(){
 
+        if (!this.props.celltypes) return null
+        
     	return (
     		<div className="hflex" style={{position: 'relative'}}>
         		<div style={{width: '39%'}}>

@@ -54,12 +54,11 @@ var Gene = React.createClass({
                             topMenuSelection: 'prediction',
                             error: null
                         })
-                    } else {
+                    } else if (this.isMounted() && task.name == 'similar') {
                         this.setState({
                             gene: data.gene,
-                            celltypes: data.celltypes,
-                            topMenuSelection: 'prediction',
                             similar: data,
+                            topMenuSelection: 'similar',
                             error: null
                         })
                     }
