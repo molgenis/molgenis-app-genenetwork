@@ -22,9 +22,9 @@ var DataTable = React.createClass({
         var stdev = this.props.celltypes.stdev
         
     	var rows = _.map(this.sortedItems, function(item, i){
-            var cls = i % 2 === 0 ? 'datarow evenrow' : 'datarow oddrow';
+            var cls = i % 2 === 0 ? 'clickable datarow evenrow' : 'clickable datarow oddrow';
     	    return(
-    		    <tr key={item.name} className={cls} onClick={this.props.onClick.bind(null, item)} onMouseOut={this.props.onMouseOver.bind(null, undefined)} onMouseOver={this.props.onMouseOver.bind(null, item)} style={this.props.hoverItem === item.name || this.props.clickedItem === item.name && (item.name === 'Skin' || item.name === 'Blood' || item.name === 'Brain') ? {backgroundColor: 'rgb(255,225,0)'} : {}}>
+    		    <tr key={item.name} className={cls} onClick={this.props.onClick.bind(null, item)} onMouseOut={this.props.onMouseOver.bind(null, undefined)} onMouseOver={this.props.onMouseOver.bind(null, item)} style={this.props.hoverItem === item.name || this.props.clickedItem === item.name ? {backgroundColor: 'rgb(255,225,0)'} : {}}>
     		    <td style={{paddingLeft: '6px', paddingRight: '1px'}}>{item.name === "Skin" || item.name === "Brain" || item.name === "Blood" ? <ListIcon w={10} h={10} /> : null}</td>
                 <td>{item.name}</td>
     		    <td style={{textAlign: 'center'}}>{item.numSamples}</td>
@@ -68,8 +68,6 @@ var TableCellytpes = React.createClass({
         var sortedItems = _.sortBy(items, function(item){
             return avg[indices[item.name]]
         }).reverse()
-
-        console.log(this.props.hoverItem)
 
         var rows = _.map(sortedItems, function(item, i){
             var cls = i % 2 === 0 ? 'datarow evenrow' : 'datarow oddrow';
@@ -122,9 +120,13 @@ var Tissues = React.createClass({
 
     handleClick: function(item) {
         var clickedItem = typeof item === "object" ? item.name : item
-        this.setState({
-            clickedItem: clickedItem
-        });
+        if (clickedItem === this.state.clickedItem){
+            this.replaceState({})
+        } else {
+            this.setState({
+                clickedItem: clickedItem
+            });
+        }        
     },
     
     render: function(){
