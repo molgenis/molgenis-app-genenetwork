@@ -27,7 +27,7 @@ exp.pValueToReadable = function(p) {
         var expIndex = pReadable.indexOf('e')
         var base = pReadable.substring(0, expIndex)
         var exponent = pReadable.substring(expIndex + 1)
-        pReadable = base + '<sup>' + exponent + '</sup>'
+        pReadable = base + ' x10<sup>' + exponent + '</sup>'
         if (p === Number.MIN_VALUE) {
             pReadable = '< ' + pReadable
         }
