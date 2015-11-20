@@ -121,15 +121,23 @@ var Table = React.createClass({
 
     render: function() {
 
+        var phens = ""
+        for (var j = 0; j < this.props.prio.terms.length; j++) {
+            phens = phens.concat(this.props.prio.terms[j].term.id + ',')
+        }
+
         var rows = []
         for (var i = 0; i < this.props.prio.results.length; i++) {
             var rowtype = i % 2 === 0 ? 'datarow evenrow' : 'datarow oddrow'
+
 
     {/* network urls: */}
             var phens = ""
             for (var j = 0; j < this.props.prio.terms.length; j++) {
                 phens = phens.concat(this.props.prio.terms[j].term.id + ',')
             }
+
+        {/* create networklink: */}
             var gene = "0!" + this.props.prio.results[i].gene.name
             var networkLink = GN.urls.networkPage + phens + gene
 
@@ -154,7 +162,7 @@ var Table = React.createClass({
                 <td style={{textAlign: 'center'}}dangerouslySetInnerHTML={{__html: htmlutil.pValueToReadable(prob.zToP(this.props.prio.results[i].weightedZScore))}}></td>
 
                 <td style={{textAlign: 'center'}}>
-                {prob.zToP(this.props.prio.results[i].weightedZScore) > 0 ? <SVGCollection.TriangleUp className='directiontriangleup' /> : <SVGCollection.TriangleDown className='directiontriangledown' />}
+                    {this.props.prio.results[i].weightedZScore > 0 ? <SVGCollection.TriangleUp className='directiontriangleup' /> : <SVGCollection.TriangleDown className='directiontriangledown' />}
                 </td>
                 
                 <td style={{textAlign: 'center'}} 
@@ -310,7 +318,7 @@ var Diagnosis = React.createClass({
     },
     
     render: function() {
-        
+
         if (!this.state.data) {
             return null
         }
