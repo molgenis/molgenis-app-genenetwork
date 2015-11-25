@@ -152,6 +152,7 @@ var getAnnotations = function(buffer, dbname, options) {
         }
         for (var a = 0; a < numAnnotations; a++) {
             var pwIndex = buffer.readUInt16BE(a * 2)
+            // TODO fix verbose, now term is subsequently deleted
             if (options && (options.verbose === '' || options.verbose === 'true')) {
                 result.push({
                     href: sails.config.version.apiUrl + '/pathway/' + DBUTIL.pathways[dbname][pwIndex].id,
@@ -160,6 +161,7 @@ var getAnnotations = function(buffer, dbname, options) {
             } else {
                 result.push({
                     href: sails.config.version.apiUrl + '/pathway/' + DBUTIL.pathways[dbname][pwIndex].id,
+                    term: DBUTIL.pathways[dbname][pwIndex]
                 })
             }
             if (options && (options.verbose === '' || options.verbose === 'true')) {
@@ -226,6 +228,7 @@ var getPredictions = function(buffer, dbname, options) {
 
         if (options.annotations) { // add Z-scores for annotated genes, as they might not be included in the sliced list of predicted genes
             _.forEach(options.annotations, function(obj) {
+                console.log(obj)
                 if (obj.term.database === dbname) {
                     obj.zScore = result[obj.term.index_].zScore
 	            if (options.pvalue) {
@@ -390,6 +393,11 @@ exp.getGeneJSON = function(gene, db, req, callback) {
                             sort: true,
                             pvalue: true
                         })
+                        if (req.query.verbose !== '' && req.query.verbose !== 'true') {
+                            _.forEach(r.pathways.annotated, function(obj) {
+                                delete obj.term
+                            })
+                        }
                     }
                     cb()
                 })
@@ -443,6 +451,11 @@ exp.getGeneJSON = function(gene, db, req, callback) {
                         //     zScoresThisDB.splice(0, pwLimit))
                     })
                     .on('end', function() {
+                        if (req.query.verbose !== '' && req.query.verbose !== 'true') {
+                            _.forEach(r.pathways.annotated, function(obj) {
+                                delete obj.term
+                            })
+                        }
                         cb(null)
                     })
             },
