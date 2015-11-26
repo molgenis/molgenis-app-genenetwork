@@ -21,7 +21,7 @@ var PredictionRow = React.createClass({
 					{this.props.data.term.name}
 					</Link>
 				</td>
-				<td style={{textAlign: 'center'}} dangerouslySetInnerHTML={{__html: htmlutil.pValueToReadable(this.props.data.pValue)}}></td>
+			<td style={{whiteSpace: 'nowrap', textAlign: 'center'}} dangerouslySetInnerHTML={{__html: htmlutil.pValueToReadable(this.props.data.pValue)}}></td>
 				<td style={{textAlign: 'center'}}>
 					{this.props.data.zScore > 0 ? <SVGCollection.TriangleUp className='directiontriangleup' /> : <SVGCollection.TriangleDown className='directiontriangledown' />}
 				</td>

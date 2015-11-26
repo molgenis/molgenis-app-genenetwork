@@ -393,6 +393,7 @@ exp.getGeneJSON = function(gene, db, req, callback) {
                             sort: true,
                             pvalue: true
                         })
+                        //TODO fix
                         if (req.query.verbose !== '' && req.query.verbose !== 'true') {
                             _.forEach(r.pathways.annotated, function(obj) {
                                 delete obj.term

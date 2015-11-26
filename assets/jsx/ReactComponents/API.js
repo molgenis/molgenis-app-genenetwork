@@ -34,7 +34,7 @@ var Gene = React.createClass({
         return (
                 <div>
                 <h3>Gene</h3>
-                <p><code>GET {GN.urls.gene}/<strong>geneName</strong></code></p>
+                <p className='dont-break-out'><code>GET {GN.urls.gene}/<strong>geneName</strong></code></p>
                 <p>Get annotation and prediction information for a given gene.</p>
 
                 <h4>Returns</h4>
@@ -56,8 +56,8 @@ var Gene = React.createClass({
             returned.</p>
                 
                 <h4>Examples</h4>
-                <p><code>GET {GN.urls.gene}/rps27l</code></p>
-                <p><code>GET {GN.urls.gene}/rps27l?db=GO-CC&verbose</code></p>
+                <p className='dont-break-out'><code>GET {GN.urls.gene}/rps27l</code></p>
+                <p className='dont-break-out'><code>GET {GN.urls.gene}/rps27l?db=GO-CC&verbose</code></p>
                 </div>
         )
     }
@@ -69,7 +69,7 @@ var Term = React.createClass({
         return (
                 <div>
                 <h3>Pathway / phenotype</h3>
-                <p><code>GET {GN.urls.pathway}/<strong>termId</strong></code></p>
+                <p className='dont-break-out'><code>GET {GN.urls.pathway}/<strong>termId</strong></code></p>
                 <p>Get annotation and prediction information for a given pathway or phenotype.</p>
 
                 <h4>Parameters</h4>
@@ -85,8 +85,8 @@ var Term = React.createClass({
                 <li>List of predicted genes</li>
                 </ul>
                 <h4>Examples</h4>
-                <p><code>GET {GN.urls.pathway}/GO:0000302</code></p>
-                <p><code>GET {GN.urls.pathway}/GO:0000302?verbose</code></p>
+                <p className='dont-break-out'><code>GET {GN.urls.pathway}/GO:0000302</code></p>
+                <p className='dont-break-out'><code>GET {GN.urls.pathway}/GO:0000302?verbose</code></p>
                 </div>
         )
     }
@@ -99,7 +99,7 @@ var Prioritization = React.createClass({
         return (
                 <div>
                 <h3>Prioritization</h3>
-                <p><code>GET {GN.urls.prioritization}/<strong>termId1,termId2,...</strong></code></p>
+                <p className='dont-break-out'><code>GET {GN.urls.prioritization}/<strong>termId1,termId2,...</strong></code></p>
                 <p>Get prioritized genes for given pathways or phenotypes.</p>
 
                 <h4>Parameters</h4>
@@ -115,8 +115,8 @@ var Prioritization = React.createClass({
                 </ul>
                 <p>In the returned gene list, the "predicted" array contains prediction Z-scores for each found pathway/phenotype. The order of the values in the array corresponds to the order of the "terms" array in the returned JSON. The "annotated" array contains the pathways/phenotypes to which the gene has been annotated, if any.</p>
                 <h4>Examples</h4>
-                <p><code>GET {GN.urls.prioritization}/HP:0001874,HP:0001419,HP:0002718,HP:0004313,HP:0000951</code></p>
-                <p><code>GET {GN.urls.prioritization}/HP:0001874,HP:0001419,HP:0002718,HP:0004313,HP:0000951?verbose</code></p>
+                <p className='dont-break-out'><code>GET {GN.urls.prioritization}/HP:0001874,HP:0001419,HP:0002718,HP:0004313,HP:0000951</code></p>
+                <p className='dont-break-out'><code>GET {GN.urls.prioritization}/HP:0001874,HP:0001419,HP:0002718,HP:0004313,HP:0000951?verbose</code></p>
                 </div>
         )
     }
