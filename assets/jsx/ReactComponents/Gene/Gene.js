@@ -51,14 +51,12 @@ var Gene = React.createClass({
                             gene: data.gene,
                             celltypes: data.celltypes,
                             prediction: data,
-                            topMenuSelection: 'prediction',
                             error: null
                         })
                     } else if (this.isMounted() && task.name == 'similar') {
                         this.setState({
                             gene: data.gene,
                             similar: data,
-                            topMenuSelection: 'similar',
                             error: null
                         })
                     }
@@ -165,7 +163,7 @@ var Gene = React.createClass({
         }
         return (
                 <DocumentTitle title={pageTitle}>
-                <div style={{overflowY: 'scroll'}}>
+                <div>
                 {contentTop}
                 <div className={'gn-gene-container-outer'} style={{backgroundColor: color.colors.gnwhite, marginTop: '10px'}}>
                 {content}

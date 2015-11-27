@@ -29,7 +29,7 @@ var GeneMenu = React.createClass({
             }).length
         }
 
-        var topButtonStyles = ['button clickable selectedbutton', 'button clickable', 'button clickable']
+        var topButtonStyles = ['button clickable selectedbutton mobilefullwidth', 'button clickable mobilefullwidth', 'button clickable mobilefullwidth']
         if ('similar' == this.props.topMenuSelection) swap(topButtonStyles, 0, 1)
         if ('tissues' == this.props.topMenuSelection) swap(topButtonStyles, 0, 2)
         var databaseButtonStyles = ['button clickable selectedbutton', 'button clickable']
@@ -41,7 +41,7 @@ var GeneMenu = React.createClass({
         }
         
         var databaseMenuItems = _.map(this.props.data.databases, function(db) {
-            var cls = (db.id == that.props.databaseSelection) ? 'button selectedbutton' : 'button clickable'
+            var cls = (db.id == that.props.databaseSelection) ? 'button selectedbutton mobilefullwidth' : 'button clickable mobilefullwidth'
             var label = (<span>{db.name.toUpperCase()}</span>)
             if (db.name.indexOf('GO') === 0) {
                 return (

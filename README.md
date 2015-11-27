@@ -1,10 +1,7 @@
 # Gene Network
 
-Built with Sails and React.
+See [wiki](https://github.com/molgenis/gene-network/wiki).
 
-To run:
+### License
 
-$ npm install
-$ sails lift
-
-Test data / local config TBA
+[MIT](/LICENSE)

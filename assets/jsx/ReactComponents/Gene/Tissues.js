@@ -31,7 +31,7 @@ var DataTable = React.createClass({
                 <td>{item.name}</td>
     		    <td style={{textAlign: 'center'}}>{item.numSamples}</td>
     		    <td style={{textAlign: 'center'}}>{avg[indices[item.name]]}</td>
-                <td style={{textAlign: 'center'}} dangerouslySetInnerHTML={{__html: htmlutil.pValueToReadable(p[indices[item.name]])}}></td>
+                    <td style={{whiteSpace: 'nowrap', textAlign: 'center'}} dangerouslySetInnerHTML={{__html: htmlutil.pValueToReadable(p[indices[item.name]])}}></td>
                 <td style={{textAlign: 'center'}} >{stdev[indices[item.name]]}</td>
     		    </tr>
     	    )
@@ -54,7 +54,7 @@ var DataTable = React.createClass({
     }
 })
 
-var TableCellytpes = React.createClass({
+var TableCelltypes = React.createClass({
 
     render: function() {
         var indices = this.props.celltypes.indices
@@ -136,19 +136,19 @@ var Tissues = React.createClass({
         if (!this.props.celltypes) return null
         
     	return (
-    		<div className="hflex" style={{position: 'relative'}}>
-        		<div style={{width: '39%'}}>
-                     <DataTable celltypes={this.props.celltypes} onClick={this.handleClick} clickedItem={this.state.clickedItem} hoverItem={this.state.hoverItem} onMouseOver={this.handleMouseOver} />
+    		<div className="hflex">
+        	<div className="flex11">
+                <DataTable celltypes={this.props.celltypes} onClick={this.handleClick} clickedItem={this.state.clickedItem} hoverItem={this.state.hoverItem} onMouseOver={this.handleMouseOver} />
                 </div>
-
-                <div style={{width: '21%', position: 'absolute', bottom: '0'}}>
-                    <HomoSapiens onMouseOver={this.handleMouseOver} hoverItem={this.state.hoverItem} clickedItem={this.state.clickedItem} celltypes={this.props.celltypes} />
+                
+                <div className="flex11" style={{minWidth: '50px'}}>
+                <HomoSapiens onMouseOver={this.handleMouseOver} hoverItem={this.state.hoverItem} clickedItem={this.state.clickedItem} celltypes={this.props.celltypes} />
                 </div>
-
-                <div style={{position: 'absolute', bottom: '0', right: '0', width: '39%'}}>
-                    <TableCellytpes clickedItem={this.state.clickedItem} celltypes={this.props.celltypes} onMouseOver={this.handleMouseOver} />
+                
+                <div className="flex11">
+                <TableCelltypes clickedItem={this.state.clickedItem} celltypes={this.props.celltypes} onMouseOver={this.handleMouseOver} />
                 </div>
-            </div>
+                </div>
     	)
     }
 })
