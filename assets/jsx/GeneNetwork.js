@@ -1,6 +1,6 @@
 'use strict'
 
-var DOMAIN = 'http://molgenis27.target.rug.nl'
+var DOMAIN = 'http://molgenis58.target.rug.nl'
 
 var _ = require('lodash')
 var color = require('../js/color')
