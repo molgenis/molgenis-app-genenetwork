@@ -27,7 +27,8 @@ exp.pValueToReadable = function(p) {
         var expIndex = pReadable.indexOf('e')
         var base = pReadable.substring(0, expIndex)
         var exponent = pReadable.substring(expIndex + 1)
-        pReadable = base + ' x10<sup>' + exponent + '</sup>'
+        // TODO vertically align 'x' to middle (vertical-align, line-height, padding don't seem to work)
+        pReadable = base + ' <span style="font-size: 0.675em">x</span> 10<sup>' + exponent + '</sup>'
         if (p === Number.MIN_VALUE) {
             pReadable = '< ' + pReadable
         }

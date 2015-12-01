@@ -178,9 +178,7 @@ var Term = React.createClass({
             var data = this.state.data
             return (
 		    <DocumentTitle title={data.pathway.name + GN.pageTitleSuffix}>
-                    <div style={{overflowY: 'scroll'}}>
-                    { //
-                    }
+                    <div>
                     <div className='gn-term-description-outer' style={{backgroundColor: color.colors.gnwhite, padding: '20px'}}>
                     <div className='gn-term-description-inner hflex flexcenter maxwidth'>
                     <div className='gn-term-description-name'>

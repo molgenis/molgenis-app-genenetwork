@@ -24,14 +24,20 @@ module.exports.routes = {
 
     //// API routes
     
+    '/api': {
+        view: 'homepage'
+    },
+
+    '/api/doc': '/api',
+    
+    '/api/v1/doc': '/api',
+    
     '/api/v1/:action': {
         policy: 'apirouter'
     },
     '/api/v1/:action/:id': {
         policy: 'apirouter'
     },
-
-    '/api/doc': '/api/v1/doc',
 
     '/api/*': {
         response: 'notFound'
@@ -45,10 +51,6 @@ module.exports.routes = {
     //     view: 'homepage'
     // }
     
-    '/api': {
-        view: 'homepage'
-    },
-
     '/gene*': {
         view: 'homepage'
     },

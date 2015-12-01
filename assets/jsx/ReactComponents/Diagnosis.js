@@ -1,12 +1,5 @@
 'use strict'
 
-{/*ideas meeting:
-
-- Relationship with the diseases
-- Help user choose phenotypes
-
-*/}
-
 var _ = require('lodash')
 var color = require('../../js/color')
 var htmlutil = require('../htmlutil')
@@ -28,7 +21,6 @@ var Th = reactable.Th
 var Thead = reactable.Thead
 var Table = reactable.Table
 var unsafe = reactable.unsafe
-
 
 
 /* For the Z-score colours in the phenotype table: */
@@ -59,7 +51,7 @@ function HSVtoRGB(h, s, v) {
 }
 
 
-/* For the Z-scorecolours in the phenotype table: */
+/* For the Z-score colours in the phenotype table: */
 
 function getRGB(avg){
     var v = 1-(parseFloat(avg)/20)
@@ -72,7 +64,6 @@ function getRGB(avg){
         return 'rgb(' + colors.r + ',' + colors.g + ', ' + colors.b + ')'
     }
 }
-
 
 /*Shows a table of the phenotypes used as input, with colours depending on the Z-scores: */
 
@@ -104,7 +95,8 @@ var ShowPhenotypes3 = React.createClass({
                 <td>{square}</td>
                 <td style={{textAlign: 'left'}}>{this.props.prio.terms[i].term.name}</td>
                 <td style={{textAlign: 'center'}}>{this.props.prio.terms[i].term.numAnnotatedGenes}</td>
-                <td style={{textAlign: 'center'}}><a style={{color: color.colors.gnblack}} href={this.props.prio.terms[i].term.url} target="_blank">{this.props.prio.terms[i].term.id}</a></td>
+                <td style={{textAlign: 'center'}}><a style={{color: color.colors.gnblack}} href={this.props.prio.terms[i].term.url} 
+                    target="_blank">{this.props.prio.terms[i].term.id}</a></td>
                 <td style={{textAlign: 'center'}}>{hoverZScores ? hoverZScores[i] : ""}</td>
                 </tr>
                 )
@@ -141,16 +133,11 @@ var GeneTable = React.createClass({
 
         if (subTable) {
 
-var phens = ""
-            for (var j = 0; j < this.props.prio.terms.length; j++) {
-                phens = phens.concat(this.props.prio.terms[j].term.id + ',')
-            }
-            var newRows = []
+            var newRows = []        // Rows in the table
+
             for (var i = 0; i < subTable.length; i++) {
 
-
                 var rowtype = i % 2 === 0 ? 'datarow evenrow' : 'datarow oddrow'
-
 
                 /* network urls: */
                 var phens = ""
@@ -176,17 +163,14 @@ var phens = ""
                     impactScore = null
                 }
 
-/* TO DO:   - figure out how to not display the biotype & rank headers
-            - customize sorting for different columns */
-
                 newRows.push(
-                    <Tr key={i} className = {rowtype} onMouseOver={this.props.onMouseOver.bind(null, this.props.prio.results[i].predicted)}>
+                    <Tr key={i} className = {rowtype} onMouseOver={this.props.onMouseOver.bind(null, subTable[i].predicted)}>
                     <Td column="BIOTYPE" style={{textAlign: 'center'}}>{square}</Td>
                     <Td column="RANK" style={{textAlign: 'center'}}>{i + 1}</Td>
-                    <Td column="GENE" style={{textAlign: 'center'}}>{this.props.prio.results[i].gene.name}</Td>
-                    <Td column="P-VALUE" style={{textAlign: 'center'}}>{unsafe(htmlutil.pValueToReadable(prob.zToP(this.props.prio.results[i].weightedZScore)))}</Td>
-                    <Td column="DIRECTION" style={{textAlign: 'center'}}>{this.props.prio.results[i].weightedZScore > 0 ? <SVGCollection.TriangleUp className='directiontriangleup' /> : <SVGCollection.TriangleDown className='directiontriangledown' />}</Td>
-                    <Td column="ANNOTATION" style={{textAlign: 'center'}} title={this.props.prio.results[i].annotated.length == 0 ? "Not annotated to any of the phenotypes." : this.props.prio.results[i].annotated}>{this.props.prio.results[i].annotated.length}</Td>
+                    <Td column="GENE" style={{textAlign: 'center'}}>{subTable[i].gene.name}</Td>
+                    <Td column="P-VALUE" style={{textAlign: 'center'}}>{unsafe(htmlutil.pValueToReadable(prob.zToP(subTable[i].weightedZScore)))}</Td>
+                    <Td column="DIRECTION" style={{textAlign: 'center'}}>{subTable[i].weightedZScore > 0 ? <SVGCollection.TriangleUp className='directiontriangleup' /> : <SVGCollection.TriangleDown className='directiontriangledown' />}</Td>
+                    <Td column="ANNOTATION" style={{textAlign: 'center'}} title={subTable[i].annotated.length == 0 ? "Not annotated to any of the phenotypes." : subTable[i].annotated}>{subTable[i].annotated.length}</Td>
                     <Td column="NETWORK" style={{textAlign: 'center'}}><a href={networkLink} target="_blank"><SVGCollection.NetworkIcon /></a></Td>
                     {impactScore}
                     </Tr>
@@ -195,12 +179,7 @@ var phens = ""
 
         } else {
 
-            var phens = ""
-            for (var j = 0; j < this.props.prio.terms.length; j++) {
-                phens = phens.concat(this.props.prio.terms[j].term.id + ',')
-            }
-
-            var newRows = []
+            var newRows = []        // Rows in the table
 
             for (var i = 0; i < this.props.prio.results.length; i++) {
 
@@ -221,8 +200,6 @@ var phens = ""
                     <rect x1='0' y1='0' width='10' height='10' style={{fill: color.biotype2color[this.props.prio.results[i].gene.biotype] || color.colors.default}} />
                     </svg>
                     </div>
-
-/* TO DO: figure out how to not display the biotype & rank headers */
 
                 newRows.push(
                     <Tr key={i} className = {rowtype} onMouseOver={this.props.onMouseOver.bind(null, this.props.prio.results[i].predicted)}>
@@ -248,7 +225,7 @@ var phens = ""
             }
         }
 
-        /* The actual table: */
+        /* The actual table, with custom sorting: */
         return (<Table className='gn-gene-table datatable sortable' style={{width: '100%'}} 
 
             sortable={[
@@ -258,7 +235,7 @@ var phens = ""
                 {
                     column: 'DIRECTION',
                     sortFunction: function(a, b) {
-                        return a.props.className - b.props.className
+                        return a.props.className - b.props.className        // Strange: when sorting: 2nd row changes (2 -> 100 -> 51), but all are 'directiontriangleup'
                     }
                 },
 
@@ -270,45 +247,40 @@ var phens = ""
                 },
 
                 {
-                //P-val: not really necessary (can simply sort 'rank'), but the user doesn't know that..
+                //P-val: not really necessary (can simply sort using 'rank'), but the user doesn't know that..
                     column: 'P-VALUE',
                     sortFunction: function(a, b) {
 
                         a = a.toString()
-                        var aExponent = a.slice(12,15)
+                        var aExponent = a.slice(53,56)
                         var aNumber = a.slice(0,3)
 
                         b = b.toString()
-                        var bExponent = b.slice(12,15)
+                        var bExponent = b.slice(53,56)
                         var bNumber = b.slice(0,3)
 
                         return aExponent - bExponent || aNumber - bNumber
                     }
-                }
+                },
+
+                'IMPACT'
             ]}
 
             >{newRows}</Table>)
     }
 })
 
-/* compareGenes() should;
-        - split genes list at , ; /n etc.
-        - identify whether they're gene-names or id's
-            if id's: convert to names
-        - see whether there are SnpEff scores
-
-        - compare the two lists to filter for only the given genes,
-            if relevant: add new column with SnpEff scores
-*/
+// Uses geneslist (& variant scores) provided by user to return new (filtered) data for the GenesTable:
 
 var compareGenes = function (newList, data) {
 
-/* Splitting submitted geneslist */
+    /* Splitting submitted geneslist at \n ; , and \t --> into (uppercase) array */
     newList = newList.replace(/\n/g, ' ')
     newList = newList.replace(/;/g, ' ')
     newList = newList.replace(/,/g, ' ')
     newList = newList.replace(/\t/g, ' ')
     var newArray = newList.split(' ')
+
     var neatArray = []
     for (var i = 0; i < newArray.length; i++) {
         if (newArray[i].length !== 0) {
@@ -316,15 +288,12 @@ var compareGenes = function (newList, data) {
         }
     }
 
-
     var upperCaseArray = []
     for (i = 0; i < neatArray.length; i++) {
         upperCaseArray.push(neatArray[i].toUpperCase())
     }
 
-    /* Maybe change this whole bit into: if a gene name/id is followed by a number, 
-    put that into the snpScores array? (If not, put an empty value into the array.)*/
-
+    /* Storing genesList in two seperate arrays (genes & scores, if available) */
     var snpScores = []
     var neaterArray = []
 
@@ -333,6 +302,7 @@ var compareGenes = function (newList, data) {
             neaterArray.push(upperCaseArray[i])
             if (isNaN(Number(upperCaseArray[i+1]))) {
                 snpScores.push('')
+                
             } else {
                 snpScores.push(upperCaseArray[i+1])
             }
@@ -340,7 +310,7 @@ var compareGenes = function (newList, data) {
         }
     }
 
-    /* ENSG --> gene-name and pushing results to newTableData array*/
+    /* ENSG --> gene-name, pushing results to newTableData array */
     var newTableData = []
     for (var i = 0; i < neaterArray.length; i++) {
         if (neaterArray[i].slice(0,4) == 'ENSG' || neaterArray[i].slice(0,4) == 'ensg') {
@@ -351,14 +321,14 @@ var compareGenes = function (newList, data) {
             }
         } else {
             for (var j = 0; j < data.results.length; j++) {
-                if (neaterArray[i] == data.results[j].gene.name) {
+                if (neaterArray[i] === data.results[j].gene.name) {
                     newTableData.push(data.results[j])              /* all info on gene pushed to new array */
                 }
             }
         }
     }
 
-    /* Checking whether there's anything in the snpScores array*/
+    /* Checking whether any variant impact scores were provided:*/
     var snpScoresEmptied = []
         for (var i = 0; i < snpScores.length; i++) {
         if (snpScores[i].length !== 0) {
@@ -367,8 +337,8 @@ var compareGenes = function (newList, data) {
     }
 
     /* Adding snpScores to gene object (if they're there) */
-    if (snpScoresEmptied.length !== 0) {
-        for (i = 0; i < snpScores.length; i++) {
+    for (i = 0; i < snpScores.length; i++) {
+        if (snpScoresEmptied.length !== 0) {
             newTableData[i].gene.score = snpScores[i]
         }
     }
@@ -377,7 +347,7 @@ var compareGenes = function (newList, data) {
 }
 
 
-{/* Box for pasting a list of genes to filter the genes table: */}
+/* Textbox to paste a list of genes in, to filter the table: */
 
 var PasteBox = React.createClass({
 
@@ -389,7 +359,7 @@ var PasteBox = React.createClass({
     },
 
     render: function() {
-        var value = this.state.value    /*Should return to '' onClick */
+        var value = this.state.value 
 
         return (
             <form>
@@ -480,13 +450,18 @@ var Diagnosis = React.createClass({
           <DocumentTitle title={'Diagnosis' + GN.pageTitleSuffix}>
           <div>
 
+          <div><p>Stuff6</p></div>
+
           <div>{this.state.data ? <ShowPhenotypes3 prio={this.state.data} hoverItem={this.state.hoverItem} /> : 'loading'}</div>
 
           <div>
-          <p>{this.state.data ? 'The ' + this.state.data.results.length + ' highest prioritized genes for the combination of these ' + this.state.data.terms.length + ' phenotypes:' : 'loading'}</p>
+          <p>{this.state.data ? 'The ' + this.state.data.results.length + ' highest prioritized genes for the combination of these ' 
+          + this.state.data.terms.length + ' phenotypes:' : 'loading'}</p>
           </div>
 
-          <div style={{height: "400px", overflow: "auto", width: "70%"}}><GeneTable prio={this.state.data} prioFiltered={this.state.newTable} onMouseOver={this.handleMouseOver} /></div>
+          <div style={{height: "400px", overflow: "auto", width: "70%"}}>
+          <GeneTable prio={this.state.data} prioFiltered={this.state.newTable} onMouseOver={this.handleMouseOver} />
+          </div>
           
           <div><p>Filter geneslist:</p></div>
 
@@ -500,8 +475,7 @@ var Diagnosis = React.createClass({
 
 module.exports = Diagnosis
 
-
-{/*
+/*
 
 To do:
 
@@ -509,12 +483,23 @@ To do:
 - DONE checking for SnpEff scores NOW BETTER
 - DONE sortable table
 - DONE getting the 'prioFiltered' to the table
+
 - being able to add new genes to filter for after the first round?? (but then: include those too, or filter the latest list according to those?)
 - fixing alignment of header & rows in GeneTable
 - have a look at what happens when you sort according to 'direction' --> 2nd row. Weird.
+- sometimes after sorting if you move the cursor over the table, the rows change..
 
-- problem: if you first post a row of genes with var. impacts and then add a new list of genes of which the 1st hasn't got a var imp --> var imp header disappears.
+TO DO:   - figure out how to not display the biotype & rank headers
+            - customize sorting for different columns DONE
+
+- FIXED problem: if you first post a row of genes with var. impacts and then add a new list of genes of which the 1st hasn't got a var imp --> var imp header disappears.
     also: the yellow line disappears at the last column.
-        solution: somehow making sure 'score: ""' is added to the gene object if any of the others have a 'score: ....' value. or: seeing whether any of the others have a 'score'
+*/
 
-*/}
+
+/*ideas meeting:
+
+- Relationship with the diseases
+- Help user choose phenotypes
+
+*/

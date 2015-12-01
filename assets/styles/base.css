@@ -187,6 +187,7 @@ h1, h2, h3, h4, h5 {
 
 .gn-app {
     height: 100%;
+    /* width: 100%; */
     max-width: 1600px;
     margin: 0 auto;
     padding: 0 10px;
@@ -926,34 +927,38 @@ label > input + img {
     -moz-flex: 0 0 auto;
     -ms-flex: 0 0 auto;
     flex: 0 0 auto;
+    
     /* transform-style: preserve-3d; */
 }
-
-/* .gn-footer img { */
-/*     float: right; */
-/* } */
 
 .gn-footer img:not(.cleverfranke) {
     height: 40px;
     padding-right: 10px;
 }
 
-/* .gn-footer img.cleverfranke,img.rug { */
-/*     padding-left: 20px; */
-/* } */
-
-/* .gn-footer img.cleverfranke { */
-/*     padding-top: 13px; */
-/* } */
-
-/* .gn-footer div { */
-/*     float: left; */
-/*     padding-top: 10px; */
-/* } */
-
 .gn-footer a {
     text-decoration: none;
     color: #000000;
+}
+
+.dont-break-out {
+
+    /* These are technically the same, but use both */
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+
+    -ms-word-break: break-all;
+    /* This is the dangerous one in WebKit, as it breaks things wherever */
+    word-break: break-all;
+    /* Instead use this non-standard one: */
+    word-break: break-word;
+
+    /* Adds a hyphen where the word breaks, if supported (No Blink) */
+    -ms-hyphens: auto;
+    -moz-hyphens: auto;
+    -webkit-hyphens: auto;
+    hyphens: auto;
+
 }
 
 @media only screen and (min-device-width: 480px) {
@@ -976,5 +981,12 @@ label > input + img {
         -moz-flex: 1 0 480px;
         -ms-flex: 1 0 480px;
         flex: 1 0 480px;
+    }
+}
+
+@media only screen and (max-device-width: 479px) {
+
+    .mobilefullwidth {
+        width: 100%;
     }
 }
