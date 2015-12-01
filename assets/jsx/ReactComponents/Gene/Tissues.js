@@ -142,7 +142,7 @@ var Tissues = React.createClass({
                 </div>
                 
                 <div className="flex11" style={{minWidth: '50px'}}>
-                <HomoSapiens onMouseOver={this.handleMouseOver} hoverItem={this.state.hoverItem} clickedItem={this.state.clickedItem} celltypes={this.props.celltypes} />
+                <HomoSapiens onMouseOver={this.handleMouseOver} onClick={this.handleClick} hoverItem={this.state.hoverItem} clickedItem={this.state.clickedItem} celltypes={this.props.celltypes} />
                 </div>
                 
                 <div className="flex11">
