@@ -5,8 +5,6 @@ var DocumentTitle = require('react-document-title')
 var Cookies = require('cookies-js')
 
 var Network = require('./Network')
-//var NetworkMenu = require('./NetworkMenu')
-//var NetworkInfo = require('./NetworkInfo')
 
 var ManyGenesMaster = React.createClass({
 
@@ -105,7 +103,7 @@ var ManyGenesMaster = React.createClass({
     },
 
     render: function() {
-        // console.log('"Many" rendering, state:', this.state)
+
         if (this.state.error) {
             return (
 		    <DocumentTitle title={this.state.errorTitle + GN.pageTitleSuffix}>
@@ -114,8 +112,7 @@ var ManyGenesMaster = React.createClass({
                     </div>
 		    </DocumentTitle>
             )
-        } else {//if (this.state.data) {
-            // console.log('data received')
+        } else {
             if (this.props.params.ids) {
                 // kludge - textarea value doesn't always update if genes are appended to the url
                 $('#manytextarea').val(this.props.params.ids)

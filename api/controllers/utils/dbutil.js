@@ -936,8 +936,30 @@ exp.getCoregulationMatrixAndGenePValues = function(genes, callback) {
     })
 }
 
-exp.getCoregulationMatrix = function(genes, callback) {
+exp.getCoregulationBuffer = function(genes, callback) {
 
+    async.map(genes, function(gene, cb) {
+        correlationdb.get('RNASEQ!' + gene.id, function(err, data) {
+            if (err) cb(err)
+            var buffer = new Buffer(genes.length * 2)
+            for (var i = 0; i < genes.length; i++) {
+                buffer.writeUInt16BE(data.readUInt16BE(genes[i].index_ * 2))
+            }
+            cb(null, buffer)
+        })
+    }, function(err, results) {
+
+        if (err) {
+            handleDBError(err, callback)
+        } else {
+            var buffer = Buffer.concat(results, results.length * results.length * 2)
+            callback(null, buffer)
+        }
+    })
+}
+
+exp.getCoregulationMatrix = function(genes, callback) {
+    
     async.map(genes, function(gene, cb) {
         correlationdb.get('RNASEQ!' + gene.id, function(err, data) {
             if (err) cb(err)

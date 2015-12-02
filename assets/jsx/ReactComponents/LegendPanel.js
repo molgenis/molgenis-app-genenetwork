@@ -162,7 +162,7 @@ var LegendPanel = React.createClass({
         // <table className='noselect defaultcursor' style={{backgroundColor: color.colors.gnwhite}}>
         // <tbody>
         return (
-                <div className='gn-network-legendpanel'>
+                <div className='gn-network-legendpanel smallscreensmallfont'>
                 <span className='noselect defaultcursor' style={{padding: '9px 10px', float: 'left', backgroundColor: color.colors.gnwhite}}>COLOR GENES BY</span>
                 <OpenMenu options={this.props.coloringOptions} selected={this.props.coloring} onSelect={this.props.onColoring} style={{float: 'left'}} />
                 <div className='gn-network-legendpanel-legend noselect' style={{float: 'left', padding: '8px 10px 9px 10px', backgroundColor: color.colors.gnwhite}}>
