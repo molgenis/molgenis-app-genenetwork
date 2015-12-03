@@ -1,6 +1,6 @@
 'use strict'
 
-var DOMAIN = 'http://localhost:1337'
+var DOMAIN = require('../../config/domain.js').domain
 
 var _ = require('lodash')
 var color = require('../js/color')
