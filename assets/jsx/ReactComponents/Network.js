@@ -16,7 +16,6 @@ var DownloadPanel = require('./DownloadPanel')
 var OpenMenu = require('./OpenMenu')
 var SVGCollection = require('./SVGCollection')
 var Logo = require('./Logo')
-var Footer = require('./Footer') 
 
 //var gzip = require('gzip-js')
 var Cookies = require('cookies-js')
@@ -493,7 +492,7 @@ var Network = React.createClass({
                     <LegendPanel data={this.props.data} coloring={this.state.coloring} termColoring={this.state.termColoring}
                 coloringOptions={this.state.coloringOptions} onColoring={this.handleColoring} />
 
-                    <div style={{maxHeight: this.state.height - 20}} className='gn-network-panelcontainer noselect'>
+                    <div style={{maxHeight: this.state.height - 20}} className='gn-network-panelcontainer noselect smallscreensmallfont'>
                     <GroupPanel data={this.props.data}
                 activeGroup={this.state.activeGroup}
                 coloring={this.state.coloring}

@@ -194,6 +194,7 @@ var Landing = React.createClass({
         }
         var that = this
         // 'Enter your search or paste a gene list here'
+        console.log(this.props.children)
         return (<div className='gn-app vflex'>
                 <div className='gn-top flex00 flexcenter hflex'>
                 <div className='gn-top-logo clickable flex00' style={{margin: '10px 0'}} onClick={this.onLogoClick}>
@@ -207,7 +208,7 @@ var Landing = React.createClass({
                 </div>
                 {topBanner}
                 {this.props.children}
-                <Footer />
+                {!this.props.children || this.props.children.props.route.path.indexOf('network') < 0 ? <Footer /> : null}
       	        </div>
         )
     }

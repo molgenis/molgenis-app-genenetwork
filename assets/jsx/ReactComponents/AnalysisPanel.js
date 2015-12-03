@@ -59,8 +59,8 @@ var AnalysisPanel = React.createClass({
                 <div className='flex00'>
                 <div className={classNames[0]} onClick={this.onTabSelect.bind(null, 0)}>PATHWAYS & PHENOTYPES</div>
                 <div className={classNames[1]} onClick={this.onTabSelect.bind(null, 1)}>SIMILAR GENES</div>
-                <div className='clickable xbutton' style={{float: 'right', padding: '0 10px'}} onClick={this.props.onClose}>
-                <SVGCollection.X size={16} />
+                <div className='clickable xbutton' style={{float: 'right', padding: '0 6px'}} onClick={this.props.onClose}>
+                <SVGCollection.X size={12} />
                 </div>
                 </div>
                 <PWAPanel
@@ -86,24 +86,3 @@ var AnalysisPanel = React.createClass({
 })
 
 module.exports = AnalysisPanel
-
-//     <div className='analysispanel' style={this.state.analysisGroup ? {visibility: 'visible'} : {visibility: 'hidden'}}>
-//     <Tabs onSelect={this.handleTabSelect}>
-//     <TabList>
-//     <Tab>PATHWAYS & PHENOTYPES</Tab>
-//     <Tab>SIMILAR GENES</Tab>
-//     </TabList>
-//     <TabPanel>
-//     <div className='bordered smallpadding' style={{height: '100%', overflow: 'hidden', backgroundColor: color.colors.gnwhite, margin: '10px 0'}}>
-//     <PWAPanel ref='pwa' selectedTerm={this.state.selectedTerm} group={this.state.analysisGroup}
-// termColoring={this.state.termColoring} areNodesColoredByTerm={this.state.coloring == 'term'}
-// onTermClick={this.selectTerm} onColoring={this.handleTermColoring} />
-//     </div>
-//     </TabPanel>
-//     <TabPanel>
-//     <div className='bordered smallpadding' style={{height: '100%', overflow: 'hidden', backgroundColor: color.colors.gnwhite}}>
-//     <PredictedGenesPanel ref='pred' group={this.state.analysisGroup} onGeneAdd={this.addGeneRequest} onGeneRemove={this.removeGene} addedGenes={this.state.addedGenes} d3fd={d3fd}/>
-//     </div>
-//     </TabPanel>
-//     </Tabs>
-//     </div>

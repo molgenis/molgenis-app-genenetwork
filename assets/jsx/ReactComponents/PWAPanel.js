@@ -296,21 +296,9 @@ var PWAPanel = React.createClass({
                 )
             })
 
-            //  padding='1px 2px 0 0'
-            //     <div id='predictioncoloring' title={buttonTitles[0]} className={buttonClasses[0]} style={{float: 'left', margin: '0 5px 10px 0', color: clrs[0]}}
-            // onClick={this.props.onColoring.bind(null, 'prediction')}>
-            //     <Rectangle className='tablerectangle' fill={clrs[0]} />
-            //     Prediction
-            // </div>
-            //     <div id='annotationcoloring' title={buttonTitles[1]} className={buttonClasses[1]} style={{float: 'left', margin: '0 0 10px 0', color: clrs[1]}}
-            // onClick={this.props.onColoring.bind(null, 'annotation')}>
-            //     <Rectangle className='tablerectangle' fill={clrs[1]} />
-            //     Annotation
-            // </div>
-            
             return (
                     <div className='vflex flexnowrap' style={this.props.style}>
-
+                    
                     <div className='flex00'>
                     {databaseButtons}
                 </div>

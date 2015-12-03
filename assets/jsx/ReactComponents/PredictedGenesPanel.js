@@ -237,7 +237,6 @@ var PredictedGenesPanel = React.createClass({
                           {this.state.gpAUC > 0 ? ' AUC ' + Math.round(1000 * this.state.gpAUC) / 1000 : ' (AUC not calculated)'}
                           </div>)
 
-            console.log(this.props.style)
             return (
                     <div className='scrollable' style={this.props.style}>
                     <div title='Download these results' style={{float: 'right', marginRight: '10px'}}>

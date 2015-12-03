@@ -990,3 +990,10 @@ label > input + img {
         width: 100%;
     }
 }
+
+@media only screen and (max-device-width: 1280px) {
+
+    .smallscreensmallfont {
+        font-size: 0.875em;
+    }
+}

@@ -61,7 +61,7 @@ var GroupPanel = React.createClass({
         // Analyse {that.props.activeGroup.nodes.length} {that.props.activeGroup.nodes.length === 1 ? 'gene' : 'genes'}
         // {that.props.activeGroup.nodes.length === 1 ? <span style={{visibility: 'hidden'}}>s</span> : ''}
         return (
-                <div id='grouppanel' className='networkleftpanel bordered smallpadding paddingbottom noshrink' style={this.props.style || {}}>
+                <div id='grouppanel' className='networkleftpanel bordered smallpadding paddingbottom noshrink smallfont' style={this.props.style || {}}>
                 <table style={{width: '100%'}}>
                 <tbody>
                 {elems}

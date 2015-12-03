@@ -104,7 +104,7 @@ var ShowPhenotypes3 = React.createClass({
 
         /* The table itself & headers: */
         return (
-            <table className='gn-gene-table datatable' style={{width: '70%'}}>
+            <table className='gn-gene-table datatable' style={{width: '100%'}}>
             <tbody>
             <tr>
             <th></th>
@@ -170,7 +170,7 @@ var GeneTable = React.createClass({
                     <Td column="GENE" style={{textAlign: 'center'}}>{subTable[i].gene.name}</Td>
                     <Td column="P-VALUE" style={{textAlign: 'center'}}>{unsafe(htmlutil.pValueToReadable(prob.zToP(subTable[i].weightedZScore)))}</Td>
                     <Td column="DIRECTION" style={{textAlign: 'center'}}>{subTable[i].weightedZScore > 0 ? <SVGCollection.TriangleUp className='directiontriangleup' /> : <SVGCollection.TriangleDown className='directiontriangledown' />}</Td>
-                    <Td column="ANNOTATION" style={{textAlign: 'center'}} title={subTable[i].annotated.length == 0 ? "Not annotated to any of the phenotypes." : subTable[i].annotated}>{subTable[i].annotated.length}</Td>
+                    <Td column="ANNOTATION" style={{textAlign: 'center'}}><div title={subTable[i].annotated.length == 0 ? "Not annotated to any of the phenotypes." : subTable[i].annotated}>{subTable[i].annotated.length}</div></Td>
                     <Td column="NETWORK" style={{textAlign: 'center'}}><a href={networkLink} target="_blank"><SVGCollection.NetworkIcon /></a></Td>
                     {impactScore}
                     </Tr>
@@ -203,12 +203,12 @@ var GeneTable = React.createClass({
 
                 newRows.push(
                     <Tr key={i} className = {rowtype} onMouseOver={this.props.onMouseOver.bind(null, this.props.prio.results[i].predicted)}>
-                    <Td column="BIOTYPE" style={{textAlign: 'center'}}>{square}</Td>
-                    <Td column="RANK" style={{textAlign: 'center'}}>{i + 1}</Td>
+                    <Td column=" " style={{textAlign: 'center'}}>{square}</Td>
+                    <Td column="  " style={{textAlign: 'center'}}>{i + 1}</Td>
                     <Td column="GENE" style={{textAlign: 'center'}}>{this.props.prio.results[i].gene.name}</Td>
                     <Td column="P-VALUE" style={{textAlign: 'center'}}>{unsafe(htmlutil.pValueToReadable(prob.zToP(this.props.prio.results[i].weightedZScore)))}</Td>
                     <Td column="DIRECTION" style={{textAlign: 'center'}}>{this.props.prio.results[i].weightedZScore > 0 ? <SVGCollection.TriangleUp className='directiontriangleup' /> : <SVGCollection.TriangleDown className='directiontriangledown' />}</Td>
-                    <Td column="ANNOTATION" style={{textAlign: 'center'}} title={this.props.prio.results[i].annotated.length == 0 ? "Not annotated to any of the phenotypes." : this.props.prio.results[i].annotated}>{this.props.prio.results[i].annotated.length}</Td>
+                    <Td column="ANNOTATION" style={{textAlign: 'center'}}><div title={this.props.prio.results[i].annotated.length == 0 ? "Not annotated to any of the phenotypes." : this.props.prio.results[i].annotated}>{this.props.prio.results[i].annotated.length}</div></Td>
                     <Td column="NETWORK" style={{textAlign: 'center'}}><a href={networkLink} target="_blank"><SVGCollection.NetworkIcon /></a></Td>
                     </Tr>
                 )
@@ -217,7 +217,7 @@ var GeneTable = React.createClass({
 
         /* If variant impact is provided, include header in table: */
         var scoreHeader = null
-        if (subTable) {
+        if (subTable && subTable.length > 0) {
             if (subTable[0].gene.score || subTable[0].gene.score === "") {
                 scoreHeader = <Th column="impact" style={{textAlign: 'center'}}>VAR. IMPACT</Th>
             } else {
@@ -225,11 +225,19 @@ var GeneTable = React.createClass({
             }
         }
 
+        if (subTable && subTable.length == 0) {
+            newRows.push(<Tr key="1"><Td column=" ">Your list of genes did not match any of the results.</Td></Tr>)
+        }
+
         /* The actual table, with custom sorting: */
-        return (<Table className='gn-gene-table datatable sortable' style={{width: '100%'}} 
+        return (<Table id="gentab" className='gn-gene-table datatable sortable' style={{width: '100%', cursor: 'pointer'}} 
+
+
+            // Attempt at not showing the first two headers, doesn't work???
+            // column={[{key: " ", label: 'BIOTYPE'}, {key: " ", label: 'RANK'}, {key: "P-VALUE", label: 'PVALUE'}, {key: "DIRECTION", label: 'DIRECTION'}, {key: "ANNOTATION", label: 'ANNOTATION'}, {key: "NETWORK", label: 'NETWORK'}]}
 
             sortable={[
-                'RANK',
+                '  ',
                 'GENE',
 
                 {
@@ -249,24 +257,99 @@ var GeneTable = React.createClass({
                 {
                 //P-val: not really necessary (can simply sort using 'rank'), but the user doesn't know that..
                     column: 'P-VALUE',
+
                     sortFunction: function(a, b) {
 
-                        a = a.toString()
-                        var aExponent = a.slice(53,56)
-                        var aNumber = a.slice(0,3)
+                        if (a.length < 5) {
+                            if (b.length < 5) {             {/* a ?? b */}
+                                return a - b
+                            } else if (b[0] != '<') {    {/* a > b */}
+                                return 1
+                            } else {                        {/* a > b */}
+                                return 1
+                            }
+                        } else if (a[0] != '<') {
+                            if (b.length < 5) {             {/* a < b */}
+                                return -1
+                            } else if (b[0] != '<') {    {/* a ?? b */}
 
-                        b = b.toString()
-                        var bExponent = b.slice(53,56)
-                        var bNumber = b.slice(0,3)
+                                a = a.toString()
+                                var aExponent = a.slice(53)
+                                var aExp = aExponent.slice(0, aExponent.indexOf("<"))
+                                var aNumber = a.slice(0,3)
 
-                        return aExponent - bExponent || aNumber - bNumber
+                                b = b.toString()
+                                var bExponent = b.slice(53)
+                                var bExp = bExponent.slice(0, bExponent.indexOf("<"))
+                                var bNumber = b.slice(0,3)
+
+                                return aExp - bExp || aNumber - bNumber
+
+                            } else {                        {/* a > b */}
+                                return 1
+                            }
+                        } else {
+                            if (b.length < 5) {             {/* a < b */}
+                                return -1
+                            } else if (b[0] != '<') {    {/* a <b */}
+                                return -1
+                            } else {
+
+                                a = a.toString()
+                                var aExponent = a.slice(55)
+                                var aExp = aExponent.slice(0, aExponent.indexOf("<"))
+                                var aNumber = a.slice(2,5)
+
+                                b = b.toString()
+                                var bExponent = b.slice(55)
+                                var bExp = bExponent.slice(0, bExponent.indexOf("<"))
+                                var bNumber = b.slice(2,5)
+
+                                return aExp - bExp || aNumber - bNumber
+
+                            }
+                        }
+
+                        return b - a
                     }
                 },
 
                 'IMPACT'
             ]}
 
-            >{newRows}</Table>)
+            > {/* end of <Table>*/}
+
+            // Attempt at not showing the first two headers, doesn't work???
+
+            {/*}
+                <Thead>
+                    <Th column="BIOTYPE">
+                        <strong className="biotype-header"></strong>
+                    </Th>
+                    <Th column="RANK">
+                        <strong className="rank-header"></strong>
+                    </Th>
+                    <Th column="GENE">
+                        <strong className="gene-header">GENE</strong>
+                    </Th>
+                    <Th column="P-VALUE">
+                        <strong className="pval-header">P-VALUE</strong>
+                    </Th>
+                    <Th column="DIRECTION">
+                        <strong className="direction-header">DIRECTION</strong>
+                    </Th>
+                    <Th column="ANNOTATION">
+                        <strong className="annotation-header">ANNOTATION</strong>
+                    </Th>
+                    <Th column="NETWORK">
+                        <strong className="network-header">NETWORK</strong>
+                    </Th>
+                </Thead>
+            */}
+
+
+            {newRows}
+            </Table>)
     }
 })
 
@@ -361,12 +444,27 @@ var PasteBox = React.createClass({
     render: function() {
         var value = this.state.value 
 
+
+        var phens = ""
+        for (var j = 0; j < this.props.prio.terms.length; j++) {
+            phens = phens.concat(this.props.prio.terms[j].term.id + ',')
+        }
+
+        var url = GN.urls + "/diagnosis/" + phens
+
+        var unfilterButton = this.props.prioFiltered ? <button type="butten" value="Unfilter" onClick={url}>Unfilter</button> : null // Results in error: Invariant Violation: Expected onClick listener to be a function, instead got type string
+
         return (
             <form>
             <textarea id='pastegenes' placeholder={"\n\n\tPaste a list of genes here..."} 
                 value={value} onChange={this.handlePasteGenesChange} cols="50" rows="5"></textarea>
+
             <br></br>
-            <button type="button" value="Filter" onClick={this.props.onFilter}>Filter!</button>
+
+            <button type="button" value="Filter" onClick={this.props.onFilter}> 
+                {this.props.prioFiltered ? 'Filter more' : 'Filter'} </button> 
+
+            {unfilterButton}
             </form>
         )
     }
@@ -444,15 +542,14 @@ var Diagnosis = React.createClass({
         if (!this.state.data) {
             return null
         }
-
         return (
 
           <DocumentTitle title={'Diagnosis' + GN.pageTitleSuffix}>
           <div>
 
-          <div><p>Stuff6</p></div>
+          <div><p>3</p></div>
 
-          <div>{this.state.data ? <ShowPhenotypes3 prio={this.state.data} hoverItem={this.state.hoverItem} /> : 'loading'}</div>
+          <div style={{height: "150px", overflow: "auto", width: "70%"}}>{this.state.data ? <ShowPhenotypes3 prio={this.state.data} hoverItem={this.state.hoverItem} /> : 'loading'}</div>
 
           <div>
           <p>{this.state.data ? 'The ' + this.state.data.results.length + ' highest prioritized genes for the combination of these ' 
@@ -465,7 +562,7 @@ var Diagnosis = React.createClass({
           
           <div><p>Filter geneslist:</p></div>
 
-          <div><PasteBox onSubmit={this.handleSubmit} prio={this.state.data} onFilter={this.onFilter} /></div>
+          <div><PasteBox onSubmit={this.handleSubmit} prio={this.state.data} prioFiltered={this.state.newTable} onFilter={this.onFilter} /></div>
 
           </div>
           </DocumentTitle>
@@ -484,22 +581,38 @@ To do:
 - DONE sortable table
 - DONE getting the 'prioFiltered' to the table
 
-- being able to add new genes to filter for after the first round?? (but then: include those too, or filter the latest list according to those?)
 - fixing alignment of header & rows in GeneTable
 - have a look at what happens when you sort according to 'direction' --> 2nd row. Weird.
-- sometimes after sorting if you move the cursor over the table, the rows change..
+- sometimes after sorting if you move the cursor over the table, the rows change..??
 
 TO DO:   - figure out how to not display the biotype & rank headers
             - customize sorting for different columns DONE
 
 - FIXED problem: if you first post a row of genes with var. impacts and then add a new list of genes of which the 1st hasn't got a var imp --> var imp header disappears.
     also: the yellow line disappears at the last column.
+
+
+- problem: pastebox --> when the input is not a gene in the list/there's no input.
+
+- Unfilter button when filtered --> go back to original list
+
+- Ugly fix for the cursor --> hand over the headers (style={{cursor: 'pointer'}}) --> now as a pointer for the whole table. 
+    Probably need to change smth. in the css of class 'reactable-header-sortable' (in reactable code?) to do it properly
+- Blue focus border on header when clicked --> 
+
+- The 'rowtype' doesn't change when the column is sorted! 
+
+- change colours: grey near score 0
+- size of gene table should depend on how much room is left(?)
+- DONE unfilter button error
+
 */
 
 
-/*ideas meeting:
+/*ideas:
 
 - Relationship with the diseases
 - Help user choose phenotypes
+- Seperate samples based on tissue
 
 */
