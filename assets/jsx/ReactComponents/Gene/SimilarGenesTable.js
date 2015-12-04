@@ -38,7 +38,7 @@ var SimilarGenesTable = React.createClass({
         })
         
         return (
-                <Table className='gn-gene-table datatable' style={{cursor: 'pointer'}}
+                <Table className='gn-gene-table datatable'
 
                 sortable={[
                     {

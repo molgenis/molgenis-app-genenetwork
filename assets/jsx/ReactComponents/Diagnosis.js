@@ -67,6 +67,46 @@ function getRGB(avg){
 
 /*Shows a table of the phenotypes used as input, with colours depending on the Z-scores: */
 
+var NetworkButton = React.createClass({
+
+    render: function() {
+
+        var subTable = this.props.prioFiltered
+        var urlGenes = ''
+
+        if (subTable) {
+            for (var i = 0; i < subTable.length; i++) {
+                urlGenes = urlGenes + subTable[i].gene.id + ','
+            }
+        } else {
+            for (var i = 0; i < this.props.prio.results.length; i++) {
+                urlGenes = urlGenes + this.props.prio.results[i].gene.id + ','
+            }        
+        }
+        var networkLink = GN.urls.networkPage + urlGenes
+
+        return(<a href={networkLink} target="_blank"><span className='button clickable noselect'>100 GENES NETWORK</span></a>)
+
+        {/*return(<a href={networkLink} target="_blank"><button type="button" >View network of prioritized genes!</button></a>)*/}
+    }
+})
+
+var DownloadButton = React.createClass({
+
+    render: function() {
+
+        var subTable = this.props.prioFiltered
+
+        if (subTable) {
+            // download filtered data
+        } else {
+            // download unfiltered data       
+        }
+
+        return(<span className='button clickable noselect'>DOWNLOAD RESULTS</span>)
+    }
+})
+
 var ShowPhenotypes3 = React.createClass({
 
 
@@ -89,29 +129,30 @@ var ShowPhenotypes3 = React.createClass({
                 </svg>
                 </div>
 
+
             /* The actual phenotype information: */
             rows.push(
                 <tr key={this.props.prio.terms[i].term.name} className = {rowtype} >
                 <td>{square}</td>
                 <td style={{textAlign: 'left'}}>{this.props.prio.terms[i].term.name}</td>
-                <td style={{textAlign: 'center'}}>{this.props.prio.terms[i].term.numAnnotatedGenes}</td>
-                <td style={{textAlign: 'center'}}><a style={{color: color.colors.gnblack}} href={this.props.prio.terms[i].term.url} 
+                <td style={{textAlign: 'left'}}>{this.props.prio.terms[i].term.numAnnotatedGenes}</td>
+                <td style={{textAlign: 'left'}}><a className='nodecoration black' href={this.props.prio.terms[i].term.url} 
                     target="_blank">{this.props.prio.terms[i].term.id}</a></td>
-                <td style={{textAlign: 'center'}}>{hoverZScores ? hoverZScores[i] : ""}</td>
+                <td style={{textAlign: 'left'}}>{hoverZScores ? hoverZScores[i] : ""}</td>
                 </tr>
                 )
         }
 
         /* The table itself & headers: */
         return (
-            <table className='gn-gene-table datatable' style={{width: '100%'}}>
+            <table id="phenTab" className='gn-gene-table datatable' style={{width: '100%'}}>
             <tbody>
             <tr>
             <th></th>
             <th style={{textAlign: 'left'}}>PHENOTYPE</th>
-            <th style={{textAlign: 'center'}}>ANNOTATED GENES</th>
-            <th style={{textAlign: 'center'}}>HPO-TERM</th>
-            <th style={{textAlign: 'center'}}>Z-SCORE</th>
+            <th style={{textAlign: 'left'}}>ANNOTATED GENES</th>
+            <th style={{textAlign: 'left'}}>HPO-TERM</th>
+            <th style={{textAlign: 'left'}}>Z-SCORE</th>
             </tr>
             {rows}
             </tbody>
@@ -163,11 +204,13 @@ var GeneTable = React.createClass({
                     impactScore = null
                 }
 
+                var geneLink = GN.urls.genePage + subTable[i].gene.name
+
                 newRows.push(
                     <Tr key={i} className = {rowtype} onMouseOver={this.props.onMouseOver.bind(null, subTable[i].predicted)}>
                     <Td column="BIOTYPE" style={{textAlign: 'center'}}>{square}</Td>
                     <Td column="RANK" style={{textAlign: 'center'}}>{i + 1}</Td>
-                    <Td column="GENE" style={{textAlign: 'center'}}>{subTable[i].gene.name}</Td>
+                    <Td column="GENE" style={{textAlign: 'center'}}><a className='nodecoration black' href={geneLink} target="_blank">{subTable[i].gene.name}</a></Td>
                     <Td column="P-VALUE" style={{textAlign: 'center'}}>{unsafe(htmlutil.pValueToReadable(prob.zToP(subTable[i].weightedZScore)))}</Td>
                     <Td column="DIRECTION" style={{textAlign: 'center'}}>{subTable[i].weightedZScore > 0 ? <SVGCollection.TriangleUp className='directiontriangleup' /> : <SVGCollection.TriangleDown className='directiontriangledown' />}</Td>
                     <Td column="ANNOTATION" style={{textAlign: 'center'}}><div title={subTable[i].annotated.length == 0 ? "Not annotated to any of the phenotypes." : subTable[i].annotated}>{subTable[i].annotated.length}</div></Td>
@@ -201,11 +244,13 @@ var GeneTable = React.createClass({
                     </svg>
                     </div>
 
+                var geneLink = GN.urls.genePage + this.props.prio.results[i].gene.name
+
                 newRows.push(
                     <Tr key={i} className = {rowtype} onMouseOver={this.props.onMouseOver.bind(null, this.props.prio.results[i].predicted)}>
                     <Td column=" " style={{textAlign: 'center'}}>{square}</Td>
                     <Td column="  " style={{textAlign: 'center'}}>{i + 1}</Td>
-                    <Td column="GENE" style={{textAlign: 'center'}}>{this.props.prio.results[i].gene.name}</Td>
+                    <Td column="GENE" style={{textAlign: 'center'}}><a className='nodecoration black' href={geneLink} target="_blank">{this.props.prio.results[i].gene.name}</a></Td>
                     <Td column="P-VALUE" style={{textAlign: 'center'}}>{unsafe(htmlutil.pValueToReadable(prob.zToP(this.props.prio.results[i].weightedZScore)))}</Td>
                     <Td column="DIRECTION" style={{textAlign: 'center'}}>{this.props.prio.results[i].weightedZScore > 0 ? <SVGCollection.TriangleUp className='directiontriangleup' /> : <SVGCollection.TriangleDown className='directiontriangledown' />}</Td>
                     <Td column="ANNOTATION" style={{textAlign: 'center'}}><div title={this.props.prio.results[i].annotated.length == 0 ? "Not annotated to any of the phenotypes." : this.props.prio.results[i].annotated}>{this.props.prio.results[i].annotated.length}</div></Td>
@@ -230,27 +275,32 @@ var GeneTable = React.createClass({
         }
 
         /* The actual table, with custom sorting: */
-        return (<Table id="gentab" className='gn-gene-table datatable sortable' style={{width: '100%', cursor: 'pointer'}} 
+        return (<Table id="gentab" className='gn-gene-table datatable sortable' style={{width: '100%'}} 
 
 
             // Attempt at not showing the first two headers, doesn't work???
             // column={[{key: " ", label: 'BIOTYPE'}, {key: " ", label: 'RANK'}, {key: "P-VALUE", label: 'PVALUE'}, {key: "DIRECTION", label: 'DIRECTION'}, {key: "ANNOTATION", label: 'ANNOTATION'}, {key: "NETWORK", label: 'NETWORK'}]}
 
             sortable={[
-                '  ',
-                'GENE',
+                {
+                    column: 'GENE',
+                    sortFunction: function(a, b) {
+                        return a.props.children.localeCompare(b.props.children)
+                    }
+                }
+                    ,
 
                 {
                     column: 'DIRECTION',
                     sortFunction: function(a, b) {
-                        return a.props.className - b.props.className        // Strange: when sorting: 2nd row changes (2 -> 100 -> 51), but all are 'directiontriangleup'
+                        return a.props.className.localeCompare(b.props.className)        // Strange: when sorting: 2nd row changes (2 -> 100 -> 51), but all are 'directiontriangleup'
                     }
                 },
 
                 {
                     column: 'ANNOTATION',
                     sortFunction: function(a,b) {
-                        return b - a
+                        return b.props.children - a.props.children
                     }
                 },
 
@@ -317,35 +367,7 @@ var GeneTable = React.createClass({
                 'IMPACT'
             ]}
 
-            > {/* end of <Table>*/}
-
-            // Attempt at not showing the first two headers, doesn't work???
-
-            {/*}
-                <Thead>
-                    <Th column="BIOTYPE">
-                        <strong className="biotype-header"></strong>
-                    </Th>
-                    <Th column="RANK">
-                        <strong className="rank-header"></strong>
-                    </Th>
-                    <Th column="GENE">
-                        <strong className="gene-header">GENE</strong>
-                    </Th>
-                    <Th column="P-VALUE">
-                        <strong className="pval-header">P-VALUE</strong>
-                    </Th>
-                    <Th column="DIRECTION">
-                        <strong className="direction-header">DIRECTION</strong>
-                    </Th>
-                    <Th column="ANNOTATION">
-                        <strong className="annotation-header">ANNOTATION</strong>
-                    </Th>
-                    <Th column="NETWORK">
-                        <strong className="network-header">NETWORK</strong>
-                    </Th>
-                </Thead>
-            */}
+            > 
 
 
             {newRows}
@@ -450,9 +472,9 @@ var PasteBox = React.createClass({
             phens = phens.concat(this.props.prio.terms[j].term.id + ',')
         }
 
-        var url = GN.urls + "/diagnosis/" + phens
+        var url = GN.urls.main + "/diagnosis/" + phens
 
-        var unfilterButton = this.props.prioFiltered ? <button type="butten" value="Unfilter" onClick={url}>Unfilter</button> : null // Results in error: Invariant Violation: Expected onClick listener to be a function, instead got type string
+        var unfilterButton = this.props.prioFiltered ? <a href={url}><span className="button clickable noselect" >UNFILTER</span></a> : null // Results in error: Invariant Violation: Expected onClick listener to be a function, instead got type string
 
         return (
             <form>
@@ -461,8 +483,8 @@ var PasteBox = React.createClass({
 
             <br></br>
 
-            <button type="button" value="Filter" onClick={this.props.onFilter}> 
-                {this.props.prioFiltered ? 'Filter more' : 'Filter'} </button> 
+            <span className="button clickable noselect" onClick={this.props.onFilter}> 
+                {this.props.prioFiltered ? 'FILTER AGAIN' : 'FILTER'} </span>            
 
             {unfilterButton}
             </form>
@@ -542,19 +564,47 @@ var Diagnosis = React.createClass({
         if (!this.state.data) {
             return null
         }
+
+
+    {/* Idea: 600 px - phenotype height? 
+
+
+    if (tableHeight != null) {
+        var tableHeight = document.getElementById('phenTab').clientHeight
+
+        console.log('height')
+        console.log(tableHeight)
+    }}
+
+    console.log(document.getElementById('phenTab')) */}
+
+    var thisThese = this.state.data.terms.length == 1 ? 'this ' : 'these '
+    var phenotypePhenotypes = this.state.data.terms.length == 1 ? ' phenotype:' : ' phenotypes:'
+
         return (
+
+
 
           <DocumentTitle title={'Diagnosis' + GN.pageTitleSuffix}>
           <div>
 
-          <div><p>3</p></div>
+          <div><p></p></div>
 
-          <div style={{height: "150px", overflow: "auto", width: "70%"}}>{this.state.data ? <ShowPhenotypes3 prio={this.state.data} hoverItem={this.state.hoverItem} /> : 'loading'}</div>
+          
+
+          
+
+          <div style={{width: "70%"}}>{this.state.data ? <ShowPhenotypes3 prio={this.state.data} hoverItem={this.state.hoverItem} /> : 'loading'}</div>
 
           <div>
-          <p>{this.state.data ? 'The ' + this.state.data.results.length + ' highest prioritized genes for the combination of these ' 
-          + this.state.data.terms.length + ' phenotypes:' : 'loading'}</p>
+          <p>{this.state.data ? 'The ' + this.state.data.results.length + ' highest prioritized genes for the combination of ' + thisThese 
+          + this.state.data.terms.length + phenotypePhenotypes : 'loading'}</p>
           </div>
+
+          <div><p></p>
+          <NetworkButton prio={this.state.data} prioFiltered={this.state.newTable} />
+          <DownloadButton prio={this.state.data} prioFiltered={this.state.newTable} />
+          <p></p></div>
 
           <div style={{height: "400px", overflow: "auto", width: "70%"}}>
           <GeneTable prio={this.state.data} prioFiltered={this.state.newTable} onMouseOver={this.handleMouseOver} />
@@ -580,31 +630,25 @@ To do:
 - DONE checking for SnpEff scores NOW BETTER
 - DONE sortable table
 - DONE getting the 'prioFiltered' to the table
+- DONE fixing alignment of header & rows in GeneTable
+- DONE figure out how to not display the biotype & rank headers
+- DONE customize sorting for different columns
+- DONE Unfilter button when filtered --> go back to original list
 
-- fixing alignment of header & rows in GeneTable
-- have a look at what happens when you sort according to 'direction' --> 2nd row. Weird.
-- sometimes after sorting if you move the cursor over the table, the rows change..??
-
-TO DO:   - figure out how to not display the biotype & rank headers
-            - customize sorting for different columns DONE
-
+- FIXED problem: pastebox --> when the input is not a gene in the list/there's no input.
 - FIXED problem: if you first post a row of genes with var. impacts and then add a new list of genes of which the 1st hasn't got a var imp --> var imp header disappears.
     also: the yellow line disappears at the last column.
-
-
-- problem: pastebox --> when the input is not a gene in the list/there's no input.
-
-- Unfilter button when filtered --> go back to original list
-
-- Ugly fix for the cursor --> hand over the headers (style={{cursor: 'pointer'}}) --> now as a pointer for the whole table. 
+- FIXED Ugly fix for the cursor --> hand over the headers (style={{cursor: 'pointer'}}) --> now as a pointer for the whole table. 
     Probably need to change smth. in the css of class 'reactable-header-sortable' (in reactable code?) to do it properly
-- Blue focus border on header when clicked --> 
+- FIXED Blue focus border on header when clicked --> 
+- FIXED unfilter button error
 
+
+- have a look at what happens when you sort according to 'direction' --> 2nd row. Weird.
+- sometimes after sorting if you move the cursor over the table, the rows change..??
 - The 'rowtype' doesn't change when the column is sorted! 
-
 - change colours: grey near score 0
 - size of gene table should depend on how much room is left(?)
-- DONE unfilter button error
 
 */
 
