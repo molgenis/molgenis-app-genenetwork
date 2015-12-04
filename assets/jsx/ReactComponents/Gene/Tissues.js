@@ -46,7 +46,7 @@ var DataTable = React.createClass({
     	}.bind(this))
 
         return (
-            <Table className='gn-gene-table datatable sortable' style={{width: '100%', cursor: 'pointer'}} 
+            <Table className='gn-gene-table datatable sortable' style={{width: '100%'}} 
 
             sortable={[
 
