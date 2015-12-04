@@ -263,6 +263,20 @@ th {
     padding: 6px 8px;
 }
 
+
+
+.inversebutton {
+    background-color: #ffe100;
+    color: #4d4d4d;
+}
+
+.inversebutton:hover {
+    background-color: #ffffff;
+    color: #4d4d4d;
+}
+
+
+
 #networksvg {
     position: absolute;
     top: 0;
