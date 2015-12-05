@@ -3,6 +3,7 @@ var handlePrediction = require('./requestHandlers/handlePrediction')
 var handleGeneScores = require('./requestHandlers/handleGeneScores')
 var handleGeneVSNetwork = require('./requestHandlers/handleGeneVSNetwork')
 var handleSuggest = require('./requestHandlers/handleSuggest')
+var handleDiagnosisSuggest = require('./requestHandlers/handleDiagnosisSuggest')
 //var handlePC = require('./requestHandlers/handlePC')
 
 module.exports = {
@@ -27,7 +28,11 @@ module.exports = {
 
     suggest: function(req, res) {
         handleSuggest(req, res)
-    }
+    },
+
+    diagnosisSuggest: function(req, res) {
+        handleDiagnosisSuggest(req, res)
+    },
 
     // pc: function(req, res) {
 

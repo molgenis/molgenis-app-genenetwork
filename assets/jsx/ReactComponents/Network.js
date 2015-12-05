@@ -1,6 +1,7 @@
 'use strict'
 
 var _ = require('lodash')
+var async = require('async')
 var React = require('react')
 var ReactDOM = require('react-dom')
 
@@ -17,86 +18,19 @@ var OpenMenu = require('./OpenMenu')
 var SVGCollection = require('./SVGCollection')
 var Logo = require('./Logo')
 
-//var gzip = require('gzip-js')
 var Cookies = require('cookies-js')
 var D3Network = require('../../js/D3Network.js')
 var color = require('../../js/color')
 
 var ZOOM_SCALE = [0.05, 10]
 
-//TODO move to PWAPanel
 var keyListener = function(e) {
+
     if (e.altKey && e.keyCode === 78) { // alt+n secret key combo easter egg idbeholdi
         this.state.network && this.state.network.toggleNegative()
         this.setState({
             hasNegatives: !this.state.hasNegatives
         })
-    } else if (e.keyCode === 38) { // up
-        if (this.state.selectedTerm && this.state.pwaResults[0].pathway != this.state.selectedTerm) {
-            e.preventDefault()
-            e.stopPropagation()
-            var numTerms = this.state.pwaResults.length
-            for (var i = 1; i < numTerms; i++) {
-                if (this.state.pwaResults[i].pathway == this.state.selectedTerm) {
-                    this.selectTerm(this.state.pwaResults[i-1].pathway)
-                    if (this.refs.pwa && this.refs.pwa.refs && this.refs.pwa.refs.selectedrow) {
-                        var offset = this.refs.pwa.refs.selectedrow.getDOMNode().offsetHeight
-                        this.refs.pwa.getDOMNode().scrollTop -= offset
-                    }
-                    break
-                }
-            }
-        }
-    } else if (e.keyCode === 40) { // sentenced - down
-        if (this.state.selectedTerm && _.last(this.state.pwaResults).pathway != this.state.selectedTerm) {
-            e.preventDefault()
-            e.stopPropagation()
-            var numTerms = this.state.pwaResults.length
-            for (var i = 0; i < numTerms - 1; i++) {
-                if (this.state.pwaResults[i].pathway == this.state.selectedTerm) {
-                    this.selectTerm(this.state.pwaResults[i+1].pathway)
-                    if (this.refs.pwa && this.refs.pwa.refs && this.refs.pwa.refs.selectedrow) {
-                        var offset = this.refs.pwa.refs.selectedrow.getDOMNode().offsetHeight
-                        this.refs.pwa.getDOMNode().scrollTop += offset
-                    }
-                    break
-                }
-            }
-        }
-    } else if (e.keyCode === 37) { // entombed - left hand path
-        if (this.state.selectedTerm && this.state.pwaResults[0].pathway != this.state.selectedTerm) {
-            e.preventDefault()
-            e.stopPropagation()
-            var numTerms = this.state.pwaResults.length
-            for (var i = 1; i < numTerms; i++) {
-                if (this.state.pwaResults[i].pathway == this.state.selectedTerm) {
-                    var numMoved = (i - 10 >= 0) ? 10 : i
-                    this.selectTerm(this.state.pwaResults[i - numMoved].pathway)
-                    if (this.refs.pwa && this.refs.pwa.refs && this.refs.pwa.refs.selectedrow) {
-                        var offset = this.refs.pwa.refs.selectedrow.getDOMNode().offsetHeight
-                        this.refs.pwa.getDOMNode().scrollTop -= numMoved * offset
-                    }
-                    break
-                }
-            }
-        }
-    } else if (e.keyCode === 39) { // right
-        if (this.state.selectedTerm && _.last(this.state.pwaResults).pathway != this.state.selectedTerm) {
-            e.preventDefault()
-            e.stopPropagation()
-            var numTerms = this.state.pwaResults.length
-            for (var i = 0; i < numTerms - 1; i++) {
-                if (this.state.pwaResults[i].pathway == this.state.selectedTerm) {
-                    var numMoved = (i + 10 <= numTerms - 1) ? 10 : i
-                    this.selectTerm(this.state.pwaResults[i + numMoved].pathway)
-                    if (this.refs.pwa && this.refs.pwa.refs && this.refs.pwa.refs.selectedrow) {
-                        var offset = this.refs.pwa.refs.selectedrow.getDOMNode().offsetHeight
-                        this.refs.pwa.getDOMNode().scrollTop += numMoved * offset
-                    }
-                    break
-                }
-            }
-        }
     }
 }
 
@@ -124,22 +58,63 @@ var Network = React.createClass({
                 {key: 'chr', label: 'Chromosome'},
                 {key: 'cluster', label: 'Cluster'}
             ],
-            //threshold: this.props.data.threshold,
-            //activeGroup: this.props.data.elements.groups[0],
+            //threshold: this.state.data.threshold,
+            //activeGroup: this.state.data.elements.groups[0],
             progress: {loadProgress: 0, initProgress: 0, layoutProgress: 0, done: false},
             addedGenes: []
         }
     },
 
-    componentDidMount: function() {
+    loadData: function(callback) {
 
-        var el = document.getElementById('network')
-        console.log(el)
+        var ids = this.props.params.ids.replace(/(\r\n|\n|\r)/g, ',')
+        console.log('loading', ids)
+        var data = {
+            format: 'network',
+            genes: ids,
+        }
+        $.ajax({
+            url: window.GN.urls.coregulation,
+            method: 'POST',
+            data: data,
+            dataType: 'json',
+            success: function(data) {
+                callback(null, data)
+                this.setState({
+                    data: data,
+                    error: null
+                })
+            }.bind(this),
+            error: function(xhr, status, err) {
+                callback(err)
+                // if (err === 'Not Found') {
+                //     this.setState({
+                //         data: null,
+                //         error: ids + ' not found',
+                //         errorTitle: xhr.status
+                //     })
+                // } else {
+                //     this.setState({
+                //         data: null,
+                //         error: 'Something is wrong, please try again later. Error: ' + err,
+                //         errorTitle: xhr.status
+                //     })
+                // }
+            }.bind(this)
+        })
+    },
+
+    createNetwork: function(data, callback) {
+
+        console.log(data)
+
         var width = ReactDOM.findDOMNode(this).offsetWidth
         var height = ReactDOM.findDOMNode(this).offsetHeight
         var ts = new Date()
 
-        var network = new D3Network(el, {
+        console.log(width)
+        
+        var network = new D3Network(document.getElementById('network'), {
             width: width,
             height: height,
             minZoomScale: ZOOM_SCALE[0],
@@ -155,25 +130,72 @@ var Network = React.createClass({
             onZoomEnd: this.checkZoomBounds,
             onProgress: this.updateProgress
         })
+        
         this.setState({
             width: width,
             height: height,
             network: network
         })
-        // d3fd.create(el, {
-        //     width: that.w,
-        //     height: that.h,
-        //     nodeRadius: 30,
-        //     labelColor: color.colors.gnwhite,
-        //     labelSize: '12pt',
-        //     gravity: 0.4,
-        //     charge: -2000,
-        //     distance: 300,
-        //     updateProgress: that.updateProgress
-        // }, that.updateGroup)
-        this.setGeneAddSocketListeners()
-        window.addEventListener('resize', this.handleResize)
-        $(document).keydown(keyListener.bind(this))
+
+        callback(null, data)
+    },
+
+    drawNetwork: function(data, callback) {
+        
+        var coloring = this.state.coloring
+        if (_.compact(_.filter(data.elements.groups, function(group) {
+            return group.type == 'custom'
+        })).length > 0 && !_.includes(this.state.coloringOptions, 'custom')) {
+            this.state.coloringOptions.push({key: 'custom', label: 'My coloring'})
+            coloring = 'custom'
+            this.handleColoring('custom')
+        } else if (coloring == 'custom') {
+            coloring = 'biotype'
+        }
+
+        var hashNodes = _.indexBy(data.elements.nodes, function(node) {
+            return node.data.id
+        })
+        
+        this.setState({
+            activeGroup: data.elements.groups[0],
+            hashNodes: hashNodes,
+            threshold: data.threshold,
+            progress: {
+                loadProgress: 100,
+                initProgress: 0,
+                layoutProgress: 0
+            },
+            coloring: coloring,
+            coloringOptions: this.state.coloringOptions
+        })
+        
+        this.state.network.draw(data)
+        this.state.network.colorBy(coloring)
+        
+        callback(null)
+    },
+    
+    componentDidMount: function() {
+
+        async.waterfall([
+
+            this.loadData,
+            this.createNetwork,
+            this.drawNetwork
+            
+        ], function(err) {
+            if (err) {
+                console.log('wut')
+                console.log(err)
+            }
+            else {
+                this.setGeneAddSocketListeners()
+                window.addEventListener('resize', this.handleResize)
+                //window.addEventListener('keydown', this.keyListener)
+                $(document).keydown(keyListener.bind(this))
+            }
+        }.bind(this))
     },
 
     componentWillUnmount: function() {
@@ -185,38 +207,9 @@ var Network = React.createClass({
     },
 
     componentWillReceiveProps: function(nextProps) {
-        if (nextProps.data && nextProps.data != this.props.data) {
-            console.log('url: ' + nextProps.data.href)
 
-            var coloring = this.state.coloring
-            if (_.compact(_.filter(nextProps.data.elements.groups, function(group) {
-                return group.type == 'custom'
-            })).length > 0 && !_.includes(this.state.coloringOptions, 'custom')) {
-                this.state.coloringOptions.push({key: 'custom', label: 'My coloring'})
-                coloring = 'custom'
-                this.handleColoring('custom')
-            } else if (coloring == 'custom') {
-                coloring = 'biotype'
-            }
-
-            var hashNodes = _.indexBy(nextProps.data.elements.nodes, function(node) {
-                return node.data.id
-            })
-            
-            this.setState({
-                activeGroup: nextProps.data.elements.groups[0],
-                hashNodes: hashNodes,
-                threshold: nextProps.data.threshold,
-                progress: {
-                    loadProgress: 100,
-                    initProgress: 0,
-                    layoutProgress: 0
-                },
-                coloring: coloring,
-                coloringOptions: this.state.coloringOptions
-            })
-            this.state.network.draw(nextProps.data)
-            this.state.network.colorBy(coloring)
+        if (nextProps.data && nextProps.data != this.state.data) {
+            this.drawNetwork(nextProps.data)
         }
     },
 
@@ -226,10 +219,10 @@ var Network = React.createClass({
     },
     
     setGeneAddSocketListeners: function() {
-        var that = this
         io.socket.on('genevsnetwork.result', function(msg) {
-            that.addGene(msg.gene, msg.zScores)
-        })
+            this.addGene(msg.gene, msg.zScores)
+        }.bind(this))
+        console.debug('geneAdd socket listener set')
     },
 
     updateProgress: function(progress) {
@@ -240,11 +233,6 @@ var Network = React.createClass({
     removeGroup: function(groupIndex) {
         // return this.state.network.removeGroup(groupIndex)
     },
-
-    // TODO remove
-    // groups: function() {
-    //     return d3fd.groups()
-    // },
 
     changeThreshold: function(threshold, oldThreshold) {
         console.log('Network.changeThreshold: TODO')
@@ -272,29 +260,6 @@ var Network = React.createClass({
         Cookies.set('networkcoloring', type, { expires: 365 * 24 * 60 * 60 })
     },
 
-    handleTermColoring: function(type) {
-        if (this.refs.pwa && this.refs.pwa.state.pwaRunning) return
-        // console.log('term coloring: ' + type)
-        var that = this
-        if (!this.state.selectedTerm) {
-            this.selectTerm(this.refs.pwa.state.pwaResults[this.refs.pwa.state.currentDatabase][0].pathway, function() {
-                this.state.network.colorBy(type)
-                Cookies.set('termcoloring', type)
-                that.setState({
-                    coloring: 'term',
-                    termColoring: type
-                })
-            })
-        } else {
-            this.state.network.colorBy(type)
-            Cookies.set('termcoloring', type)
-            this.setState({
-                coloring: 'term',
-                termColoring: type
-            })
-        }
-    },
-
     onLegendSelect: function(filter) {
         
     },
@@ -303,25 +268,11 @@ var Network = React.createClass({
         if (!_.isPlainObject(group)) {
             console.warn('Network.updateGroup: argument must be an object, got ' + typeof group)
         }
-        updateD3 && this.state.network.highlightGroup(this.props.data.elements.groups.indexOf(group))
+        updateD3 && this.state.network.highlightGroup(this.state.data.elements.groups.indexOf(group))
         this.setState({
             activeGroup: group
         })
     },
-
-    //TODO remove
-    // updateGroup: function(groupIndex) {
-    //     if (groupIndex && !_.isNumber(groupIndex)) {
-    //         return console.log('Network.updateGroup(groupIndex): groupIndex (optional) must be a number')
-    //     }
-    //     if (groupIndex == null || groupIndex == undefined) {
-    //         groupIndex = this.props.data.elements.groups.length - 1
-    //     }
-    //     this.setState({
-    //         activeGroup: this.props.data.elements.groups[groupIndex],
-    //         isGeneListShown: (this.props.data.elements.groups[groupIndex].nodes.length < 2) ? false : this.state.isGeneListShown
-    //     })
-    // },
 
     onGroupListClick: function(group) {
         return this.setState({
@@ -330,69 +281,51 @@ var Network = React.createClass({
     },
 
     onAnalyse: function(group) {
-        if ((this.refs.pwa && this.refs.pwa.state.pwaRunning === true) || (this.refs.gp && this.refs.gp.state.gpRunning === true)) {
-            window.alert('It seems that an analysis is already running or queued, please wait for its results first.')
-        } else {
-            this.setState({
-                analysisGroup: group
-            })
-            // if (this.refs.pwa) {
-            //     this.refs.pwa.pwaRequest(group)
-            // } else {
-            //     console.log('PWA panel not there!')
-            // }
-            // if (this.refs.pred) {
-            //     this.refs.pred.gpRequest(group) //TODO, 'MCM3')
-            // } else {
-            //     console.log('Predicted genes panel not there!')
-            // }
-            // setTimeout(
-            //     d3fd.showBackgroundRects(group), 100)
-        }
+        this.setState({
+            analysisGroup: group
+        })
     },
     
     selectTerm: function(term, callback) {
         if (!term) return
-        var geneIndices = _.map(this.props.data.elements.nodes, function(node) { return node.data.index_ })
+        var geneIndices = _.map(this.state.data.elements.nodes, function(node) { return node.data.index_ })
         var ts = new Date()
-        var that = this
         io.socket.get(GN.urls.genescores, {term: term, geneIndices: geneIndices}, function(res, jwres) {
             if (!res || !res.zScores) {
                 console.log('could not get z-scores for ' + term)
             } else {
                 console.log((new Date() - ts) + 'ms: scoreRequest')
                 for (var i = 0; i < res.zScores.length; i++) {
-                    that.props.data.elements.nodes[i].data.zScore = res.zScores[i]
-                    that.props.data.elements.nodes[i].data.annotated = res.annotations[i]
+                    this.state.data.elements.nodes[i].data.zScore = res.zScores[i]
+                    this.state.data.elements.nodes[i].data.annotated = res.annotations[i]
                 }
-                that.handleColoring('term')
-                if (!_.includes(_.pluck(that.state.coloringOptions, 'key'), 'term')) {
-                    that.state.coloringOptions.push({key: 'term', label: term.database === 'HPO' ? 'Phenotype' : 'Pathway'})
+                this.handleColoring('term')
+                if (!_.includes(_.pluck(this.state.coloringOptions, 'key'), 'term')) {
+                    this.state.coloringOptions.push({key: 'term', label: term.database === 'HPO' ? 'Phenotype' : 'Pathway'})
                 }
-                that.setState({
+                this.setState({
                     selectedTerm: term,
-                    coloringOptions: that.state.coloringOptions,
+                    coloringOptions: this.state.coloringOptions,
                     // additionalColoringOptions: [
                     //     {key: 'term', label: term.database === 'HPO' ? 'Phenotype' : 'Pathway'} // TODO proper pathway/phenotype distinction
                     // ]
                 })
                 if (callback) callback()
             }
-        })
+        }.bind(this))
     },
 
     addGeneRequest: function(gene) {
-        var that = this
         io.socket.get(GN.urls.genevsnetwork,
                       {geneIndex: gene.index_,
-                       geneIndices: _.map(this.props.data.elements.nodes, function(d) { return d.data.index_ })},
+                       geneIndices: _.map(this.state.data.elements.nodes, function(d) { return d.data.index_ })},
                       function(res, jwres) {
                           if (jwres.statusCode !== 200) {
-                              that.setState({
+                              this.setState({
                                   gpMessage: 'Please try again later.'
                               })
                           }
-                      })
+                      }.bind(this))
     },
 
     addGene: function(gene, zScores) {
@@ -471,9 +404,10 @@ var Network = React.createClass({
     
     render: function() {
 
+        //console.log(this.state)
+        
         var loadText = (this.state.progress.loadProgress === 100 && this.state.progress.initProgress === 100) ? 'drawing...' : 'loading...'
-        if (!this.state.progress.done || !this.props.data) {
-            // console.log('network progress render')
+        if (!this.state.progress.done || !this.state.data) {
             //<Logo ref='progresslogo' w={55} h={100} progress={[this.state.progress.loadProgress, this.state.progress.initProgress, this.state.progress.layoutProgress]} />
             return (
                     <div id='network' className='flex10 hflex gn-network' style={{position: 'relative', backgroundColor: color.colors.gnwhite}}>
@@ -489,11 +423,11 @@ var Network = React.createClass({
                     <NetworkControlPanel download={this.download} onSelectionModeChange={this.onSelectionModeChange} selectionMode={this.state.selectionMode}
                 isZoomedMax={this.state.isZoomedMax} isZoomedMin={this.state.isZoomedMin} onZoom={this.onZoom} />
                                         
-                    <LegendPanel data={this.props.data} coloring={this.state.coloring} termColoring={this.state.termColoring}
+                    <LegendPanel data={this.state.data} coloring={this.state.coloring} termColoring={this.state.termColoring}
                 coloringOptions={this.state.coloringOptions} onColoring={this.handleColoring} />
 
                     <div style={{maxHeight: this.state.height - 20}} className='gn-network-panelcontainer noselect smallscreensmallfont'>
-                    <GroupPanel data={this.props.data}
+                    <GroupPanel data={this.state.data}
                 activeGroup={this.state.activeGroup}
                 coloring={this.state.coloring}
                 isGeneListShown={this.state.isGeneListShown}
@@ -509,7 +443,7 @@ var Network = React.createClass({
                  null
                 }
                 {!this.state.isGeneListShown && this.state.activeGroup.nodes.length === 1 ?
-                 (<GenePanel gene={this.props.data.elements.nodes[this.state.network.getNodeById(this.state.activeGroup.nodes[0])].data}
+                 (<GenePanel gene={this.state.data.elements.nodes[this.state.network.getNodeById(this.state.activeGroup.nodes[0])].data}
                   coloring={this.state.coloring} />) :
                  null
                 }
@@ -522,7 +456,6 @@ var Network = React.createClass({
                  termColoring={this.state.termColoring}
                  coloring={this.state.coloring}
                  onTermSelect={this.selectTerm}
-                 onColoring={this.handleTermColoring}
                  onGeneAdd={this.addGeneRequest}
                  onGeneRemove={this.removeGene}
                  addedGenes={this.state.addedGenes}
@@ -554,12 +487,12 @@ var Network = React.createClass({
         }
         // // TODO add this
         // <div id='networkdesc'>
-        // {this.props.data.elements.nodes.length > 4 ?
-        //  (<span>Link to this network: {this.props.data.href}</span>) :
-        //  (<span>This network contains {that.int2str(this.props.data.elements.nodes.length)} genes. Pathway analysis and prediction of similar genes require five or more genes.</span>)}
+        // {this.state.data.elements.nodes.length > 4 ?
+        //  (<span>Link to this network: {this.state.data.href}</span>) :
+        //  (<span>This network contains {that.int2str(this.state.data.elements.nodes.length)} genes. Pathway analysis and prediction of similar genes require five or more genes.</span>)}
         // </div>
         
-        //     <NetworkPanel data={this.props.data}
+        //     <NetworkPanel data={this.state.data}
         // hasNegatives={this.state.hasNegatives}
         // threshold={this.state.threshold}
         // onThresholdChange={this.props.onThresholdChange}

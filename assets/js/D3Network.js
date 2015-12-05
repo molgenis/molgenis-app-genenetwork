@@ -729,7 +729,7 @@ D3Network.prototype._startForce = function() {
             that._force.stop()
             that._move()
             that._updateBrush()
-            that._props.onProgress && that._props.onProgress({done: true})
+            that._props.onProgress && that._props.onProgress({loadProgress: 100, initProgress: 100, layoutProgress: 100, done: true})
         }
     })
 }

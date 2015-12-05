@@ -15,15 +15,14 @@ var Link = ReactRouter.Link
 var createBrowserHistory = require('history/lib/createBrowserHistory')
 
 var Select = require('react-select')
-var DocumentTitle = require('react-document-title')
 
 var Logo = require('./ReactComponents/Logo')
 var API = require('./ReactComponents/API')
-var ManyGenesMaster = require('./ReactComponents/ManyGenesMaster')
 var Gene = require('./ReactComponents/Gene/Gene')
 var Term = require('./ReactComponents/Term')
+var Network = require('./ReactComponents/Network')
 var Ontology = require('./ReactComponents/Ontology')
-var DiagnosisLanding = require('./ReactComponents/DiagnosisLanding')
+var DiagnosisMain = require('./ReactComponents/DiagnosisMain')
 var Diagnosis = require('./ReactComponents/Diagnosis')
 var Footer = require('./ReactComponents/Footer')
 
@@ -54,6 +53,7 @@ GN.urls = {
     pc: DOMAIN + '/api/v1/pc',
     
     suggest: DOMAIN + '/socketapi/suggest',
+    diagnosisSuggest: DOMAIN + '/socketapi/diagnosisSuggest',
     pathwayanalysis: DOMAIN + '/socketapi/pathwayanalysis',
     geneprediction: DOMAIN + '/socketapi/geneprediction',
     genescores: DOMAIN + '/socketapi/genescores',
@@ -165,25 +165,7 @@ var Landing = React.createClass({
         var topBanner = null
         if (_.size(this.props.params) === 0) {
             if (this.props.location.pathname.indexOf('diagnosis') === 1) {
-                topBanner = (<div className='searchcontainer'>
-                             <div className='searchheader noselect defaultcursor'>
-                             Discover disease genes for your patients.
-                             </div>
-                             <div className='selectcontainer'>
-                             <Select
-                             name='search'
-                             matchPos='any'
-                             matchProp='label'
-                             multi={true}
-                             placeholder='Search for phenotypes here'
-                             autoload={false}
-                             asyncOptions={this.getSuggestions}
-                             onChange={this.onSelectChange} />
-                             </div>
-                             <div className='button inversebutton noselect clickable' style={{margin: '20px'}}>
-                             DIAGNOSE
-                             </div>
-                             </div>)
+                topBanner = (null)
             } else {
                 topBanner = (<div className='searchcontainer'>
                              <div className='searchheader noselect defaultcursor'>
@@ -278,9 +260,9 @@ GN.routes = (
         <Route path='/api' component = {Api} />
         <Route path='/gene/:geneId' component={Gene} />
         <Route path='/term/:termId' component = {Term} />
-        <Route path='/network/:ids' component = {ManyGenesMaster} />
+        <Route path='/network/:ids' component = {Network} />
         <Route path='/ontology/:id' component = {Ontology} />
-        <Route path='/diagnosis' component = {DiagnosisLanding} />
+        <Route path='/diagnosis' component = {DiagnosisMain} />
         <Route path='/diagnosis/:id' component = {Diagnosis} />
         </Route>
         </Route>

@@ -11,17 +11,93 @@ var SVGCollection = require('./SVGCollection')
 var Rectangle = SVGCollection.Rectangle
 var Cookies = require('cookies-js')
 
+// TODO handle resize: width
+
 var PWAPanel = React.createClass({
 
     propTypes: {
         group: React.PropTypes.object,
         selectedTerm: React.PropTypes.object,
-        onColoring: React.PropTypes.func,
         termColoring: React.PropTypes.string,
         areNodesColoredByTerm: React.PropTypes.bool
     },
+
+    keyListener: function(e) {
+
+        var pwaResults = this.state.pwaResults && this.state.pwaResults[this.state.currentDatabase]
+        var domNode = ReactDOM.findDOMNode(this)
+        
+        if (e.keyCode === 38 && pwaResults) { // up
+            if (this.props.selectedTerm && pwaResults[0].pathway != this.props.selectedTerm) {
+                e.preventDefault()
+                e.stopPropagation()
+                var numTerms = pwaResults.length
+                for (var i = 1; i < numTerms; i++) {
+                    if (pwaResults[i].pathway == this.props.selectedTerm) {
+                        this.props.onTermClick(pwaResults[i-1].pathway)
+                        if (this.refs && this.refs.selectedrow) {
+                            var offset = this.refs.selectedrow.offsetHeight
+                            domNode.scrollTop -= offset
+                        }
+                        break
+                    }
+                }
+            }
+        } else if (e.keyCode === 40 && pwaResults) { // sentenced - down
+            if (this.props.selectedTerm && _.last(pwaResults).pathway != this.props.selectedTerm) {
+                e.preventDefault()
+                e.stopPropagation()
+                var numTerms = pwaResults.length
+                for (var i = 0; i < numTerms - 1; i++) {
+                    if (pwaResults[i].pathway == this.props.selectedTerm) {
+                        this.props.onTermClick(pwaResults[i+1].pathway)
+                        if (this.refs && this.refs.selectedrow) {
+                            var offset = this.refs.selectedrow.offsetHeight
+                            domNode.scrollTop += offset
+                        }
+                        break
+                    }
+                }
+            }
+        } else if (e.keyCode === 37 && pwaResults) { // entombed - left hand path
+            if (this.props.selectedTerm && pwaResults[0].pathway != this.props.selectedTerm) {
+                e.preventDefault()
+                e.stopPropagation()
+                var numTerms = pwaResults.length
+                for (var i = 1; i < numTerms; i++) {
+                    if (pwaResults[i].pathway == this.props.selectedTerm) {
+                        var numMoved = (i - 10 >= 0) ? 10 : i
+                        this.props.onTermClick(pwaResults[i - numMoved].pathway)
+                        if (this.refs && this.refs.selectedrow) {
+                            var offset = this.refs.selectedrow.offsetHeight
+                            domNode.scrollTop -= numMoved * offset
+                        }
+                        break
+                    }
+                }
+            }
+        } else if (e.keyCode === 39 && pwaResults) { // right
+            if (this.props.selectedTerm && _.last(pwaResults).pathway != this.props.selectedTerm) {
+                e.preventDefault()
+                e.stopPropagation()
+                var numTerms = pwaResults.length
+                for (var i = 0; i < numTerms - 1; i++) {
+                    if (pwaResults[i].pathway == this.props.selectedTerm) {
+                        var numMoved = (i + 10 <= numTerms - 1) ? 10 : i
+                        this.props.onTermClick(pwaResults[i + numMoved].pathway)
+                        if (this.refs && this.refs.selectedrow) {
+                            var offset = this.refs.selectedrow.offsetHeight
+                            domNode.scrollTop += numMoved * offset
+                        }
+                        break
+                    }
+                }
+            }
+        }
+    },
     
     getInitialState: function() {
+
         return {
             currentDatabase: Cookies.get('pwadb') || 'REACTOME',
             progress: 0,
@@ -30,13 +106,16 @@ var PWAPanel = React.createClass({
     },
     
     componentDidMount: function() {
+
         console.log('PWAPanel.componentDidMount: called')
         this.w = ReactDOM.findDOMNode(this).offsetWidth - 3 * 10 - 16 // 3 * padding - diskette width
         window.addEventListener('resize', this.handleResize)
+        $(document).keydown(this.keyListener)
         this.setSocketListeners()
     },
     
     shouldComponentUpdate: function(nextProps, nextState) {
+
         return _.size(this.state.pwaResults) === 0
             || nextState.currentDatabase != this.state.currentDatabase
             || nextState.progress != this.state.progress
@@ -49,10 +128,12 @@ var PWAPanel = React.createClass({
     },
     
     componentWillReceiveProps: function(nextProps) {
+
         this.w = ReactDOM.findDOMNode(this).offsetWidth - 3 * 10 - 16 // 3 * padding - diskette width
     },
 
     handleResize: function(e) {
+
         this.w = ReactDOM.findDOMNode(this).offsetWidth - 3 * 10 - 16 // 3 * padding - diskette width
         this.setState({
             w: this.w
@@ -60,8 +141,10 @@ var PWAPanel = React.createClass({
     },
     
     componentWillUnmount: function() {
+
         console.log('PWAPanel.componentWillUnmount: called')
         window.removeEventListener('resize', this.handleResize)
+        $(document).unbind('keydown', this.keyListener)
         io.socket._raw.removeListener('pathwayanalysis.queueEvent', this._onIOQueueEvent)
         io.socket._raw.removeListener('pathwayanalysis.error', this._onIOError)
         io.socket._raw.removeListener('pathwayanalysis.result', this._onIOResult)
@@ -254,14 +337,14 @@ var PWAPanel = React.createClass({
                             return (
                                     <tr ref='selectedrow' key={result.pathway.database + result.pathway.id} className='datarow selectedrow'>
         	                    <td className='defaultcursor' title={result.pathway.numAnnotatedGenes + ' annotated genes, prediction accuracy ' + Math.round(100 * result.pathway.auc) / 100}>{result.pathway.name}</td>
-                                    <td className='pvalue' dangerouslySetInnerHTML={{__html: htmlutil.pValueToReadable(result.p)}}></td>
+                                    <td className='pvalue' style={{whiteSpace: 'nowrap'}} dangerouslySetInnerHTML={{__html: htmlutil.pValueToReadable(result.p)}}></td>
     		                    </tr>
                             )
                         } else {
                             return (
                                     <tr key={result.pathway.database + result.pathway.id} className={cls}>
         	                    <td className='clickable' title={result.pathway.numAnnotatedGenes + ' annotated genes, prediction accuracy ' + Math.round(100 * result.pathway.auc) / 100} onClick={that.scoreRequest.bind(null, result.pathway)}>{result.pathway.name}</td>
-                                    <td className='pvalue' dangerouslySetInnerHTML={{__html: htmlutil.pValueToReadable(result.p)}}></td>
+                                    <td className='pvalue' style={{whiteSpace: 'nowrap'}} dangerouslySetInnerHTML={{__html: htmlutil.pValueToReadable(result.p)}}></td>
     		                    </tr>
                             )
                         }
@@ -308,12 +391,12 @@ var PWAPanel = React.createClass({
                      </form>
                      : null}
                 {this.state.filterValue && this.state.filterValue.length > 0 ?
-                     (<div style={{padding:'1px 0px 0px 3px'}} className='flex00'>
-                      <svg viewBox='0 0 16 16' width='12' height='12' className='clickable delete' onClick={this.clearFilter}>
-                      <line x1='2' x2='14' y1='2' y2='14' />
-                      <line x1='14' x2='2' y1='2' y2='14' />
-                      </svg>
-                      </div>) : null}
+                 (<div style={{padding:'1px 0px 0px 3px'}} className='flex00'>
+                  <svg viewBox='0 0 16 16' width='12' height='12' className='clickable delete' onClick={this.clearFilter}>
+                  <line x1='2' x2='14' y1='2' y2='14' />
+                  <line x1='14' x2='2' y1='2' y2='14' />
+                  </svg>
+                  </div>) : null}
                     <div className='scrollable'>
                     <table className='pwatable'><tbody>{rows}</tbody></table>
                     </div>
@@ -323,7 +406,7 @@ var PWAPanel = React.createClass({
                       <Disetti onClick={this.download} />
                       </div>
                       </div>) : ''}
-      	            </div>
+      	        </div>
             )
         } else {
             return(<div>Loading...</div>)

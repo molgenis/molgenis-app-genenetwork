@@ -12,7 +12,6 @@ var AnalysisPanel = React.createClass({
         coloring: React.PropTypes.string.isRequired,
         onClose: React.PropTypes.func.isRequired,
         onTermSelect: React.PropTypes.func.isRequired,
-        onColoring: React.PropTypes.func.isRequired,
         onGeneAdd: React.PropTypes.func.isRequired,
         onGeneRemove: React.PropTypes.func.isRequired,
         addedGenes: React.PropTypes.array.isRequired,
@@ -70,8 +69,7 @@ var AnalysisPanel = React.createClass({
             group={this.props.analysisGroup}
             termColoring={this.props.termColoring}
             areNodesColoredByTerm={this.props.coloring == 'term'}
-            onTermClick={this.props.onTermSelect}
-            onColoring={this.props.onColoring} />
+            onTermClick={this.props.onTermSelect} />
                 <PredictedGenesPanel
             ref='pred'
             style={styles[1]}

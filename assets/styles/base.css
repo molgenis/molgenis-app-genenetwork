@@ -98,6 +98,13 @@ h1, h2, h3, h4, h5 {
     align-self: flex-end;
 }
 
+.flexselfcenter {
+    -webkit-align-self: center;
+    -moz-align-self: center;
+    -ms-align-self: center;
+    align-self: center;
+}
+
 .flexcenter {
     -webkit-align-items: center;
     -moz-align-items: center;
