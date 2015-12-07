@@ -223,18 +223,15 @@ var Tissues = React.createClass({
         
     	return (
     		<div className="hflex">
-        	<div className="flex11" style={{height: '600px', overflow: "auto"}}>
-                <DataTable celltypes={this.props.celltypes} onClick={this.handleClick} clickedItem={this.state.clickedItem} hoverItem={this.state.hoverItem} onMouseOver={this.handleMouseOver} />
-                </div>
-                
-                <div className="flex11" style={{minWidth: '50px'}}>
-                <HomoSapiens onMouseOver={this.handleMouseOver} onClick={this.handleClick} hoverItem={this.state.hoverItem} clickedItem={this.state.clickedItem} celltypes={this.props.celltypes} />
-                </div>
-                
-                <div className="flex11">
-                <TableCelltypes clickedItem={this.state.clickedItem} celltypes={this.props.celltypes} onMouseOver={this.handleMouseOver} />
-                </div>
-                </div>
+        	<div className="flex11" style={{height: '550px', width: "10%", overflow: "auto"}}>
+            <DataTable celltypes={this.props.celltypes} onClick={this.handleClick} clickedItem={this.state.clickedItem} hoverItem={this.state.hoverItem} onMouseOver={this.handleMouseOver} />
+            </div>
+            
+            <div className="flex11" style={{minWidth: '50px'}}>
+            <HomoSapiens onMouseOver={this.handleMouseOver} onClick={this.handleClick} hoverItem={this.state.hoverItem} clickedItem={this.state.clickedItem} celltypes={this.props.celltypes} />
+            </div>
+            
+            </div>
     	)
     }
 })
