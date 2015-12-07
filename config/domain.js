@@ -1,3 +1,3 @@
 module.exports = {
-    domain: 'http://molgenis27.target.rug.nl'
+    domain: 'http://molgenis58.target.rug.nl'
 }
