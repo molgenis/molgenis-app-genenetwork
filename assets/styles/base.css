@@ -1045,3 +1045,25 @@ label > input + img {
     cursor: pointer;
     text-align: left!important;
 }
+
+.diagflex-container {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+}
+
+.prio-tables {
+    min-width: 600px;
+    max-width: 750px;
+    flex: 1 1 auto;
+    padding: 15px;
+}
+
+.prio-pastebox {
+    padding: 15px;
+    align-self: flex-end;
+flex: 1 1 auto;
+}
+
+.textarea-flex {
+    width: 300px;
+}

@@ -478,8 +478,8 @@ var PasteBox = React.createClass({
 
         return (
             <form>
-            <textarea id='pastegenes' placeholder={"\n\n\tPaste a list of genes here..."} 
-                value={value} onChange={this.handlePasteGenesChange} cols="50" rows="5"></textarea>
+            <textarea className="textarea-flex" id='pastegenes' placeholder={"\n\n\tPaste a list of genes here to filter the results... \n\n\tYou can also add variant impact scores if \n\tavailable, following the gene name or ID.\n\n\t(E.g. MYOM1 3, BRCA1 2, etc.)"} 
+                value={value} onChange={this.handlePasteGenesChange} rows="10"></textarea>
 
             <br></br>
 
@@ -586,15 +586,17 @@ var Diagnosis = React.createClass({
 
 
           <DocumentTitle title={'Diagnosis' + GN.pageTitleSuffix}>
-          <div>
+          <div className="hflex diagflex-container">
+
+
+          
+
+        <div className="prio-tables">
 
           <div><p></p></div>
 
-          
-
-          
-
-          <div style={{width: "70%"}}>{this.state.data ? <ShowPhenotypes3 prio={this.state.data} hoverItem={this.state.hoverItem} /> : 'loading'}</div>
+{/* style={{width: "70%"}} */}
+          <div>{this.state.data ? <ShowPhenotypes3 prio={this.state.data} hoverItem={this.state.hoverItem} /> : 'loading'}</div>
 
           <div>
           <p>{this.state.data ? 'The ' + this.state.data.results.length + ' highest prioritized genes for the combination of ' + thisThese 
@@ -606,14 +608,17 @@ var Diagnosis = React.createClass({
           <DownloadButton prio={this.state.data} prioFiltered={this.state.newTable} />
           <p></p></div>
 
-          <div style={{height: "400px", overflow: "auto", width: "70%"}}>
+{/*, width: "70%"*/}
+          <div style={{height: "450px", overflow: "auto"}}>
           <GeneTable prio={this.state.data} prioFiltered={this.state.newTable} onMouseOver={this.handleMouseOver} />
           </div>
+
+        </div>
           
-          <div><p>Filter geneslist:</p></div>
+        <div className="prio-pastebox diagflex-container">
 
-          <div><PasteBox onSubmit={this.handleSubmit} prio={this.state.data} prioFiltered={this.state.newTable} onFilter={this.onFilter} /></div>
-
+          <div className="pastebox-flex"><PasteBox onSubmit={this.handleSubmit} prio={this.state.data} prioFiltered={this.state.newTable} onFilter={this.onFilter} /></div>
+        </div>
           </div>
           </DocumentTitle>
         )
