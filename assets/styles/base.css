@@ -98,6 +98,13 @@ h1, h2, h3, h4, h5 {
     align-self: flex-end;
 }
 
+.flexselfcenter {
+    -webkit-align-self: center;
+    -moz-align-self: center;
+    -ms-align-self: center;
+    align-self: center;
+}
+
 .flexcenter {
     -webkit-align-items: center;
     -moz-align-items: center;
@@ -262,6 +269,20 @@ th {
 .button.small {
     padding: 6px 8px;
 }
+
+
+
+.inversebutton {
+    background-color: #ffe100;
+    color: #4d4d4d;
+}
+
+.inversebutton:hover {
+    background-color: #ffffff;
+    color: #4d4d4d;
+}
+
+
 
 #networksvg {
     position: absolute;
@@ -797,7 +818,7 @@ line.link {
     flex-flow: column nowrap;
     
     padding: 10px 10px 0 0;
-    width: 25%;
+    width: 30%;
     max-height: 95vh;
     /* max-width: 300px; */
     z-index: 1;
@@ -996,4 +1017,52 @@ label > input + img {
     .smallscreensmallfont {
         font-size: 0.875em;
     }
+}
+
+.reactable-th-- {
+    
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.reactable-th--:focus {
+    outline:none;
+}
+
+.reactable-th-network {
+
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    cursor: pointer;
+    text-align: left!important;
+
+}
+
+.reactable-th-network:focus {
+    outline:none;
+}
+
+.reactable-header-sortable:focus {
+
+    outline:none;
+}
+
+.reactable-header-sortable {
+
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    cursor: pointer;
+    text-align: left!important;
 }

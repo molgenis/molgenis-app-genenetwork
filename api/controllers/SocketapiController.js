@@ -1,8 +1,10 @@
 var handlePathwayAnalysis = require('./requestHandlers/handlePathwayAnalysis')
 var handlePrediction = require('./requestHandlers/handlePrediction')
+var handleNetwork = require('./requestHandlers/handleNetwork')
 var handleGeneScores = require('./requestHandlers/handleGeneScores')
 var handleGeneVSNetwork = require('./requestHandlers/handleGeneVSNetwork')
 var handleSuggest = require('./requestHandlers/handleSuggest')
+var handleDiagnosisSuggest = require('./requestHandlers/handleDiagnosisSuggest')
 //var handlePC = require('./requestHandlers/handlePC')
 
 module.exports = {
@@ -25,9 +27,17 @@ module.exports = {
         handleGeneVSNetwork(req, res)
     },
 
+    network: function(req, res) {
+        handleNetwork(req, res)
+    },
+
     suggest: function(req, res) {
         handleSuggest(req, res)
-    }
+    },
+
+    diagnosisSuggest: function(req, res) {
+        handleDiagnosisSuggest(req, res)
+    },
 
     // pc: function(req, res) {
 

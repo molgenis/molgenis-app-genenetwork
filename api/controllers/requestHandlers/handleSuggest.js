@@ -22,7 +22,7 @@ module.exports = function(req, res) {
     CLIENT.suggest({
         index: '',
         body: {
-            molestorSuggester: {
+            suggester: {
                 text: query,
                 completion: {
                     field: 'suggest',
@@ -38,13 +38,13 @@ module.exports = function(req, res) {
             // TODO remove if
             if (req.socket && req.socket.id) {
                 sails.sockets.emit(req.socket.id, 'suggestions', {
-                    options: result.molestorSuggester[0].options
+                    options: result.suggester[0].options
                     //options: []
                 })
             }
-            sails.log.debug('Suggest options for %s: %d', query, result.molestorSuggester[0].options.length)
-            console.log(result.molestorSuggester[0])
-            return res.json(result.molestorSuggester[0].options)
+            sails.log.debug('Suggest options for %s: %d', query, result.suggester[0].options.length)
+            console.log(result.suggester[0])
+            return res.json(result.suggester[0].options)
         }
     })
 }
