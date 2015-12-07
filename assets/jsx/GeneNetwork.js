@@ -56,6 +56,7 @@ GN.urls = {
     diagnosisSuggest: DOMAIN + '/socketapi/diagnosisSuggest',
     pathwayanalysis: DOMAIN + '/socketapi/pathwayanalysis',
     geneprediction: DOMAIN + '/socketapi/geneprediction',
+    network: DOMAIN + '/socketapi/network',
     genescores: DOMAIN + '/socketapi/genescores',
     genevsnetwork: DOMAIN + '/socketapi/genevsnetwork',
 

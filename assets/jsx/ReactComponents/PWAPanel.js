@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 
 var _ = require('lodash')
 var htmlutil = require('../htmlutil.js')
@@ -152,21 +152,22 @@ var PWAPanel = React.createClass({
     },
 
     _onIOQueueEvent: function(msg) {
-        var that = this
-        if (!that.isMounted()) {
+
+        if (!this.isMounted()) {
             console.warn('PWAPanel.setSocketListeners: pathwayanalysis.queueEvent received but component not mounted')
         }
+        
         if (msg.queueLength || msg.queueLength === 0) {
             var str = htmlutil.intToStr(msg.queueLength) + ' analyses'
-            if (msg.queueLength === 0) str = 'Starting analysis...'
+            if (msg.queueLength === 0) str = 'Analysis started'
             else if (msg.queueLength < 2) str = 'Your analysis will start in a few seconds...'
             else if (msg.queueLength < 8) str = 'Your analysis will start in less than a minute, please be patient.<br/>'
                 + 'I\'m ' + htmlutil.intToOrdinalStr(msg.queueLength) + ' in the queue.'
             else str = 'This will take some time as our servers are busy right now, please be patient.<br/>'
                 + 'I\'m ' + htmlutil.intToOrdinalStr(msg.queueLength) + ' in the queue.'
-            that.setState({
+            this.setState({
                 pwaMessage: str,
-                currentDatabase: msg.db || that.state.currentDatabase
+                currentDatabase: msg.db || this.state.currentDatabase
             })
         } else {
             console.log('PWAPanel.setSocketListeners: unhandled queueEvent')
@@ -174,23 +175,25 @@ var PWAPanel = React.createClass({
     },
 
     _onIOError: function(msg) {
-        var that = this
-        if (!that.isMounted()) {
+
+        if (!this.isMounted()) {
             console.warn('PWAPanel.setSocketListeners: pathwayanalysis.error received but component not mounted')
         }
-        that.setState({
+        
+        this.setState({
             pwaMessage: msg.pwaMessage,
             pwaRunning: false
         })
     },
 
     _onIOResult: function(msg) {
-        var that = this
-        if (!that.isMounted()) {
+
+        if (!this.isMounted()) {
             console.warn('PWAPanel.setSocketListeners: pathwayanalysis.result received but component not mounted')
         }
+        
         // console.log(msg)
-        var allResults = that.state.pwaResults // also other databases, should probably go to some storage
+        var allResults = this.state.pwaResults // also other databases, should probably go to some storage
         var oldResults = allResults[msg.db] || []
         var newResults = []
         var curI = 0
@@ -205,8 +208,8 @@ var PWAPanel = React.createClass({
             newResults.push(msg.pwaResults[i])
         }
         allResults[msg.db] = newResults
-        that.setState({
-            pwaMessage: null,
+        this.setState({
+            pwaMessage: 'Analysis ' + msg.progress + ' % done',
             pwaResults: allResults,
             pwaRunning: true,
             progress: msg.progress,
@@ -217,20 +220,19 @@ var PWAPanel = React.createClass({
     },
 
     _onIOEnd: function(msg) {
-        var that = this
-        if (!that.isMounted()) {
+
+        if (!this.isMounted()) {
             console.warn('PWAPanel.setSocketListeners: pathwayanalysis.end received but component not mounted')
         }
         Cookies.set('pwadb', msg.db)
-        that.setState({
+        this.props.onPWAFinish()
+        this.setState({
             pwaRunning: false
         })
     },
     
     setSocketListeners: function() {
 
-        console.log('PWAPanel.setSocketListeners: setting socket listeners:', this.isMounted())
-        var that = this
         // TODO own vs broadcast
         io.socket.on('pathwayanalysis.queueEvent', this._onIOQueueEvent)
         io.socket.on('pathwayanalysis.error', this._onIOError)
@@ -239,8 +241,9 @@ var PWAPanel = React.createClass({
     },
 
     handleDatabaseClick: function(db) {
+
         if (!db) return
-        console.log(db, this.state.currentDatabase)
+
         if (this.state.pwaResults[db]) { // results already fetched
             this.setState({
                 currentDatabase: db
@@ -252,22 +255,31 @@ var PWAPanel = React.createClass({
     },
     
     pwaRequest: function(group, db) {
+
         if (!this.isMounted()) {
             console.warn('PWAPanel.pwaRequest: component not mounted!')
+            return false
         }
+        
         this.clearFilter()
+        
         group = group || this.props.group
         if (!group) {
-            return console.log('PWAPanel.pwaRequest: no group!')
+            console.warn('PWAPanel.pwaRequest: no group!')
+            return false
         }
         
         if (this.state.pwaRunning === true) {
+            
             window.alert('A pathway analysis is already running, not starting a new one.')
+            return false
+            
         } else {
+            
             var db = db || this.state.currentDatabase
             console.log('PWAPanel.pwaRequest: sending pathway analysis request: ' + db)
-            var that = this
             var genes = _.map(group.nodes, function(gene) { return gene })
+
             io.socket.get(GN.urls.pathwayanalysis,
                           {db: db,
                            genes: genes},
@@ -277,14 +289,19 @@ var PWAPanel = React.createClass({
                                       pwaMessage: 'Please try again later.'
                                   })
                               }
-                          })
+                          }.bind(this))
+            
+            this.props.onPWAStart()
             this.state.pwaResults[db] = null
             this.setState({
-                pwaMessage: 'Analysis requested...',
+                pwaMessage: 'Analysis requested',
                 progress: 0,
                 pwaResults: this.state.pwaResults,
                 pwaRunning: true
             })
+            
+            return true
+            
         }
     },
 
@@ -373,48 +390,58 @@ var PWAPanel = React.createClass({
                     cls += ' selectedbutton'
                 }
                 return (
-                        <div key={db.id} onClick={that.handleDatabaseClick.bind(that, db.id)} className={cls} style={{float: 'left', margin: '0 0 10px 0'}}>
+                        <div key={db.id} onClick={that.handleDatabaseClick.bind(that, db.id)} className={cls} style={{float: 'left'}}>
                         {db.id.replace('-', ' ')}
                     </div>
                 )
             })
 
+
+//            var message = {These are <strong>pathways</strong})
             return (
                     <div className='vflex flexnowrap' style={this.props.style}>
-                    
                     <div className='flex00'>
                     {databaseButtons}
                 </div>
-                    {rows.length > 0 ?
-                     <form className='flex00' onSubmit={function(e) { e.preventDefault() }}>
-                     <input ref='pwfilter' type='text' name='pwfilter' placeholder='filter' autoComplete='off' value={this.state.filterValue} onChange={this.handleFilterChange}/>
-                     </form>
-                     : null}
-                {this.state.filterValue && this.state.filterValue.length > 0 ?
-                 (<div style={{padding:'1px 0px 0px 3px'}} className='flex00'>
-                  <svg viewBox='0 0 16 16' width='12' height='12' className='clickable delete' onClick={this.clearFilter}>
-                  <line x1='2' x2='14' y1='2' y2='14' />
-                  <line x1='14' x2='2' y1='2' y2='14' />
-                  </svg>
-                  </div>) : null}
-                    <div className='scrollable'>
+                    {this.state.progress !== 100 ?
+                     <span style={{padding: '10px 0'}}>
+                     {this.state.pwaMessage}
+                     </span> :
+                     <span style={{padding: '10px 0'}}>
+                     These are enriched <strong>{this.state.currentDatabase}</strong> pathways for <strong>{this.props.group.name}.</strong>
+                     </span>}
+                {rows.length > 0 ? <Filter filterValue={this.state.filterValue} onChange={this.handleFilterChange} onClear={this.clearFilter} /> : null}
+                    <div style={{overflow: 'auto', maxHeight: this.props.maxTableHeight}}>
                     <table className='pwatable'><tbody>{rows}</tbody></table>
                     </div>
-                    {this.state.progress === 100 ?
-                     (<div style={{position: 'absolute', padding: '0px 10px 0 0', top: '0px', right: '0px'}}>
-                      <div title='Download these results for all pathways'>
-                      <Disetti onClick={this.download} />
-                      </div>
-                      </div>) : ''}
-      	        </div>
+      	            </div>
             )
         } else {
             return(<div>Loading...</div>)
         }
-        // <svg viewBox='0 0 16 16' width='16' height='16' style={{stroke: '#4d4d4d', fill: '#ffffff'}} className='clickable' onClick={this.clearFilter}>
-        // <polyline points='0,0 6,5 6,15 10,15 10,5 15,0 0,0' />
-        // </svg>
     }
 })
+
+var Filter = React.createClass({
+
+    render: function() {
+        
+        return (
+                <div className='flex00 hflex'>
+                <form className='flex00' onSubmit={function(e) { e.preventDefault() }}>
+                <input ref='pwfilter' type='text' name='pwfilter' placeholder='filter' autoComplete='off' value={this.props.filterValue} onChange={this.props.onChange}/>
+                </form>
+                {this.props.filterValue && this.props.filterValue.length > 0 ?
+                 (<div style={{padding:'1px 0px 0px 3px'}} className='flex00'>
+                  <svg viewBox='0 0 16 16' width='12' height='12' className='clickable delete' onClick={this.props.onClear}>
+                  <line x1='2' x2='14' y1='2' y2='14' />
+                  <line x1='14' x2='2' y1='2' y2='14' />
+                  </svg>
+                  </div>) : null}
+            </div>
+        )
+    }
+})
+                              
 
 module.exports = PWAPanel

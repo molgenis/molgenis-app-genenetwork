@@ -6,6 +6,7 @@ var crypto = require('crypto')
 var bs62 = require('base62')
 
 var dbutil = require('../utils/dbutil')
+var query2genes = require('../utils/query2genes')
 var genedesc = require('../utils/genedesc')
 var quicksortobj = require('../utils/quicksortobj')
 var color = require('../../../assets/js/color')
@@ -18,78 +19,6 @@ var reqdb = level(sails.config.requestDBPath, {
 dom.on('error', function(err) {
     sails.log.error(err)
 })
-
-/**
-* Returns an array of gene objects according to the given query.
-*
-* Query can be a string (gene name or ensg id)
-* or an array containing any combination of:
-* + gene names
-* + ensg ids
-* + pathway ids (get genes annotated to pathway)
-*
-* @method getGenes
-* @param {String|Array} query Query string or array
-* @param {Object} [options] Options, optional. Default: {sortField: 'index_'}
-* @param {Function} callback Callback function
-*/
-var getGenes = function(query, options, callback) {
-
-    if (!callback) {
-        callback = options
-        options = {}
-    } else {
-        options = options || {}
-    }
-    if (!_.isFunction(callback)) callback({name: 'ArgumentError', message: 'getGenes: Last argument has to be a callback function'})
-    if (_.isString(query)) query = [query]
-    if (!_.isArray(query)) callback({name: 'ArgumentError', message: 'getGenes: Query has to be a string or an array'})
-    if (query.length === 0) callback(null, [])
-
-    async.map(query, function(q, cb) {
-        var groupNum = null
-        var ei = q.indexOf('!')
-        if (ei > 0) {
-            var ci = +(q.substring(0, ei))
-            if (_.isNumber(ci)) {
-                groupNum = ci
-                q = q.substring(ei + 1)
-            }
-        }
-	var gene = genedesc.get(q)
-	if (gene) {
-	    return cb(null, {genes: [gene], groupNum: groupNum})
-	} else {
-	    var pw = dbutil.pathwayObject(q)
-	    if (pw) {
-		dbutil.getAnnotatedGenes(pw, function(err, genes) {
-                    return err ? cb(err) : cb(null, {genes: genes, groupNum: groupNum})
-		})
-	    } else {
-		return cb(null)
-	    }
-	}
-    }, function(err, genesNGroups) {
-        if (err) return callback(err)
-        var geneIdToGroups = {}
-        _.forEach(genesNGroups, function(gg) {
-            if (gg && gg.groupNum != undefined) {
-                _.forEach(gg.genes, function(gene) {
-                    if (gene) {
-                        if (geneIdToGroups[gene.id] == undefined) {
-                            geneIdToGroups[gene.id] = []
-                        }
-                        geneIdToGroups[gene.id].push(gg.groupNum)
-                    }
-                })
-            }
-        })
-	uniqGenes = _.uniq(_.compact(_.flatten(_.pluck(genesNGroups, 'genes'))))
-	quicksortobj(uniqGenes, options.sortField || 'index_')
-	sails.log.debug(uniqGenes.length + ' genes found, query length was ' + query.length)
-	callback(null, uniqGenes, geneIdToGroups)
-    })
-}
 
 function getAllCorrelations(gene, options, callback) {
 
@@ -204,7 +133,7 @@ module.exports = function(req, res) {
                 var ts = new Date()
                 var groupNumToName = (query.length !== 2) ? null : _.zipObject(_.map(query[0].split(/[,;]+/), function(group) { return group.split('!') }))
                 var geneQuery = query[query.length-1].split(/[\s,;]+/)
-                getGenes(geneQuery, function(err, genes, geneIdToGroupNums) {
+                query2genes(geneQuery, function(err, genes, geneIdToGroupNums) {
                     sails.log.verbose((new Date() - ts) + 'ms parsing genes, found ' + genes.length)
                     cb(err, genes, geneIdToGroupNums, groupNumToName)
                 })

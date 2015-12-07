@@ -495,6 +495,9 @@ D3Network.prototype._initNodes = function() {
             return d.id
         })
 
+
+    var hasGroups = !!this._data.elements.groups
+    
     var that = this
     var nodeEnter = this._node.enter().append('g')
         .attr('class', 'node')
@@ -502,7 +505,6 @@ D3Network.prototype._initNodes = function() {
             return d.id
         })
         .on('click', function(d) {
-            var hasGroups = !!that._data.elements.groups
             if (!that._state.isDragging) {
                 if (d3.event.shiftKey && hasGroups) {
                     _.last(that._data.elements.groups).nodes.push(d.id)
@@ -513,15 +515,13 @@ D3Network.prototype._initNodes = function() {
                     }
                     that.highlightNode(d.id)
                 }
-                if (that._props.onSelect) {
-                    if (hasGroups) {
-                        that._props.onSelect(_.last(that._data.elements.groups))
-                    }
+                if (that._props.onSelect && hasGroups) {
+                    that._props.onSelect(_.last(that._data.elements.groups))
                 }
             }
         })
         .call(this._drag)
-    
+
     for (var i = 0; i < 5; i++) { // each node -> max 5 rectangles for multicoloring
         nodeEnter
             .filter(function(d) {
@@ -613,7 +613,7 @@ D3Network.prototype._show = function() {
         .style('opacity', 1)
         .each(function(d) {
             d.bbox = this.getBBox()
-        });
+        })
 
     // some nodes have 1 rectangle, some more, depending on how many groups they belong to
     this._nodevis.selectAll('g.node>rect')
@@ -729,7 +729,7 @@ D3Network.prototype._startForce = function() {
             that._force.stop()
             that._move()
             that._updateBrush()
-            that._props.onProgress && that._props.onProgress({loadProgress: 100, initProgress: 100, layoutProgress: 100, done: true})
+            that._props.onProgress && that._props.onProgress('done')
         }
     })
 }
@@ -790,7 +790,7 @@ D3Network.prototype.draw = function(data) {
     console.log('D3Network.draw: initialisation %d ms', (Date.now() - ts))
     this._hide()
     this._layoutDone = false
-    this._props.onProgress && this._props.onProgress({loadProgress: 100, initProgress: 100, layoutProgress: 0})
+    this._props.onProgress && this._props.onProgress('calculating layout')
     this._force.start()
 }
 
@@ -802,8 +802,7 @@ D3Network.prototype.addNodeToDataAndNetwork = function(gene, zScores) {
 
     gene.added = true
     this._data.elements.nodes.push({data: gene})
-    // TODO get groups from server already
-    this._addNode({data: gene, groups: [0]})
+    this._addNode({data: gene})
     this._rehash()
 
     var threshold = this._threshold || this._data.threshold || 0
@@ -955,6 +954,7 @@ D3Network.prototype.colorBy = function(type) {
                 return color.biotype2color[d.biotype]
             } else if (type == 'chr' || type == 'chromosome') {
                 return color.chr2color[d.chr]
+                // TODO cluster
             } else if (type == 'cluster' && that._data.elements.groups) {
                 var clusterIndex = _.findLast(d.groups, function(index) {
                     return that._data.elements.groups[index].type == 'auto'
@@ -1017,7 +1017,6 @@ D3Network.prototype._addNode = function(node) {
     }
     this._force.nodes().push(node.data)
     _.last(this._force.nodes()).visited = 0
-    _.last(this._force.nodes()).groups = node.groups
     _.last(this._force.nodes()).customGroups = node.customGroups
 }
 

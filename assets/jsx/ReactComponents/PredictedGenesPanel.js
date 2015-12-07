@@ -1,3 +1,5 @@
+'use strict'
+
 var _ = require('lodash')
 var htmlutil = require('../../jsx/htmlutil.js')
 var React = require('react')
@@ -6,10 +8,13 @@ var Disetti = require('./Disetti')
 var color = require('../../js/color')
 
 var AddGeneSVG = React.createClass({
+
     propTypes: {
         gene: React.PropTypes.object.isRequired
     },
+    
     render: function() {
+        
         return (
                 <div style={this.props.style}>
                 <svg viewBox='0 0 10 10' width={this.props.w} height={this.props.h}>
@@ -23,10 +28,13 @@ var AddGeneSVG = React.createClass({
 })
 
 var RemoveGeneSVG = React.createClass({
+
     propTypes: {
         gene: React.PropTypes.object.isRequired
     },
+    
     render: function() {
+
         return (
                 <div style={this.props.style}>
                 <svg viewBox='0 0 10 10' width={this.props.w} height={this.props.h}>
@@ -49,15 +57,18 @@ var PredictedGenesPanel = React.createClass({
     },
 
     getInitialState: function() {
+
         return {}
     },
     
     componentDidMount: function() {
+
         this.setSocketListeners()
         // this.gpRequest()
     },
 
     componentWillUnmount: function() {
+
         io.socket._raw.removeListener('geneprediction.queueEvent', this._onIOQueueEvent)
         io.socket._raw.removeListener('geneprediction.error', this._onIOError)
         io.socket._raw.removeListener('geneprediction.result', this._onIOResult)
@@ -65,7 +76,7 @@ var PredictedGenesPanel = React.createClass({
     },
     
     _onIOQueueEvent: function(msg) {
-        var that = this
+
         if (msg.queueLength || msg.queueLength === 0) {
             var str = htmlutil.intToStr(msg.queueLength) + ' analyses'
             if (msg.queueLength === 0) str = 'Starting analysis...'
@@ -74,7 +85,7 @@ var PredictedGenesPanel = React.createClass({
                 + 'I\'m ' + htmlutil.intToOrdinalStr(msg.queueLength) + ' in the queue.'
             else str = 'This will take some time as our servers are busy right now, please be patient.<br/>'
                 + 'I\'m ' + htmlutil.intToOrdinalStr(msg.queueLength) + ' in the queue.'
-            that.setState({
+            this.setState({
                 gpMessage: str
             })
         } else {
@@ -84,13 +95,15 @@ var PredictedGenesPanel = React.createClass({
 
     _onIOResult: function(msg) {
 
-        var that = this
         if (msg.gpResults.auc && msg.gpResults.auc > 0) {
-            that.setState({
+            
+            this.setState({
                 gpAUC: msg.gpResults.auc
             })
+            
         } else {
-            var oldResults = that.state.gpResults
+            
+            var oldResults = this.state.gpResults
             if (!oldResults) {
                 oldResults = []
             }
@@ -101,7 +114,7 @@ var PredictedGenesPanel = React.createClass({
             for (var i = 0; i < oldResults.length; i++) {
                 while (curI < r.length && r[curI].p < oldResults[i].p) {
                     //TODO inefficient
-                    if (!that.props.d3fd.getNodeById(r[curI].gene.id)) {
+                    if (!this.props.d3fd.getNodeById(r[curI].gene.id)) {
                         newResults.push(r[curI])
                     } else {
                         // console.log(r[curI].gene.name + ' already in network')
@@ -112,14 +125,14 @@ var PredictedGenesPanel = React.createClass({
             }
 
             for (var i = curI; i < r.length; i++) {
-                if (!that.props.d3fd.getNodeById(r[i].gene.id)) {
+                if (!this.props.d3fd.getNodeById(r[i].gene.id)) {
                     newResults.push(r[i])
                 } else {
                     // console.log('Gene ' + r[i].gene.name + ' already in network!')
                 }
             }
 
-            that.setState({
+            this.setState({
                 gpMessage: null,
                 gpResults: newResults,
                 gpStatus: msg.gpStatus,
@@ -130,6 +143,7 @@ var PredictedGenesPanel = React.createClass({
     },
     
     _onIOError: function(msg) {
+
         this.setState({
             gpMessage: msg.gpMessage,
             gpRunning: false
@@ -137,6 +151,9 @@ var PredictedGenesPanel = React.createClass({
     },
 
     _onIOEnd: function(msg) {
+
+        this.props.onPredFinish()
+
         this.setState({
             gpMessage: msg.gpMessage,
             gpRunning: false
@@ -144,6 +161,7 @@ var PredictedGenesPanel = React.createClass({
     },
     
     setSocketListeners: function() {
+
         io.socket.on('geneprediction.queueEvent', this._onIOQueueEvent)
         io.socket.on('geneprediction.error', this._onIOError)
         io.socket.on('geneprediction.result', this._onIOResult)
@@ -151,11 +169,15 @@ var PredictedGenesPanel = React.createClass({
     },
     
     gpRequest: function(group, geneOfInterest) {
+
         group = group || this.props.group
+
         if (!group) {
+            
             console.log('PredictedGenesPanel.gpRequest: no group!')
+            
         } else {
-            var that = this
+
             if (this.state.gpRunning === true) {
                 window.alert('Gene prediction requested but one is already running, not starting a new one.')
             } else {
@@ -168,6 +190,9 @@ var PredictedGenesPanel = React.createClass({
                     //console.log('gp res:', res, jwres)
                 })
             }
+            
+            this.props.onPredStart()
+            
             this.setState({
                 gpMessage: 'Analysis requested...',
                 gpStatus: null,
@@ -178,6 +203,7 @@ var PredictedGenesPanel = React.createClass({
     },
 
     download: function() {
+
         var form = document.getElementById('gn-network-gpform')
         form['data'].value = JSON.stringify(this.state.gpResults)
         form['name'].value = this.props.group.name
@@ -189,6 +215,7 @@ var PredictedGenesPanel = React.createClass({
     },
 
     shouldComponentUpdate: function(nextProps, nextState) {
+
         return nextState.gpMessage != this.state.gpMessage
             || nextState.gpRunning != this.state.gpRunning
             || nextState.gpResults != this.state.gpResults
@@ -239,9 +266,7 @@ var PredictedGenesPanel = React.createClass({
 
             return (
                     <div className='scrollable' style={this.props.style}>
-                    <div title='Download these results' style={{float: 'right', marginRight: '10px'}}>
-                    <Disetti onClick={this.download} />
-                    </div>
+                    <p>These genes are the most similar to <strong>{this.props.group.name}</strong> <br/> outside of the shown network.</p>
                     <table className='gptable fullwidth'>
                     <tbody>
                     {rows}

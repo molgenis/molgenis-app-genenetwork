@@ -71,7 +71,6 @@ var getPathwayDatabasesFromDB = function(db, callback) {
 //TODO genes also to db
 var getPathwaysFromDB = function(db, callback) {
     sails.log.debug('Getting available external databases')
-    sails.log.debug(db)
     var dbArray = []
     var pathways = {}
     db.createReadStream({
@@ -228,7 +227,6 @@ var getPredictions = function(buffer, dbname, options) {
 
         if (options.annotations) { // add Z-scores for annotated genes, as they might not be included in the sliced list of predicted genes
             _.forEach(options.annotations, function(obj) {
-                console.log(obj)
                 if (obj.term.database === dbname) {
                     obj.zScore = result[obj.term.index_].zScore
 	            if (options.pvalue) {
@@ -936,24 +934,37 @@ exp.getCoregulationMatrixAndGenePValues = function(genes, callback) {
     })
 }
 
-exp.getCoregulationBuffer = function(genes, callback) {
+exp.getCoregulationBuffer = function(genes, id2groups, callback) {
 
+    var hash = {}
+    for (var i = 0; i < genes.length; i++) {
+        hash[genes[i].id] = i
+    }
+    
     async.map(genes, function(gene, cb) {
+
         correlationdb.get('RNASEQ!' + gene.id, function(err, data) {
+
             if (err) cb(err)
-            var buffer = new Buffer(genes.length * 2)
-            for (var i = 0; i < genes.length; i++) {
-                buffer.writeUInt16BE(data.readUInt16BE(genes[i].index_ * 2))
+            
+            var hashI = hash[gene.id]
+            var buffer = new Buffer((genes.length - hashI - 1) * 2)
+            for (var i = hashI + 1; i < genes.length; i++) {
+                buffer.writeUInt16BE(data.readUInt16BE(genes[i].index_ * 2), (i - hashI - 1) * 2)
             }
+            
             cb(null, buffer)
         })
+
     }, function(err, results) {
 
         if (err) {
+            
             handleDBError(err, callback)
         } else {
-            var buffer = Buffer.concat(results, results.length * results.length * 2)
-            callback(null, buffer)
+            
+            var totalBuffer = Buffer.concat(results, results.length * (results.length - 1))
+            callback(null, genes, id2groups, totalBuffer)
         }
     })
 }

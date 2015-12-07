@@ -47,7 +47,7 @@ exp.Download = React.createClass({
     },
     render: function() {
         return (
-                <svg fill='none' width='28' height='28' viewBox='0 0 100 100' strokeWidth='6' stroke='#4d4d4d'>
+                <svg fill='none' width={this.props.size || 28} height={this.props.size || 28} viewBox='0 0 100 100' strokeWidth='6' stroke='#4d4d4d' style={{cursor: 'pointer'}}>
                 <text x='10' y='40' fill ='#4d4d4d' style={{fontSize: '3em'}} strokeWidth='4'>{this.props.text}</text>
                 <polyline points='25,72 50,98 75,72' />
                 <line x1='50' y1='50' x2='50' y2='100' />

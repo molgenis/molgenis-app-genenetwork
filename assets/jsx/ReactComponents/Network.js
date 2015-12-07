@@ -4,6 +4,7 @@ var _ = require('lodash')
 var async = require('async')
 var React = require('react')
 var ReactDOM = require('react-dom')
+var DocumentTitle = require('react-document-title')
 
 var NetworkPanel = require('./NetworkPanel')
 var GroupPanel = require('./GroupPanel')
@@ -16,11 +17,12 @@ var LegendPanel = require('./LegendPanel')
 var DownloadPanel = require('./DownloadPanel')
 var OpenMenu = require('./OpenMenu')
 var SVGCollection = require('./SVGCollection')
-var Logo = require('./Logo')
 
 var Cookies = require('cookies-js')
 var D3Network = require('../../js/D3Network.js')
+var AffinityPropagation = require('../../js/affinity-propagation/src/affinityPropagation.js')
 var color = require('../../js/color')
+var quicksort = require('../../js/sort/quicksort')
 
 var ZOOM_SCALE = [0.05, 10]
 
@@ -34,6 +36,152 @@ var keyListener = function(e) {
     }
 }
 
+var network2js = function(network) {
+
+    var time = Date.now()
+    
+    var js = {
+        elements: {
+            nodes: _.map(network.genes, function(gene) {
+                return {
+                    data: gene
+                }
+            }),
+            edges: []
+        }
+    }
+
+    js.elements.hashNodes = _.indexBy(js.elements.nodes, function(node) {
+        return node.data.id
+    })
+
+    var numNodes = js.elements.nodes.length
+
+    // convert buffer to an array of Z-scores
+    var dataView = new DataView(network.buffer) // DataView is big-endian by default
+    var data = new Array(numNodes * (numNodes - 1) / 2) // buffer contains a symmetric matrix
+    for (var i = 0; i < data.length; i++) {
+        data[i] = (dataView.getUint16(i * 2) - 32768) / 1000
+    }
+
+    // get a suitable threshold for showing edges
+    var dataCopy = data.slice(0)
+    quicksort(dataCopy)
+    js.threshold = dataCopy[Math.max(0, dataCopy.length - numNodes * 10)]
+
+    // keep track of lone genes (not connected to another gene based on threshold)
+    var isConnected = new Array(numNodes)
+    for (var i = 0; i < isConnected.length; i++) {
+        isConnected[i] = false
+    }
+
+    // add edges based on threshold
+    var i = 0
+    for (var i1 = 0; i1 < numNodes - 1; i1++) {
+        for (var i2 = i1 + 1; i2 < numNodes; i2++) {
+            if (Math.abs(data[i]) >= js.threshold) {
+                js.elements.edges.push({
+                    data: {
+                        source: js.elements.nodes[i1].data.id,
+                        target: js.elements.nodes[i2].data.id,
+                        weight: data[i]
+                    }
+                })
+                isConnected[i1] = true
+                isConnected[i2] = true
+            }
+            i++
+        }
+    }
+    
+    // add default groups
+    js.elements.groups = [
+        {
+            name: 'All genes',
+            nodes: _.map(js.elements.nodes, function(node) {
+                return node.data.id
+            }),
+            type: 'auto'
+        },
+        // {
+        //     name: 'Lone genes',
+        //     nodes: _.compact(_.map(isConnected, function(bool, i) {
+        //         return bool ? null : js.elements.nodes[i].data.id
+        //     })),
+        //     type: 'auto'
+        // }
+    ]
+
+    // add custom groups
+    _.forEach(network.groups, function(group) {
+        js.elements.groups.push({
+            name: group.name,
+            index_: group.id,
+            nodes: group.genes,
+            type: 'custom'
+        })
+        // add custom group information per gene to allow partial coloring in the ui
+        _.forEach(group.genes, function (id) {
+            if (js.elements.hashNodes[id].customGroups == undefined) {
+                js.elements.hashNodes[id].customGroups = []
+            }
+            js.elements.hashNodes[id].customGroups.push(group.id)
+        })
+    })
+
+    // scales for coloring the edges
+    js.edgeValueScales = [[0, 12, 15], [0, -12, -15]]
+    js.edgeColorScales = [['#ffffff', '#000000', '#ff3c00'], ['#ffffff', '#00a0d2', '#7a18ec']]
+
+    console.debug('Network.network2js: %d ms', (Date.now() - time))
+    time = Date.now()
+    
+    // affinity propagation clustering
+    var preference = -32.768 // minimum possible Z-score
+    var clusters = AffinityPropagation.getClusters(data, {symmetric: true, preference: preference, damping: 0.8})
+    if (clusters.exemplars.length === 1) { // only one cluster found, cluster again with a higher preference
+        preference = 'min' // minimum Z-score in data
+        clusters = AffinityPropagation.getClusters(data, {symmetric: true, preference: preference, damping: 0.8})        
+    }
+
+    // create cluster groups
+    var clusterGroups = []
+    var clusterHash = {}
+    _.forEach(clusters.exemplars, function(exemplar, i) {
+        var group = {
+            nodes: [],
+            type: 'cluster',
+            exemplar: js.elements.nodes[exemplar].data.id
+        }
+        clusterGroups.push(group)
+        clusterHash[exemplar] = group
+    })
+    
+    // add genes to clusters
+    _.forEach(clusters.clusters, function(exemplar, i) {
+        clusterHash[exemplar].nodes.push(js.elements.nodes[i].data.id)
+    })
+
+    // add cluster groups to network
+    clusterGroups = _.sortBy(clusterGroups, function(group) { return -group.nodes.length })
+    _.forEach(clusterGroups, function(group, i) {
+        group.name = 'Cluster ' + (i + 1)
+        group.index_ = i
+    })
+    Array.prototype.push.apply(js.elements.groups, clusterGroups)
+    
+    console.debug('AffinityPropagation: %d ms', (Date.now() - time))
+
+    // 'My selection' group has to be last for D3Network to handle it correctly // TODO fix this
+    js.elements.groups.push({
+        name: 'My selection',
+        nodes: [],
+        type: 'auto'
+    })
+
+    return js
+}
+
 var Network = React.createClass({
 
     propTypes: {
@@ -44,10 +192,11 @@ var Network = React.createClass({
     },
 
     getInitialState: function() {
+
         var coloring = Cookies.get('networkcoloring') || 'biotype'
         // coloring by term prediction/annotation not available until pathway analysis has been done
         if (coloring == 'term') coloring = 'biotype'
-        console.log('Network.getInitialState: coloring: ' + coloring)
+
         return {
             network: null,
             hasNegatives: false,
@@ -58,62 +207,57 @@ var Network = React.createClass({
                 {key: 'chr', label: 'Chromosome'},
                 {key: 'cluster', label: 'Cluster'}
             ],
-            //threshold: this.state.data.threshold,
-            //activeGroup: this.state.data.elements.groups[0],
-            progress: {loadProgress: 0, initProgress: 0, layoutProgress: 0, done: false},
+            progressText: 'loading',
+            progressDone: false,
             addedGenes: []
         }
     },
-
+    
     loadData: function(callback) {
-
+        
         var ids = this.props.params.ids.replace(/(\r\n|\n|\r)/g, ',')
-        console.log('loading', ids)
+        console.debug('loading', ids)
         var data = {
             format: 'network',
             genes: ids,
         }
-        $.ajax({
-            url: window.GN.urls.coregulation,
-            method: 'POST',
-            data: data,
-            dataType: 'json',
-            success: function(data) {
-                callback(null, data)
+
+        io.socket.on('network', function(network) {
+
+            this.setState({
+                error: null,
+                progressText: 'creating visualization'
+            })
+
+            // allow state change
+            setTimeout(function() {
+                var view = new DataView(network.buffer)
+                var js = network2js(network)
                 this.setState({
-                    data: data,
-                    error: null
+                    data: js
                 })
-            }.bind(this),
-            error: function(xhr, status, err) {
-                callback(err)
-                // if (err === 'Not Found') {
-                //     this.setState({
-                //         data: null,
-                //         error: ids + ' not found',
-                //         errorTitle: xhr.status
-                //     })
-                // } else {
-                //     this.setState({
-                //         data: null,
-                //         error: 'Something is wrong, please try again later. Error: ' + err,
-                //         errorTitle: xhr.status
-                //     })
-                // }
-            }.bind(this)
-        })
+                callback(null, js)
+            }.bind(this), 10)
+            
+        }.bind(this))
+        
+        io.socket.get(GN.urls.network, {genes: ids}, function(res, jwres) {
+            if (jwres.statusCode !== 200) {
+                this.setState({
+                    error: 'Please try again later.',
+                    errorTitle: jwres.statusCode
+                })
+                callback({name: 'Error', message: 'Couldn\'t load data'})
+            }
+        }.bind(this))
     },
 
     createNetwork: function(data, callback) {
-
-        console.log(data)
 
         var width = ReactDOM.findDOMNode(this).offsetWidth
         var height = ReactDOM.findDOMNode(this).offsetHeight
         var ts = new Date()
 
-        console.log(width)
-        
         var network = new D3Network(document.getElementById('network'), {
             width: width,
             height: height,
@@ -153,25 +297,17 @@ var Network = React.createClass({
             coloring = 'biotype'
         }
 
-        var hashNodes = _.indexBy(data.elements.nodes, function(node) {
-            return node.data.id
-        })
-        
         this.setState({
             activeGroup: data.elements.groups[0],
-            hashNodes: hashNodes,
             threshold: data.threshold,
-            progress: {
-                loadProgress: 100,
-                initProgress: 0,
-                layoutProgress: 0
-            },
-            coloring: coloring,
-            coloringOptions: this.state.coloringOptions
+            progressText: 'creating visualization'
         })
-        
-        this.state.network.draw(data)
-        this.state.network.colorBy(coloring)
+
+        // allow state change
+        setTimeout(function() {
+            this.state.network.draw(data)
+            this.state.network.colorBy(coloring)
+        }.bind(this), 10)
         
         callback(null)
     },
@@ -186,7 +322,6 @@ var Network = React.createClass({
             
         ], function(err) {
             if (err) {
-                console.log('wut')
                 console.log(err)
             }
             else {
@@ -224,9 +359,18 @@ var Network = React.createClass({
         }.bind(this))
         console.debug('geneAdd socket listener set')
     },
+        
+    updateProgress: function(progressText) {
 
-    updateProgress: function(progress) {
-        this.setState({progress: progress})
+        if (progressText === 'done') {
+            this.setState({
+                progressDone: true
+            })
+        } else {
+            this.setState({
+                progressText: progressText
+            })
+        }
     },
 
     // TODO remove / fix
@@ -322,7 +466,7 @@ var Network = React.createClass({
                       function(res, jwres) {
                           if (jwres.statusCode !== 200) {
                               this.setState({
-                                  gpMessage: 'Please try again later.'
+                                  error: 'Please try again later.'
                               })
                           }
                       }.bind(this))
@@ -404,20 +548,22 @@ var Network = React.createClass({
     
     render: function() {
 
-        //console.log(this.state)
+        var pageTitle = this.state.error ? this.state.errorTitle : 'Loading' + GN.pageTitleSuffix
         
-        var loadText = (this.state.progress.loadProgress === 100 && this.state.progress.initProgress === 100) ? 'drawing...' : 'loading...'
-        if (!this.state.progress.done || !this.state.data) {
-            //<Logo ref='progresslogo' w={55} h={100} progress={[this.state.progress.loadProgress, this.state.progress.initProgress, this.state.progress.layoutProgress]} />
+        if (!this.state.progressDone || !this.state.data) {
             return (
+                    <DocumentTitle title={pageTitle}>
                     <div id='network' className='flex10 hflex gn-network' style={{position: 'relative', backgroundColor: color.colors.gnwhite}}>
                     <div id='loadcontainer' className='vflex flexcenter flexjustifycenter fullwidth'>
-                    <span>{loadText}</span>
+                    <span>{this.state.error || this.state.progressText}</span>
                     </div>
                     </div>
+                    </DocumentTitle>
             )
         } else {
+            pageTitle = this.state.data.elements.nodes.length + ' genes' + GN.pageTitleSuffix
             return (
+                    <DocumentTitle title={pageTitle}>
                     <div id='network' className='flex10 gn-network' style={{position: 'relative', backgroundColor: color.colors.gnwhite}}>
 
                     <NetworkControlPanel download={this.download} onSelectionModeChange={this.onSelectionModeChange} selectionMode={this.state.selectionMode}
@@ -426,7 +572,7 @@ var Network = React.createClass({
                     <LegendPanel data={this.state.data} coloring={this.state.coloring} termColoring={this.state.termColoring}
                 coloringOptions={this.state.coloringOptions} onColoring={this.handleColoring} />
 
-                    <div style={{maxHeight: this.state.height - 20}} className='gn-network-panelcontainer noselect smallscreensmallfont'>
+                    <div className='gn-network-panelcontainer noselect smallscreensmallfont'>
                     <GroupPanel data={this.state.data}
                 activeGroup={this.state.activeGroup}
                 coloring={this.state.coloring}
@@ -434,11 +580,13 @@ var Network = React.createClass({
                 onGroupClick={this.updateGroup}
                 onGroupListClick={this.onGroupListClick}
                 onAnalyse={this.onAnalyse}
-                style={(this.state.isGeneListShown || this.state.activeGroup.nodes.length === 1) ? {marginBottom: '10px'} : null} />
+                style={(this.state.isGeneListShown || this.state.activeGroup.nodes.length === 1) ?
+                       {maxHeight: 1 / 3 * this.state.height - 30, marginBottom: '10px'} :
+                       {maxHeight: 1 / 3 * this.state.height - 30}} />
                 
                 {this.state.isGeneListShown ?
                  (<div className='bordered smallpadding' style={{overflow: 'hidden', backgroundColor: '#ffffff', paddingRight: '0px'}}>
-                  <ListPanel geneIds={this.state.activeGroup.nodes} hashNodes={this.state.hashNodes} />
+                  <ListPanel geneIds={this.state.activeGroup.nodes} hashNodes={this.state.data.hashNodes} />
                   </div>) :
                  null
                 }
@@ -449,7 +597,7 @@ var Network = React.createClass({
                 }
                 {this.state.analysisGroup ?
                  <AnalysisPanel
-                 style={{padding: '10px 0 10px 10px', maxHeight: this.state.height - 20}}
+                 style={{padding: '10px 0 10px 10px', maxHeight: 2 / 3 * this.state.height - 70}}
                  onClose={this.handleAnalysisPanelClose}
                  analysisGroup={this.state.analysisGroup}
                  selectedTerm={this.state.selectedTerm}
@@ -483,6 +631,7 @@ var Network = React.createClass({
                     </form>
 
                 </div>
+                    </DocumentTitle>
             )
         }
         // // TODO add this
