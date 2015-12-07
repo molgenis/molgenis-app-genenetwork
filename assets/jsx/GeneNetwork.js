@@ -15,14 +15,14 @@ var Link = ReactRouter.Link
 var createBrowserHistory = require('history/lib/createBrowserHistory')
 
 var Select = require('react-select')
-var DocumentTitle = require('react-document-title')
 
 var Logo = require('./ReactComponents/Logo')
 var API = require('./ReactComponents/API')
-var ManyGenesMaster = require('./ReactComponents/ManyGenesMaster')
 var Gene = require('./ReactComponents/Gene/Gene')
 var Term = require('./ReactComponents/Term')
+var Network = require('./ReactComponents/Network')
 var Ontology = require('./ReactComponents/Ontology')
+var DiagnosisMain = require('./ReactComponents/DiagnosisMain')
 var Diagnosis = require('./ReactComponents/Diagnosis')
 var Footer = require('./ReactComponents/Footer')
 
@@ -53,8 +53,10 @@ GN.urls = {
     pc: DOMAIN + '/api/v1/pc',
     
     suggest: DOMAIN + '/socketapi/suggest',
+    diagnosisSuggest: DOMAIN + '/socketapi/diagnosisSuggest',
     pathwayanalysis: DOMAIN + '/socketapi/pathwayanalysis',
     geneprediction: DOMAIN + '/socketapi/geneprediction',
+    network: DOMAIN + '/socketapi/network',
     genescores: DOMAIN + '/socketapi/genescores',
     genevsnetwork: DOMAIN + '/socketapi/genevsnetwork',
 
@@ -123,11 +125,9 @@ var Landing = React.createClass({
     },
 
     componentWillReceiveProps: function() {
-        //this.loadData()
     },
 
     componentDidMount: function() {
-      //this.loadData() 
     },
 
     // TODO socket listener
@@ -165,27 +165,31 @@ var Landing = React.createClass({
         var topSearch = (<div className='flex11' />)
         var topBanner = null
         if (_.size(this.props.params) === 0) {
-            topBanner = (<div className='searchcontainer'>
-                          <div className='searchheader noselect defaultcursor'>
-                          Predict gene functions. Discover novel disease genes.
-                          </div>
-                          <div className='selectcontainer'>
-                         <Select
-                         name='search'
-                         value={'Search here'}
-                         matchPos='any'
-                         matchProp='label'
-                         placeholder=''
-                         autoload={false}
-                         asyncOptions={this.getSuggestions}
-                         onChange={this.onSelectChange} />
-                          </div>
-                          <div className='examples noselect defaultcursor'>For example:&nbsp;
-                          <Link className='clickable' title='MYOM1' to='/gene/MYOM1'>MYOM1</Link>,&nbsp;
-                          <Link className='clickable' title='Interferon signaling' to='/term/REACTOME_INTERFERON_SIGNALING'>Interferon signaling</Link>,&nbsp;
-                          <Link className='clickable' title='Schizophrenia' to='network' params={{ids: 'Schizophrenia'}}>Schizophrenia</Link>
-                          </div>
-                          </div>)
+            if (this.props.location.pathname.indexOf('diagnosis') === 1) {
+                topBanner = (null)
+            } else {
+                topBanner = (<div className='searchcontainer'>
+                             <div className='searchheader noselect defaultcursor'>
+                             Predict gene functions. Discover co-regulation networks.
+                             </div>
+                             <div className='selectcontainer'>
+                             <Select
+                             name='search'
+                             value={'Search here'}
+                             matchPos='any'
+                             matchProp='label'
+                             placeholder=''
+                             autoload={false}
+                             asyncOptions={this.getSuggestions}
+                             onChange={this.onSelectChange} />
+                             </div>
+                             <div className='examples noselect defaultcursor'>For example:&nbsp;
+                             <Link className='clickable' title='MYOM1' to='/gene/MYOM1'>MYOM1</Link>,&nbsp;
+                             <Link className='clickable' title='Interferon signaling' to='/term/REACTOME_INTERFERON_SIGNALING'>Interferon signaling</Link>,&nbsp;
+                             <Link className='clickable' title='Schizophrenia' to='network' params={{ids: 'Schizophrenia'}}>Schizophrenia</Link>
+                             </div>
+                             </div>)
+            }
         } else {
             topSearch = (<div className='gn-top-search flex11' style={{margin: '0 20px'}}>
                          <Select name='search' value={'Search here'}
@@ -207,8 +211,8 @@ var Landing = React.createClass({
                 </div>
                 {topBanner}
                 {this.props.children}
-                <Footer />
-      	        </div>
+                {!this.props.children || this.props.children.props.route.path.indexOf('network') < 0 ? <Footer /> : null}
+                </div>
         )
     }
 })
@@ -249,15 +253,19 @@ var SearchFormTextArea = React.createClass({
 })
 
 GN.routes = (
+
+        <Route>
         <Route path='/' component = {Landing}>
         <Route path='/how' component = {How} />
         <Route path='/about' component = {About} />
         <Route path='/api' component = {Api} />
         <Route path='/gene/:geneId' component={Gene} />
         <Route path='/term/:termId' component = {Term} />
-        <Route path='/network/:ids' component = {ManyGenesMaster} />
+        <Route path='/network/:ids' component = {Network} />
         <Route path='/ontology/:id' component = {Ontology} />
+        <Route path='/diagnosis' component = {DiagnosisMain} />
         <Route path='/diagnosis/:id' component = {Diagnosis} />
+        </Route>
         </Route>
 )
 
