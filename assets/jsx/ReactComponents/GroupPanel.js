@@ -12,11 +12,18 @@ var GroupPanel = React.createClass({
         coloring: React.PropTypes.string,
         isGeneListShown: React.PropTypes.bool,
         onGroupClick: React.PropTypes.func,
-        onGroupListClick: React.PropTypes.func,
         onAnalyse: React.PropTypes.func
     },
 
     componentDidMount: function() {
+    },
+
+    download: function() {
+        
+        var form = document.getElementById('gn-network-groupform')
+        form['genes'].value = JSON.stringify(_.map(this.props.data.elements.nodes, function(node) { return node.data.id }))
+        form['groups'].value = JSON.stringify(this.props.data.elements.groups)
+        form.submit()
     },
     
     render: function() {
@@ -46,12 +53,7 @@ var GroupPanel = React.createClass({
                        <td className='verysmalldescription clickable' style={{textAlign: 'right', color: clr}}  onClick={this.props.onGroupClick.bind(null, group)}>
                        {group.nodes.length}
                        </td>
-                       {group.nodes.length > 1 ?
-                        (<td className='clickable' style={{textAlign: 'right', visibility: listVisibility}} onClick={this.props.onGroupListClick.bind(null, group)}>
-                         <ListSVG w={10} h={10} n={group.nodes.length} color={this.props.isGeneListShown ? color.colors.textdefault : color.colors.gngray} />
-                         </td>) :
-                        (<td></td>)}
-                        </tr>)
+                       </tr>)
         }
 
         var geneStr = this.props.activeGroup.nodes.join(',')
@@ -59,8 +61,11 @@ var GroupPanel = React.createClass({
         // {this.props.activeGroup.nodes.length === 1 ? <span style={{visibility: 'hidden'}}>s</span> : ''}
         return (
                 <div id='grouppanel' className='networkleftpanel bordered smallpadding paddingbottom noshrink smallfont' style={this.props.style || {}}>
+                <div id='downloadgroups' title='Download gene lists' style={{position: 'absolute', top: '16px', right: '6px'}} onClick={this.download}>
+                <SVGCollection.Download text='TXT' size={24} />
+                </div>
                 <div style={{overflow: 'auto', maxHeight: (this.props.style && this.props.style.maxHeight - 60) || '100%'}}>
-                <table style={{width: '100%'}}>
+                <table style={{width: '100%', paddingRight: '28px'}}>
                 <tbody>
                 {elems}
             </tbody>

@@ -43,7 +43,8 @@ exp.SquareSVG = React.createClass({
 
 exp.Download = React.createClass({
     propTypes: {
-        text: React.PropTypes.string
+        text: React.PropTypes.string,
+        size: React.PropTypes.number
     },
     render: function() {
         return (
@@ -244,6 +245,10 @@ exp.Chromosome = React.createClass({
     },
 
     render: function() {
+
+        if (!Chr.arms[this.props.chr]) {
+            return null
+        }
 
         var c = this.props.chr
         var w = 100 // Chr.arms[c][3] / Chr.arms[1][3] * 100

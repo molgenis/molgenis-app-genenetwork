@@ -12,8 +12,8 @@ var Footer = React.createClass({
                 </div>
                 <div className='flex01 hflex flexcenter flexwrap'>
                 <div>
-                <a href='https://www.umcg.nl/EN' target='_blank'>
-                <img className='umcg' title='University Medical Center Groningen' src={GN.urls.main + '/images/umcg_black.png'} />
+                <a href='http://www.cleverfranke.com/cf/en/index.php' target='_blank'>
+                <img className='cleverfranke' title='CLEVER&deg;FRANKE' src={GN.urls.main + '/images/cleverfranke.png'} />
                 </a>
                 </div>
                 <div>
@@ -22,8 +22,8 @@ var Footer = React.createClass({
                 </a>
                 </div>
                 <div>
-                <a href='http://www.cleverfranke.com/cf/en/index.php' target='_blank'>
-                <img className='cleverfranke' title='CLEVER&deg;FRANKE' src={GN.urls.main + '/images/cleverfranke.png'} />
+                <a href='https://www.umcg.nl/EN' target='_blank'>
+                <img className='umcg' title='University Medical Center Groningen' src={GN.urls.main + '/images/umcg_black.png'} />
                 </a>
                 </div>
                 </div>

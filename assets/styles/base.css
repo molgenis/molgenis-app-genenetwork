@@ -414,6 +414,10 @@ a.externallink:link {
     color: #000000;
 }
 
+a.externallink:hover {
+    text-decoration: underline;
+}
+
 a.externallink {
     /* color: #999999; */
     color: #000000;
@@ -880,13 +884,21 @@ line.link {
 }
 
 #genepanel {
-    max-height: 30vh;
     -webkit-touch-callout: text;
     -webkit-user-select: text;
     -khtml-user-select: text;
     -moz-user-select: text;
     -ms-user-select: text;
     user-select: text;
+
+    display: inline-block;
+    z-index: 1;
+    position: absolute;
+    top: 10px;
+    left: 70px;
+    max-width: 200px;
+    background-color: #ffffff;
+    opacity: 0.95;
 }
 
 .smallpadding {
@@ -954,6 +966,9 @@ label > input + img {
 
 .gn-footer img:not(.cleverfranke) {
     height: 40px;
+}
+
+.gn-footer img:not(.umcg) {
     padding-right: 10px;
 }
 

@@ -12,14 +12,15 @@ Date.prototype.yyyymmdd = function() {
 
 module.exports = function(req, res) {
 
-    if (!req.body.data || !req.body.genes) {
+    if (!req.body.genes) {
         return res.badRequest()
     }
 
     var geneIds = JSON.parse(req.body.genes)
     var geneNames = _.map(geneIds, function(geneId) { var gene = genedesc.get(geneId); return gene ? gene.name : 'unknown' })
 
-    if (req.body.db && req.body.testType) {
+    if (req.body.what === 'pwa' && req.body.data && req.body.db && req.body.testType) {
+
         var geneSets = JSON.parse(req.body.data)
         var db = req.body.db
         var testType = req.body.testType
@@ -44,8 +45,11 @@ module.exports = function(req, res) {
         res.setHeader('Content-type', 'text/plain')
         res.charset = 'UTF-8'
         res.write(rows.join('\n'))
+
         return res.end()
-    } else if (!req.body.db && !req.body.testType) {
+        
+    } else if (req.body.what === 'prediction') {
+
         var data = JSON.parse(req.body.data)
 
         var rows = []
@@ -59,16 +63,6 @@ module.exports = function(req, res) {
         rows.push('# Gene names: ' + geneNames.join(','))
         rows.push('# Gene ids: ' + geneIds.join(','))
         rows.push('#')
-        // rows.push('coding_gene_id\tcoding_gene_name\tp-value\tnoncoding_gene_id\tnoncoding_gene_name\tp-value')
-        // for (var i = 0; i < data.coding.length; i++) {
-        //     var str = data.coding[i].gene.id + '\t' + data.coding[i].gene.name + '\t' + data.coding[i].p
-        //     if (data.noncoding[i]) {
-        //         str += '\t' + data.noncoding[i].gene.id + '\t' + data.noncoding[i].gene.name + '\t' + data.noncoding[i].p
-        //     // } else {
-        //     //     str += '\t' + data.noncoding[i].gene.id + '\t' + data.noncoding[i].gene.name + '\t' + data.noncoding[i].p
-        //     }
-        //     rows.push(str)
-        // }
         rows.push('gene_id\tgene_name\tp-value')
         for (var i = 0; i < data.length; i++) {
             var str = data[i].gene.id + '\t' + data[i].gene.name + '\t' + data[i].p
@@ -79,10 +73,47 @@ module.exports = function(req, res) {
         res.setHeader('Content-type', 'text/plain')
         res.charset = 'UTF-8'
         res.write(rows.join('\n'))
+
         return res.end()
         
+    } else if (req.body.what === 'groups' && req.body.groups) {
+
+        var groups = JSON.parse(req.body.groups)
+        
+        var rows = []
+        rows.push('# ' + sails.config.version.comment())
+        rows.push('#')
+        rows.push('# Gene list')
+        rows.push('# ' + new Date().yyyymmdd())
+        rows.push('#')
+        rows.push('# Number of genes: ' + geneIds.length)
+        rows.push('#')
+        rows.push('gene_id\tgene_name\tgroup')
+
+        var genesIncluded = false
+        _.forEach(groups, function(group) {
+            if (group.type === 'cluster') {
+                rows.push.apply(rows, _.map(group.nodes, function(node) {
+                    return node + '\t' + ((genedesc.get(node) && genedesc.get(node).name) || 'unknown') + '\t' + group.name
+                }))
+                genesIncluded = true
+            }
+        })
+        if (!genesIncluded) {
+            rows.push.apply(rows, _.map(groups[0].nodes, function(node) {
+                return node + '\t' + ((genedesc.get(node) && genedesc.get(node).name) || 'unknown') + '\tnone'
+            }))
+        }
+
+        res.setHeader('Content-disposition', 'attachment; filename=GeneNetwork-GeneList-' + geneIds.length + '-Genes.txt')
+        res.setHeader('Content-type', 'text/plain')
+        res.charset = 'UTF-8'
+        res.write(rows.join('\n'))
+
         return res.end()
+        
     } else {
+        
         return res.badRequest()
     }
 }

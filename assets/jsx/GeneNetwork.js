@@ -170,7 +170,7 @@ var Landing = React.createClass({
             } else {
                 topBanner = (<div className='searchcontainer'>
                              <div className='searchheader noselect defaultcursor'>
-                             Predict gene functions. Discover co-regulation networks.
+                             Predict gene functions. Discover potential disease genes.
                              </div>
                              <div className='selectcontainer'>
                              <Select

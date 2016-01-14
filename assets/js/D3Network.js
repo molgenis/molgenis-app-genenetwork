@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 
 var _ = require('lodash')
 var d3 = require('d3')
@@ -14,89 +14,89 @@ var color = require('./color.js')
 // replace selectAll with predefined variables where possible
 // onSelect -> fire events
 
-  d3.fisheye = {
+d3.fisheye = {
     scale: function(scaleType) {
-      return d3_fisheye_scale(scaleType(), 3, 0);
+        return d3_fisheye_scale(scaleType(), 3, 0);
     },
     circular: function() {
-      var radius = 200,
-          distortion = 2,
-          k0,
-          k1,
-          focus = [0, 0];
+        var radius = 200,
+            distortion = 2,
+            k0,
+            k1,
+            focus = [0, 0];
 
-      function fisheye(d) {
-        var dx = d.x - focus[0],
-            dy = d.y - focus[1],
-            dd = Math.sqrt(dx * dx + dy * dy);
-        if (!dd || dd >= radius) return {x: d.x, y: d.y, z: dd >= radius ? 1 : 10};
-        var k = k0 * (1 - Math.exp(-dd * k1)) / dd * .75 + .25;
-        return {x: focus[0] + dx * k, y: focus[1] + dy * k, z: Math.min(k, 10)};
-      }
+        function fisheye(d) {
+            var dx = d.x - focus[0],
+                dy = d.y - focus[1],
+                dd = Math.sqrt(dx * dx + dy * dy);
+            if (!dd || dd >= radius) return {x: d.x, y: d.y, z: dd >= radius ? 1 : 10};
+            var k = k0 * (1 - Math.exp(-dd * k1)) / dd * .75 + .25;
+            return {x: focus[0] + dx * k, y: focus[1] + dy * k, z: Math.min(k, 10)};
+        }
 
-      function rescale() {
-        k0 = Math.exp(distortion);
-        k0 = k0 / (k0 - 1) * radius;
-        k1 = distortion / radius;
-        return fisheye;
-      }
+        function rescale() {
+            k0 = Math.exp(distortion);
+            k0 = k0 / (k0 - 1) * radius;
+            k1 = distortion / radius;
+            return fisheye;
+        }
 
-      fisheye.radius = function(_) {
-        if (!arguments.length) return radius;
-        radius = +_;
+        fisheye.radius = function(_) {
+            if (!arguments.length) return radius;
+            radius = +_;
+            return rescale();
+        };
+
+        fisheye.distortion = function(_) {
+            if (!arguments.length) return distortion;
+            distortion = +_;
+            return rescale();
+        };
+
+        fisheye.focus = function(_) {
+            if (!arguments.length) return focus;
+            focus = _;
+            return fisheye;
+        };
+
         return rescale();
-      };
-
-      fisheye.distortion = function(_) {
-        if (!arguments.length) return distortion;
-        distortion = +_;
-        return rescale();
-      };
-
-      fisheye.focus = function(_) {
-        if (!arguments.length) return focus;
-        focus = _;
-        return fisheye;
-      };
-
-      return rescale();
     }
-  };
+};
 
-  function d3_fisheye_scale(scale, d, a) {
+function d3_fisheye_scale(scale, d, a) {
 
     function fisheye(_) {
-      var x = scale(_),
-          left = x < a,
-          range = d3.extent(scale.range()),
-          min = range[0],
-          max = range[1],
-          m = left ? a - min : max - a;
-      if (m == 0) m = max - min;
-      return (left ? -1 : 1) * m * (d + 1) / (d + (m / Math.abs(x - a))) + a;
+        var x = scale(_),
+            left = x < a,
+            range = d3.extent(scale.range()),
+            min = range[0],
+            max = range[1],
+            m = left ? a - min : max - a;
+        if (m == 0) m = max - min;
+        return (left ? -1 : 1) * m * (d + 1) / (d + (m / Math.abs(x - a))) + a;
     }
 
     fisheye.distortion = function(_) {
-      if (!arguments.length) return d;
-      d = +_;
-      return fisheye;
+        if (!arguments.length) return d;
+        d = +_;
+        return fisheye;
     };
 
     fisheye.focus = function(_) {
-      if (!arguments.length) return a;
-      a = +_;
-      return fisheye;
+        if (!arguments.length) return a;
+        a = +_;
+        return fisheye;
     };
 
     fisheye.copy = function() {
-      return d3_fisheye_scale(scale.copy(), d, a);
+        return d3_fisheye_scale(scale.copy(), d, a);
     };
 
     fisheye.nice = scale.nice;
     fisheye.ticks = scale.ticks;
     fisheye.tickFormat = scale.tickFormat;
     return d3.rebind(fisheye, scale, "domain", "range");
-  }
+}
 
 function D3Network(elem, props) {
 
@@ -146,7 +146,7 @@ D3Network.prototype._initForce = function() {
     this._force.on('start', this._startForce.bind(this))
     var that = this
     this._force.on('end', function() {
-        console.log('D3Network: force directed layout calculation: %d ms', (Date.now() - that._startForceTime))
+        console.debug('D3Network: force directed layout calculation: %d ms', (Date.now() - that._startForceTime))
         that.fixNodes()
     })
 }
@@ -477,7 +477,7 @@ D3Network.prototype._initScales = function() {
         for (var i = 0, ii = this._data.edgeValueScales.length; i < ii; i++) {
             this._linkscales.push(d3.scale.linear()
                                   .domain(this._data.edgeValueScales[i])
-                              .range(this._data.edgeColorScales[i])
+                                  .range(this._data.edgeColorScales[i])
                                   .clamp(true))
         }
     }
@@ -541,7 +541,7 @@ D3Network.prototype._initNodes = function() {
         .attr('text-anchor', 'middle')
         .attr('dy', '.35em')
         .style('fill', that._props.labelColor || color.colors.gndarkgray)
-        // .style('font-size', that._props.labelSizeEm + 'em')
+    // .style('font-size', that._props.labelSizeEm + 'em')
         .style('font-family', 'GG')
         .style('font-weight', 'bold')
         .attr('displayState', 'y')
@@ -615,8 +615,8 @@ D3Network.prototype._show = function() {
             d.bbox = this.getBBox()
         })
 
-    // some nodes have 1 rectangle, some more, depending on how many groups they belong to
-    this._nodevis.selectAll('g.node>rect')
+            // some nodes have 1 rectangle, some more, depending on how many groups they belong to
+            this._nodevis.selectAll('g.node>rect')
         .attr('width', function(d) {
             return (d.bbox.width + 12) / ((d.customGroups && d.customGroups.length) || 1)
         })
@@ -669,11 +669,11 @@ D3Network.prototype._move = function(dx, dy) {
 
 D3Network.prototype.fixNodes = function() {
     _.each(this._force.nodes(), function(d) { d.fixed = true })
-}
+        }
 
 D3Network.prototype.unfixNodes = function() {
     _.each(this._force.nodes(), function(d) { d.fixed = false })
-}
+        }
 
 D3Network.prototype._startForce = function() {
 
@@ -687,7 +687,7 @@ D3Network.prototype._startForce = function() {
             that._move()
             that._updateBrush()
         }
-        // console.log(that._force.alpha())
+        // console.debug(that._force.alpha())
         if (that._force.alpha() > that._props.alphaThresholds[that._data.elements.nodes.length < 100 ? 0 : 1]) {
             requestAnimationFrame(render)
         } else { // layout calculated
@@ -702,13 +702,13 @@ D3Network.prototype._startForce = function() {
                     extent[3] = Math.min(d.x, extent[3])
                 })
 
-                var initialZoomScale = 0.1
+                    var initialZoomScale = 0.1
                 var initialZoomTranslate = [(1 - initialZoomScale) * that._props.width / 2, (1 - initialZoomScale) * that._props.height / 2]
                 var factor = that._data.elements.nodes.length < 20 ? 0.5 : 0.85
                 var fitZoomScale = factor / (Math.max((extent[2] - extent[0]) / that._props.height, (extent[1] - extent[3]) / that._props.width))
                 var fitZoomTranslate = [(1 - fitZoomScale) * that._props.width / 2, (1 - fitZoomScale) * that._props.height / 2]
                 
-                // console.log(initialZoomScale, initialZoomTranslate, fitZoomScale, fitZoomTranslate)
+                // console.debug(initialZoomScale, initialZoomTranslate, fitZoomScale, fitZoomTranslate)
                 
                 that._zoom.scale(initialZoomScale)
                 that._zoom.translate(initialZoomTranslate)
@@ -758,7 +758,7 @@ D3Network.prototype.resize = function(w, h) {
 
 D3Network.prototype.draw = function(data) {
 
-    console.log('D3Network.draw: %d nodes, %d edges', data.elements.nodes.length, data.elements.edges.length)
+    console.debug('D3Network.draw: %d nodes, %d edges', data.elements.nodes.length, data.elements.edges.length)
     
     var ts = Date.now()
     this._clearData()
@@ -787,7 +787,7 @@ D3Network.prototype.draw = function(data) {
     // TODO state
     // this._initFisheye()
     
-    console.log('D3Network.draw: initialisation %d ms', (Date.now() - ts))
+    console.debug('D3Network.draw: initialisation %d ms', (Date.now() - ts))
     this._hide()
     this._layoutDone = false
     this._props.onProgress && this._props.onProgress('calculating layout')
@@ -797,8 +797,8 @@ D3Network.prototype.draw = function(data) {
 // TODO remove
 D3Network.prototype.addNodeToDataAndNetwork = function(gene, zScores) {
 
-    console.log('D3Network.addNodeToDataAndNetwork: Adding %s', gene.name)
-    //console.log('zScores.length ' + zScores.length + ', nodes.length ' + this._data.elements.nodes.length)
+    console.debug('D3Network.addNodeToDataAndNetwork: Adding %s', gene.name)
+    //console.debug('zScores.length ' + zScores.length + ', nodes.length ' + this._data.elements.nodes.length)
 
     gene.added = true
     this._data.elements.nodes.push({data: gene})
@@ -856,7 +856,7 @@ D3Network.prototype.toggleNegative = function() {
             }
         }
         this._force.links().splice(numLinks - numRemoved, numRemoved)
-        console.log('D3Network.toggleNegative: removed ' + numRemoved + ' links out of ' + numLinks)
+        console.debug('D3Network.toggleNegative: removed ' + numRemoved + ' links out of ' + numLinks)
         this._link
             .style('stroke', function(d) {
                 return that._linkscales ? that._linkscales[0](d.weight) : that._props.linkColor || color.colors.linkDefault
@@ -870,7 +870,7 @@ D3Network.prototype.toggleNegative = function() {
 
 D3Network.prototype.highlightNode = function(id) {
 
-    //console.log('highlighting node', id)
+    //console.debug('highlighting node', id)
     this._brush.clear()
 
     var connectedNodeIds = {}
@@ -883,7 +883,7 @@ D3Network.prototype.highlightNode = function(id) {
         }
     })
         
-    this._nodevis.selectAll('g.node>rect.main')
+        this._nodevis.selectAll('g.node>rect.main')
         .classed('hidden', true)
         .style('opacity', 0.3)
         .filter(function(d) {
@@ -937,6 +937,19 @@ D3Network.prototype.colorBy = function(type) {
 
     var that = this
 
+    var node2cluster = {}
+    if (type === 'cluster') {
+        var index = 0
+        for (var i = 0; i < this._data.elements.groups.length; i++) {
+            if (this._data.elements.groups[i].type === 'cluster') {
+                for (var j = 0; j < this._data.elements.groups[i].nodes.length; j++) {
+                    node2cluster[this._data.elements.groups[i].nodes[j]] = index
+                }
+                index++
+            }
+        }
+    }
+    
     // if (type === 'prediction') {
     //     this._nodevis.selectAll('g.node>text')
     //         .style('fill', that._props.labelColor || color.colors.gndarkgray)
@@ -954,12 +967,8 @@ D3Network.prototype.colorBy = function(type) {
                 return color.biotype2color[d.biotype]
             } else if (type == 'chr' || type == 'chromosome') {
                 return color.chr2color[d.chr]
-                // TODO cluster
             } else if (type == 'cluster' && that._data.elements.groups) {
-                var clusterIndex = _.findLast(d.groups, function(index) {
-                    return that._data.elements.groups[index].type == 'auto'
-                })
-                return color.cluster2color[clusterIndex] || color.colors.nodeDefault
+                return color.cluster2color[node2cluster[d.id]] || color.colors.nodeDefault
             } else if (type == 'prediction') {
                 return that._nodescale(d.zScore)
             } else if (type == 'annotation') {
@@ -1025,7 +1034,7 @@ D3Network.prototype._addLink = function(data) {
     var sourceNode = this._force.nodes()[this._hashNodes[data.source]]
     var targetNode = this._force.nodes()[this._hashNodes[data.target]]
     if (!sourceNode || !targetNode) {
-        console.log('D3Network._addLink: Unknown node given: %s - %s', data.source, data.target)
+        console.debug('D3Network._addLink: Unknown node given: %s - %s', data.source, data.target)
     } else {
         this._force.links().push({
             'source': sourceNode,

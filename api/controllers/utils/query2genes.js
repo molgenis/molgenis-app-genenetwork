@@ -59,7 +59,7 @@ var getGenes = function(query, options, callback) {
 	uniqGenes = _.uniq(_.compact(_.flatten(_.pluck(genesNGroups, 'genes'))))
 	quicksortobj(uniqGenes, options.sortField || 'index_')
 	sails.log.debug(uniqGenes.length + ' genes found, query length was ' + query.length)
-	callback(null, uniqGenes, genesNGroups)
+	callback(null, uniqGenes, _.compact(genesNGroups))
     })
 }
 
