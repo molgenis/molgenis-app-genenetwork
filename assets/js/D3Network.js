@@ -561,7 +561,7 @@ D3Network.prototype._initLinks = function() {
         })
 
     this._link.enter().insert('line')
-        .attr('class', 'link')
+        .attr('class', 'link clickable')
         .style('stroke', function(d) {
             if (!that._linkscales) {
                 return that._props.linkColor || color.colors.linkDefault
@@ -569,6 +569,7 @@ D3Network.prototype._initLinks = function() {
                 return d.weight < 0 ? that._linkscales[1](d.weight) : that._linkscales[0](d.weight)
             }
         })
+        .on('click', that._props.onEdgeSelect)
         .call(this._drag)
     
     this._link.exit().remove()

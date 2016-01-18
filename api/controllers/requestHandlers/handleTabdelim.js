@@ -12,15 +12,11 @@ Date.prototype.yyyymmdd = function() {
 
 module.exports = function(req, res) {
 
-    if (!req.body.genes) {
-        return res.badRequest()
-    }
-
-    var geneIds = JSON.parse(req.body.genes)
-    var geneNames = _.map(geneIds, function(geneId) { var gene = genedesc.get(geneId); return gene ? gene.name : 'unknown' })
-
     if (req.body.what === 'pwa' && req.body.data && req.body.db && req.body.testType) {
 
+        var geneIds = JSON.parse(req.body.genes)
+        var geneNames = _.map(geneIds, function(geneId) { var gene = genedesc.get(geneId); return gene ? gene.name : 'unknown' })
+        
         var geneSets = JSON.parse(req.body.data)
         var db = req.body.db
         var testType = req.body.testType
@@ -29,7 +25,7 @@ module.exports = function(req, res) {
         rows.push('# ' + sails.config.version.comment())
         rows.push('#')
         rows.push('# Gene set analysis results')
-        rows.push('# ' + new Date().yyyymmdd())
+        rows.push('# Downloaded ' + new Date().yyyymmdd())
         rows.push('#')
         rows.push('# Gene set name: ' + req.body.name)
         rows.push('# Number of genes: ' + geneIds.length)
@@ -48,7 +44,10 @@ module.exports = function(req, res) {
 
         return res.end()
         
-    } else if (req.body.what === 'prediction') {
+    } else if (req.body.what === 'prediction' && req.body.data && req.body.name) {
+
+        var geneIds = JSON.parse(req.body.genes)
+        var geneNames = _.map(geneIds, function(geneId) { var gene = genedesc.get(geneId); return gene ? gene.name : 'unknown' })
 
         var data = JSON.parse(req.body.data)
 
@@ -56,7 +55,7 @@ module.exports = function(req, res) {
         rows.push('# ' + sails.config.version.comment())
         rows.push('#')
         rows.push('# Gene prediction results')
-        rows.push('# ' + new Date().yyyymmdd())
+        rows.push('# Downloaded ' + new Date().yyyymmdd())
         rows.push('#')
         rows.push('# Gene set name: ' + req.body.name)
         rows.push('# Number of genes: ' + geneIds.length)
@@ -78,18 +77,21 @@ module.exports = function(req, res) {
         
     } else if (req.body.what === 'groups' && req.body.groups) {
 
+        var geneIds = JSON.parse(req.body.genes)
+        var geneNames = _.map(geneIds, function(geneId) { var gene = genedesc.get(geneId); return gene ? gene.name : 'unknown' })
+
         var groups = JSON.parse(req.body.groups)
         
         var rows = []
         rows.push('# ' + sails.config.version.comment())
         rows.push('#')
         rows.push('# Gene list')
-        rows.push('# ' + new Date().yyyymmdd())
+        rows.push('# Downloaded ' + new Date().yyyymmdd())
         rows.push('#')
         rows.push('# Number of genes: ' + geneIds.length)
         rows.push('#')
-        rows.push('gene_id\tgene_name\tgroup')
-
+        rows.push('gene_id\tgene_name\tcluster')
+        
         var genesIncluded = false
         _.forEach(groups, function(group) {
             if (group.type === 'cluster') {
@@ -99,6 +101,7 @@ module.exports = function(req, res) {
                 genesIncluded = true
             }
         })
+        
         if (!genesIncluded) {
             rows.push.apply(rows, _.map(groups[0].nodes, function(node) {
                 return node + '\t' + ((genedesc.get(node) && genedesc.get(node).name) || 'unknown') + '\tnone'
@@ -106,6 +109,49 @@ module.exports = function(req, res) {
         }
 
         res.setHeader('Content-disposition', 'attachment; filename=GeneNetwork-GeneList-' + geneIds.length + '-Genes.txt')
+        res.setHeader('Content-type', 'text/plain')
+        res.charset = 'UTF-8'
+        res.write(rows.join('\n'))
+
+        return res.end()
+        
+    } else if (req.body.what === 'termprediction') {
+
+        var rows = []
+        rows.push('# ' + sails.config.version.comment())
+        rows.push('#')
+        rows.push('# Gene function predictions')
+        rows.push('# Downloaded ' + new Date().yyyymmdd())
+        rows.push('#')
+        rows.push('# Gene set name: ' + req.body.term)
+        rows.push('# Database: ' + req.body.db)
+        rows.push('#')
+        rows.push('gene_id\tgene_name\tp-value')
+
+        res.setHeader('Content-disposition', 'attachment; filename=GeneNetwork-GenePrediction-' + geneIds.length + '-Genes.txt')
+        res.setHeader('Content-type', 'text/plain')
+        res.charset = 'UTF-8'
+        res.write(rows.join('\n'))
+
+        return res.end()
+        
+    } else if (req.body.what === 'geneprediction' && req.body.geneId && req.body.db) {
+
+        var geneName = genedesc.get(req.body.geneId) && genedesc.get(req.body.geneId).name
+        
+        var rows = []
+        rows.push('# ' + sails.config.version.comment())
+        rows.push('#')
+        rows.push('# Gene function predictions')
+        rows.push('# Downloaded ' + new Date().yyyymmdd())
+        rows.push('#')
+        rows.push('# Gene name: ' + geneName)
+        rows.push('# Gene id: ' + req.body.geneId)
+        rows.push('# Database: ' + req.body.db)
+        rows.push('#')
+        rows.push('term_id\term_name\tp-value\tdirection\tannotated')
+
+        res.setHeader('Content-disposition', 'attachment; filename=GeneNetwork-' + geneName + '-' + req.body.db + '.txt')
         res.setHeader('Content-type', 'text/plain')
         res.charset = 'UTF-8'
         res.write(rows.join('\n'))

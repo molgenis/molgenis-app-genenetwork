@@ -26,6 +26,7 @@ var getGenes = function(query, options, callback) {
     } else {
         options = options || {}
     }
+
     if (!_.isFunction(callback)) callback({name: 'ArgumentError', message: 'getGenes: Last argument has to be a callback function'})
     if (_.isString(query)) query = [query]
     if (!_.isArray(query)) callback({name: 'ArgumentError', message: 'getGenes: Query has to be a string or an array'})

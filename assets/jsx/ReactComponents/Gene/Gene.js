@@ -12,6 +12,7 @@ var GeneHeader = require('./GeneHeader')
 var GeneMenu = require('./GeneMenu')
 var SimilarGenesTable = require('./SimilarGenesTable')
 var Tissues = require('./Tissues')
+var DownloadPanel = require('../DownloadPanel')
 var SVGCollection = require('../SVGCollection')
 var Cookies = require('cookies-js')
 var color = require('../../../js/color')
@@ -23,6 +24,7 @@ var Gene = React.createClass({
     mixins: [Router.Navigation, Router.State],
 
     getInitialState: function() {
+        
         return {
             topMenuSelection: Cookies.get('genetopmenu') || 'prediction',
             //topMenuSelection: 'prediction',
@@ -31,11 +33,13 @@ var Gene = React.createClass({
         }
     },
 
-    loadData: function() {
-        // console.log('loading', this.getParams().geneId)
-        var tasks = [{url: GN.urls.gene + '/' + this.props.params.geneId + '?verbose',
+    loadData: function(geneId) {
+
+        if (!geneId) geneId = this.props.params.geneId
+
+        var tasks = [{url: GN.urls.gene + '/' + geneId + '?verbose',
                       name: 'prediction'},
-                     {url: GN.urls.coregulation + '/' + this.props.params.geneId + '?verbose',
+                     {url: GN.urls.coregulation + '/' + geneId + '?verbose',
                       name: 'similar'}]
         if (this.state.topMenuSelection == 'similar') {
             tasks.reverse()
@@ -66,7 +70,7 @@ var Gene = React.createClass({
                     if (this.isMounted() && task.name !== 'similar') {
                         if (err === 'Not Found') {
                             this.setState({
-                                error: 'Gene ' + this.props.params.geneId + ' not found',
+                                error: 'Gene ' + geneId + ' not found',
                                 errorTitle: 'Error ' + xhr.status
                             })
                         } else {
@@ -82,22 +86,20 @@ var Gene = React.createClass({
     },
     
     componentDidMount: function() {
-        var el = ReactDOM.findDOMNode(this)
-        this.setState({
-            w: el.offsetWidth,
-            h: el.offsetHeight
-        })
+
         this.loadData()
     },
     
     componentWillUnmount: function() {
     },
 
-    componentWillReceiveProps: function() {
-        this.loadData()
+    componentWillReceiveProps: function(nextProps) {
+        
+        this.loadData(nextProps.params.geneId)
     },
-
+    
     handleTopMenuClick: function(type) {
+        
         Cookies.set('genetopmenu', type)
         this.setState({
             topMenuSelection: type
@@ -105,6 +107,7 @@ var Gene = React.createClass({
     },
 
     handleDatabaseClick: function(db) {
+        
         Cookies.set('genedb', db.id)
         this.setState({
             databaseSelection: db.id
@@ -112,20 +115,36 @@ var Gene = React.createClass({
     },
 
     handleShowTypeClick: function(type) {
+        
         Cookies.set('geneshowtype', type)
         this.setState({
             showTypeSelection: type
         })
     },
+
+    download: function() {
+        
+        var form = document.getElementById('gn-gene-downloadform')
+        form.submit()
+    },
     
     render: function() {
-        // console.log('one gene render, state:', this.state)
-        var content = null, contentTop = null
+        
+        var content = null
+        var contentTop = (
+                <GeneHeader loading={true} />
+        )
         var pageTitle = 'Loading' + GN.pageTitleSuffix
+        
         if (this.state.error) {
+
+            contentTop = (
+                    <GeneHeader notFound={this.props.params.geneId} />
+            )
             pageTitle = this.state.errorTitle + GN.pageTitleSuffix
-            content = (<span>{this.state.error}</span>)
-        } else if (this.state.h) {
+            
+        } else {
+            
             var data = this.state.topMenuSelection == 'prediction' ? this.state.prediction : this.state.similar
             if (data) {
                 var tableContent = null
@@ -141,7 +160,9 @@ var Gene = React.createClass({
                         <GeneHeader gene={data.gene} />
                 )
                 content = (
+                        <div className={'gn-gene-container-outer'} style={{backgroundColor: color.colors.gnwhite, marginTop: '10px'}}>
                         <div className='gn-gene-container-inner maxwidth' style={{padding: '20px'}}>
+                        <div>
                         <GeneMenu data={data}
                     onTopMenuClick={this.handleTopMenuClick}
                     onDatabaseClick={this.handleDatabaseClick}
@@ -150,24 +171,24 @@ var Gene = React.createClass({
                     databaseSelection={this.state.databaseSelection}
                     showTypeSelection={this.state.showTypeSelection} />
                         {tableContent}
+                        <DownloadPanel onClick={this.download} text='DOWNLOAD PREDICTIONS' />
                     </div>
-                )
-            } else {
-                pageTitle = 'Loading' + GN.pageTitleSuffix
-                content = (
-                        <div className='gn-gene-container-inner maxwidth' style={{padding: '20px'}}>
-                        <div style={{position: 'absolute', top: (this.state.h - 100) / 2 + 'px', width: this.state.w + 'px', textAlign: 'center'}}>loading</div>
+                        </div>
+                        <form id='gn-gene-downloadform' method='post' encType='multipart/form-data' action={GN.urls.tabdelim}>
+                        <input type='hidden' id='geneId' name='geneId' value={data.gene.id} />
+                        <input type='hidden' id='db' name='db' value={this.state.databaseSelection} />
+                        <input type='hidden' id='what' name='what' value='geneprediction' />
+                        </form>
                         </div>
                 )
             }
         }
+        
         return (
                 <DocumentTitle title={pageTitle}>
-                <div>
+                <div className='flex10'>
                 {contentTop}
-                <div className={'gn-gene-container-outer'} style={{backgroundColor: color.colors.gnwhite, marginTop: '10px'}}>
                 {content}
-            </div>
                 </div>
                 </DocumentTitle>
         )

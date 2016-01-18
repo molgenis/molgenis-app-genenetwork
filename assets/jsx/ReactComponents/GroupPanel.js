@@ -65,7 +65,7 @@ var GroupPanel = React.createClass({
                 <SVGCollection.Download text='TXT' size={24} />
                 </div>
                 <div style={{overflow: 'auto', maxHeight: (this.props.style && this.props.style.maxHeight - 60) || '100%'}}>
-                <table style={{width: '100%', paddingRight: '28px'}}>
+                <table style={{width: '100%', paddingRight: '32px'}}>
                 <tbody>
                 {elems}
             </tbody>
