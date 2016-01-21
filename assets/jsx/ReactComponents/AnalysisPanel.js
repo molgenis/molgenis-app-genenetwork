@@ -135,7 +135,7 @@ var DownloadButton = React.createClass({
     render: function() {
         
         return (
-                <div title='Download thse results' onClick={this.props.comp.download}>
+                <div title='Download these results' onClick={this.props.comp.download}>
                 <SVGCollection.Download text='TXT' size={24} />
                 </div>
         )

@@ -11,7 +11,19 @@ var GenePanel = React.createClass({
     },
 
     render: function() {
-	
+
+        var services = [
+            {id: 'GN', name: 'Gene Network', url: GN.urls.main + '/gene/', useid: 'name'},
+            {id: 'EXAC', name: 'ExAC Browser', url: 'http://exac.broadinstitute.org/gene/', useid: 'id'},
+            {id: 'ENSEMBL', name: 'Ensembl', url: 'http://www.ensembl.org/Homo_sapiens/Gene/Summary?db=core;g=', useid: 'id'},
+            {id: 'PUBMED', name: 'PubMed search', url: 'http://www.ncbi.nlm.nih.gov/pubmed/?term=', useid: 'name'},
+        ]
+        var links = _.map(services, function(service) {
+            return (
+                    <span key={service.id}><a className='nodecoration externallink' href={service.url + this.props.gene[service.useid]} target='_blank'>{service.name}</a><br/></span>
+            )
+        }.bind(this))
+        
 	var desc = this.props.gene.description || 'no description'
 	// remove the "[Source: HGNC...]" that appears in many descriptions
 	desc = desc.replace(/\[[^\]]+\]/g, '')
@@ -40,7 +52,9 @@ var GenePanel = React.createClass({
       		<br/>
 		<div>{desc}</div>
 	        <br/>
-                <GeneOpenMenu gene={this.props.gene} />
+
+                <div>Open {this.props.gene.name} in</div>
+                {links}
 		</div>
 	)
     }

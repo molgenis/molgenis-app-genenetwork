@@ -34,7 +34,6 @@ exp.group2color = [
 ]    
 
 exp.cluster2color = [
-    exp.colors.gndarkgray,
     exp.colors.gnblue,
     exp.colors.gngreen,
     exp.colors.gnpurple,

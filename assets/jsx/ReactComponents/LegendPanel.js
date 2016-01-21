@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 
 var _ = require('lodash')
 var React = require('react')
@@ -113,12 +113,19 @@ var LegendPanel = React.createClass({
 
     getItemsCluster: function() {
         var that = this
-        var items = _.map(this.props.data.elements.groups, function(group, i) {
-            if (group.type != 'auto') {
+        var i = 0
+        var items = _.map(this.props.data.elements.groups, function(group) {
+            if (group.type !== 'cluster') {
                 return null
             }
-            var clr = color.cluster2color[i]
-            return that.getItem(group.name, clr)
+            var clr = color.cluster2color[i++] || color.colors.nodeDefault
+            if (i <= color.cluster2color.length) {
+                return that.getItem(group.name, clr)
+            } else if (i === color.cluster2color.length + 1) {
+                return that.getItem('Rest', clr)
+            } else {
+                return null
+            }
         })
         return items
     },
@@ -135,11 +142,13 @@ var LegendPanel = React.createClass({
         return items
     },
 
+    // TODO coloring from Pytrik
     getItemsScore: function() {
         var that = this
         var clrs = [color.colors.gnblue, color.colors.gnbluelightgray, color.colors.gnlightgray, color.colors.gnredlightgray, color.colors.gnred]
-        var labels = ['< -10', '-5', '0', '5', '10 >']
+        var labels = ['< -10', '-5', '0', '5', '> 10']
         var items = []
+        items.push(<span key='zscore' style={{paddingRight: '10px'}}>Z-score</span>)
         _.forEach(labels, function(label, i) {
             items.push(that.getItem(label, clrs[i]))
         })

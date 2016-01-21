@@ -1,3 +1,5 @@
+'use strict'
+
 var _ = require('lodash')
 var React = require('react')
 var Router = require('react-router')
@@ -49,9 +51,6 @@ var DataTable = React.createClass({
             pathways = _.sortBy(pathways, 'pValue')
         }
 
-{/*        console.log('pathways')
-        console.log(pathways)
-*/}     
         var rows = _.map(pathways, function(pathway, i) {
 
             var isAnnotated = that.state.annotationsOnly || pathway.annotated

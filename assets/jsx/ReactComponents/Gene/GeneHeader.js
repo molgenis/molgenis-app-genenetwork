@@ -1,3 +1,5 @@
+'use strict'
+
 var React = require('react')
 var SVGCollection = require('../SVGCollection')
 var color = require('../../../js/color.js')
@@ -5,10 +7,40 @@ var color = require('../../../js/color.js')
 var GeneHeader = React.createClass({
     
     propTypes: {
-        gene: React.PropTypes.object.isRequired
+        gene: React.PropTypes.object,
+        loading: React.PropTypes.bool
     },
     
     render: function() {
+
+        if (this.props.loading === true) {
+            return (
+                    <div className='gn-gene-description-outer' style={{backgroundColor: color.colors.gnwhite, padding: '20px'}}>
+                    <div className='gn-gene-description-inner hflex flexcenter maxwidth'>
+                    <div className='gn-gene-description-name'>
+                    <span style={{fontWeight: 'bold', fontFamily: 'GG', fontSize: '1.5em', paddingRight: '10px'}}>
+                    Loading
+                </span>
+                    </div>
+                    </div>
+                    </div>
+            )
+        }
+        
+        if (this.props.notFound) {
+            return (
+                    <div className='gn-gene-description-outer' style={{backgroundColor: color.colors.gnwhite, padding: '20px'}}>
+                    <div className='gn-gene-description-inner hflex flexcenter maxwidth'>
+                    <div className='gn-gene-description-name'>
+                    <span style={{fontWeight: 'bold', fontFamily: 'GG', fontSize: '1.5em', paddingRight: '10px'}}>
+                    {this.props.notFound} not found
+                </span>
+                    </div>
+                    </div>
+                    </div>
+            )
+        }
+        
 	var desc = (this.props.gene.description || 'no description').replace(/\[[^\]]+\]/g, '')
         return (
                 <div className='gn-gene-description-outer' style={{backgroundColor: color.colors.gnwhite, padding: '20px'}}>

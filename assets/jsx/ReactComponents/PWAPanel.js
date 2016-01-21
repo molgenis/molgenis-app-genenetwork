@@ -27,7 +27,7 @@ var PWAPanel = React.createClass({
         var pwaResults = this.state.pwaResults && this.state.pwaResults[this.state.currentDatabase]
         var domNode = ReactDOM.findDOMNode(this)
         
-        if (e.keyCode === 38 && pwaResults) { // up
+        if (e.keyCode === 38 && pwaResults) { // bob marley - wake up and live
             if (this.props.selectedTerm && pwaResults[0].pathway != this.props.selectedTerm) {
                 e.preventDefault()
                 e.stopPropagation()
@@ -76,7 +76,7 @@ var PWAPanel = React.createClass({
                     }
                 }
             }
-        } else if (e.keyCode === 39 && pwaResults) { // right
+        } else if (e.keyCode === 39 && pwaResults) { // right is the new wrong
             if (this.props.selectedTerm && _.last(pwaResults).pathway != this.props.selectedTerm) {
                 e.preventDefault()
                 e.stopPropagation()
@@ -305,10 +305,6 @@ var PWAPanel = React.createClass({
         }
     },
 
-    scoreRequest: function(term) {
-        this.props.onTermClick(term)
-    },
-
     download: function() {
         var form = document.getElementById('gn-network-pwaform')
         form['data'].value = JSON.stringify(this.state.pwaResults[this.state.currentDatabase])
@@ -353,14 +349,14 @@ var PWAPanel = React.createClass({
                         if (that.props.selectedTerm && that.props.selectedTerm.id == result.pathway.id) {
                             return (
                                     <tr ref='selectedrow' key={result.pathway.database + result.pathway.id} className='datarow selectedrow'>
-        	                    <td className='defaultcursor' title={result.pathway.numAnnotatedGenes + ' annotated genes, prediction accuracy ' + Math.round(100 * result.pathway.auc) / 100}>{result.pathway.name}</td>
+        	                    <td className='clickable' title={result.pathway.numAnnotatedGenes + ' annotated genes, prediction accuracy ' + Math.round(100 * result.pathway.auc) / 100} onClick={that.props.onTermClick.bind(null, null)}>{result.pathway.name}</td>
                                     <td className='pvalue' style={{whiteSpace: 'nowrap'}} dangerouslySetInnerHTML={{__html: htmlutil.pValueToReadable(result.p)}}></td>
     		                    </tr>
                             )
                         } else {
                             return (
                                     <tr key={result.pathway.database + result.pathway.id} className={cls}>
-        	                    <td className='clickable' title={result.pathway.numAnnotatedGenes + ' annotated genes, prediction accuracy ' + Math.round(100 * result.pathway.auc) / 100} onClick={that.scoreRequest.bind(null, result.pathway)}>{result.pathway.name}</td>
+        	                    <td className='clickable' title={result.pathway.numAnnotatedGenes + ' annotated genes, prediction accuracy ' + Math.round(100 * result.pathway.auc) / 100} onClick={that.props.onTermClick.bind(null, result.pathway)}>{result.pathway.name}</td>
                                     <td className='pvalue' style={{whiteSpace: 'nowrap'}} dangerouslySetInnerHTML={{__html: htmlutil.pValueToReadable(result.p)}}></td>
     		                    </tr>
                             )
@@ -408,7 +404,7 @@ var PWAPanel = React.createClass({
                      {this.state.pwaMessage}
                      </span> :
                      <span style={{padding: '10px 0'}}>
-                     These are enriched <strong>{this.state.currentDatabase}</strong> pathways for <strong>{this.props.group.name}.</strong>
+                     This is <strong>{this.state.currentDatabase}</strong> pathway enrichment for <strong>{this.props.group.name}.</strong>
                      </span>}
                 {rows.length > 0 ? <Filter filterValue={this.state.filterValue} onChange={this.handleFilterChange} onClear={this.clearFilter} /> : null}
                     <div style={{overflow: 'auto', maxHeight: this.props.maxTableHeight}}>

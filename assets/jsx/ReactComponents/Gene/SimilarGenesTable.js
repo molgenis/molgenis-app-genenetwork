@@ -24,13 +24,18 @@ var SimilarGenesTable = React.createClass({
 
         var rows = _.map(this.props.data.data, function(gene, i) {
 
-            var desc = (gene.gene.description || 'no description').replace(/\[[^\]]+\]/g, '')
+            var desc = (gene.gene.description || '').replace(/\[[^\]]+\]/g, '')
             var cls = i % 2 === 0 ? 'datarow evenrow' : 'datarow oddrow'
             return (<Tr className={cls} key={gene.gene.id}>
                     <Td column="GENE" className='text'>
                     <Link className='black nodecoration' title={desc} to={`/gene/${gene.gene.name}`}>
                     <SVGCollection.Rectangle title={gene.gene.biotype.replace(/_/g, ' ')} className='tablerectangle' fill={color.biotype2color[gene.gene.biotype] || color.colors.gnblack} />
                     <span>{gene.gene.name}</span>
+                    </Link>
+                    </Td>
+                    <Td column="DESCRIPTION">
+                    <Link className='black nodecoration' title={desc} to={`/gene/${gene.gene.name}`}>
+                    {desc}
                     </Link>
                     </Td>
                     <Td column="P-VALUE">{unsafe(htmlutil.pValueToReadable(gene.pValue))}</Td>
@@ -47,6 +52,13 @@ var SimilarGenesTable = React.createClass({
                             var aGeneName = a.props.to.slice(6)
                             var bGeneName = b.props.to.slice(6)
                             return aGeneName.localeCompare(bGeneName)
+                        }
+                    },
+
+                    {
+                        column: 'DESCRIPTION',
+                        sortFunction: function(a,b) {
+                            return a.localeCompare(b)
                         }
                     },
 

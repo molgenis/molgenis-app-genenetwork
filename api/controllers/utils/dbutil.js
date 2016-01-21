@@ -936,7 +936,7 @@ exp.getCoregulationMatrixAndGenePValues = function(genes, callback) {
     })
 }
 
-exp.getCoregulationBuffer = function(genes, id2groups, callback) {
+exp.getCoregulationBuffer = function(genes, groups, shortURL, callback) {
 
     var hash = {}
     for (var i = 0; i < genes.length; i++) {
@@ -966,7 +966,7 @@ exp.getCoregulationBuffer = function(genes, id2groups, callback) {
         } else {
             
             var totalBuffer = Buffer.concat(results, results.length * (results.length - 1))
-            callback(null, genes, id2groups, totalBuffer)
+            callback(null, genes, groups, shortURL, totalBuffer)
         }
     })
 }

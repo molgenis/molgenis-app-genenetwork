@@ -26,6 +26,7 @@ var getGenes = function(query, options, callback) {
     } else {
         options = options || {}
     }
+
     if (!_.isFunction(callback)) callback({name: 'ArgumentError', message: 'getGenes: Last argument has to be a callback function'})
     if (_.isString(query)) query = [query]
     if (!_.isArray(query)) callback({name: 'ArgumentError', message: 'getGenes: Query has to be a string or an array'})
@@ -59,7 +60,7 @@ var getGenes = function(query, options, callback) {
 	uniqGenes = _.uniq(_.compact(_.flatten(_.pluck(genesNGroups, 'genes'))))
 	quicksortobj(uniqGenes, options.sortField || 'index_')
 	sails.log.debug(uniqGenes.length + ' genes found, query length was ' + query.length)
-	callback(null, uniqGenes, genesNGroups)
+	callback(null, uniqGenes, _.compact(genesNGroups))
     })
 }
 

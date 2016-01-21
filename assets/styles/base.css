@@ -282,8 +282,6 @@ th {
     color: #4d4d4d;
 }
 
-
-
 #networksvg {
     position: absolute;
     top: 0;
@@ -412,6 +410,10 @@ th {
 
 a.externallink:link {
     color: #000000;
+}
+
+a.externallink:hover {
+    text-decoration: underline;
 }
 
 a.externallink {
@@ -653,6 +655,10 @@ line.link {
     background-color: #ffffff;
 }
 
+.gn-network {
+    margin-top: 10px;
+}
+
 .gn-network-legendpanel {
     display: flex;
     flex-flow: row nowrap;
@@ -724,7 +730,6 @@ line.link {
 
 .tabletextheader {
     padding-bottom: 5px;
-    width: 70%;
 }
 
 .datatable th:not(.tabletextheader) {
@@ -880,13 +885,41 @@ line.link {
 }
 
 #genepanel {
-    max-height: 30vh;
+    
     -webkit-touch-callout: text;
     -webkit-user-select: text;
     -khtml-user-select: text;
     -moz-user-select: text;
     -ms-user-select: text;
     user-select: text;
+
+    display: inline-block;
+    z-index: 1;
+    position: absolute;
+    top: 35px;
+    left: 70px;
+    max-width: 200px;
+    background-color: #ffffff;
+    opacity: 0.95;
+}
+
+#edgepanel {
+    
+    -webkit-touch-callout: text;
+    -webkit-user-select: text;
+    -khtml-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
+
+    display: inline-block;
+    z-index: 1;
+    position: absolute;
+    top: 35px;
+    left: 70px;
+    max-width: 200px;
+    background-color: #ffffff;
+    opacity: 0.95;
 }
 
 .smallpadding {
@@ -954,6 +987,9 @@ label > input + img {
 
 .gn-footer img:not(.cleverfranke) {
     height: 40px;
+}
+
+.gn-footer img:not(.umcg) {
     padding-right: 10px;
 }
 

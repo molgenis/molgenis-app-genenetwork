@@ -14,14 +14,28 @@ var Cookies = require('cookies-js')
 var SVGCollection = require('./SVGCollection.js')
 
 var PredictedGeneRow = React.createClass({
+
+    propTypes: {
+        data: React.PropTypes.object.isRequired,
+        termId: React.PropTypes.string.isRequired,
+        num: React.PropTypes.number,
+    },
+    
     render: function() {
+        
         var data = this.props.data
         var desc = (data.gene.description || 'no description').replace(/\[[^\]]+\]/g, '')
+        
         return ( <tr className={this.props.num % 2 === 0 ? 'datarow evenrow' : 'datarow oddrow'}>
                  <td className='text'>
                  <Link className='nodecoration black' title={desc} to={`/gene/${data.gene.name}`}>
                  <SVGCollection.Rectangle className='tablerectangle' title={data.gene.biotype.replace(/_/g, ' ')} fill={color.biotype2color[data.gene.biotype] || color.colors.gnblack} />
                  <span>{data.gene.name}</span>
+                 </Link>
+                 </td>
+                 <td className='text'>
+                 <Link className='nodecoration black' title={desc} to={`/gene/${data.gene.name}`}>
+                 <span>{desc}</span>
                  </Link>
                  </td>
                  <td style={{textAlign: 'center'}} dangerouslySetInnerHTML={{__html: htmlutil.pValueToReadable(data.pValue)}}></td>
@@ -38,14 +52,29 @@ var PredictedGeneRow = React.createClass({
 })
 
 var AnnotatedGeneRow = React.createClass({
+
+    propTypes: {
+        
+        data: React.PropTypes.object.isRequired,
+        termId: React.PropTypes.string.isRequired,
+        num: React.PropTypes.number
+    },
+    
     render: function() {
+        
         var data = this.props.data
         var desc = (data.gene.description || 'no description').replace(/\[[^\]]+\]/g, '')
+        
         return ( <tr className={this.props.num % 2 === 0 ? 'datarow evenrow' : 'datarow oddrow'}>
                  <td className='text'>
                  <Link className='nodecoration black' title={desc} to={`/gene/${data.gene.name}`}>
                  <SVGCollection.Rectangle className='tablerectangle' title={data.gene.biotype.replace(/_/g, ' ')} fill={color.biotype2color[data.gene.biotype] || color.colors.gnblack} />
                  {data.gene.name}
+                 </Link>
+                 </td>
+                 <td className='text'>
+                 <Link className='nodecoration black' title={desc} to={`/gene/${data.gene.name}`}>
+                 <span>{desc}</span>
                  </Link>
                  </td>
                  <td style={{textAlign: 'center'}}>TBA</td>
@@ -64,6 +93,7 @@ var AnnotatedGeneRow = React.createClass({
 var GeneTable = React.createClass({
 
     propTypes: {
+
         data: React.PropTypes.object.isRequired,
         listType: React.PropTypes.string
     },
@@ -75,12 +105,26 @@ var GeneTable = React.createClass({
         var header = null
         var rows = null
         if (this.props.listType == 'annotation') {
-            header = (<tr><th className='tabletextheader'>GENE</th><th>P-VALUE</th><th>DIRECTION</th><th>ANNOTATED</th><th>NETWORK</th></tr>)
+            header = (<tr>
+                      <th className='tabletextheader' style={{width: '10%'}}>GENE</th>
+                      <th className='tabletextheader' style={{width: '60%'}}>DESCRIPTION</th>
+                      <th>P-VALUE</th>
+                      <th>DIRECTION</th>
+                      <th>ANNOTATED</th>
+                      <th>NETWORK</th>
+                      </tr>)
             rows = _.map(this.props.data.genes.annotated, function(data, i) {
                 return (<AnnotatedGeneRow key={data.gene.id} termId={that.props.data.pathway.id} data={data} num={i} />)
             })
         } else {
-            header = (<tr><th className='tabletextheader'>GENE</th><th>P-VALUE</th><th>DIRECTION</th><th>ANNOTATED</th><th>NETWORK</th></tr>)
+            header = (<tr>
+                      <th className='tabletextheader' style={{width: '10%'}}>GENE</th>
+                      <th className='tabletextheader' style={{width: '60%'}}>DESCRIPTION</th>
+                      <th>P-VALUE</th>
+                      <th>DIRECTION</th>
+                      <th>ANNOTATED</th>
+                      <th>NETWORK</th>
+                      </tr>)
             rows = _.map(this.props.data.genes.predicted, function(data, i) {
                 return (<PredictedGeneRow key={data.gene.id} termId={that.props.data.pathway.id} data={data} num={i} />)
             })
@@ -102,12 +146,14 @@ var Term = React.createClass({
     mixins: [Router.Navigation, Router.State],
 
     getInitialState: function() {
+
         return {
             listType: Cookies.get('termlist') || 'prediction'
         }
     },
     
     loadData: function() {
+
         $.ajax({
             url: GN.urls.pathway + '/' + this.props.params.termId + '?verbose',
             dataType: 'json',
@@ -145,51 +191,58 @@ var Term = React.createClass({
     },
 
     componentDidMount: function() {
-        var el = ReactDOM.findDOMNode(this)
-        // console.log(el.offsetWidth, el.offsetHeight)
-        this.setState({
-            w: el.offsetWidth,
-            h: el.offsetHeight
-        })
+
         this.loadData()
     },
 
     componentWillReceiveProps: function() {
+
         this.loadData()
     },
 
     onListTypeClick: function(type) {
+        
         Cookies.set('termlist', type)
+        
         this.setState({
             listType: type
         })
     },
     
     render: function() {
+        
         if (this.state.error) {
+            
             return (
 		    <DocumentTitle title={this.state.errorTitle + GN.pageTitleSuffix}>
-                    <div>
-                    <span>{this.state.error}</span>
-                    </div>
-		    </DocumentTitle>
-            )
-        } else if (this.state.data) {
-            var data = this.state.data
-            return (
-		    <DocumentTitle title={data.pathway.name + GN.pageTitleSuffix}>
-                    <div>
+                    <div className='flex10'>
                     <div className='gn-term-description-outer' style={{backgroundColor: color.colors.gnwhite, padding: '20px'}}>
                     <div className='gn-term-description-inner hflex flexcenter maxwidth'>
                     <div className='gn-term-description-name'>
-                    <span style={{fontWeight: 'bold', fontFamily: 'GG', fontSize: '1.5em'}}>{data.pathway.name}</span>
+                    <span style={{fontWeight: 'bold', fontFamily: 'GG', fontSize: '1.5em'}}>
+                    {this.props.params.termId} not found
+                </span>
+                    </div>
+                    </div>
+                    </div>
+                    </div>
+		    </DocumentTitle>
+            )
+            
+        } else if (this.state.data) {
+            
+            var data = this.state.data
+            
+            return (
+		    <DocumentTitle title={data.pathway.name + GN.pageTitleSuffix}>
+                    <div className='flex10'>
+                    <div className='gn-term-description-outer' style={{backgroundColor: color.colors.gnwhite, padding: '20px'}}>
+                    <div className='gn-term-description-inner hflex flexcenter maxwidth'>
+                    <div className='gn-term-description-name'>
+                    <span style={{fontWeight: 'bold', fontFamily: 'GG', fontSize: '1.5em'}}>{data.pathway.database}: {data.pathway.name}</span>
                     </div>
                     <div className='flex11' />
                     <div className='gn-term-description-stats' style={{textAlign: 'right'}}>
-                    <span>
-                    <a className='externallink nodecoration black' title={'Open in ' + data.pathway.database + ': ' + data.pathway.name} href={data.pathway.url} target='_blank'>
-                    {data.pathway.database}</a>
-                    </span><br/>
                     <span>{data.pathway.numAnnotatedGenes} annotated genes</span><br/>
                     <span>Prediction accuracy {(Math.round(100 * data.pathway.auc) / 100).toPrecision(2)}</span><br/>
                     </div>
@@ -219,8 +272,14 @@ var Term = React.createClass({
         } else {
             return (
 		    <DocumentTitle title={'Loading' + GN.pageTitleSuffix}>
-                    <div className='gn-term-description-outer flex11 vflex flexcenter flexjustifycenter' style={{backgroundColor: color.colors.gnwhite, padding: '20px'}}>
-                    <div>LOADING</div>
+                    <div className='flex10'>
+                    <div className='gn-term-description-outer' style={{backgroundColor: color.colors.gnwhite, padding: '20px'}}>
+                    <div className='gn-term-description-inner hflex flexcenter maxwidth'>
+                    <div className='gn-term-description-name'>
+                    <span style={{fontWeight: 'bold', fontFamily: 'GG', fontSize: '1.5em'}}>Loading</span>
+                    </div>
+                    </div>
+                    </div>
                     </div>
 		    </DocumentTitle>
             )
@@ -229,9 +288,3 @@ var Term = React.createClass({
 })
 
 module.exports = Term
-
-//     <div className='gn-term-container-outer' style={{backgroundColor: color.colors.gnwhite}}>
-//     <div className='gn-term-container-inner'>
-//      (<div style={{position: 'absolute', top: (this.state.h - 100) / 2 + 'px', width: this.state.w + 'px', textAlign: 'center'}}>
-//       loading</div>) : null}
-// </div>
