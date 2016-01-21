@@ -462,20 +462,20 @@ exp.getGeneJSON = function(gene, db, req, callback) {
 
                 celltypedb.get('!RNASEQ!CELLTYPE', [{valueEncoding: 'json'}], function(err, data) {
                 	r.celltypes['header'] = JSON.parse(data.toString())
-                	var i = 0;
+                	var i = 0
                 	_.forEach(r.celltypes['header'], function(item){
                 		n = item.name
                 		// r.celltypes['indices']['test'] = item
                 		if ('children' in item){
                 			r.celltypes['indices'][n] = i
-                			i++;
+                			i++
                 			_.forEach(item.children, function(child){
                 				r.celltypes['indices'][child.name] = i
-                				i++;
+                				i++
                 			});
                 		} else {
                 			r.celltypes['indices'][n] = i
-                			i ++;
+                			i ++
                 		}
                 		
                 	})
@@ -504,7 +504,9 @@ exp.getGeneJSON = function(gene, db, req, callback) {
                         })
 
                     } else if (_.endsWith(data.key, 'AUC')) {
-                    	//
+                    	_.forEach(data.value.toString().split(','), function(value){
+                            r.celltypes['auc'].push(parseFloat(value))
+                        })
                     }
                 })
                 .on('end', function() {
@@ -1103,6 +1105,6 @@ var geneZScore = function(data, genes, allGenes) {
     return {
         correlations: a1,
         p: p,
-	z: z
+	   z: z
     }
 }
