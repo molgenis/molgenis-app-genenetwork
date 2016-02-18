@@ -239,6 +239,7 @@ th {
     text-align: left;
 }
 
+
 .black{
     color: #000000;
 }
@@ -754,6 +755,10 @@ line.link {
     width: initial;
 }
 
+.datatable tr:nth-child(even){
+    background-color: #f8f8f8;
+}
+
 .vheight {
     height: 100vh;
 }
@@ -813,6 +818,50 @@ line.link {
     background-color: #f8f8f8;
     opacity: 1;
 }
+
+.tissues-table {
+    width: 100%;
+    border-collapse: collapse;
+    clear: left;
+}
+
+.tissues-table th {
+    text-align: center;
+}
+
+.tissues-table td:first-child {
+    padding-left: 9px;
+}
+
+.tissues-table td {
+    height: 22px;
+}
+
+.tissues-table tr:nth-child(even){
+    background-color: #f8f8f8;
+}
+
+/*.datatable th:not(.tabletextheader) {
+    text-align: center;
+    min-width: 50px;
+    word-break: break-word;
+}
+
+.datatable td.text {
+    padding-left: 6px;
+    line-height: 1.8em;
+}
+
+.datatable a {
+    display: inline-block;
+    width: 100%;
+}
+
+.datatable .menuitem {
+    display: inline-block;
+    width: initial;
+}
+*/
 
 .gn-network-panelcontainer {
     position: absolute;

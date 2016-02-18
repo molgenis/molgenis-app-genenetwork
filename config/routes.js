@@ -55,6 +55,10 @@ module.exports.routes = {
         view: 'homepage'
     },
     
+    '/transcript*': {
+        view: 'homepage'
+    },
+    
     '/term*': {
         view: 'homepage'
     },

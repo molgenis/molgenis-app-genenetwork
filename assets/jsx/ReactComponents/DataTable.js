@@ -55,8 +55,6 @@ var DataTable = React.createClass({
 
             var isAnnotated = that.state.annotationsOnly || pathway.annotated
 
-            var cls = num % 2 === 0 ? 'datarow evenrow' : 'datarow oddrow'
-
             var key= pathway.term.id
             var gene= that.props.data.gene
             var data= pathway
@@ -65,7 +63,7 @@ var DataTable = React.createClass({
 
             return (
 
-                <Tr key={key} className={cls}>
+                <Tr key={key}>
                 <Td column="TERM" className='text'>
                     <Link className='nodecoration black' title={data.term.numAnnotatedGenes + ' annotated genes, prediction accuracy ' + Math.round(100 * data.term.auc) / 100} to={`/term/${data.term.id}`}>
                     {data.term.name}
@@ -86,8 +84,6 @@ var DataTable = React.createClass({
                 </Tr>
             )
         })
-
-console.log('test9')
 
         if (rows.length === 0) {
             rows = (<tr><td>No {this.props.db} {this.state.annotationsOnly ? 'annotations' : 'predictions'} for {this.props.data.gene.name}</td></tr>)

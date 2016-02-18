@@ -21,7 +21,9 @@ var genedb = level(sails.config.geneDBPath, {
 var pathwaydb = level(sails.config.pathwayDBPath, {
     valueEncoding: 'binary'
 })
-var celltypedb = level(sails.config.celltypeDBPath)
+var celltypedb = level(sails.config.celltypeDBPath, {
+    valueEncoding: 'binary'
+})
 
 //var pathwayrankdb = level(sails.config.pathwayRankDBPath, {valueEncoding: 'binary'})
 // var pcdb = level(sails.config.pcDBPath, {
@@ -338,6 +340,13 @@ exp.getPC = function(pc, callback) {
     })
 }
 
+exp.getTranscriptJSON = function(transcript, callback) {
+
+    // get tissue data from db for transcript and callback with it, similarly as for the genes
+    callback(null, 'hoi')
+    
+}
+
 exp.getGeneJSON = function(gene, db, req, callback) {
 
     var r = {
@@ -354,7 +363,7 @@ exp.getGeneJSON = function(gene, db, req, callback) {
         	indices: {},
         	avg: [], 
         	stdev: [], 
-        	p: [], 
+        	z: [], 
         	auc: []
         }
     }
@@ -464,20 +473,14 @@ exp.getGeneJSON = function(gene, db, req, callback) {
                 	r.celltypes['header'] = JSON.parse(data.toString())
                 	var i = 0
                 	_.forEach(r.celltypes['header'], function(item){
-                		n = item.name
-                		// r.celltypes['indices']['test'] = item
+                        r.celltypes['indices'][item.name] = i
+                        i ++
                 		if ('children' in item){
-                			r.celltypes['indices'][n] = i
-                			i++
                 			_.forEach(item.children, function(child){
                 				r.celltypes['indices'][child.name] = i
-                				i++
+                				i++ 
                 			});
-                		} else {
-                			r.celltypes['indices'][n] = i
-                			i ++
-                		}
-                		
+                		}                		
                 	})
                 })
 
@@ -486,29 +489,26 @@ exp.getGeneJSON = function(gene, db, req, callback) {
                     end: 'RNASEQ!' + gene.id + '!CELLTYPE!~'
                 })
 
-                .on('data', function(data) {
-                	                	
-                    if (_.endsWith(data.key, 'AVG')){
-                    	_.forEach(data.value.toString().split(','), function(value){
-                    		r.celltypes['avg'].push((Math.round(parseFloat(value) * 100))/100)
-                    	})
-
-                    } else if (_.endsWith(data.key, 'STDEV')) {
-                    	_.forEach(data.value.toString().split(','), function(value){
-                            r.celltypes['stdev'].push((Math.round(parseFloat(value) * 100))/100)
-                        })
-
-                    } else if (_.endsWith(data.key, 'P')) {
-                    	_.forEach(data.value.toString().split(','), function(value){
-                            r.celltypes['p'].push(parseFloat(value))
-                        })
-
-                    } else if (_.endsWith(data.key, 'AUC')) {
-                    	_.forEach(data.value.toString().split(','), function(value){
-                            r.celltypes['auc'].push(parseFloat(value))
-                        })
-                    }
+                .on('data', function(buffer) {
+                	if (_.endsWith(buffer.key, 'AVG')){
+                		for (var i = 0; i < buffer.value.length; i += 2) {
+							r.celltypes['avg'].push((buffer.value.readUInt16BE(i) - 32768) / 1000)
+						}
+                	} else if (_.endsWith(buffer.key, 'STDEV')){
+                		for (var i = 0; i < buffer.value.length; i += 2) {
+							r.celltypes['stdev'].push((buffer.value.readUInt16BE(i)) / 1000)
+						}
+                	} else if (_.endsWith(buffer.key, 'AUC')){
+                		for (var i = 0; i < buffer.value.length; i += 2) {
+							r.celltypes['auc'].push((buffer.value.readUInt16BE(i)) / 1000)
+						}
+                	} else if (_.endsWith(buffer.key, 'Z')){
+                		for (var i = 0; i < buffer.value.length; i += 2) {
+							r.celltypes['z'].push((buffer.value.readUInt16BE(i) - 32768) / 1000)
+						}
+                	}
                 })
+                
                 .on('end', function() {
                     cb(null)
                 })

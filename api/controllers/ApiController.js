@@ -5,6 +5,7 @@ var level = require('level')
 var dbutil = require('./utils/dbutil')
 
 var handleGene = require('./requestHandlers/handleGene')
+var handleTranscript = require('./requestHandlers/handleTranscript')
 var handlePathway = require('./requestHandlers/handlePathway')
 var handleCoregulation = require('./requestHandlers/handleCoregulation')
 var handleCofunction = require('./requestHandlers/handleCofunction')
@@ -37,6 +38,16 @@ module.exports = {
     gene: function(req, res) {
         try {
             handleGene(req, res)
+        } catch (e) {
+            sails.log.error(e)
+            res.serverError()
+        }
+    },
+
+    transcript: function(req, res) {
+        sails.log.debug('transcript request')
+        try {
+            handleTranscript(req, res)
         } catch (e) {
             sails.log.error(e)
             res.serverError()

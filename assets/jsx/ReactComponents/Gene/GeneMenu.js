@@ -72,7 +72,7 @@ var GeneMenu = React.createClass({
                  (
                          <tr>
                          <td>SELECT DATABASE</td>
-                         <td style={{backgroundColor: '#4d4d4d', padding: 0}}>{databaseMenuItems}</td>
+                         <td style={{backgroundColor: '#ffffff', padding: 0}}>{databaseMenuItems}</td>
                          </tr>
                  ) : null }
             </tbody>
