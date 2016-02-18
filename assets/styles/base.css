@@ -735,7 +735,6 @@ line.link {
 
 .datatable th:not(.tabletextheader) {
     text-align: center;
-    min-width: 50px;
     /* width: 8%; */
     word-break: break-word;
 }
@@ -753,6 +752,10 @@ line.link {
 .datatable .menuitem {
     display: inline-block;
     width: initial;
+}
+
+.datatable tr:nth-child(even){
+    background-color: #f8f8f8;
 }
 
 .datatable tr:nth-child(even){
@@ -825,10 +828,6 @@ line.link {
     clear: left;
 }
 
-.tissues-table th {
-    text-align: center;
-}
-
 .tissues-table td:first-child {
     padding-left: 9px;
 }
@@ -840,28 +839,6 @@ line.link {
 .tissues-table tr:nth-child(even){
     background-color: #f8f8f8;
 }
-
-/*.datatable th:not(.tabletextheader) {
-    text-align: center;
-    min-width: 50px;
-    word-break: break-word;
-}
-
-.datatable td.text {
-    padding-left: 6px;
-    line-height: 1.8em;
-}
-
-.datatable a {
-    display: inline-block;
-    width: 100%;
-}
-
-.datatable .menuitem {
-    display: inline-block;
-    width: initial;
-}
-*/
 
 .gn-network-panelcontainer {
     position: absolute;

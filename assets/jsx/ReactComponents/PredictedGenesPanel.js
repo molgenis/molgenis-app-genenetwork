@@ -225,7 +225,6 @@ var PredictedGenesPanel = React.createClass({
     },
     
     render: function() {
-
         if (!this.props.group) return null
         if (!this.state.gpResults && this.state.gpMessage) {
             return (<div style={this.props.style}>
@@ -242,11 +241,10 @@ var PredictedGenesPanel = React.createClass({
             for (var i = 0; i < this.state.gpResults.length; i++) {
                 var result = this.state.gpResults[i]
                 var desc = (result.gene.description || 'no description').replace(/\[[^\]]+\]/g, '')
-                var classname = rowNum++ % 2 === 0 ? 'evenrow' : 'oddrow'
                 //TODO efficiency
                 rows.push(
                     (
-	                    <tr key={i} className={classname}>
+	                    <tr key={i} >
                             {this.props.addedGenes.indexOf(result.gene.id) < 0 ?
                              (<td title={result.gene.biotype.replace(/_/g, ' ')} className='clickable addremove' onClick={this.props.onGeneAdd.bind(null, result.gene)}>
                               <AddGeneSVG gene={result.gene} w={20} h={20} style={{marginRight: '8px'}} />

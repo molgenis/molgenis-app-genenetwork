@@ -31,10 +31,9 @@ var DataTable = React.createClass({
         var z = this.props.celltypes.z
         var stdev = this.props.celltypes.stdev
         var auc = this.props.celltypes.auc
-        
     	var rows = _.map(this.sortedItems, function(item, i){
     	    return(
-                <Tr key={item.name} onClick={this.props.onClick.bind(null, item)} onMouseOut={this.props.onMouseOver.bind(null, undefined)} onMouseOver={this.props.onMouseOver.bind(null, item)} style={this.props.hoverItem === item.name || this.props.clickedItem === item.name ? {backgroundColor: 'rgb(255,225,0)'} : {}}>
+                <Tr key={item.name} className='clickable' onClick={this.props.onClick.bind(null, item)} onMouseOut={this.props.onMouseOver.bind(null, undefined)} onMouseOver={this.props.onMouseOver.bind(null, item)} style={this.props.hoverItem === item.name || this.props.clickedItem === item.name ? {backgroundColor: 'rgb(255,225,0)'} : {}}>
                 <Td column="">{item.name === "Skin" || item.name === "Brain" || item.name === "Blood" ? <ListIcon w={10} h={10} /> : null}</Td>
                 <Td column="TISSUE">{item.name}</Td>
                 <Td column="SAMPLES">{item.numAnnotated}</Td>
@@ -165,9 +164,8 @@ var TableCelltypes = React.createClass({
         }).reverse()
 
         var rows = _.map(sortedItems, function(item, i){
-            var cls = i % 2 === 0 ? 'datarow evenrow' : 'datarow oddrow';
             return(
-            <tr key={item.name} className={cls} onMouseOver={this.props.onMouseOver.bind(null, item)}>
+            <tr key={item.name} onMouseOver={this.props.onMouseOver.bind(null, item)}>
                 <td>{item.name}</td>
                 <td style={{textAlign: 'center'}}>{item.numSamples}</td>
                 <td style={{textAlign: 'center'}}>{avg[indices[item.name]]}</td>

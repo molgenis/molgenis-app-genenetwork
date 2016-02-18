@@ -21,9 +21,8 @@ var PredictionRow = React.createClass({
     },
 
 	render: function() {
-		var cls = this.props.num % 2 === 0 ? 'datarow evenrow' : 'datarow oddrow'
 		return (
-			<Tr className={cls}>
+			<Tr className='clickable'>
 				<Td className='text'>
 					<Link className='nodecoration black' title={this.props.data.term.numAnnotatedGenes + ' annotated genes, prediction accuracy ' + Math.round(100 * this.props.data.term.auc) / 100} to={`/term/${this.props.data.term.id}`}>
 					{this.props.data.term.name}

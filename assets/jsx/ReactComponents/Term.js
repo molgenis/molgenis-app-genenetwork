@@ -26,7 +26,7 @@ var PredictedGeneRow = React.createClass({
         var data = this.props.data
         var desc = (data.gene.description || 'no description').replace(/\[[^\]]+\]/g, '')
         
-        return ( <tr className={this.props.num % 2 === 0 ? 'datarow evenrow' : 'datarow oddrow'}>
+        return ( <tr>
                  <td className='text'>
                  <Link className='nodecoration black' title={desc} to={`/gene/${data.gene.name}`}>
                  <SVGCollection.Rectangle className='tablerectangle' title={data.gene.biotype.replace(/_/g, ' ')} fill={color.biotype2color[data.gene.biotype] || color.colors.gnblack} />
@@ -65,7 +65,7 @@ var AnnotatedGeneRow = React.createClass({
         var data = this.props.data
         var desc = (data.gene.description || 'no description').replace(/\[[^\]]+\]/g, '')
         
-        return ( <tr className={this.props.num % 2 === 0 ? 'datarow evenrow' : 'datarow oddrow'}>
+        return ( <tr>
                  <td className='text'>
                  <Link className='nodecoration black' title={desc} to={`/gene/${data.gene.name}`}>
                  <SVGCollection.Rectangle className='tablerectangle' title={data.gene.biotype.replace(/_/g, ' ')} fill={color.biotype2color[data.gene.biotype] || color.colors.gnblack} />
