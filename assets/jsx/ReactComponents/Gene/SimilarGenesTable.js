@@ -25,8 +25,7 @@ var SimilarGenesTable = React.createClass({
         var rows = _.map(this.props.data.data, function(gene, i) {
 
             var desc = (gene.gene.description || '').replace(/\[[^\]]+\]/g, '')
-            var cls = i % 2 === 0 ? 'datarow evenrow' : 'datarow oddrow'
-            return (<Tr className={cls} key={gene.gene.id}>
+            return (<Tr key={gene.gene.id}>
                     <Td column="GENE" className='text'>
                     <Link className='black nodecoration' title={desc} to={`/gene/${gene.gene.name}`}>
                     <SVGCollection.Rectangle title={gene.gene.biotype.replace(/_/g, ' ')} className='tablerectangle' fill={color.biotype2color[gene.gene.biotype] || color.colors.gnblack} />

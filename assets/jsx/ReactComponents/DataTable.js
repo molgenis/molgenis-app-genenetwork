@@ -175,6 +175,15 @@ var DataTable = React.createClass({
                         console.log(a.props.className)
                         return a.props.className.localeCompare(b.props.className)
                     }
+                },
+
+                {
+                    column: 'ANNOTATED',
+                    sortFunction: function(a, b) {
+
+                        console.log(a.props.className)
+                        return a.props.className.localeCompare(b.props.className)
+                    }
                 }
 
             ]}
