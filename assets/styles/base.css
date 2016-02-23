@@ -235,9 +235,9 @@ h1, h2, h3, h4, h5 {
     text-decoration: none;
 }
 
-th {
+/*th {
     text-align: left;
-}
+}*/
 
 
 .black{
@@ -297,6 +297,7 @@ th {
     /* stroke: rgb(255,225,0); */
 }
 
+
 .dropdown {
     background-color: #ffffff;
     color: #4d4d4d;
@@ -304,6 +305,8 @@ th {
     text-decoration: none;
     stroke-width: 10;
     display: inline-block;
+    position: absolute;
+    right: 10px;
 }
 
 .dropdown span {
@@ -335,7 +338,58 @@ th {
     background-color: #ffffff;
 }
 
+.dropdownoption {
+    background-color: #ffffff;
+}
+
 .dropdownoption:hover {
+    background-color: rgb(255,225,0);
+}
+
+.dropup {
+    background-color: #ffffff;
+    color: #4d4d4d;
+    border: 1px solid #dcdcdc;
+    text-decoration: none;
+    stroke-width: 10;
+    display: inline-block;
+    position: relative;
+}
+
+.dropup span {
+    display: inline-block;
+    padding: 8px;
+}
+
+.dropup:hover .dropuptriangle svg {
+    fill: rgb(255,225,0);
+}
+
+.dropup:hover .dropuptriangle {
+    background-color: #4d4d4d;
+}
+
+.dropuptriangle {
+    float: right;
+    color: #4d4d4d;
+    background-color: rgb(255,225,0);
+    padding: 8px;
+}
+
+.dropuptriangle svg {
+    fill: #4d4d4d;
+    stroke-width: 0;
+}
+
+.dropup .outer {
+    background-color: #ffffff;
+}
+
+.dropupoption {
+    background-color: #ffffff;
+}
+
+.dropupoption:hover {
     background-color: rgb(255,225,0);
 }
 
@@ -724,6 +778,7 @@ line.link {
 }
 
 .datatable {
+    text-align: left;
     width: 100%;
     border-collapse: collapse;
     clear: left;
@@ -734,7 +789,7 @@ line.link {
 }
 
 .datatable th:not(.tabletextheader) {
-    text-align: center;
+    text-align: left;
     /* width: 8%; */
     word-break: break-word;
 }
@@ -752,10 +807,6 @@ line.link {
 .datatable .menuitem {
     display: inline-block;
     width: initial;
-}
-
-.datatable tr:nth-child(even){
-    background-color: #f8f8f8;
 }
 
 .datatable tr:nth-child(even){
@@ -828,12 +879,18 @@ line.link {
     clear: left;
 }
 
-.tissues-table td:first-child {
-    padding-left: 9px;
+.tissues-table td {
+    min-width: 60px;
+    height: 22px;
 }
 
-.tissues-table td {
-    height: 22px;
+.tissues-table td:first-child {
+    padding-left: 9px;
+    min-width: 10px;
+}
+
+.tissues-table tr {
+    text-align: left;
 }
 
 .tissues-table tr:nth-child(even){
@@ -1126,7 +1183,7 @@ label > input + img {
     -ms-user-select: none;
     user-select: none;
     cursor: pointer;
-    text-align: left!important;
+ /*   text-align: left!important;*/
 }
 
 .diagflex-container {

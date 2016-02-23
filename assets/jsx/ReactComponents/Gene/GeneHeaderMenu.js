@@ -28,7 +28,7 @@ var GeneHeaderMenu = React.createClass({
                 <SVGCollection.Chromosome chr={this.props.gene.chr} position={(this.props.gene.stop + this.props.gene.start) / 2} style={{}} />
                 <div>{this.props.gene.biotype.replace(/_/g, ' ')}</div>
                 </div>
-                <div className='predictionmenu genemenu'>
+                <div className='predictionmenu'>
                 <span className={buttonStyles[0]} onClick={this.props.onMenuClick.bind(null, 'prediction')}>PATHWAYS & PHENOTYPES</span>
                 <span className={buttonStyles[1]} onClick={this.props.onMenuClick.bind(null, 'similar')}>SIMILAR GENES</span>
                 <GeneOpenMenu gene={this.props.gene} style={{float: 'right'}} options={['EXAC', 'ENSEMBL', 'PUBMED']} />
@@ -37,5 +37,5 @@ var GeneHeaderMenu = React.createClass({
         )
     }
 })
-
+ 
 module.exports = GeneHeaderMenu

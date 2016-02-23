@@ -33,6 +33,10 @@ var correlationdb = level(sails.config.correlationDBPath, {
     valueEncoding: 'binary'
 })
 
+var transcriptdb = level(sails.config.transcriptDBpath, {
+    valueEncoding: 'binary'
+})
+
 //TODO this data to the database
 var getPathwayDatabasesFromDB = function(db, callback) {
     var databases = [
@@ -341,10 +345,54 @@ exp.getPC = function(pc, callback) {
 }
 
 exp.getTranscriptJSON = function(transcript, callback) {
+    var transcripts = {
+        name: transcript,
+        avg: [],
+        stdev: [],
+        auc: [],
+        z: []
+    }
 
-    // get tissue data from db for transcript and callback with it, similarly as for the genes
-    callback(null, 'hoi')
-    
+    sails.log.debug('getting expression per tissue for ' + transcript)
+    async.series([
+        function(cb) {
+            transcriptdb.createReadStream({
+                start: 'RNASEQ!' + transcript + '!CELLTYPE!',
+                end: 'RNASEQ!' + transcript + '!CELLTYPE!~'
+            })
+
+            .on('data', function(buffer) {
+                if (_.endsWith(buffer.key, 'AVG')){
+                    for (var i = 0; i < buffer.value.length; i += 2) {
+                        transcripts['avg'].push((buffer.value.readUInt16BE(i) - 32768) / 1000)
+
+                        //remove when database is up to date
+                        transcripts['stdev'].push('-')
+                        transcripts['auc'].push('-')
+                        transcripts['z'].push('-')
+                    }
+                } else if (_.endsWith(buffer.key, 'STDEV')){
+                    for (var i = 0; i < buffer.value.length; i += 2) {
+                        transcripts['stdev'].push((buffer.value.readUInt16BE(i)) / 1000)
+                    }
+                } else if (_.endsWith(buffer.key, 'AUC')){
+                    for (var i = 0; i < buffer.value.length; i += 2) {
+                        transcripts['auc'].push((buffer.value.readUInt16BE(i)) / 1000)
+                    }
+                } else if (_.endsWith(buffer.key, 'Z')){
+                    for (var i = 0; i < buffer.value.length; i += 2) {
+                        transcripts['z'].push((buffer.value.readUInt16BE(i) - 32768) / 1000)
+                    }
+                }
+            })
+            .on('end', function() {
+                cb(null)
+            })
+        }
+    ],
+    function(err) {
+        callback(err, transcripts)
+    })  
 }
 
 exp.getGeneJSON = function(gene, db, req, callback) {
@@ -359,12 +407,16 @@ exp.getGeneJSON = function(gene, db, req, callback) {
             predicted: []
         },
         celltypes: {
-        	header: [],
-        	indices: {},
-        	avg: [], 
-        	stdev: [], 
-        	z: [], 
-        	auc: []
+            names: {
+                header: [],
+                indices: {}
+            },        	
+            values: {
+                avg: [], 
+                stdev: [], 
+                z: [], 
+                auc: []
+            }
         }
     }
 
@@ -470,14 +522,14 @@ exp.getGeneJSON = function(gene, db, req, callback) {
             function(cb) {
 
                 celltypedb.get('!RNASEQ!CELLTYPE', [{valueEncoding: 'json'}], function(err, data) {
-                	r.celltypes['header'] = JSON.parse(data.toString())
+                	r.celltypes.names['header'] = JSON.parse(data.toString())
                 	var i = 0
-                	_.forEach(r.celltypes['header'], function(item){
-                        r.celltypes['indices'][item.name] = i
+                	_.forEach(r.celltypes.names['header'], function(item){
+                        r.celltypes.names['indices'][item.name] = i
                         i ++
                 		if ('children' in item){
                 			_.forEach(item.children, function(child){
-                				r.celltypes['indices'][child.name] = i
+                				r.celltypes.names['indices'][child.name] = i
                 				i++ 
                 			});
                 		}                		
@@ -492,19 +544,19 @@ exp.getGeneJSON = function(gene, db, req, callback) {
                 .on('data', function(buffer) {
                 	if (_.endsWith(buffer.key, 'AVG')){
                 		for (var i = 0; i < buffer.value.length; i += 2) {
-							r.celltypes['avg'].push((buffer.value.readUInt16BE(i) - 32768) / 1000)
+							r.celltypes.values['avg'].push((buffer.value.readUInt16BE(i) - 32768) / 1000)
 						}
                 	} else if (_.endsWith(buffer.key, 'STDEV')){
                 		for (var i = 0; i < buffer.value.length; i += 2) {
-							r.celltypes['stdev'].push((buffer.value.readUInt16BE(i)) / 1000)
+							r.celltypes.values['stdev'].push((buffer.value.readUInt16BE(i)) / 1000)
 						}
                 	} else if (_.endsWith(buffer.key, 'AUC')){
                 		for (var i = 0; i < buffer.value.length; i += 2) {
-							r.celltypes['auc'].push((buffer.value.readUInt16BE(i)) / 1000)
+							r.celltypes.values['auc'].push((buffer.value.readUInt16BE(i)) / 1000)
 						}
                 	} else if (_.endsWith(buffer.key, 'Z')){
                 		for (var i = 0; i < buffer.value.length; i += 2) {
-							r.celltypes['z'].push((buffer.value.readUInt16BE(i) - 32768) / 1000)
+							r.celltypes.values['z'].push((buffer.value.readUInt16BE(i) - 32768) / 1000)
 						}
                 	}
                 })

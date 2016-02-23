@@ -4,6 +4,8 @@ var _ = require('lodash')
 var React = require('react')
 var OpenMenu = require('./OpenMenu')
 var SquareSVG = require('./SVGCollection').SquareSVG
+var TriangleDown = require('./SVGCollection').TriangleDown
+var TriangleUp = require('./SVGCollection').TriangleUp
 var color = require('../../js/color')
 
 var LegendPanel = React.createClass({

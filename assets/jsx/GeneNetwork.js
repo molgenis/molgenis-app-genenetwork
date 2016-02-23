@@ -208,7 +208,7 @@ var Landing = React.createClass({
                 </div>
                 </div>
                 {topSearch}
-                <MenuBar items={GN.menuItems} style={{backgroundColor: color.colors.gnwhite, padding: '20px'}} />
+                <MenuBar items={GN.menuItems} style={{backgroundColor: color.colors.gnverylightgray, padding: '20px'}} />
                 </div>
                 {topBanner}
                 {this.props.children}

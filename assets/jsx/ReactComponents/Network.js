@@ -16,8 +16,6 @@ var NetworkControlPanel = require('./NetworkControlPanel')
 var EdgeLegend = require('./EdgeLegend')
 var LegendPanel = require('./LegendPanel')
 var DownloadPanel = require('./DownloadPanel')
-var OpenMenu = require('./OpenMenu')
-var SVGCollection = require('./SVGCollection')
 
 var Cookies = require('cookies-js')
 var D3Network = require('../../js/D3Network.js')
@@ -218,7 +216,6 @@ var Network = React.createClass({
         }
 
         io.socket.on('network', function(network) {
-
             console.log(network)
             
             this.setState({

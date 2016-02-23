@@ -90,6 +90,13 @@ exp.getArray = function(names) {
 
 function readGenes() {
     var lines = fs.readFileSync(sails.config.geneDescFile, 'utf8').split('\n')
+    var transcripts = fs.readFileSync(sails.config.genesToTranscripts, 'utf8').split('\n')
+    var transcriptsPerGene = {}
+    for (var i = 1; i < transcripts.length; i++){
+        var gene = transcripts[i].split('\t')[0]
+        if (!(gene in transcriptsPerGene)) {transcriptsPerGene[gene] = Array()}
+        transcriptsPerGene[gene].push([transcripts[i].split('\t')[1]])
+    }
     var geneObjects = []
     for (var i = 1; i < lines.length; i++) {
         var split = lines[i].split('\t')
@@ -108,7 +115,8 @@ function readGenes() {
                 strand: Number(split[7]),
                 description: split[8],
                 biomartRelease: sails.config.version.biomartRelease,
-                assemblyRelease: sails.config.version.assemblyRelease
+                assemblyRelease: sails.config.version.assemblyRelease,
+                transcripts: transcriptsPerGene[split[0]]
             })
         }
     }

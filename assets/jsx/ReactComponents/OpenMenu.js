@@ -33,12 +33,11 @@ var OpenMenu = React.createClass({
     },
     
     render: function() {
-
         var that = this
         var text = 'bug'
         var cls = this.state.isExpanded ? '' : 'invisible'
         options = _.map(this.props.options, function(opt, i) {
-            var className = 'dropdownoption noselect'
+            var className = 'dropupoption noselect'
             if (opt.key === that.props.selected) {
                 text = opt.label
                 className += ' selectedbutton'
@@ -53,12 +52,12 @@ var OpenMenu = React.createClass({
         })
         
         return (
-                <div className='dropdown clickable noselect' style={this.props.style} onClick={this.onClick} onMouseLeave={this.onMouseLeave}>
+                <div className='dropup clickable noselect' style={this.props.style} onClick={this.onClick} onMouseLeave={this.onMouseLeave}>
                 <div className='outer'>
                 {options}
             </div>
                 <div data-openmenu='true' style={{minWidth: '150px'}}><span>{text.toUpperCase()}</span>
-                <TriangleUp data-openmenu='true' className='dropdowntriangle' />
+                <TriangleUp data-openmenu='true' className='dropuptriangle' />
                 </div>
                 </div>
         )

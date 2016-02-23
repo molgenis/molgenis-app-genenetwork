@@ -172,7 +172,7 @@ var Gene = React.createClass({
                     showTypeSelection={this.state.showTypeSelection} />
                         {tableContent}
                         <DownloadPanel onClick={this.download} text='DOWNLOAD PREDICTIONS' />
-                    </div>
+                        </div>
                         </div>
                         <form id='gn-gene-downloadform' method='post' encType='multipart/form-data' action={GN.urls.tabdelim}>
                         <input type='hidden' id='geneId' name='geneId' value={data.gene.id} />
