@@ -6,6 +6,8 @@ var HomoSapiens = require('./HomoSapiens')
 var htmlutil = require('../../htmlutil')
 var SVGCollection = require('../SVGCollection')
 var ListIcon = SVGCollection.ListIcon
+var TranscriptBars = SVGCollection.TranscriptBars
+var I = SVGCollection.I
 var OpenMenu = require('./../OpenMenu')
 var TriangleDown = require('../SVGCollection').TriangleDown
 var TriangleUp = require('../SVGCollection').TriangleUp
@@ -20,22 +22,36 @@ var unsafe = reactable.unsafe
 
 var DataTable = React.createClass({
 
+    getInitialState: function() {
+        return {}
+    },
+
+	handleTranscriptHover: function(item) {
+        this.setState({
+            transcriptHover: item
+        });
+	},
+
     componentWillMount: function() {
-        var indices = this.props.names.indices
+        var indices = this.props.fixed.indices
         var avg = this.props.values.avg
-        this.sortedItems = _.sortBy(this.props.names.header, function(item){
+        this.sortedItems = _.sortBy(this.props.fixed.header, function(item){
             return avg[indices[item.name]]
         }).reverse()
+        _.map(this.props.fixed.transcriptBars, function(transcript){
+        	return transcript.reverse()
+        })
     },
 
     render: function() {
-        var indices = this.props.names.indices
+        var indices = this.props.fixed.indices
         var avg = this.props.transcript ? this.props.transcript.avg : this.props.values.avg
         var z = this.props.transcript ? this.props.transcript.z : this.props.values.z
         var stdev = this.props.transcript ? this.props.transcript.stdev : this.props.values.stdev
         var auc = this.props.transcript ? this.props.transcript.auc : this.props.values.auc
+        var transcriptBars = this.props.fixed.transcriptBars
 
-        this.sortedItems = this.props.transcript ? _.sortBy(this.props.names.header, function(item){
+        this.sortedItems = this.props.transcript ? _.sortBy(this.props.fixed.header, function(item){
             return avg[indices[item.name]]
         }).reverse() : this.sortedItems
 
@@ -45,17 +61,15 @@ var DataTable = React.createClass({
                 <Td column="">{item.name === "Skin" || item.name === "Brain" || item.name === "Blood" ? <ListIcon w={10} h={10} /> : null}</Td>
                 <Td column="TISSUE">{item.name}</Td>
                 <Td column="SAMPLES">{item.numAnnotated}</Td>
-                <Td column="AVERAGE">{avg[indices[item.name]]}</Td>
-                <Td column="Z SCORE">{z[indices[item.name]]}</Td>
-                <Td column="SD">{stdev[indices[item.name]]}</Td>
+                <Td column="AVERAGE">{avg[indices[item.name]]}</Td> 
                 <Td column="AUC">{auc[indices[item.name]]}</Td>
-                <Td column="NETWORK">{item.name === 'Blood' ?  <a href={GN.urls.networkPage} target="_blank"><SVGCollection.NetworkIcon /></a> : null}</Td>
+                <Td column="TRANSCRIPTS"><TranscriptBars values={transcriptBars[item.name]} onClick={this.props.onClick} onMouseOver={this.handleTranscriptHover} transcriptHover={this.state.transcriptHover} selectedTranscript={this.props.selectedTranscript}/></Td>
                 </Tr>
     	    )
     	}.bind(this))
 
         return (
-            <Table className='sortable tissues-table' style={{width: '100%'}}
+            <Table className='sortable tissues-table'
 
             sortable={[
 
@@ -67,78 +81,12 @@ var DataTable = React.createClass({
                         return b - a
                     }
                 },
-
                 {
                     column: 'AVERAGE',
                     sortFunction: function(a, b) {
                         return b - a
                     }
                 },
-
-                {
-                    column: "Z SCORE",
-                    sortFunction: function(a, b) {
-                        return b - a
-
-                        // if (a.length < 5) {
-                        //     if (b.length < 5) {             {/* a ?? b */}
-                        //         return a - b
-                        //     } else if (b[0] != '<') {    {/* a > b */}
-                        //         return 1
-                        //     } else {                        {/* a > b */}
-                        //         return 1
-                        //     }
-                        // } else if (a[0] != '<') {
-                        //     if (b.length < 5) {             {/* a < b */}
-                        //         return -1
-                        //     } else if (b[0] != '<') {    {/* a ?? b */}
-
-                        //         a = a.toString()
-                        //         var aExponent = a.slice(53)
-                        //         var aExp = aExponent.slice(0, aExponent.indexOf("<"))
-                        //         var aNumber = a.slice(0,3)
-
-                        //         b = b.toString()
-                        //         var bExponent = b.slice(53)
-                        //         var bExp = bExponent.slice(0, bExponent.indexOf("<"))
-                        //         var bNumber = b.slice(0,3)
-
-                        //         return aExp - bExp || aNumber - bNumber
-
-                        //     } else {                        {/* a > b */}
-                        //         return 1
-                        //     }
-                        // } else {
-                        //     if (b.length < 5) {             {/* a < b */}
-                        //         return -1
-                        //     } else if (b[0] != '<') {    {/* a <b */}
-                        //         return -1
-                        //     } else {
-
-                        //         a = a.toString()
-                        //         var aExponent = a.slice(55)
-                        //         var aExp = aExponent.slice(0, aExponent.indexOf("<"))
-                        //         var aNumber = a.slice(2,5)
-
-                        //         b = b.toString()
-                        //         var bExponent = b.slice(55)
-                        //         var bExp = bExponent.slice(0, bExponent.indexOf("<"))
-                        //         var bNumber = b.slice(2,5)
-
-                        //         return aExp - bExp || aNumber - bNumber
-
-                        //     }
-                        // }
-                    }
-                },
-
-                {
-                    column: 'SD',
-                    sortFunction: function(a, b) {
-                        return b - a
-                    }
-                },
-
                 {
                     column: 'AUC',
                     sortFunction: function(a, b) {
@@ -147,7 +95,7 @@ var DataTable = React.createClass({
                 }
             ]}
             >
-                {rows}
+            {rows}
             </Table>
         )
     }
@@ -182,29 +130,26 @@ var DropwDown = React.createClass({
     },
     
     render: function() {
-    	var options = _.map(this.props.transcripts, function(transcript){
-            return {"key": transcript[0], "label": transcript[0]}
-        })
         var that = this
         var text = 'Select transcript'
         var cls = this.state.isExpanded ? '' : 'invisible'
-        var options = _.map(options, function(opt, i) {
+        var options = _.map(this.props.transcripts, function(opt, i) {
             var className = 'dropdownoption noselect'
-            if (opt.key === that.props.selected) {
-                text = opt.label
+            if (opt === that.props.selected) {
+                text = opt
                 className += ' selectedbutton'
             }
             return (
                     <div data-openmenu='true' key={i} className={cls} onMouseLeave={that.onMouseLeave}>
-                    <span data-openmenu='true' className={className} style={{display: 'block', borderTop: '1px solid #dcdcdc'}} onClick={that.props.onClick.bind(null, opt.key)}>
-                    {opt.label.toUpperCase().replace(/EXAC/, 'ExAC')}</span>
+                    <span data-openmenu='true' className={className} style={{display: 'block', borderTop: '1px solid #dcdcdc'}} onClick={that.props.onClick.bind(null, opt)}>
+                    {opt.toUpperCase().replace(/EXAC/, 'ExAC')}</span>
                     </div>
             )
         })
         
         return (
                 <div className='dropdown clickable noselect' onClick={this.onClick} onMouseLeave={this.onMouseLeave}>
-	                <div data-openmenu='true' style={{minWidth: '150px'}}><span>{text.toUpperCase()}</span>
+	                <div data-openmenu='true' style={{minWidth: '200px'}}><span>{text.toUpperCase()}</span>
                			<TriangleDown data-openmenu='true' className='dropdowntriangle' />
                 	</div>
 	                <div className='outer'>
@@ -225,29 +170,36 @@ var Tissues = React.createClass({
         var hoverItem = typeof item === "object" ? item.name : item
         this.setState({
             hoverItem: hoverItem
-        });  
-
+        });
     },
 
-    handleClick: function(item) {     
+    handleClick: function(item) {
+        item = typeof item === 'number' ? this.props.data.gene.transcripts[item] : item
         if (_.startsWith(item, 'ENST')){
-            var that = this
-            $.ajax({
-                url: GN.urls.transcript + '/' + item,
-                dataType: 'json',
-                success: function(data) {
-                    this.setState({
-                        transcript: data,
-                        selectedTranscript: item
-                    })
-                }.bind(that),
-                error: function(xhr, status, err) {
-                    console.log(xhr)
-                    this.setState({
-                        error: 'Error' + xhr.status
-                    })
-                }.bind(that)
-            })
+            if (this.state.selectedTranscript == item) {
+                this.setState({
+                    transcript: undefined,
+                    selectedTranscript: undefined
+                })
+            } else {
+                var that = this
+                $.ajax({
+                    url: GN.urls.transcript + '/' + item,
+                    dataType: 'json',
+                    success: function(data) {
+                        this.setState({
+                            transcript: data,
+                            selectedTranscript: item.toString()
+                        })
+                    }.bind(that),
+                    error: function(xhr, status, err) {
+                        console.log(xhr)
+                        this.setState({
+                            error: 'Error' + xhr.status
+                        })
+                    }.bind(that)
+                })
+            }
         }
         var clickedItem = typeof item === "object" ? item.name : item
         if (clickedItem === this.state.clickedItem){
@@ -273,15 +225,15 @@ var Tissues = React.createClass({
     	return (
             <div>
         		<div className="hflex">
-            		<div className="flex11" style={{height: '550px', overflow: "auto"}}>
+            		<div className="flex11" style={{height: '550px'}}>
             			<div className="flex11" style={{height: '50px', position: 'relative'}}>
-            				{this.state.selectedTranscript ? <span className='button clickable noselect' onClick={this.handleClick.bind(null, 'backToGene')}>BACK TO GENE</span> : ""}	
-            				<DropwDown transcripts={this.props.data.gene.transcripts} selected={this.state.selectedTranscript} onClick={this.handleClick} />
+                            <DropwDown transcripts={this.props.data.gene.transcripts} selected={this.state.selectedTranscript} onClick={this.handleClick} />
+                            {this.state.selectedTranscript ? <span className='button clickable noselect' onClick={this.handleClick.bind(null, 'backToGene')} style={{float: 'right', marginRight: '32px'}}>BACK TO GENE</span> : ""}	
             			</div>
-                    	<DataTable values={this.state.transcript ? this.state.transcript : this.props.celltypes.values} names={this.props.celltypes.names} onClick={this.handleClick} clickedItem={this.state.clickedItem} hoverItem={this.state.hoverItem} onMouseOver={this.handleMouseOver} />
+                    	<DataTable selectedTranscript={this.props.data.gene.transcripts.indexOf(this.state.selectedTranscript)} values={this.state.transcript ? this.state.transcript : this.props.celltypes.values} fixed={this.props.celltypes.fixed} onClick={this.handleClick} clickedItem={this.state.clickedItem} hoverItem={this.state.hoverItem} onMouseOver={this.handleMouseOver} />
                 	</div>
-                	<div className="flex11" style={{minWidth: '50px', width: '45%'}}>
-                   		<HomoSapiens values={this.state.transcript ? this.state.transcript : this.props.celltypes.values} names={this.props.celltypes.names} onMouseOver={this.handleMouseOver} onClick={this.handleClick} hoverItem={this.state.hoverItem} clickedItem={this.state.clickedItem} />
+                	<div className="flex11" style={{minWidth: '50px', width: '50%', position: 'relative'}}> 
+                   		<HomoSapiens values={this.state.transcript ? this.state.transcript : this.props.celltypes.values} fixed={this.props.celltypes.fixed} onClick={this.handleClick} clickedItem={this.state.clickedItem} hoverItem={this.state.hoverItem} onMouseOver={this.handleMouseOver} />
                     </div>
                 </div>       
             </div>

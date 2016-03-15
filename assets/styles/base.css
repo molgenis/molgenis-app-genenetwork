@@ -306,7 +306,7 @@ h1, h2, h3, h4, h5 {
     stroke-width: 10;
     display: inline-block;
     position: absolute;
-    right: 10px;
+    left: 10px;
 }
 
 .dropdown span {
@@ -877,17 +877,50 @@ line.link {
     width: 100%;
     border-collapse: collapse;
     clear: left;
+    margin-bottom: 50px;
+}
+
+.tissues-table tbody {
+    height: 470px;
+    width: 580px;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    display: block;
+}
+
+.tissues-table thead {
+    width: 580px;
+    display: block;
+    border-bottom: 1px solid #dcdcdc;
+    padding-bottom: 5px;
+}
+
+.tissues-table th {
+    min-width: 80px;
+    overflow: auto;
+}
+
+.tissues-table-select th {
+    text-decoration: underline;
 }
 
 .tissues-table td {
-    min-width: 60px;
-    height: 22px;
+    min-width: 80px;
+    overflow: auto;
+}
+
+.tissues-table th:first-child {
+    padding-left: 9px;
+    min-width: 15px;
 }
 
 .tissues-table td:first-child {
     padding-left: 9px;
-    min-width: 10px;
+    min-width: 15px;
 }
+
+.tissues-table th:nth-child(2) {width: 135px;}
+.tissues-table td:nth-child(2) {width: 100%;}
 
 .tissues-table tr {
     text-align: left;
@@ -1153,7 +1186,6 @@ label > input + img {
 }
 
 .reactable-th-network {
-
     -webkit-touch-callout: none;
     -webkit-user-select: none;
     -khtml-user-select: none;
@@ -1162,7 +1194,6 @@ label > input + img {
     user-select: none;
     cursor: pointer;
     text-align: left!important;
-
 }
 
 .reactable-th-network:focus {
@@ -1170,12 +1201,10 @@ label > input + img {
 }
 
 .reactable-header-sortable:focus {
-
     outline:none;
 }
 
 .reactable-header-sortable {
-
     -webkit-touch-callout: none;
     -webkit-user-select: none;
     -khtml-user-select: none;
@@ -1183,7 +1212,6 @@ label > input + img {
     -ms-user-select: none;
     user-select: none;
     cursor: pointer;
- /*   text-align: left!important;*/
 }
 
 .diagflex-container {
@@ -1201,9 +1229,13 @@ label > input + img {
 .prio-pastebox {
     padding: 15px;
     align-self: flex-end;
-flex: 1 1 auto;
+	flex: 1 1 auto;
 }
 
 .textarea-flex {
     width: 300px;
+}
+
+.homosapiens {
+	width: 100px;
 }

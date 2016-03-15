@@ -153,7 +153,7 @@ var Gene = React.createClass({
                 } else if (this.state.topMenuSelection == 'similar') {
                     tableContent = <SimilarGenesTable data={data} />
                 } else if (this.state.topMenuSelection == 'tissues') {
-                    tableContent = <Tissues data={data} celltypes={this.state.celltypes}/>
+                    tableContent = <Tissues style={{paddingBottom: '100px'}} data={data} celltypes={this.state.celltypes}/>
                 }
                 pageTitle = data.gene.name + GN.pageTitleSuffix
                 contentTop = (

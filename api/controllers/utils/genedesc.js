@@ -95,7 +95,7 @@ function readGenes() {
     for (var i = 1; i < transcripts.length; i++){
         var gene = transcripts[i].split('\t')[0]
         if (!(gene in transcriptsPerGene)) {transcriptsPerGene[gene] = Array()}
-        transcriptsPerGene[gene].push([transcripts[i].split('\t')[1]])
+        transcriptsPerGene[gene].push(transcripts[i].split('\t')[1])
     }
     var geneObjects = []
     for (var i = 1; i < lines.length; i++) {

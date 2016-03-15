@@ -407,16 +407,17 @@ exp.getGeneJSON = function(gene, db, req, callback) {
             predicted: []
         },
         celltypes: {
-            names: {
+            fixed: {
                 header: [],
-                indices: {}
+                indices: {},
+                transcriptBars: {},
             },        	
             values: {
                 avg: [], 
                 stdev: [], 
                 z: [], 
-                auc: []
-            }
+                auc: [],
+            },
         }
     }
 
@@ -520,21 +521,58 @@ exp.getGeneJSON = function(gene, db, req, callback) {
                     })
             },
             function(cb) {
-
                 celltypedb.get('!RNASEQ!CELLTYPE', [{valueEncoding: 'json'}], function(err, data) {
-                	r.celltypes.names['header'] = JSON.parse(data.toString())
-                	var i = 0
-                	_.forEach(r.celltypes.names['header'], function(item){
-                        r.celltypes.names['indices'][item.name] = i
-                        i ++
-                		if ('children' in item){
-                			_.forEach(item.children, function(child){
-                				r.celltypes.names['indices'][child.name] = i
-                				i++ 
-                			});
-                		}                		
-                	})
+                    if (err) sails.log.error(err)
+                    else {
+                    	r.celltypes.fixed['header'] = JSON.parse(data.toString())
+                    	var i = 0
+                    	_.forEach(r.celltypes.fixed['header'], function(item){
+                            r.celltypes.fixed['indices'][item.name] = i
+                            i ++
+                    		if ('children' in item){
+                    			_.forEach(item.children, function(child){
+                    				r.celltypes.fixed['indices'][child.name] = i
+                    				i++ 
+                    			});
+                    		}                		
+                    	})
+                    }
                 })
+
+                var max = 0
+                var min = 0
+
+                function getTranscriptBarData(transcript, i){          
+                    transcriptdb.get('RNASEQ!' + transcript + '!CELLTYPE!AVG', function(err, buffer) {
+                        if (err) sails.log.error(err)
+                        else {
+                            var transcriptAverages = Array()
+                            for (var n = 0; n < buffer.length; n += 2){
+                                var value = (buffer.readUInt16BE(n) - 32768) / 1000
+                                transcriptAverages.push(value)
+                                if (value > max) {max = value}
+                                if (value < min) {min = value}
+                            }
+                            _.forEach(r.celltypes.fixed.indices, function(index, tissue){
+                                if (!(tissue in r.celltypes.fixed.transcriptBars)) {r.celltypes.fixed.transcriptBars[tissue] = Array(gene.transcripts.length)}
+                                r.celltypes.fixed.transcriptBars[tissue][i] = transcriptAverages[index]
+
+                                //scale values if transcriptbar is full
+                                if (!_.contains(_.flattenDeep(_.toArray(r.celltypes.fixed.transcriptBars)), undefined)) {
+                                    _.forEach(r.celltypes.fixed.transcriptBars, function(bar, tissue){
+                                        r.celltypes.fixed.transcriptBars[tissue] = _.map(bar, function(value){
+                                            return (Math.round((value + Math.abs(min)) / (Math.abs(min) + max)*100)/100) + 0.1
+                                        })
+                                    })
+                                }
+                            })     
+                        }                                                   
+                    })
+                }
+
+                for (var i = 0; i < gene.transcripts.length; i++){
+                    getTranscriptBarData(gene.transcripts[i], i)
+                }
 
                 celltypedb.createReadStream({
                     start: 'RNASEQ!' + gene.id + '!CELLTYPE!',
@@ -544,23 +582,23 @@ exp.getGeneJSON = function(gene, db, req, callback) {
                 .on('data', function(buffer) {
                 	if (_.endsWith(buffer.key, 'AVG')){
                 		for (var i = 0; i < buffer.value.length; i += 2) {
-							r.celltypes.values['avg'].push((buffer.value.readUInt16BE(i) - 32768) / 1000)
+							r.celltypes.values['avg'].push(Math.round((buffer.value.readUInt16BE(i) - 32768) / 10) / 100)
 						}
                 	} else if (_.endsWith(buffer.key, 'STDEV')){
                 		for (var i = 0; i < buffer.value.length; i += 2) {
-							r.celltypes.values['stdev'].push((buffer.value.readUInt16BE(i)) / 1000)
+							r.celltypes.values['stdev'].push(Math.round((buffer.value.readUInt16BE(i)) / 10) / 100)
 						}
                 	} else if (_.endsWith(buffer.key, 'AUC')){
                 		for (var i = 0; i < buffer.value.length; i += 2) {
-							r.celltypes.values['auc'].push((buffer.value.readUInt16BE(i)) / 1000)
+							r.celltypes.values['auc'].push(Math.round((buffer.value.readUInt16BE(i)) / 10) / 100)
 						}
                 	} else if (_.endsWith(buffer.key, 'Z')){
                 		for (var i = 0; i < buffer.value.length; i += 2) {
-							r.celltypes.values['z'].push((buffer.value.readUInt16BE(i) - 32768) / 1000)
+							r.celltypes.values['z'].push(Math.round((buffer.value.readUInt16BE(i) - 32768) / 10) / 100)
 						}
                 	}
                 })
-                
+
                 .on('end', function() {
                     cb(null)
                 })
