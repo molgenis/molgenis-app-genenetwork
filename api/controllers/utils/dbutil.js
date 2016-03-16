@@ -418,6 +418,8 @@ exp.getGeneJSON = function(gene, db, req, callback) {
                 z: [], 
                 auc: [],
             },
+            db: [],
+            req: []
         }
     }
 

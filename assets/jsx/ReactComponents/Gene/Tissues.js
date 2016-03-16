@@ -69,29 +69,13 @@ var DataTable = React.createClass({
     	}.bind(this))
 
         return (
-            <Table className='sortable tissues-table'
-
-            sortable={[
-
-                'TISSUE',
-
+            <Table className='sortable tissues-table' sortable={['TISSUE', 'SAMPLES', 'AVERAGE', 'AUC',
                 {
-                    column: 'SAMPLES',
-                    sortFunction: function(a, b) {
-                        return b - a
-                    }
-                },
-                {
-                    column: 'AVERAGE',
-                    sortFunction: function(a, b) {
-                        return b - a
-                    }
-                },
-                {
-                    column: 'AUC',
-                    sortFunction: function(a, b) {
-                        return b - a
-                    }
+                	column: 'TRANSCRIPTS',
+                	sortFunction: function(a, b) {
+                		return _.sum(_.toArray(b)[4].values) - _.sum(_.toArray(a)[4].values)
+                		
+                	}
                 }
             ]}
             >
@@ -228,7 +212,7 @@ var Tissues = React.createClass({
             		<div className="flex11" style={{height: '550px'}}>
             			<div className="flex11" style={{height: '50px', position: 'relative'}}>
                             <DropwDown transcripts={this.props.data.gene.transcripts} selected={this.state.selectedTranscript} onClick={this.handleClick} />
-                            {this.state.selectedTranscript ? <span className='button clickable noselect' onClick={this.handleClick.bind(null, 'backToGene')} style={{float: 'right', marginRight: '32px'}}>BACK TO GENE</span> : ""}	
+                            {this.state.selectedTranscript ? <span className='button clickable noselect' onClick={this.handleClick.bind(null, 'backToGene')} style={{float: 'left', marginLeft: '230px'}}>BACK TO GENE</span> : ""}	
             			</div>
                     	<DataTable selectedTranscript={this.props.data.gene.transcripts.indexOf(this.state.selectedTranscript)} values={this.state.transcript ? this.state.transcript : this.props.celltypes.values} fixed={this.props.celltypes.fixed} onClick={this.handleClick} clickedItem={this.state.clickedItem} hoverItem={this.state.hoverItem} onMouseOver={this.handleMouseOver} />
                 	</div>

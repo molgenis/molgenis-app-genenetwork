@@ -132,14 +132,14 @@ var Gene = React.createClass({
         
         var content = null
         var contentTop = (
-                <GeneHeader loading={true} />
+            <GeneHeader loading={true} />
         )
         var pageTitle = 'Loading' + GN.pageTitleSuffix
         
         if (this.state.error) {
 
             contentTop = (
-                    <GeneHeader notFound={this.props.params.geneId} />
+                <GeneHeader notFound={this.props.params.geneId} />
             )
             pageTitle = this.state.errorTitle + GN.pageTitleSuffix
             
@@ -164,12 +164,12 @@ var Gene = React.createClass({
                         <div className='gn-gene-container-inner maxwidth' style={{padding: '20px'}}>
                         <div>
                         <GeneMenu data={data}
-                    onTopMenuClick={this.handleTopMenuClick}
-                    onDatabaseClick={this.handleDatabaseClick}
-                    onShowTypeClick={this.handleShowTypeClick}
-                    topMenuSelection={this.state.topMenuSelection}
-                    databaseSelection={this.state.databaseSelection}
-                    showTypeSelection={this.state.showTypeSelection} />
+                            onTopMenuClick={this.handleTopMenuClick}
+                            onDatabaseClick={this.handleDatabaseClick}
+                            onShowTypeClick={this.handleShowTypeClick}
+                            topMenuSelection={this.state.topMenuSelection}
+                            databaseSelection={this.state.databaseSelection}
+                            showTypeSelection={this.state.showTypeSelection} />
                         {tableContent}
                         <DownloadPanel onClick={this.download} text='DOWNLOAD PREDICTIONS' />
                         </div>
@@ -178,6 +178,11 @@ var Gene = React.createClass({
                         <input type='hidden' id='geneId' name='geneId' value={data.gene.id} />
                         <input type='hidden' id='db' name='db' value={this.state.databaseSelection} />
                         <input type='hidden' id='what' name='what' value='geneprediction' />
+                        <input type='hidden' id='tissues' name='tissues' value={_.toArray(Object.keys(this.state.celltypes.fixed.indices))} />
+                        <input type='hidden' id='avg' name='avg' value={this.state.celltypes.values.avg} />
+                        <input type='hidden' id='stdev' name='stdev' value={this.state.celltypes.values.stdev} />
+                        <input type='hidden' id='z' name='z' value={this.state.celltypes.values.z} />
+                        <input type='hidden' id='auc' name='auc' value={this.state.celltypes.values.auc} />
                         </form>
                         </div>
                 )

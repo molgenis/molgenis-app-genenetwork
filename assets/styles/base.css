@@ -882,7 +882,7 @@ line.link {
 
 .tissues-table tbody {
     height: 470px;
-    width: 580px;
+    width: 600px;
     overflow-y: scroll;
     overflow-x: hidden;
     display: block;
@@ -896,16 +896,12 @@ line.link {
 }
 
 .tissues-table th {
-    min-width: 80px;
+    min-width: 90px;
     overflow: auto;
 }
 
-.tissues-table-select th {
-    text-decoration: underline;
-}
-
 .tissues-table td {
-    min-width: 80px;
+    min-width: 90px;
     overflow: auto;
 }
 
@@ -919,7 +915,7 @@ line.link {
     min-width: 15px;
 }
 
-.tissues-table th:nth-child(2) {width: 135px;}
+.tissues-table th:nth-child(2) {width: 126px;}
 .tissues-table td:nth-child(2) {width: 100%;}
 
 .tissues-table tr {
@@ -929,6 +925,26 @@ line.link {
 .tissues-table tr:nth-child(even){
     background-color: #f8f8f8;
 }
+
+.tissues-table th.reactable-header-sort-desc:after {
+    padding-left: 6px;
+    content: '\25B2';
+    zoom: 80%;
+    color: #999999;
+
+}
+
+.tissues-table th.reactable-header-sort-asc:after {
+    padding-left: 6px;
+    content: '\25BC';
+    zoom: 80%;
+    color: #999999;
+}
+
+.tt-select2 th:nth-child(2) {text-decoration: underline}
+.tt-select3 th:nth-child(3) {text-decoration: underline}
+.tt-select4 th:nth-child(4) {text-decoration: underline}
+.tt-select5 th:nth-child(5) {text-decoration: underline}
 
 .gn-network-panelcontainer {
     position: absolute;

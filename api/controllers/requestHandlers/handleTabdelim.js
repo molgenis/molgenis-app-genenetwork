@@ -2,6 +2,7 @@ var _ = require('lodash')
 var fs = require('fs')
 var async = require('async')
 var genedesc = require('../utils/genedesc')
+var dbutil = require('../utils/dbutil')
 
 Date.prototype.yyyymmdd = function() {
     var yyyy = this.getFullYear().toString()
@@ -138,7 +139,14 @@ module.exports = function(req, res) {
     } else if (req.body.what === 'geneprediction' && req.body.geneId && req.body.db) {
 
         var geneName = genedesc.get(req.body.geneId) && genedesc.get(req.body.geneId).name
-        
+
+        var tissues = req.body.tissues.split(',')
+        var avg = req.body.avg.split(',')
+        var stdev = req.body.stdev.split(',')
+        var auc = req.body.auc.split(',')
+        var z = req.body.z.split(',')
+
+
         var rows = []
         rows.push('# ' + sails.config.version.comment())
         rows.push('#')
@@ -151,6 +159,10 @@ module.exports = function(req, res) {
         rows.push('#')
         rows.push('term_id\term_name\tp-value\tdirection\tannotated')
 
+        rows.push('\ntissue\taverage\tstandard deviation\tauc\tz-score')
+        for (var i = 0; i < tissues.length; i++){
+            rows.push(tissues[i].toLowerCase() + '\t' + avg[i] + '\t' + stdev[i] + '\t' + auc[i] + '\t' + z[i])
+        }
         res.setHeader('Content-disposition', 'attachment; filename=GeneNetwork-' + geneName + '-' + req.body.db + '.txt')
         res.setHeader('Content-type', 'text/plain')
         res.charset = 'UTF-8'
