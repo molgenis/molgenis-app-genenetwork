@@ -59,26 +59,33 @@ var DataTable = React.createClass({
     	    return(
                 <Tr key={item.name} className='clickable' onClick={this.props.onClick.bind(null, item)} onMouseOut={this.props.onMouseOver.bind(null, undefined)} onMouseOver={this.props.onMouseOver.bind(null, item)} style={this.props.hoverItem === item.name || this.props.clickedItem === item.name ? {backgroundColor: 'rgb(255,225,0)'} : {}}>
                 <Td column="">{item.name === "Skin" || item.name === "Brain" || item.name === "Blood" ? <ListIcon w={10} h={10} /> : null}</Td>
-                <Td column="TISSUE">{item.name}</Td>
-                <Td column="SAMPLES">{item.numAnnotated}</Td>
-                <Td column="AVERAGE">{avg[indices[item.name]]}</Td> 
-                <Td column="AUC">{auc[indices[item.name]]}</Td>
-                <Td column="TRANSCRIPTS"><TranscriptBars values={transcriptBars[item.name]} onClick={this.props.onClick} onMouseOver={this.handleTranscriptHover} transcriptHover={this.state.transcriptHover} selectedTranscript={this.props.selectedTranscript}/></Td>
+                <Td column="tissue">{item.name}</Td>
+                <Td column="samples">{item.numAnnotated}</Td>
+                <Td column="average">{avg[indices[item.name]]}</Td> 
+                <Td column="auc">{auc[indices[item.name]]}</Td>
+                <Td column="transcripts"><TranscriptBars values={transcriptBars[item.name]} onClick={this.props.onClick} onMouseOver={this.handleTranscriptHover} transcriptHover={this.state.transcriptHover} selectedTranscript={this.props.selectedTranscript}/></Td>
                 </Tr>
     	    )
     	}.bind(this))
 
         return (
-            <Table className='sortable tissues-table' sortable={['TISSUE', 'SAMPLES', 'AVERAGE', 'AUC',
+            <Table className='sortable tissues-table' sortable={['tissue', 'samples', 'average', 'auc',
                 {
-                	column: 'TRANSCRIPTS',
+                	column: 'transcripts',
                 	sortFunction: function(a, b) {
                 		return _.sum(_.toArray(b)[4].values) - _.sum(_.toArray(a)[4].values)
-                		
                 	}
                 }
             ]}
             >
+            <Thead>
+            	<Th>{""}</Th>
+            	<Th column="tissue"><span>{"TISSUE"}</span></Th>
+            	<Th column="samples"><span title="Number of samples annotated">{"SAMPLES"}</span></Th>
+            	<Th column="average"><span title="Average expression">{"AVERAGE"}</span></Th>
+            	<Th column="auc"><span title="Area under the curve">{"AUC"}</span></Th>
+            	<Th column="transcripts"><span title="Expression per transcript">{"TRANSCRIPTS"}</span></Th>
+            </Thead>
             {rows}
             </Table>
         )

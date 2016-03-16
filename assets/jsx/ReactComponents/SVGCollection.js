@@ -307,7 +307,7 @@ exp.TranscriptBars = React.createClass({
         var indices = _.range(values.length).reverse()
         var bars = _.map(values, function(value, i){
             return (
-                    <rect fill={this.props.transcriptHover === i ? color.colors.gndarkgray : this.props.selectedTranscript === indices[i] ? color.colors.gndarkgray : color.colors.gngray} width="5" height={value*16} x={(7*i)+2} onMouseOver={this.props.onMouseOver.bind(null, i)} onMouseOut={this.props.onMouseOver.bind(null, undefined)} onClick={this.props.onClick.bind(null, indices[i])} ></rect>
+                    <rect fill={this.props.transcriptHover === i ? color.colors.gndarkgray : this.props.selectedTranscript === indices[i] ? color.colors.gndarkgray : color.colors.gngray} width="5" height={value*16} x={(7*i)+2} onMouseOver={this.props.onMouseOver.bind(null, i)} onMouseOut={this.props.onMouseOver.bind(null, undefined)} onClick={this.props.onClick.bind(null, indices[i])} key={i}></rect>
                 )
         }.bind(this))
 
@@ -330,8 +330,8 @@ exp.I = React.createClass({
         return (
             <div style={{display: 'inline-block'}}>
                 <svg width="25" height="25">
-                    <circle fill={color.colors.gnlightgray} class="st0" cx="9.8" cy="9.5" r="9.2"/>
-                    <text fill={color.colors.gndarkgray} transform="matrix(1 0 0 1 7.761 14.583)" class="st1 st2">i</text>
+                    <circle fill={color.colors.gnlightgray} cx="9.8" cy="9.5" r="9.2"/>
+                    <text fill={color.colors.gndarkgray} transform="matrix(1 0 0 1 7.761 14.583)">i</text>
                 </svg>
             </div>
         )

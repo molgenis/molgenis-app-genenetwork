@@ -931,7 +931,6 @@ line.link {
     content: '\25B2';
     zoom: 80%;
     color: #999999;
-
 }
 
 .tissues-table th.reactable-header-sort-asc:after {
@@ -940,11 +939,6 @@ line.link {
     zoom: 80%;
     color: #999999;
 }
-
-.tt-select2 th:nth-child(2) {text-decoration: underline}
-.tt-select3 th:nth-child(3) {text-decoration: underline}
-.tt-select4 th:nth-child(4) {text-decoration: underline}
-.tt-select5 th:nth-child(5) {text-decoration: underline}
 
 .gn-network-panelcontainer {
     position: absolute;
