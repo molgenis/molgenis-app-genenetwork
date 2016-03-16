@@ -417,9 +417,7 @@ exp.getGeneJSON = function(gene, db, req, callback) {
                 stdev: [], 
                 z: [], 
                 auc: [],
-            },
-            db: [],
-            req: []
+            }
         }
     }
 
