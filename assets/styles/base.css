@@ -299,6 +299,9 @@ h1, h2, h3, h4, h5 {
 
 
 .dropdown {
+    max-height: 500px;
+    overflow-y: auto;
+    overflow-x: hidden;
     background-color: #ffffff;
     color: #4d4d4d;
     border: 1px solid #dcdcdc;

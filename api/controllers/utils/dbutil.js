@@ -25,6 +25,10 @@ var celltypedb = level(sails.config.celltypeDBPath, {
     valueEncoding: 'binary'
 })
 
+var transcriptbardb = level(sails.config.transcriptBarsDBpath, {
+    valueEncoding: 'binary'
+})
+
 //var pathwayrankdb = level(sails.config.pathwayRankDBPath, {valueEncoding: 'binary'})
 // var pcdb = level(sails.config.pcDBPath, {
 //     valueEncoding: 'binary'
@@ -344,57 +348,6 @@ exp.getPC = function(pc, callback) {
     })
 }
 
-exp.getTranscriptJSON = function(transcript, callback) {
-    var transcripts = {
-        name: transcript,
-        avg: [],
-        stdev: [],
-        auc: [],
-        z: []
-    }
-
-    sails.log.debug('getting expression per tissue for ' + transcript)
-    async.series([
-        function(cb) {
-            transcriptdb.createReadStream({
-                start: 'RNASEQ!' + transcript + '!CELLTYPE!',
-                end: 'RNASEQ!' + transcript + '!CELLTYPE!~'
-            })
-
-            .on('data', function(buffer) {
-                if (_.endsWith(buffer.key, 'AVG')){
-                    for (var i = 0; i < buffer.value.length; i += 2) {
-                        transcripts['avg'].push((buffer.value.readUInt16BE(i) - 32768) / 1000)
-
-                        //remove when database is up to date
-                        transcripts['stdev'].push('-')
-                        transcripts['auc'].push('-')
-                        transcripts['z'].push('-')
-                    }
-                } else if (_.endsWith(buffer.key, 'STDEV')){
-                    for (var i = 0; i < buffer.value.length; i += 2) {
-                        transcripts['stdev'].push((buffer.value.readUInt16BE(i)) / 1000)
-                    }
-                } else if (_.endsWith(buffer.key, 'AUC')){
-                    for (var i = 0; i < buffer.value.length; i += 2) {
-                        transcripts['auc'].push((buffer.value.readUInt16BE(i)) / 1000)
-                    }
-                } else if (_.endsWith(buffer.key, 'Z')){
-                    for (var i = 0; i < buffer.value.length; i += 2) {
-                        transcripts['z'].push((buffer.value.readUInt16BE(i) - 32768) / 1000)
-                    }
-                }
-            })
-            .on('end', function() {
-                cb(null)
-            })
-        }
-    ],
-    function(err) {
-        callback(err, transcripts)
-    })  
-}
-
 exp.getGeneJSON = function(gene, db, req, callback) {
 
     var r = {
@@ -410,14 +363,14 @@ exp.getGeneJSON = function(gene, db, req, callback) {
             fixed: {
                 header: [],
                 indices: {},
-                transcriptBars: {},
             },        	
             values: {
                 avg: [], 
                 stdev: [], 
                 z: [], 
                 auc: [],
-            }
+            },
+            transcriptBars: {}
         }
     }
 
@@ -539,41 +492,6 @@ exp.getGeneJSON = function(gene, db, req, callback) {
                     }
                 })
 
-                var max = 0
-                var min = 0
-
-                function getTranscriptBarData(transcript, i){          
-                    transcriptdb.get('RNASEQ!' + transcript + '!CELLTYPE!AVG', function(err, buffer) {
-                        if (err) sails.log.error(err)
-                        else {
-                            var transcriptAverages = Array()
-                            for (var n = 0; n < buffer.length; n += 2){
-                                var value = (buffer.readUInt16BE(n) - 32768) / 1000
-                                transcriptAverages.push(value)
-                                if (value > max) {max = value}
-                                if (value < min) {min = value}
-                            }
-                            _.forEach(r.celltypes.fixed.indices, function(index, tissue){
-                                if (!(tissue in r.celltypes.fixed.transcriptBars)) {r.celltypes.fixed.transcriptBars[tissue] = Array(gene.transcripts.length)}
-                                r.celltypes.fixed.transcriptBars[tissue][i] = transcriptAverages[index]
-
-                                //scale values if transcriptbar is full
-                                if (!_.contains(_.flattenDeep(_.toArray(r.celltypes.fixed.transcriptBars)), undefined)) {
-                                    _.forEach(r.celltypes.fixed.transcriptBars, function(bar, tissue){
-                                        r.celltypes.fixed.transcriptBars[tissue] = _.map(bar, function(value){
-                                            return (Math.round((value + Math.abs(min)) / (Math.abs(min) + max)*100)/100) + 0.1
-                                        })
-                                    })
-                                }
-                            })     
-                        }                                                   
-                    })
-                }
-
-                for (var i = 0; i < gene.transcripts.length; i++){
-                    getTranscriptBarData(gene.transcripts[i], i)
-                }
-
                 celltypedb.createReadStream({
                     start: 'RNASEQ!' + gene.id + '!CELLTYPE!',
                     end: 'RNASEQ!' + gene.id + '!CELLTYPE!~'
@@ -602,6 +520,39 @@ exp.getGeneJSON = function(gene, db, req, callback) {
                 .on('end', function() {
                     cb(null)
                 })
+            },
+            function(cb) {
+            	// get transcript bars
+                
+            	var tissues               
+                var transcripts = gene.transcripts.length <= 10 ? gene.transcripts : gene.transcripts.slice(0,10)
+                
+                transcriptbardb.get('!RNASEQ!TISSUES', [{valueEncoding: 'json'}], function(err, data) {
+                    if (err) sails.log.error(err)
+                    else {
+                        tissues = JSON.parse(data)
+                        for (var i = 0; i < tissues.length; i++){
+                            r.celltypes.transcriptBars[tissues[i]] = Array(transcripts.length)
+                        }
+                    }
+                })
+
+                transcriptbardb.createReadStream({
+                    start: 'RNASEQ!' + gene.id + '!TRANSCRIPTBARS!',
+                    end: 'RNASEQ!' + gene.id + '!TRANSCRIPTBARS!~'
+                })
+
+                .on('data', function(buffer) {
+                    if (_.contains(transcripts, buffer.key.split('!')[3])){
+                        for (var i = 0; i < buffer.value.length; i += 2) {
+                            r.celltypes.transcriptBars[tissues[i/2]][transcripts.indexOf(buffer.key.split('!')[3])] = ((buffer.value.readUInt16BE(i) - 32768) / 1000) + 0.1
+                        }
+                    }
+                })
+
+                .on('end', function(){
+                	cb(null)
+                })
             }
         ],
         function(err) {
@@ -623,6 +574,98 @@ exp.getGeneJSON = function(gene, db, req, callback) {
             callback(err, r)
         })
     }
+}
+
+exp.getTranscriptJSON = function(transcript, callback) {
+    var transcripts = {
+        name: transcript,
+        avg: [],
+        stdev: [],
+        auc: [],
+        z: []
+    }
+
+    sails.log.debug('getting expression per tissue for ' + transcript)
+    async.series([
+        function(cb) {
+            transcriptdb.createReadStream({
+                start: 'RNASEQ!' + transcript + '!CELLTYPE!',
+                end: 'RNASEQ!' + transcript + '!CELLTYPE!~'
+            })
+
+            .on('data', function(buffer) {
+                if (_.endsWith(buffer.key, 'AVG')){
+                    for (var i = 0; i < buffer.value.length; i += 2) {
+                        transcripts['avg'].push((buffer.value.readUInt16BE(i) - 32768) / 1000)
+
+                        //remove when database is up to date
+                        transcripts['stdev'].push('-')
+                        transcripts['auc'].push('-')
+                        transcripts['z'].push('-')
+                    }
+                } else if (_.endsWith(buffer.key, 'STDEV')){
+                    for (var i = 0; i < buffer.value.length; i += 2) {
+                        transcripts['stdev'].push((buffer.value.readUInt16BE(i)) / 1000)
+                    }
+                } else if (_.endsWith(buffer.key, 'AUC')){
+                    for (var i = 0; i < buffer.value.length; i += 2) {
+                        transcripts['auc'].push((buffer.value.readUInt16BE(i)) / 1000)
+                    }
+                } else if (_.endsWith(buffer.key, 'Z')){
+                    for (var i = 0; i < buffer.value.length; i += 2) {
+                        transcripts['z'].push((buffer.value.readUInt16BE(i) - 32768) / 1000)
+                    }
+                }
+            })
+            .on('end', function() {
+                cb(null)
+            })
+        }
+    ],
+    function(err) {
+        callback(err, transcripts)
+    })  
+}
+
+exp.getNewTranscriptBars = function(transcripts, callback) {
+    var transcriptBars = {transcripts: Array(transcripts.length)}
+    gene = transcripts.split(',')[0]
+    transcripts = transcripts.split(',').slice(1).reverse()
+    sails.log.debug('getting new transcript bars for gene ' + gene + ' for transcripts ' + transcripts)
+    async.series([
+        function(cb) {
+            var tissues
+            transcriptbardb.get('!RNASEQ!TISSUES', [{valueEncoding: 'json'}], function(err, data) {
+                if (err) sails.log.error(err)
+                else {
+                    tissues = JSON.parse(data)
+                    for (var i = 0; i < tissues.length; i++){
+                        transcriptBars[tissues[i]] = Array(transcripts.length)
+                    }
+                }
+            })
+
+            transcriptbardb.createReadStream({
+                start: 'RNASEQ!' + gene + '!TRANSCRIPTBARS!',
+                end: 'RNASEQ!' + gene + '!TRANSCRIPTBARS!~'
+            })
+
+            .on('data', function(buffer) {
+                if (_.contains(transcripts, buffer.key.split('!')[3])){
+                    for (var i = 0; i < buffer.value.length; i += 2) {
+                       transcriptBars[tissues[i/2]][transcripts.indexOf(buffer.key.split('!')[3])] = ((buffer.value.readUInt16BE(i) - 32768) / 1000) + 0.1
+                    }
+                }
+            })
+
+            .on('end', function() {
+                cb(null)
+            })
+        }
+
+    ], function(err) {
+        callback(err, transcriptBars)
+    })
 }
 
 exp.getGivenGenesCoregArrayForGene = function(gene, geneIndices, callback) {

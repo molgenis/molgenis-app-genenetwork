@@ -307,17 +307,21 @@ exp.TranscriptBars = React.createClass({
         var indices = _.range(values.length).reverse()
         var bars = _.map(values, function(value, i){
             return (
-                    <rect fill={this.props.transcriptHover === i ? color.colors.gndarkgray : this.props.selectedTranscript === indices[i] ? color.colors.gndarkgray : color.colors.gngray} width="5" height={value*16} x={(7*i)+2} onMouseOver={this.props.onMouseOver.bind(null, i)} onMouseOut={this.props.onMouseOver.bind(null, undefined)} onClick={this.props.onClick.bind(null, indices[i])} key={i}></rect>
+                    <rect style={{transform: 'translate(x,y)'}} fill={this.props.hoverItem === i ? color.colors.gndarkgray : this.props.selectedTranscript === indices[i] ? color.colors.gndarkgray : color.colors.gngray} width="5" height={value*16} x={(7*i)+2} onMouseOver={this.props.onMouseOver.bind(null, i)} onMouseOut={this.props.onMouseOver.bind(null, undefined)} onClick={this.props.onClick.bind(null, indices[i])} key={i}></rect>
                 )
         }.bind(this))
 
         return (
             <div style={{display: 'inline-block'}}>
                 <svg width="150" height="20">
-                    <g fill={color.colors.gndarkgray} transform={"rotate(180 " + (values.length*7+7)/2 + " 10)"}>
+                    <g fill={color.colors.gndarkgray} transform={"rotate(180 " + (values.length*7+14)/2 + " 10)"}>
                         {bars}
-                        <line x1="0" y1="0" x2={(values.length*7)+2} y2="0" stroke={color.colors.gngray}/>
+                        <line x1="7" y1="0" x2={(values.length*7)+2} y2="0" stroke={color.colors.gngray}/>
                     </g>
+                    {this.props.arrows ? <g>
+                    	<polygon fill={this.props.endTranscriptbars === 'left' ? color.colors.gnlightgray : this.props.hoverItem === 'left' ? color.colors.gndarkgray : color.colors.gngray} onMouseOver={this.props.onMouseOver.bind(null, 'left')} onMouseOut={this.props.onMouseOver.bind(null, undefined)} onClick={this.props.endTranscriptbars === 'left' ? this.props.onClick.bind(null, null) : this.props.onClick.bind(null, 'left')} points="0.9,14 7.7,10.1 7.7,18 " />
+                    	<polygon fill={this.props.endTranscriptbars === 'right' ? color.colors.gnlightgray : this.props.hoverItem === 'right' ? color.colors.gndarkgray : color.colors.gngray} onMouseOver={this.props.onMouseOver.bind(null, 'right')} onMouseOut={this.props.onMouseOver.bind(null, undefined)} onClick={this.props.endTranscriptbars === 'right' ? this.props.onClick.bind(null, null) : this.props.onClick.bind(null, 'right')} points="95.1,14 88.3,18 88.3,10.1 "/>
+                    </g> : <g></g>}
                 </svg>
             </div>
         )

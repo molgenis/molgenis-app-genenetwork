@@ -6,6 +6,7 @@ var dbutil = require('./utils/dbutil')
 
 var handleGene = require('./requestHandlers/handleGene')
 var handleTranscript = require('./requestHandlers/handleTranscript')
+var handleTranscriptBars = require('./requestHandlers/handleTranscriptBars')
 var handlePathway = require('./requestHandlers/handlePathway')
 var handleCoregulation = require('./requestHandlers/handleCoregulation')
 var handleCofunction = require('./requestHandlers/handleCofunction')
@@ -48,6 +49,16 @@ module.exports = {
         sails.log.debug('transcript request')
         try {
             handleTranscript(req, res)
+        } catch (e) {
+            sails.log.error(e)
+            res.serverError()
+        }
+    },
+
+    transcriptBars: function(req, res) {
+        sails.log.debug('transcript bars request')
+        try {
+            handleTranscriptBars(req, res)
         } catch (e) {
             sails.log.error(e)
             res.serverError()
