@@ -13,6 +13,7 @@ var EdgePanel = require('./EdgePanel')
 var AnalysisPanel = require('./AnalysisPanel')
 var ProgressBar = require('./ProgressBar')
 var NetworkControlPanel = require('./NetworkControlPanel')
+var TissuesPanel = require('./TissuesPanel')
 var EdgeLegend = require('./EdgeLegend')
 var LegendPanel = require('./LegendPanel')
 var DownloadPanel = require('./DownloadPanel')
@@ -165,12 +166,14 @@ var network2js = function(network) {
         console.debug('AffinityPropagation: %d ms', (Date.now() - time))
     }
     
-    // 'My selection' group has to be last for D3Network to handle it correctly // TODO fix this
+    // 'My selection' group has to be last for D3Network to handle it correctly // TODO fix this  
     js.elements.groups.push({
         name: 'My selection',
         nodes: [],
         type: 'auto'
     })
+
+    // console.log('EDGES: ' + JSON.stringify(js.elements.edges))
 
     return js
 }
@@ -217,7 +220,7 @@ var Network = React.createClass({
 
         io.socket.on('network', function(network) {
             console.log(network)
-            
+
             this.setState({
                 error: null,
                 progressText: 'creating visualization'
@@ -245,6 +248,43 @@ var Network = React.createClass({
                 callback({name: 'Error', message: 'Couldn\'t load data'})
             }
         }.bind(this))
+    },
+
+    updateNetwork: function(tissue, callback) {
+    	console.log('>>>TISSUE ' + tissue)
+    	// get tissue-specific network 
+    	var ids = this.props.params.ids.replace(/(\r\n|\n|\r)/g, ',')
+    	
+    	io.socket.on('network', function(network) {
+            console.log(network)
+
+            // allow state change
+            setTimeout(function() {
+                var view = new DataView(network.buffer)
+                var js = network2js(network)
+                this.state.network.updateEdges(js)
+                // this.state.network.colorBy(coloring)
+                this.setState({
+                    data: js,
+                    url: GN.urls.networkPage + network.shortURL
+                })
+            }.bind(this), 10)
+                        
+        }.bind(this))
+
+
+    	// update network.buffer, use network.genes
+
+        io.socket.get(GN.urls.network, {genes: ids, tissue: tissue}, function(res, jwres) {
+            if (jwres.statusCode !== 200) {
+                this.setState({
+                    error: 'Please try again later.',
+                    errorTitle: jwres.statusCode
+                })
+                callback({name: 'Error', message: 'Couldn\'t load data'})
+            }
+        })
+
     },
 
     createNetwork: function(data, callback) {
@@ -326,6 +366,7 @@ var Network = React.createClass({
                 window.addEventListener('resize', this.handleResize)
                 //window.addEventListener('keydown', this.keyListener)
                 $(document).keydown(keyListener.bind(this))
+                io.socket.off('network')
             }
         }.bind(this))
     },
@@ -558,6 +599,42 @@ var Network = React.createClass({
         }
     },
     
+    handleTissueHover: function(hoverTissue) {
+        this.setState({
+            hoverTissue: hoverTissue
+        })
+    },
+
+    handleTissueClick: function(selectedTissue) {
+    	var tissue = selectedTissue === this.state.selectedTissue ? undefined : selectedTissue
+        this.setState({
+        	selectedTissue: tissue
+        })
+        this.updateNetwork(tissue)
+         
+
+    //    async.waterfall([
+
+    //         this.loadData,
+    //         this.createNetwork,
+    //         this.drawNetwork
+            
+    //     ], function(err) {
+    //         if (err) {
+    //             console.log(err)
+    //         }
+    //         else {
+    //             this.setGeneAddSocketListeners()
+    //             window.addEventListener('resize', this.handleResize)
+    //             //window.addEventListener('keydown', this.keyListener)
+    //             $(document).keydown(keyListener.bind(this))
+    //         }
+    //     }.bind(this))
+    // },
+
+
+    },
+
     render: function() {
 
         var pageTitle = this.state.error ? this.state.errorTitle : 'Loading' + GN.pageTitleSuffix
@@ -588,46 +665,52 @@ var Network = React.createClass({
                 </div>
                     <div id='network' className='gn-network flex10' style={{position: 'relative', backgroundColor: color.colors.gnwhite}}>
                     
-                    <NetworkControlPanel download={this.download} onSelectionModeChange={this.onSelectionModeChange} selectionMode={this.state.selectionMode}
-                isZoomedMax={this.state.isZoomedMax} isZoomedMin={this.state.isZoomedMin} onZoom={this.onZoom} />
+                        <NetworkControlPanel download={this.download} onSelectionModeChange={this.onSelectionModeChange} selectionMode={this.state.selectionMode}
+                    isZoomedMax={this.state.isZoomedMax} isZoomedMin={this.state.isZoomedMin} onZoom={this.onZoom} />
+                        
+                        <EdgeLegend threshold={this.state.data.threshold} edgeValueScales={this.state.data.edgeValueScales} edgeColorScales={this.state.data.edgeColorScales} />
+                        
+                    {this.state.selectedEdge ?
+                     (<EdgePanel edge={this.state.selectedEdge} />)
+                     :
+                     this.state.activeGroup.nodes.length === 1 ?
+                     (<GenePanel gene={this.state.data.elements.nodes[this.state.network.getNodeById(this.state.activeGroup.nodes[0])].data}
+                      coloring={this.state.coloring} />) : null}
                     
-                    <EdgeLegend threshold={this.state.data.threshold} edgeValueScales={this.state.data.edgeValueScales} edgeColorScales={this.state.data.edgeColorScales} />
-                    
-                {this.state.selectedEdge ?
-                 (<EdgePanel edge={this.state.selectedEdge} />)
-                 :
-                 this.state.activeGroup.nodes.length === 1 ?
-                 (<GenePanel gene={this.state.data.elements.nodes[this.state.network.getNodeById(this.state.activeGroup.nodes[0])].data}
-                  coloring={this.state.coloring} />) : null}
-                
-                    <LegendPanel data={this.state.data} coloring={this.state.coloring} termColoring={this.state.termColoring}
-                coloringOptions={this.state.coloringOptions} onColoring={this.handleColoring} />
+                        <LegendPanel data={this.state.data} coloring={this.state.coloring} termColoring={this.state.termColoring}
+                    coloringOptions={this.state.coloringOptions} onColoring={this.handleColoring} />
 
-                    <div className='gn-network-panelcontainer noselect smallscreensmallfont'>
-                    
-                    <GroupPanel data={this.state.data}
-                activeGroup={this.state.activeGroup}
-                coloring={this.state.coloring}
-                onGroupClick={this.updateGroup}
-                onAnalyse={this.onAnalyse}
-                style={{maxHeight: 1 / 3 * this.state.height - 30, paddingRight: '0px'}}
-                    />
-                    
-                {this.state.analysisGroup ?
-                 <AnalysisPanel
-                 style={{padding: '10px 0 10px 10px', maxHeight: 2 / 3 * this.state.height - 70}}
-                 onClose={this.handleAnalysisPanelClose}
-                 analysisGroup={this.state.analysisGroup}
-                 selectedTerm={this.state.selectedTerm}
-                 termColoring={this.state.termColoring}
-                 coloring={this.state.coloring}
-                 onTermSelect={this.selectTerm}
-                 onGeneAdd={this.addGeneRequest}
-                 onGeneRemove={this.removeGene}
-                 addedGenes={this.state.addedGenes}
-                 /> : null}
-                
-                </div>
+                        <div className='gn-network-panelcontainer noselect smallscreensmallfont'>
+                        
+                                <GroupPanel data={this.state.data}
+                            activeGroup={this.state.activeGroup}
+                            coloring={this.state.coloring}
+                            onGroupClick={this.updateGroup}
+                            onAnalyse={this.onAnalyse}
+                            style={{maxHeight: 1 / 3 * this.state.height - 30, paddingRight: '0px'}}
+                                />
+                                
+                            {this.state.analysisGroup ?
+                             <AnalysisPanel
+                             style={{padding: '10px 0 10px 10px', maxHeight: 2 / 3 * this.state.height - 70}}
+                             onClose={this.handleAnalysisPanelClose}
+                             analysisGroup={this.state.analysisGroup}
+                             selectedTerm={this.state.selectedTerm}
+                             termColoring={this.state.termColoring}
+                             coloring={this.state.coloring}
+                             onTermSelect={this.selectTerm}
+                             onGeneAdd={this.addGeneRequest}
+                             onGeneRemove={this.removeGene}
+                             addedGenes={this.state.addedGenes}
+                             /> : null}
+
+                             <TissuesPanel
+                             onMouseOver={this.handleTissueHover}
+                             hoverTissue={this.state.hoverTissue}
+                             onClick={this.handleTissueClick}
+                             selectedTissue={this.state.selectedTissue}
+                             />
+                        </div>
 
                     <form id='gn-network-svgform' method='post' encType='multipart/form-data' action={GN.urls.svg2pdf}>
                     <input type='hidden' id='data' name='data' value='' />

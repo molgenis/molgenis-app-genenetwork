@@ -28,7 +28,6 @@ var celltypedb = level(sails.config.celltypeDBPath, {
 var transcriptbardb = level(sails.config.transcriptBarsDBpath, {
     valueEncoding: 'binary'
 })
-
 //var pathwayrankdb = level(sails.config.pathwayRankDBPath, {valueEncoding: 'binary'})
 // var pcdb = level(sails.config.pcDBPath, {
 //     valueEncoding: 'binary'
@@ -36,6 +35,14 @@ var transcriptbardb = level(sails.config.transcriptBarsDBpath, {
 var correlationdb = level(sails.config.correlationDBPath, {
     valueEncoding: 'binary'
 })
+
+// var tissuecorrelationdb = level(sails.config.tissuecorrelationDBPath, {
+//     valueEncoding: 'binary'
+// })
+
+// var correlationdbsipko = level(sails.config.correlationDBPathSipko, {
+//     valueEncoding: 'binary'
+// })
 
 var transcriptdb = level(sails.config.transcriptDBpath, {
     valueEncoding: 'binary'
@@ -1069,25 +1076,29 @@ exp.getCoregulationMatrixAndGenePValues = function(genes, callback) {
     })
 }
 
-exp.getCoregulationBuffer = function(genes, groups, shortURL, callback) {
+exp.getCoregulationBuffer = function(genes, groups, tissue, shortURL, callback) {
 
     var hash = {}
     for (var i = 0; i < genes.length; i++) {
         hash[genes[i].id] = i
     }
-    
-    async.map(genes, function(gene, cb) {
 
-        correlationdb.get('RNASEQ!' + gene.id, function(err, data) {
+    console.log(tissue)
+
+    async.map(genes, function(gene, cb) {
+        var key = tissue ? ('RNASEQ!' + tissue.toUpperCase() + '!') : 'RNASEQ!' 
+        
+        correlationdb.get(key + gene.id, function(err, data) {
 
             if (err) cb(err)
             
             var hashI = hash[gene.id]
             var buffer = new Buffer((genes.length - hashI - 1) * 2)
+
             for (var i = hashI + 1; i < genes.length; i++) {
-                buffer.writeUInt16BE(data.readUInt16BE(genes[i].index_ * 2), (i - hashI - 1) * 2)
+                buffer.writeUInt16BE(data.readUInt16BE(genes[i].index_ * 2), (i - hashI - 1) * 2)             
             }
-            
+
             cb(null, buffer)
         })
 
@@ -1096,8 +1107,7 @@ exp.getCoregulationBuffer = function(genes, groups, shortURL, callback) {
         if (err) {
             
             handleDBError(err, callback)
-        } else {
-            
+        } else {         
             var totalBuffer = Buffer.concat(results, results.length * (results.length - 1))
             callback(null, genes, groups, shortURL, totalBuffer)
         }
@@ -1105,7 +1115,7 @@ exp.getCoregulationBuffer = function(genes, groups, shortURL, callback) {
 }
 
 exp.getCoregulationMatrix = function(genes, callback) {
-    
+
     async.map(genes, function(gene, cb) {
         correlationdb.get('RNASEQ!' + gene.id, function(err, data) {
             if (err) cb(err)

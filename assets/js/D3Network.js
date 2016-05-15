@@ -760,7 +760,9 @@ D3Network.prototype.resize = function(w, h) {
 D3Network.prototype.draw = function(data) {
 
     console.debug('D3Network.draw: %d nodes, %d edges', data.elements.nodes.length, data.elements.edges.length)
-    
+
+
+ 
     var ts = Date.now()
     this._clearData()
     this._data = data
@@ -769,7 +771,7 @@ D3Network.prototype.draw = function(data) {
         this._addNode(data.elements.nodes[n])
     }
     this._rehash()
-    
+   
     for (var e = 0, ee = data.elements.edges.length; e < ee; e++) {
         if (this._state.showNegatives || data.elements.edges[e].data.weight == undefined || data.elements.edges[e].data.weight > 0) {
             this._addLink(data.elements.edges[e].data)
@@ -793,6 +795,57 @@ D3Network.prototype.draw = function(data) {
     this._layoutDone = false
     this._props.onProgress && this._props.onProgress('calculating layout')
     this._force.start()
+}
+
+D3Network.prototype.updateEdges = function(data) {
+    // update network
+    console.log('UPDATE NETWORK')
+
+    // console.log(JSON.stringify(data))
+
+    console.debug('D3Network.draw: %d nodes, %d edges', data.elements.nodes.length, data.elements.edges.length)
+
+    this._clearData()
+    this._data = data
+
+    var ts = Date.now()
+
+    _.forEach(data, function(item){
+        console.log('ITEM: ' + item)
+    })
+    
+    this._state.showNegatives = this._props.showNegatives || false
+    for (var n = 0, nn = data.elements.nodes.length; n < nn; n++) {
+        this._addNode(data.elements.nodes[n])
+    }
+    this._rehash()
+    
+    for (var e = 0, ee = data.elements.edges.length; e < ee; e++) {
+        if (this._state.showNegatives || data.elements.edges[e].data.weight == undefined || data.elements.edges[e].data.weight > 0) {
+            this._addLink(data.elements.edges[e].data)
+        }
+    }
+    this._rehash()
+
+    console.debug('D3Network.draw: nodes and links added')
+    
+    this._initScales()
+    console.debug('D3Network.draw: scales added')
+    this._initNodes()
+    console.debug('D3Network.draw: nodes initialised')
+    this._initLinks()
+    console.debug('D3Network.draw: links initialised')
+
+    // TODO state
+    // this._initFisheye()
+    
+    console.debug('D3Network.draw: initialisation %d ms', (Date.now() - ts))
+    // this._hide()
+    this._layoutDone = true
+    // this._props.onProgress && this._props.onProgress('calculating layout')
+    this._force.start()
+
+
 }
 
 // TODO remove

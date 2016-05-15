@@ -9,7 +9,7 @@ var query2genes = require('../utils/query2genes')
 
 var networkShortURLDB = level(sails.config.networkShortURLDBPath, {valueEncoding: 'json'})
 
-var createGroups = function(groupNumToName, genes, group2genes, callback) {
+var createGroups = function(groupNumToName, tissue, genes, group2genes, callback) {
 
     var groups = []
     var groupStr = ''
@@ -43,7 +43,7 @@ var createGroups = function(groupNumToName, genes, group2genes, callback) {
     var sha = crypto.createHash('sha1').update(groupStr + ensgs.join(',')).digest('hex')
     var shortURL = bs62.encode(parseInt(sha.substring(0, 8), 16))
 
-    callback(null, genes, groups, shortURL)
+    callback(null, genes, groups, tissue, shortURL)
 }
 
 var checkDB = function(query, callback) {
@@ -51,27 +51,23 @@ var checkDB = function(query, callback) {
     networkShortURLDB.get(query, function(err, result) {
 
         if (err) {
-            
             if (err.name === 'NotFoundError') {
                 return callback(null, null)
             } else {
                 return callback(err)
             }
-            
         } else {
-            
             return callback(null, result)
-            
         }
     })
 }
 
-var handle = function(groupNumToName, geneQuery, callback) {
+var handle = function(groupNumToName, geneQuery, tissue, callback) {
 
     async.waterfall([
         
         query2genes.bind(this, geneQuery, null),
-        createGroups.bind(this, groupNumToName),
+        createGroups.bind(this, groupNumToName, tissue),
         dbutil.getCoregulationBuffer
         
     ], function(err, genes, groups, shortURL, buffer) {
@@ -85,9 +81,9 @@ var handle = function(groupNumToName, geneQuery, callback) {
             var network = {
                 genes: genes,
                 groups: groups,
-                shortURL: shortURL
+                shortURL: shortURL,
             }
-            
+          
             networkShortURLDB.put(shortURL, network, function(err) {
                 
                 if (err) {
@@ -109,6 +105,7 @@ module.exports = function(req, res) {
         return res.badRequest()
     }
 
+    var tissue = req.body.tissue ? req.body.tissue : undefined
     var groupNumToName = (query.length !== 2) ? null : _.zipObject(_.map(query[0].split(/[,;]+/), function(group) { return group.split('!') }))
     var geneQuery = query[query.length-1].split(/[\s,;]+/)
 
@@ -122,10 +119,8 @@ module.exports = function(req, res) {
         } else {
             
             if (result) { // genes and groups got from database
-
-                console.log(result)
-                
-                dbutil.getCoregulationBuffer(result.genes, result.groups, null, function(err, genes, groups, shortURL, buffer) {
+              
+                dbutil.getCoregulationBuffer(result.genes, result.groups, tissue, null, function(err, genes, groups, shortURL, buffer) {
                     if (err) {
                         sails.log.error(err)
                         return res.serverError()
@@ -137,8 +132,8 @@ module.exports = function(req, res) {
                 })
                 
             } else {
-                
-                handle(groupNumToName, geneQuery, function(err, network) {
+             
+                handle(groupNumToName, geneQuery, tissue, function(err, network) {
                     if (err) {
                         sails.log.error(err)
                         return res.serverError()

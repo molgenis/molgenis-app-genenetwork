@@ -946,8 +946,8 @@ line.link {
 .gn-network-panelcontainer {
     position: absolute;
     top: 0px;
+    bottom: 50px;
     right: 0px;
-
     display: flex;
     flex-flow: column nowrap;
     
@@ -956,15 +956,23 @@ line.link {
     max-height: 95vh;
     /* max-width: 300px; */
     z-index: 1;
-    background-color: #ffffff;
-    opacity: 0.95;
 }
 
 .networkleftpanel {
     position: relative;
     /* min-width: 150px; */
     overflow-y: auto;
-    flex: 0 1 auto;
+    background-color: #ffffff;
+    opacity: 0.95;
+}
+
+.networktissuespanel {
+    margin-top: 10px;
+    position: relative;
+    overflow-y: auto;
+    height: 60%;
+    background-color: #ffffff;
+    opacity: 0.95;
 }
 
 .noshrink {

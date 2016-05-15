@@ -63,7 +63,15 @@ var DataTable = React.createClass({
                 <Td column="samples">{item.numAnnotated}</Td>
                 <Td column="average">{avg[indices[item.name]]}</Td> 
                 <Td column="auc">{auc[indices[item.name]]}</Td>
-                <Td column="transcripts"><TranscriptBars values={transcriptBars[item.name]} endTranscriptbars={this.props.endTranscriptbars} onClick={this.props.onClick} onMouseOver={this.handleTranscriptHover} transcriptHover={this.state.transcriptHover} hoverItem={this.state.transcriptHover} selectedTranscript={this.props.selectedTranscript} arrows={this.props.numTranscripts >= 10 ? true : false} /></Td>
+                <Td column="transcripts">
+                    <TranscriptBars
+                        values={transcriptBars[item.name]}
+                        endTranscriptbars={this.props.endTranscriptbars}
+                        onClick={this.props.onClick}
+                        onMouseOver={this.handleTranscriptHover}
+                        hoverItem={this.state.transcriptHover}
+                        selectedTranscript={this.props.selectedTranscript}
+                        showTranscriptBarArrows={this.props.showTranscriptBarArrows} /></Td>
                 </Tr>
     	    )
     	}.bind(this))
@@ -176,10 +184,9 @@ var Tissues = React.createClass({
         });
     },
 
-    // >> split up for readability 
+    // >> todo: split up for readability, move transcript stuff to datatable
     handleClick: function(item) {
         item = typeof item === 'number' ? this.props.data.gene.transcripts[item + this.state.currentTranscriptbars - 10] : item
-        console.log(item)
         // get transcript
         if (_.startsWith(item, 'ENST')){
             if (this.state.selectedTranscript == item) {
@@ -218,7 +225,7 @@ var Tissues = React.createClass({
 
             if (item === 'right'){ // when clicked on the right arrow, select the next 10 transcripts
                 transcripts = this.props.data.gene.transcripts.slice(this.state.currentTranscriptbars, this.state.currentTranscriptbars + 10)                
-                this.setState(function(previousState, currentProps) {
+                this.setState(function(previousState) {
                     return {currentTranscriptbars: previousState.currentTranscriptbars + 10} 
                 })
                 if (this.state.currentTranscriptbars + 20 > this.props.data.gene.transcripts.length){
@@ -228,7 +235,7 @@ var Tissues = React.createClass({
                 }
             } else { // when clicked on the left arrow, select the previous 10 transcripts
                 transcripts = this.props.data.gene.transcripts.slice(this.state.currentTranscriptbars - 20, this.state.currentTranscriptbars - 10)
-                this.setState(function(previousState, currentProps) {
+                this.setState(function(previousState) {
                     return {currentTranscriptbars: previousState.currentTranscriptbars - 10} 
                 })
                 if (this.state.currentTranscriptbars === 20){
@@ -277,14 +284,11 @@ var Tissues = React.createClass({
             currentTranscriptbars: 10,
             endTranscriptbars: 'left'
         })
-        console.log(this.props.data.gene.transcripts.length)
     },
    
     render: function() {
 
         if (!this.props.celltypes) return null
-
-        console.log('SELECTED TRANSCRIPT: ' + (this.props.data.gene.transcripts.indexOf(this.state.selectedTranscript) % 10))
 
     	return (
             <div>
@@ -295,7 +299,7 @@ var Tissues = React.createClass({
                             {this.state.selectedTranscript ? <span className='button clickable noselect' onClick={this.handleClick.bind(null, 'backToGene')} style={{float: 'left', marginLeft: '230px'}}>BACK TO GENE</span> : ""}	
             			</div>
                     	<DataTable
-                            numTranscripts={this.props.data.gene.transcripts.length}
+                            showTranscriptBarArrows={this.props.data.gene.transcripts.length >= 10 ? true : false}
                             selectedTranscript={this.props.data.gene.transcripts.indexOf(this.state.selectedTranscript) % 10}
                             transcriptBars={this.state.transcriptBars ? this.state.transcriptBars : this.props.celltypes.transcriptBars}
                             endTranscriptbars={this.state.endTranscriptbars}

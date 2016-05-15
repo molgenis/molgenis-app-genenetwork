@@ -318,10 +318,10 @@ exp.TranscriptBars = React.createClass({
                         {bars}
                         <line x1="7" y1="0" x2={(values.length*7)+2} y2="0" stroke={color.colors.gngray}/>
                     </g>
-                    {this.props.arrows ? <g>
+                    {this.props.showTranscriptBarArrows ? <g>
                     	<polygon fill={this.props.endTranscriptbars === 'left' ? color.colors.gnlightgray : this.props.hoverItem === 'left' ? color.colors.gndarkgray : color.colors.gngray} onMouseOver={this.props.onMouseOver.bind(null, 'left')} onMouseOut={this.props.onMouseOver.bind(null, undefined)} onClick={this.props.endTranscriptbars === 'left' ? this.props.onClick.bind(null, null) : this.props.onClick.bind(null, 'left')} points="0.9,14 7.7,10.1 7.7,18 " />
                     	<polygon fill={this.props.endTranscriptbars === 'right' ? color.colors.gnlightgray : this.props.hoverItem === 'right' ? color.colors.gndarkgray : color.colors.gngray} onMouseOver={this.props.onMouseOver.bind(null, 'right')} onMouseOut={this.props.onMouseOver.bind(null, undefined)} onClick={this.props.endTranscriptbars === 'right' ? this.props.onClick.bind(null, null) : this.props.onClick.bind(null, 'right')} points="95.1,14 88.3,18 88.3,10.1 "/>
-                    </g> : <g></g>}
+                    </g> : null}
                 </svg>
             </div>
         )
