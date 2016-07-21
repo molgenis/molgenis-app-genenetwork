@@ -736,7 +736,6 @@ D3Network.prototype._startForce = function() {
 }
 
 D3Network.prototype._rehash = function() {
-
     this._hashNodes = {}
     for (var n = 0, nn = this._force.nodes().length; n < nn; n++) {
         var node = this._force.nodes()[n]
@@ -761,8 +760,6 @@ D3Network.prototype.draw = function(data) {
 
     console.debug('D3Network.draw: %d nodes, %d edges', data.elements.nodes.length, data.elements.edges.length)
 
-
- 
     var ts = Date.now()
     this._clearData()
     this._data = data
@@ -797,23 +794,13 @@ D3Network.prototype.draw = function(data) {
     this._force.start()
 }
 
-D3Network.prototype.updateEdges = function(data) {
-    // update network
-    console.log('UPDATE NETWORK')
-
-    // console.log(JSON.stringify(data))
+D3Network.prototype.update = function(data) {
 
     console.debug('D3Network.draw: %d nodes, %d edges', data.elements.nodes.length, data.elements.edges.length)
 
-    this._clearData()
-    this._data = data
-
     var ts = Date.now()
-
-    _.forEach(data, function(item){
-        console.log('ITEM: ' + item)
-    })
-    
+    this._clearData()
+    this._data = data   
     this._state.showNegatives = this._props.showNegatives || false
     for (var n = 0, nn = data.elements.nodes.length; n < nn; n++) {
         this._addNode(data.elements.nodes[n])

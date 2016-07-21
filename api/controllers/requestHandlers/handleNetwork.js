@@ -79,6 +79,7 @@ var handle = function(groupNumToName, geneQuery, tissue, callback) {
         } else {
             
             var network = {
+                tissue: tissue ? tissue : 'data',
                 genes: genes,
                 groups: groups,
                 shortURL: shortURL,

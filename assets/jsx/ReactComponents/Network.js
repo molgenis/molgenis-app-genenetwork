@@ -20,6 +20,7 @@ var DownloadPanel = require('./DownloadPanel')
 
 var Cookies = require('cookies-js')
 var D3Network = require('../../js/D3Network.js')
+var d3fd = require('../../js/d3fd.js')
 var AffinityPropagation = require('affinity-propagation')
 var color = require('../../js/color')
 var htmlutil = require('../htmlutil')
@@ -70,7 +71,9 @@ var network2js = function(network) {
     // get a suitable threshold for showing edges
     var dataCopy = data.slice(0)
     quicksort(dataCopy)
-    js.threshold = Math.min(_.last(js.edgeValueScales[0]) - 1, dataCopy[Math.max(0, dataCopy.length - numNodes * 10)])
+
+    js.threshold = Math.min(_.last(js.edgeValueScales[0]) - 1, dataCopy[Math.max(0, dataCopy.length - numNodes * 2)])
+    // js.threshold = Math.min(_.last(js.edgeValueScales[0]) - 1, dataCopy[Math.max(0, dataCopy.length - numNodes * 10)])
 
     // keep track of lone genes (not connected to another gene based on threshold)
     var isConnected = new Array(numNodes)
@@ -205,7 +208,7 @@ var Network = React.createClass({
             ],
             progressText: 'loading',
             progressDone: false,
-            addedGenes: []
+            addedGenes: [],
         }
     },
     
@@ -219,27 +222,23 @@ var Network = React.createClass({
         }
 
         io.socket.on('network', function(network) {
-            console.log(network)
-
             this.setState({
                 error: null,
                 progressText: 'creating visualization'
             })
-
             // allow state change
             setTimeout(function() {
-                var view = new DataView(network.buffer)
+                // var view = new DataView(network.buffer)
                 var js = network2js(network)
                 this.setState({
                     data: js,
                     url: GN.urls.networkPage + network.shortURL
                 })
                 callback(null, js)
-            }.bind(this), 10)
-            
+            }.bind(this), 10) 
         }.bind(this))
         
-        io.socket.get(GN.urls.network, {genes: ids}, function(res, jwres) {
+        io.socket.get(GN.urls.network, {genes: ids, tissue: undefined}, function(res, jwres) {
             if (jwres.statusCode !== 200) {
                 this.setState({
                     error: 'Please try again later.',
@@ -248,43 +247,6 @@ var Network = React.createClass({
                 callback({name: 'Error', message: 'Couldn\'t load data'})
             }
         }.bind(this))
-    },
-
-    updateNetwork: function(tissue, callback) {
-    	console.log('>>>TISSUE ' + tissue)
-    	// get tissue-specific network 
-    	var ids = this.props.params.ids.replace(/(\r\n|\n|\r)/g, ',')
-    	
-    	io.socket.on('network', function(network) {
-            console.log(network)
-
-            // allow state change
-            setTimeout(function() {
-                var view = new DataView(network.buffer)
-                var js = network2js(network)
-                this.state.network.updateEdges(js)
-                // this.state.network.colorBy(coloring)
-                this.setState({
-                    data: js,
-                    url: GN.urls.networkPage + network.shortURL
-                })
-            }.bind(this), 10)
-                        
-        }.bind(this))
-
-
-    	// update network.buffer, use network.genes
-
-        io.socket.get(GN.urls.network, {genes: ids, tissue: tissue}, function(res, jwres) {
-            if (jwres.statusCode !== 200) {
-                this.setState({
-                    error: 'Please try again later.',
-                    errorTitle: jwres.statusCode
-                })
-                callback({name: 'Error', message: 'Couldn\'t load data'})
-            }
-        })
-
     },
 
     createNetwork: function(data, callback) {
@@ -348,11 +310,40 @@ var Network = React.createClass({
         
         callback(null)
     },
+
+    setTissueSocketListener: function() {
+    	io.socket.on('network', function(network) {
+            this.setState({
+                error: null,
+                progressText: 'creating visualization'
+            })
+            // allow state change
+            setTimeout(function() {
+                var view = new DataView(network.buffer)
+                var js = network2js(network)
+                this.setState({
+                    [network.tissue]: js,
+                    url: GN.urls.networkPage + network.shortURL
+                })
+            }.bind(this), 10) 
+        }.bind(this))
+    },
+
+    loadTissueData: function(tissue) {
+    	var ids = this.props.params.ids.replace(/(\r\n|\n|\r)/g, ',')
+        io.socket.get(GN.urls.network, {genes: ids, tissue: tissue}, function(res, jwres) {
+            if (jwres.statusCode !== 200) {
+                this.setState({
+                    error: 'Please try again later.',
+                    errorTitle: jwres.statusCode
+                })
+            }
+        }.bind(this))
+    },
     
     componentDidMount: function() {
 
         async.waterfall([
-
             this.loadData,
             this.createNetwork,
             this.drawNetwork
@@ -367,6 +358,12 @@ var Network = React.createClass({
                 //window.addEventListener('keydown', this.keyListener)
                 $(document).keydown(keyListener.bind(this))
                 io.socket.off('network')
+                //load tissue data
+                setTimeout(function(){
+                	this.setTissueSocketListener()
+                	this.loadTissueData('brain')
+                	this.loadTissueData('blood')
+                }.bind(this), 1500)          
             }
         }.bind(this))
     },
@@ -413,8 +410,9 @@ var Network = React.createClass({
     
     changeThreshold: function(threshold, oldThreshold) {
         console.log('Network.changeThreshold: TODO')
-        // d3fd.changeThreshold(threshold, oldThreshold)
-        this.setState({threshold: threshold})
+        //d3fd.changeThreshold(4, 1)
+        // this.setState({threshold: threshold})
+        console.log(this.state.data)
     },
     
     handleColoring: function(type) {
@@ -516,15 +514,15 @@ var Network = React.createClass({
     addGeneRequest: function(gene) {
 
         io.socket.get(GN.urls.genevsnetwork,
-                      {geneIndex: gene.index_,
-                       geneIndices: _.map(this.state.data.elements.nodes, function(d) { return d.data.index_ })},
-                      function(res, jwres) {
-                          if (jwres.statusCode !== 200) {
-                              this.setState({
-                                  error: 'Please try again later.'
-                              })
-                          }
-                      }.bind(this))
+          {geneIndex: gene.index_,
+           geneIndices: _.map(this.state.data.elements.nodes, function(d) { return d.data.index_ })},
+          function(res, jwres) {
+              if (jwres.statusCode !== 200) {
+                  this.setState({
+                      error: 'Please try again later.'
+                  })
+              }
+          }.bind(this))
     },
 
     addGene: function(gene, zScores) {
@@ -610,29 +608,13 @@ var Network = React.createClass({
         this.setState({
         	selectedTissue: tissue
         })
-        this.updateNetwork(tissue)
-         
+        tissue == 'brain' ? this.state.network.update(this.state.brain) : tissue == 'blood' ? this.state.network.update(this.state.blood) : this.state.network.update(this.state.data)
+    },
 
-    //    async.waterfall([
-
-    //         this.loadData,
-    //         this.createNetwork,
-    //         this.drawNetwork
-            
-    //     ], function(err) {
-    //         if (err) {
-    //             console.log(err)
-    //         }
-    //         else {
-    //             this.setGeneAddSocketListeners()
-    //             window.addEventListener('resize', this.handleResize)
-    //             //window.addEventListener('keydown', this.keyListener)
-    //             $(document).keydown(keyListener.bind(this))
-    //         }
-    //     }.bind(this))
-    // },
-
-
+    handleEdgeHover: function(hoverEdge){
+    	this.setState({
+    		hoverEdge: hoverEdge
+    	})
     },
 
     render: function() {
@@ -668,7 +650,7 @@ var Network = React.createClass({
                         <NetworkControlPanel download={this.download} onSelectionModeChange={this.onSelectionModeChange} selectionMode={this.state.selectionMode}
                     isZoomedMax={this.state.isZoomedMax} isZoomedMin={this.state.isZoomedMin} onZoom={this.onZoom} />
                         
-                        <EdgeLegend threshold={this.state.data.threshold} edgeValueScales={this.state.data.edgeValueScales} edgeColorScales={this.state.data.edgeColorScales} />
+                        <EdgeLegend threshold={this.state.threshold} edgeValueScales={this.state.data.edgeValueScales} edgeColorScales={this.state.data.edgeColorScales} onMouseOver={this.handleEdgeHover} hoverEdge={this.state.hoverEdge} onClick={this.changeThreshold} />
                         
                     {this.state.selectedEdge ?
                      (<EdgePanel edge={this.state.selectedEdge} />)

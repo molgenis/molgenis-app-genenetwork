@@ -116,7 +116,7 @@ function readGenes() {
                 description: split[8],
                 biomartRelease: sails.config.version.biomartRelease,
                 assemblyRelease: sails.config.version.assemblyRelease,
-                transcripts: transcriptsPerGene[split[0]]
+                transcripts: transcriptsPerGene[split[0]] ? transcriptsPerGene[split[0]].sort() : undefined
             })
         }
     }

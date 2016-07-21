@@ -36,13 +36,9 @@ var correlationdb = level(sails.config.correlationDBPath, {
     valueEncoding: 'binary'
 })
 
-// var tissuecorrelationdb = level(sails.config.tissuecorrelationDBPath, {
-//     valueEncoding: 'binary'
-// })
-
-// var correlationdbsipko = level(sails.config.correlationDBPathSipko, {
-//     valueEncoding: 'binary'
-// })
+var tissuecorrelationdb = level(sails.config.tissuecorrelationDBPath, {
+    valueEncoding: 'binary'
+})
 
 var transcriptdb = level(sails.config.transcriptDBpath, {
     valueEncoding: 'binary'
@@ -529,37 +525,41 @@ exp.getGeneJSON = function(gene, db, req, callback) {
                 })
             },
             function(cb) {
-            	// get transcript bars
-                
-            	var tissues               
-                var transcripts = gene.transcripts.length <= 10 ? gene.transcripts : gene.transcripts.slice(0,10)
-                
-                transcriptbardb.get('!RNASEQ!TISSUES', [{valueEncoding: 'json'}], function(err, data) {
-                    if (err) sails.log.error(err)
-                    else {
-                        tissues = JSON.parse(data)
-                        for (var i = 0; i < tissues.length; i++){
-                            r.celltypes.transcriptBars[tissues[i]] = Array(transcripts.length)
+            	// get transcript bars if gene has transcripts            	             
+                if (gene.transcripts){
+                    var tissues
+                    var transcripts = gene.transcripts.length <= 10 ? gene.transcripts : gene.transcripts.slice(0,10)
+                    transcriptbardb.get('!RNASEQ!TISSUES', [{valueEncoding: 'json'}], function(err, data) {
+                        if (err){
+                            sails.log.error(err)
+                        } else {
+                            tissues = JSON.parse(data)
+                            for (var i = 0; i < tissues.length; i++){
+                                r.celltypes.transcriptBars[tissues[i]] = Array(transcripts.length)
+                            }
                         }
-                    }
-                })
+                    })
 
-                transcriptbardb.createReadStream({
-                    start: 'RNASEQ!' + gene.id + '!TRANSCRIPTBARS!',
-                    end: 'RNASEQ!' + gene.id + '!TRANSCRIPTBARS!~'
-                })
+                    transcriptbardb.createReadStream({
+                        start: 'RNASEQ!' + gene.id + '!TRANSCRIPTBARS!',
+                        end: 'RNASEQ!' + gene.id + '!TRANSCRIPTBARS!~'
+                    })
 
-                .on('data', function(buffer) {
-                    if (_.contains(transcripts, buffer.key.split('!')[3])){
-                        for (var i = 0; i < buffer.value.length; i += 2) {
-                            r.celltypes.transcriptBars[tissues[i/2]][transcripts.indexOf(buffer.key.split('!')[3])] = ((buffer.value.readUInt16BE(i) - 32768) / 1000) + 0.1
+                    .on('data', function(buffer) {
+                        if (_.contains(transcripts, buffer.key.split('!')[3])){
+                            for (var i = 0; i < buffer.value.length; i += 2) {
+                                r.celltypes.transcriptBars[tissues[i/2]][transcripts.indexOf(buffer.key.split('!')[3])] = ((buffer.value.readUInt16BE(i) - 32768) / 1000) + 0.1
+                            }
                         }
-                    }
-                })
+                    })
 
-                .on('end', function(){
-                	cb(null)
-                })
+                    .on('end', function(){
+                        cb(null)
+                    })
+
+                } else {
+                    cb(null)
+                } 
             }
         ],
         function(err) {
@@ -637,7 +637,7 @@ exp.getTranscriptJSON = function(transcript, callback) {
 exp.getNewTranscriptBars = function(transcripts, callback) {
     var transcriptBars = {transcripts: Array(transcripts.length)}
     gene = transcripts.split(',')[0]
-    transcripts = transcripts.split(',').slice(1).reverse()
+    transcripts = transcripts.split(',').slice(1)
     sails.log.debug('getting new transcript bars for gene ' + gene + ' for transcripts ' + transcripts)
     async.series([
         function(cb) {
@@ -1083,29 +1083,21 @@ exp.getCoregulationBuffer = function(genes, groups, tissue, shortURL, callback) 
         hash[genes[i].id] = i
     }
 
-    console.log(tissue)
-
     async.map(genes, function(gene, cb) {
-        var key = tissue ? ('RNASEQ!' + tissue.toUpperCase() + '!') : 'RNASEQ!' 
-        
-        correlationdb.get(key + gene.id, function(err, data) {
+        var db = tissue ? tissuecorrelationdb : correlationdb
+        var key = tissue ? ('RNASEQ!' + tissue.toUpperCase() + '!') : 'RNASEQ!'
 
+        db.get(key + gene.id, function(err, data) {
             if (err) cb(err)
-            
             var hashI = hash[gene.id]
             var buffer = new Buffer((genes.length - hashI - 1) * 2)
-
             for (var i = hashI + 1; i < genes.length; i++) {
                 buffer.writeUInt16BE(data.readUInt16BE(genes[i].index_ * 2), (i - hashI - 1) * 2)             
             }
-
             cb(null, buffer)
         })
-
     }, function(err, results) {
-
         if (err) {
-            
             handleDBError(err, callback)
         } else {         
             var totalBuffer = Buffer.concat(results, results.length * (results.length - 1))

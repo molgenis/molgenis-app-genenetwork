@@ -2,7 +2,7 @@
 
 var d3 = require('d3')
 var _ = require('lodash')
-var hotnet = require('../../stats/hotnet')
+// var hotnet = require('../../stats/hotnet')
 var graphutil = require('./graphutil')
 var matrix = require('../../stats/matrix')
 var color = require('./color.js')
@@ -763,7 +763,6 @@ exp.toggleNegative = function() {
 // TODO fix...
 // TODO no need for preThreshold (D3FD.threshold)
 exp.changeThreshold = function(threshold, prevThreshold) {
-
     if (!D3FD.data) {
         return
     }

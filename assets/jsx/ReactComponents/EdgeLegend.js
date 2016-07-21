@@ -40,19 +40,21 @@ var EdgeLegend = React.createClass({
         var width = 100, height = 16, step = 10
         var bars = []
         for (var x = 0; x < width; x += step) {
-            bars.push(<rect key={x} x={x} y={0} width={step/2} height={height}
+            bars.push(<rect key={x} x={x+10} y={0} width={step/2} height={height}
                       style={{fill: this.state.colorScales[0]((x + step) / width * _.last(this.props.edgeValueScales[0]))}} />)
         }
         
         if (this.props.threshold != undefined) {
             title = 'Edge threshold Z-score ' + this.props.threshold
-            bars.push(<rect key='threshold' x={this.props.threshold / _.last(this.props.edgeValueScales[0]) * width} y={0} width='3' height={height}
+            bars.push(<rect key='threshold' x={(this.props.threshold / _.last(this.props.edgeValueScales[0]) * width) + 10} y={0} width='3' height={height}
                       style={{fill: color.colors.gnblue}}/>)
         }
         
         return (
                 <div title={title} style={{position: 'absolute', top: '10px', left: '70px', zIndex: 1}}>
-                <svg width={width - step/2} height={height} style={{backgroundColor: '#ffffff'}}>
+                <svg width={(width - step/2) + 20} height={height} style={{backgroundColor: '#ffffff'}}>
+                <polygon fill={this.props.hoverEdge === 'left' ? color.colors.gndarkgray : color.colors.gngray} onMouseOver={this.props.onMouseOver.bind(null, 'left')} onMouseOut={this.props.onMouseOver.bind(null, undefined)} onClick={this.props.onClick.bind(null, -1)} className="clickable" points="0.9,8 7.7,4 7.7,12 " />
+                <polygon fill={this.props.hoverEdge === 'right' ? color.colors.gndarkgray : color.colors.gngray} onMouseOver={this.props.onMouseOver.bind(null, 'right')} onMouseOut={this.props.onMouseOver.bind(null, undefined)} onClick={this.props.onClick.bind(null, 1)} className="clickable" points="114.5,8 107.7,4 107.7,12 " />
                 {bars}
             </svg>
                 </div>
