@@ -95,7 +95,7 @@ var DataTable = React.createClass({
             	<Th column="samples"><span title="Number of samples annotated">{"SAMPLES"}</span></Th>
             	<Th column="average"><span title="Average expression">{"AVERAGE"}</span></Th>
             	<Th column="auc"><span title="Area under the curve">{"AUC"}</span></Th>
-            	<Th column="transcripts"><span title={"Expression per tissue for each transcript (" + this.props.transcripts.length + " in total)"}>{"TRANSCRIPTS"}</span></Th>
+            	<Th column="transcripts"><span title={"Expression per tissue for each transcript"}>{"TRANSCRIPTS"}</span></Th>
             </Thead>
             {rows}
             </Table>

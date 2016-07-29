@@ -616,7 +616,7 @@ exp.getTranscriptJSON = function(transcript, callback) {
                     }
                 } else if (_.endsWith(buffer.key, 'AUC')){
                     for (var i = 0; i < buffer.value.length; i += 2) {
-                        transcripts['auc'].push((buffer.value.readUInt16BE(i)) / 1000)
+                        transcripts['auc'].push((buffer.value.readUInt16BE(i) - 32768) / 1000)
                     }
                 } else if (_.endsWith(buffer.key, 'Z')){
                     for (var i = 0; i < buffer.value.length; i += 2) {

@@ -117,6 +117,7 @@ function D3Network(elem, props) {
     this._props.minZoomScale = this._props.minZoomScale || 0.05
     this._props.maxZoomScale = this._props.maxZoomScale || 10
 
+
     this._x = d3.scale.linear()
         .domain([0, this._props.width])
         .range([0, this._props.width])
@@ -135,7 +136,6 @@ function D3Network(elem, props) {
 }
 
 D3Network.prototype._initForce = function() {
-
     this._force = d3.layout.force()
         .gravity(this._props.gravity || .7)
         .distance(this._props.distance || 150)
@@ -152,7 +152,6 @@ D3Network.prototype._initForce = function() {
 }
 
 D3Network.prototype.tweenZoom = function(factor, duration) {
-
     var initialZoomScale = this._zoom.scale()
     var initialZoomTranslate = this._zoom.translate()
     var newZoomScale = Math.max(Math.min(factor * initialZoomScale, this._props.maxZoomScale), this._props.minZoomScale)
@@ -175,7 +174,6 @@ D3Network.prototype.tweenZoom = function(factor, duration) {
 }
 
 D3Network.prototype.updateZoom = function() {
-    
     if (this._brushvis) {
         this._brushvis.attr('transform', 'translate(' + this._zoom.translate() + ')scale(' + this._zoom.scale() + ')')
     }
@@ -196,7 +194,6 @@ D3Network.prototype.isZoomedMin = function() {
 }
 
 D3Network.prototype._initZoom = function() {
-
     var that = this
     this._zoom = d3.behavior.zoom()
         .scaleExtent([this._props.minZoomScale, this._props.maxZoomScale])
@@ -221,7 +218,6 @@ D3Network.prototype._initZoom = function() {
 }
 
 D3Network.prototype._initBrush = function() {
-
     this._state.isBrushing = false
     this._state.nodeIdsInsideBrush = {}
 
@@ -278,7 +274,7 @@ D3Network.prototype._initBrush = function() {
 }
 
 D3Network.prototype._updateBrush = function() {
-
+    
     if (!this._brush || this._brush.empty()) return false
     var nodes = []
     
@@ -355,7 +351,6 @@ D3Network.prototype._updateBrush = function() {
 }
 
 D3Network.prototype._initDrag = function() {
-
     var that = this
     this._state.isDragging = false
     this._drag = d3.behavior.drag()
@@ -435,7 +430,6 @@ D3Network.prototype._addKeyListeners = function() {
 }    
 
 D3Network.prototype._addDOMElements = function() {
-
     var that = this
     this._vis = d3.select(this.elem).append('svg:svg')
     //this._vis = d3.select(this.elem).insert('svg:svg', ':first-child')
@@ -461,7 +455,6 @@ D3Network.prototype._addDOMElements = function() {
 }
 
 D3Network.prototype._clearData = function() {
-    
     this._data = {}
     this._force.links().splice(0)
     this._force.nodes().splice(0)
@@ -469,7 +462,6 @@ D3Network.prototype._clearData = function() {
 }
 
 D3Network.prototype._initScales = function() {
-
     if (!this._data) return false
 
     if (this._data.edgeValueScales) {
@@ -489,7 +481,6 @@ D3Network.prototype._initScales = function() {
 }
 
 D3Network.prototype._initNodes = function() {
-
     this._node = this._nodevis.selectAll('g.node')
         .data(this._force.nodes(), function(d) {
             return d.id
@@ -553,7 +544,6 @@ D3Network.prototype._initNodes = function() {
 }
 
 D3Network.prototype._initLinks = function() {
-
     var that = this
     this._link = this._linkvis.selectAll('line.link')
         .data(that._force.links(), function(d) {
@@ -576,7 +566,6 @@ D3Network.prototype._initLinks = function() {
 }
 
 D3Network.prototype._initFisheye = function() {
-
     this._fisheye = d3.fisheye.circular()
         .radius(100)
         .distortion(3)
@@ -608,7 +597,6 @@ D3Network.prototype._hide = function() {
 }
 
 D3Network.prototype._show = function() {
-
     // bounding boxes to make node width fit text length
     this._nodevis.selectAll('g.node>text')
         .style('opacity', 1)
@@ -633,7 +621,6 @@ D3Network.prototype._show = function() {
 }
 
 D3Network.prototype.showAll = function() {
-
     this._nodevis.selectAll('g.node>rect.main')
         .style('opacity', 1)
     
@@ -642,7 +629,6 @@ D3Network.prototype.showAll = function() {
 }
 
 D3Network.prototype._move = function(dx, dy) {
-
     dx = dx || 0
     dy = dy || 0
 
@@ -677,7 +663,6 @@ D3Network.prototype.unfixNodes = function() {
         }
 
 D3Network.prototype._startForce = function() {
-
     var that = this
     this._startForceTime = Date.now()
     requestAnimationFrame(function render() {
@@ -749,7 +734,6 @@ D3Network.prototype._rehash = function() {
 
 
 D3Network.prototype.resize = function(w, h) {
-
     this._props.width = w
     this._props.height = h
     this._vis.attr('width', w)
@@ -801,7 +785,6 @@ D3Network.prototype.update = function(data) {
     var ts = Date.now()
     this._clearData()
     this._data = data   
-    this._state.showNegatives = this._props.showNegatives || false
     for (var n = 0, nn = data.elements.nodes.length; n < nn; n++) {
         this._addNode(data.elements.nodes[n])
     }
@@ -1093,7 +1076,6 @@ D3Network.prototype.getNodeById = function(id) {
 
 //TODO remove
 D3Network.prototype.getGeneObjectById = function(id) {
-    console.log(this)
     return this._data.elements.nodes[this._hashNodes[id]]
 }
 
