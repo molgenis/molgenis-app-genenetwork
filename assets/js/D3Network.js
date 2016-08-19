@@ -142,7 +142,8 @@ D3Network.prototype._initForce = function() {
         .charge(this._props.charge || -2000)
         .theta(this._props.theta || 0.8)
         .size([this._props.width, this._props.height])
-    
+
+
     this._force.on('start', this._startForce.bind(this))
     var that = this
     this._force.on('end', function() {
@@ -780,26 +781,35 @@ D3Network.prototype.draw = function(data) {
     this._force.start()
 }
 
-D3Network.prototype.toggleNetwork = function(data) {
+// D3Network.prototype.toggleNetwork = function(data) {
 
-    console.debug('D3Network.draw: %d nodes, %d edges', data.elements.nodes.length, data.elements.edges.length)
-    var ts = Date.now()
+//     console.debug('D3Network.draw: %d nodes, %d edges', data.elements.nodes.length, data.elements.edges.length)
+//     this._force.links().splice(0)
+   
+//     for (var e = 0, ee = data.elements.edges.length; e < ee; e++) {
+//         if (this._state.showNegatives || data.elements.edges[e].data.weight == undefined || data.elements.edges[e].data.weight > 0) {
+//             this._addLink(data.elements.edges[e].data)
+//         }
+//     }
+//     this._rehash()
 
+//     this._initNodes()
+//     this._initLinks()
+//     this.unfixNodes()
+//     this._force.start()
+// }
+
+D3Network.prototype.updateEdges = function(edges) {
     this._force.links().splice(0)
-    
-    for (var e = 0, ee = data.elements.edges.length; e < ee; e++) {
-        if (this._state.showNegatives || data.elements.edges[e].data.weight == undefined || data.elements.edges[e].data.weight > 0) {
-            this._addLink(data.elements.edges[e].data)
+    for (var e = 0, ee = edges.length; e < ee; e++) {
+        if (this._state.showNegatives || edges[e].data.weight == undefined || edges[e].data.weight > 0) {
+            this._addLink(edges[e].data)
         }
     }
-
     this._rehash()
 
     this._initNodes()
     this._initLinks()
-    
-    console.debug('D3Network.draw: initialisation %d ms', (Date.now() - ts))
-
     this.unfixNodes()
     this._force.start()
 }

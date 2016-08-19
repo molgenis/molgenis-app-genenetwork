@@ -52,7 +52,8 @@ var network2js = function(network) {
             edges: []
         },
         edgeValueScales: [[0, 12, 15], [0, -12, -15]],
-        edgeColorScales: [['#ffffff', '#000000', '#ff3c00'], ['#ffffff', '#00a0d2', '#7a18ec']]
+        edgeColorScales: [['#ffffff', '#000000', '#ff3c00'], ['#ffffff', '#00a0d2', '#7a18ec']],
+        buffer: network.buffer
     }
 
     js.elements.hashNodes = _.indexBy(js.elements.nodes, function(node) {
@@ -209,6 +210,7 @@ var Network = React.createClass({
             progressText: 'loading',
             progressDone: false,
             addedGenes: [],
+            selectedTissue: 'data'
         }
     },
     
@@ -409,11 +411,42 @@ var Network = React.createClass({
         }
     },
     
-    changeThreshold: function(threshold, oldThreshold) {
+    changeThreshold: function(n) {
         console.log('Network.changeThreshold: TODO')
-        //d3fd.changeThreshold(4, 1)
-        // this.setState({threshold: threshold})
-        console.log(this.state.data)
+        this.setState(function(previousState) { return {
+            threshold: previousState.threshold + n
+        }})
+        //calculate edges again based on new threshold, update network
+        var numNodes = this.state.data.elements.nodes.length
+        var edges = Array()
+        var dataView = new DataView(this.state[this.state.selectedTissue].buffer) // DataView is big-endian by default
+	    var data = new Array(numNodes * (numNodes - 1) / 2) // buffer contains a symmetric matrix
+	    for (var i = 0; i < data.length; i++) {
+	        data[i] = (dataView.getUint16(i * 2) - 32768) / 1000
+	    }
+		var isConnected = new Array(numNodes)
+	    for (var i = 0; i < isConnected.length; i++) {
+	        isConnected[i] = false
+	    }
+
+	    var i = 0
+	    for (var i1 = 0; i1 < numNodes - 1; i1++) {
+	        for (var i2 = i1 + 1; i2 < numNodes; i2++) {
+	            if (Math.abs(data[i]) >= this.state.threshold) {
+	                edges.push({
+	                    data: {
+	                        source: this.state.data.elements.nodes[i1].data.id,
+	                        target: this.state.data.elements.nodes[i2].data.id,
+	                        weight: data[i]
+	                    }
+	                })
+	                isConnected[i1] = true
+	                isConnected[i2] = true
+	            }
+	            i++
+	        }
+	    }
+	    this.state.network.updateEdges(edges)
     },
     
     handleColoring: function(type) {
@@ -605,13 +638,13 @@ var Network = React.createClass({
     },
 
     handleTissueClick: function(selectedTissue) {
-    	var tissue = selectedTissue === this.state.selectedTissue ? undefined : selectedTissue
+    	var tissue = selectedTissue === this.state.selectedTissue ? 'data' : selectedTissue
+        var threshold = this.state[tissue].threshold
+        this.state.network.updateEdges(this.state[tissue].elements.edges)
         this.setState({
-        	selectedTissue: tissue
-        })
-        // io.socket.off('network')
-        // this.updateNetwork(selectedTissue)
-        tissue == 'brain' ? this.state.network.toggleNetwork(this.state.brain) : tissue == 'blood' ? this.state.network.toggleNetwork(this.state.blood) : this.state.network.toggleNetwork(this.state.data)
+            selectedTissue: tissue,
+            threshold: threshold
+        }) 
     },
 
     handleEdgeHover: function(hoverEdge){
