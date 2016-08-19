@@ -84,7 +84,7 @@ var handle = function(groupNumToName, geneQuery, tissue, callback) {
                 groups: groups,
                 shortURL: shortURL,
             }
-          
+
             networkShortURLDB.put(shortURL, network, function(err) {
                 
                 if (err) {

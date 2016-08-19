@@ -312,35 +312,6 @@ var Network = React.createClass({
         callback(null)
     },
 
-   //  updateNetwork: function(tissue, callback) {
-   //      console.log('>>>TISSUE ' + tissue)
-   //     // get tissue-specific network 
-   //     var ids = this.props.params.ids.replace(/(\r\n|\n|\r)/g, ',')
-       
-   //     io.socket.on('network', function(network) {
-   //          console.log(network)
-
-   //          // allow state change
-   //          setTimeout(function() {
-   //              // var view = new DataView(network.buffer)
-   //              var js = network2js(network)
-   //              this.state.network.update(js)
-   //              // this.state.network.colorBy(coloring)
-   //          }.bind(this), 10)
-                        
-   //      }.bind(this))
-
-   //      io.socket.get(GN.urls.network, {genes: ids, tissue: tissue}, function(res, jwres) {
-   //          if (jwres.statusCode !== 200) {
-   //              this.setState({
-   //                  error: 'Please try again later.',
-   //                  errorTitle: jwres.statusCode
-   //              })
-   //              callback({name: 'Error', message: 'Couldn\'t load data'})
-   //          }
-   //      })
-   // },
-
     setTissueSocketListener: function() {
     	io.socket.on('network', function(network) {
             this.setState({
@@ -640,7 +611,7 @@ var Network = React.createClass({
         })
         // io.socket.off('network')
         // this.updateNetwork(selectedTissue)
-        tissue == 'brain' ? this.state.network.update(this.state.brain) : tissue == 'blood' ? this.state.network.update(this.state.blood) : this.state.network.update(this.state.data)
+        tissue == 'brain' ? this.state.network.toggleNetwork(this.state.brain) : tissue == 'blood' ? this.state.network.toggleNetwork(this.state.blood) : this.state.network.toggleNetwork(this.state.data)
     },
 
     handleEdgeHover: function(hoverEdge){

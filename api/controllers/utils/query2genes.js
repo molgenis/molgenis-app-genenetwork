@@ -42,19 +42,19 @@ var getGenes = function(query, options, callback) {
                 q = q.substring(ei + 1)
             }
         }
-	var gene = genedesc.get(q)
-	if (gene) {
-	    return cb(null, {genes: [gene], groupNum: groupNum})
-	} else {
-	    var pw = dbutil.pathwayObject(q)
-	    if (pw) {
-		dbutil.getAnnotatedGenes(pw, function(err, genes) {
-                    return err ? cb(err) : cb(null, {genes: genes, groupNum: groupNum})
-		})
-	    } else {
-		return cb(null)
-	    }
-	}
+    	var gene = genedesc.get(q)
+    	if (gene) {
+    	    return cb(null, {genes: [gene], groupNum: groupNum})
+    	} else {
+    	    var pw = dbutil.pathwayObject(q)
+    	    if (pw) {
+    		dbutil.getAnnotatedGenes(pw, function(err, genes) {
+                        return err ? cb(err) : cb(null, {genes: genes, groupNum: groupNum})
+    		})
+    	    } else {
+    		return cb(null)
+    	    }
+    	}
     }, function(err, genesNGroups) {
         if (err) return callback(err)
 	uniqGenes = _.uniq(_.compact(_.flatten(_.pluck(genesNGroups, 'genes'))))
