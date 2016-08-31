@@ -137,10 +137,11 @@ function D3Network(elem, props) {
 
 D3Network.prototype._initForce = function() {
     this._force = d3.layout.force()
-        .gravity(this._props.gravity || .7)
+        .gravity(this._props.gravity || 0.7)
         .distance(this._props.distance || 150)
+        .theta(this._props.theta || 0.1)
+        .friction(this._props.friction || 0.65)
         .charge(this._props.charge || -2000)
-        .theta(this._props.theta || 0.8)
         .size([this._props.width, this._props.height])
 
 
@@ -148,7 +149,6 @@ D3Network.prototype._initForce = function() {
     var that = this
     this._force.on('end', function() {
         console.debug('D3Network: force directed layout calculation: %d ms', (Date.now() - that._startForceTime))
-        // that.unfixNodes()
     })
 }
 
@@ -781,23 +781,28 @@ D3Network.prototype.draw = function(data) {
     this._force.start()
 }
 
-// D3Network.prototype.toggleNetwork = function(data) {
+D3Network.prototype.toggleNetwork = function(data) {
 
-//     console.debug('D3Network.draw: %d nodes, %d edges', data.elements.nodes.length, data.elements.edges.length)
-//     this._force.links().splice(0)
-   
-//     for (var e = 0, ee = data.elements.edges.length; e < ee; e++) {
-//         if (this._state.showNegatives || data.elements.edges[e].data.weight == undefined || data.elements.edges[e].data.weight > 0) {
-//             this._addLink(data.elements.edges[e].data)
-//         }
-//     }
-//     this._rehash()
+    this._force.links().splice(0)
 
-//     this._initNodes()
-//     this._initLinks()
-//     this.unfixNodes()
-//     this._force.start()
-// }
+    this._data = data
+
+    for (var e = 0, ee = data.elements.edges.length; e < ee; e++) {
+        if (this._state.showNegatives || data.elements.edges[e].data.weight == undefined || data.elements.edges[e].data.weight > 0) {
+            this._addLink(data.elements.edges[e].data)
+        }
+    }
+
+    this._rehash()
+
+    this._initNodes()
+    this._initLinks()
+    this.unfixNodes()
+
+    this._force.start()
+
+
+}
 
 D3Network.prototype.updateEdges = function(edges) {
     this._force.links().splice(0)
@@ -956,6 +961,7 @@ D3Network.prototype.highlightGroup = function(groupIndex) {
 D3Network.prototype.colorBy = function(type) {
 
     var that = this
+    console.log(this._data.elements.groups)
 
     var node2cluster = {}
     if (type === 'cluster') {

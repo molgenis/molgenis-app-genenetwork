@@ -640,11 +640,12 @@ var Network = React.createClass({
     handleTissueClick: function(selectedTissue) {
     	var tissue = selectedTissue === this.state.selectedTissue ? 'data' : selectedTissue
         var threshold = this.state[tissue].threshold
-        this.state.network.updateEdges(this.state[tissue].elements.edges)
+        this.state.network.toggleNetwork(this.state[tissue])
         this.setState({
             selectedTissue: tissue,
             threshold: threshold
         }) 
+        // this.state.network.colorBy(this.state.coloring)
     },
 
     handleEdgeHover: function(hoverEdge){

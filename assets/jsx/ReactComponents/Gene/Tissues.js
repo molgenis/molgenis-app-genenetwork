@@ -50,14 +50,14 @@ var DataTable = React.createClass({
     	var rows = _.map(this.sortedItems, function(item, i){
     	    return(
                 <Tr key={item.name} className='clickable' onClick={this.props.onClick.bind(null, item)} onMouseOut={this.props.onMouseOver.bind(null, undefined)} onMouseOver={this.props.onMouseOver.bind(null, item)} style={this.props.hoverItem === item.name || this.props.clickedItem === item.name ? {backgroundColor: 'rgb(255,225,0)'} : {}}>
-                <Td column="">{item.name === "Skin" || item.name === "Brain" || item.name === "Blood" ? <ListIcon w={10} h={10} /> : null}</Td>
+                <Td column="">{item.name === "Brain" || item.name === "Blood" ? <ListIcon w={10} h={10} /> : null}</Td>
                 <Td column="tissue">{item.name}</Td>
                 <Td column="samples">{item.numAnnotated}</Td>
                 <Td column="average">{avg[indices[item.name]]}</Td> 
                 <Td column="auc">{auc[indices[item.name]]}</Td>
-                {this.props.showTranscriptBars ? 
                 <Td column="transcripts">
                     <TranscriptBars
+                        showBars={this.props.showTranscriptBars}
                         values={transcriptBars[item.name]}
                         transcripts={this.props.transcripts}
                         endTranscriptbars={this.props.endTranscriptbars}
@@ -68,7 +68,7 @@ var DataTable = React.createClass({
                         hoverItem={this.state.transcriptBarHover}
                         selectedTranscript={this.props.selectedTranscript}
                         showTranscriptBarArrows={this.props.showTranscriptBarArrows} />
-                    </Td> : <Td column="transcripts">-</Td> }
+                    </Td>
                 </Tr>
     	    )
     	}.bind(this))
@@ -92,10 +92,10 @@ var DataTable = React.createClass({
             <Thead>
             	<Th>{""}</Th>
             	<Th column="tissue"><span>{"TISSUE"}</span></Th>
-            	<Th column="samples"><span title="Number of samples annotated">{"SAMPLES"}</span></Th>
-            	<Th column="average"><span title="Average expression">{"AVERAGE"}</span></Th>
-            	<Th column="auc"><span title="Area under the curve">{"AUC"}</span></Th>
-            	<Th column="transcripts"><span title={"Expression per tissue for each transcript"}>{"TRANSCRIPTS"}</span></Th>
+            	<Th column="samples"><span title="Number of samples">{"SAMPLES"}</span> <I title="Number of samples"/></Th>
+            	<Th column="average"><span title="Average">{"AVERAGE"}</span> <I title="Average"/></Th>
+            	<Th column="auc"><span title="The area under the curve was calculated by comparing the tissue-specific samples with the rest of the samples using a Wilcoxon test.">{"AUC"}</span> <I title="The area under the curve was calculated by comparing the tissue-specific samples with the remaining samples using a Wilcoxon test."/></Th>
+            	<Th column="transcripts"><span style={{cursor: 'pointer'}} title="Expression per tissue for each transcript.">{"TRANSCRIPTS"}</span> <I title="Expression per tissue for each transcript."/></Th>
             </Thead>
             {rows}
             </Table>
@@ -221,7 +221,7 @@ var Tissues = React.createClass({
                             onTranscriptBarClick={this.handleTranscriptBarClick} />
 
                 	</div>
-                	<div className="flex11" style={{minWidth: '50px', width: '50%', position: 'relative'}}> 
+                	<div className="flex11" style={{minWidth: '50px', width: '60%', position: 'relative'}}> 
                    		<HomoSapiens
                             values={this.state.transcript ? this.state.transcript : this.props.celltypes.values}
                             fixed={this.props.celltypes.fixed}

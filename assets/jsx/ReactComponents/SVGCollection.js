@@ -298,10 +298,6 @@ exp.Chromosome = React.createClass({
 
 exp.TranscriptBars = React.createClass({
 
-    propTypes: {
-        values: React.PropTypes.array.isRequired
-    },
-    
     render: function() {
         var bars = _.map(this.props.values, function(value, i){
             return (
@@ -312,17 +308,23 @@ exp.TranscriptBars = React.createClass({
                 )
         }.bind(this))
 
+        var graph = this.props.showBars ? (
+            <g>
+                <g fill={color.colors.gndarkgray}>
+                            {bars}
+                            <line x1="14" y1="20" x2={(this.props.values.length*7)+9} y2="20" stroke={color.colors.gngray}/>
+                        </g>
+                        {this.props.showTranscriptBarArrows ? <g>
+                            <polygon fill={this.props.endTranscriptbars === 'left' ? color.colors.gnlightgray : this.props.hoverItem === 'left' ? color.colors.gndarkgray : color.colors.gngray} onMouseOver={this.props.onMouseOver.bind(null, 'left')} onMouseOut={this.props.onMouseOver.bind(null, undefined)} onClick={this.props.endTranscriptbars === 'left' ? undefined : this.props.onTranscriptArrowClick.bind(null, 'left')} points="0.9,14 7.7,10.1 7.7,18 " />
+                            <polygon fill={this.props.endTranscriptbars === 'right' ? color.colors.gnlightgray : this.props.hoverItem === 'right' ? color.colors.gndarkgray : color.colors.gngray} onMouseOver={this.props.onMouseOver.bind(null, 'right')} onMouseOut={this.props.onMouseOver.bind(null, undefined)} onClick={this.props.endTranscriptbars === 'right' ? undefined : this.props.onTranscriptArrowClick.bind(null, 'right')} points="95.1,14 88.3,18 88.3,10.1 "/>
+                </g> : null}
+            </g>
+        ) : null
+
         return (
             <div style={{display: 'inline-block'}}>
                 <svg width="150" height="20">
-                    <g fill={color.colors.gndarkgray}>
-                        {bars}
-                        <line x1="14" y1="20" x2={(this.props.values.length*7)+9} y2="20" stroke={color.colors.gngray}/>
-                    </g>
-                    {this.props.showTranscriptBarArrows ? <g>
-                        <polygon fill={this.props.endTranscriptbars === 'left' ? color.colors.gnlightgray : this.props.hoverItem === 'left' ? color.colors.gndarkgray : color.colors.gngray} onMouseOver={this.props.onMouseOver.bind(null, 'left')} onMouseOut={this.props.onMouseOver.bind(null, undefined)} onClick={this.props.endTranscriptbars === 'left' ? undefined : this.props.onTranscriptArrowClick.bind(null, 'left')} points="0.9,14 7.7,10.1 7.7,18 " />
-                    	<polygon fill={this.props.endTranscriptbars === 'right' ? color.colors.gnlightgray : this.props.hoverItem === 'right' ? color.colors.gndarkgray : color.colors.gngray} onMouseOver={this.props.onMouseOver.bind(null, 'right')} onMouseOut={this.props.onMouseOver.bind(null, undefined)} onClick={this.props.endTranscriptbars === 'right' ? undefined : this.props.onTranscriptArrowClick.bind(null, 'right')} points="95.1,14 88.3,18 88.3,10.1 "/>
-                    </g> : null}
+                    {graph}
                 </svg>
             </div>
         )
@@ -331,12 +333,19 @@ exp.TranscriptBars = React.createClass({
 
 exp.I = React.createClass({
 
+    propTypes: {
+        title: React.PropTypes.string.isRequired
+    },
+
     render: function() {
         return (
-            <div style={{display: 'inline-block'}}>
-                <svg width="25" height="25">
-                    <circle fill={color.colors.gnlightgray} cx="9.8" cy="9.5" r="9.2"/>
-                    <text fill={color.colors.gndarkgray} transform="matrix(1 0 0 1 7.761 14.583)">i</text>
+            <div style={{display: 'inline-block', position: 'relative', top: '5px'}}>
+                <svg width="20" height="20" viewBox="0 0 22 22" style={{cursor: 'pointer'}}>
+                    <g>
+                        <title>{this.props.title}</title>
+                        <circle fill={color.colors.gnlightgray} cx="9.8" cy="9.5" r="9.2"/>
+                        <text fill={color.colors.gndarkgray} transform="matrix(1 0 0 1 7.761 14.583)">i</text>
+                    </g>
                 </svg>
             </div>
         )

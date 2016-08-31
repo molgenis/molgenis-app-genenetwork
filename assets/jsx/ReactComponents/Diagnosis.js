@@ -11,6 +11,7 @@ var Router = require('react-router')
 var DocumentTitle = require('react-document-title')
 
 var SVGCollection = require('./SVGCollection')
+var I = SVGCollection.I
 var htmlutil = require('../htmlutil')
 var color = require('../../js/color')
 
@@ -118,7 +119,7 @@ var ShowPhenotypes3 = React.createClass({
         for (var i = 0; i < this.props.prio.terms.length; i++) {
             var zToCol = hoverZScores ? Math.ceil(hoverZScores[i] * 60) : ''
             var hoverColour =  hoverZScores ? 'rgb(' + zToCol + ',255,255)' : ''
-            var rowtype = i % 2 === 0 ? 'datarow evenrow' : 'datarow oddrow'
+            // var rowtype = i % 2 === 0 ? 'datarow evenrow' : 'datarow oddrow'
             var backgroundColour = hoverZScores ? getRGB(hoverZScores[i]) : 'rgb(0,0,0)'
 
             /* Coloured squares: */
@@ -132,7 +133,7 @@ var ShowPhenotypes3 = React.createClass({
 
             /* The actual phenotype information: */
             rows.push(
-                <tr key={this.props.prio.terms[i].term.name} className = {rowtype} >
+                <tr key={this.props.prio.terms[i].term.name} >
                 <td>{square}</td>
                 <td style={{textAlign: 'left'}}>{this.props.prio.terms[i].term.name}</td>
                 <td style={{textAlign: 'left'}}>{this.props.prio.terms[i].term.numAnnotatedGenes}</td>
@@ -226,8 +227,7 @@ var GeneTable = React.createClass({
 
             for (var i = 0; i < this.props.prio.results.length; i++) {
 
-                var rowtype = i % 2 === 0 ? 'datarow evenrow' : 'datarow oddrow'
-
+                
                 /* network urls: */
                 var phens = ""
                 for (var j = 0; j < this.props.prio.terms.length; j++) {
@@ -247,9 +247,9 @@ var GeneTable = React.createClass({
                 var geneLink = GN.urls.genePage + this.props.prio.results[i].gene.name
 
                 newRows.push(
-                    <Tr key={i} className = {rowtype} onMouseOver={this.props.onMouseOver.bind(null, this.props.prio.results[i].predicted)}>
-                    <Td column=" " style={{textAlign: 'center'}}>{square}</Td>
-                    <Td column="  " style={{textAlign: 'center'}}>{i + 1}</Td>
+                    <Tr key={i} onMouseOver={this.props.onMouseOver.bind(null, this.props.prio.results[i].predicted)}>
+                    <Td column="" style={{textAlign: 'center'}}>{square}</Td>
+                    <Td column="RANK" style={{textAlign: 'center'}}>{i + 1}</Td>
                     <Td column="GENE" style={{textAlign: 'center'}}><a className='nodecoration black' href={geneLink} target="_blank">{this.props.prio.results[i].gene.name}</a></Td>
                     <Td column="P-VALUE" style={{textAlign: 'center'}}>{unsafe(htmlutil.pValueToReadable(prob.zToP(this.props.prio.results[i].weightedZScore)))}</Td>
                     <Td column="DIRECTION" style={{textAlign: 'center'}}>{this.props.prio.results[i].weightedZScore > 0 ? <SVGCollection.TriangleUp className='directiontriangleup' /> : <SVGCollection.TriangleDown className='directiontriangledown' />}</Td>
@@ -271,11 +271,11 @@ var GeneTable = React.createClass({
         }
 
         if (subTable && subTable.length == 0) {
-            newRows.push(<Tr key="1"><Td column=" ">Your list of genes did not match any of the results.</Td></Tr>)
+            newRows.push(<Tr key="1"><Td column="">Your list of genes did not match any of the results.</Td></Tr>)
         }
 
         /* The actual table, with custom sorting: */
-        return (<Table id="gentab" className='gn-gene-table datatable sortable' style={{width: '100%'}} 
+        return (<Table id="gentab" className='gn-gene-table datatable sortable diagnosis-table' style={{width: '100%'}} 
 
 
             // Attempt at not showing the first two headers, doesn't work???
@@ -363,13 +363,18 @@ var GeneTable = React.createClass({
                         return b - a
                     }
                 },
-
-                'IMPACT'
             ]}
 
-            > 
-
-
+            >
+            <Thead>
+                <Th>{""}</Th>
+                <Th column="RANK">{" "}</Th>
+                <Th column="GENE">{"GENE"}</Th>
+                <Th column="P-VALUE"><span title="Please ignore this for now">{"P-VALUE"}</span><I title="Please ignore this for now"/></Th>
+                <Th column="DIRECTION"><span title="???">{"DIRECTION"}</span><I title="???"/></Th>
+                <Th column="ANNOTATION"><span title="The number of inputted phenotypes the gene is annotated to">{"ANNOTATION"}</span><I title="The number of inputted phenotypes the gene is annotated to"/></Th>
+                <Th column="NETWORK">{"NETWORK"}</Th>
+            </Thead> 
             {newRows}
             </Table>)
     }
@@ -586,7 +591,7 @@ var Diagnosis = React.createClass({
 
 
           <DocumentTitle title={'Diagnosis' + GN.pageTitleSuffix}>
-          <div className="hflex diagflex-container">
+          <div className="hflex diagflex-container" style={{backgroundColor: '#ffffff'}}>
 
 
           

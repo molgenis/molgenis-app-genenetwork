@@ -43,7 +43,6 @@ module.exports = function(req, res) {
                 })
             }
             sails.log.debug('Suggest options for %s: %d', query, result.suggester[0].options.length)
-            console.log(result.suggester[0])
             return res.json(result.suggester[0].options)
         }
     })
