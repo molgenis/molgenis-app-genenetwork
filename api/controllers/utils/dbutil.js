@@ -53,24 +53,24 @@ var getPathwayDatabasesFromDB = function(db, callback) {
          description: 'A curated pathway database',
          url: 'http://www.reactome.org/',
          inMemory: true},
-        {id: 'GO-BP',
-         name: 'GO biological process',
-         fullName: 'Gene Ontology - Biological process',
-         description: 'Consistent description of gene products',
-         url: 'http://geneontology.org/',
-         inMemory: false},
-        {id: 'GO-MF',
-         name: 'GO molecular function',
-         fullName: 'Gene Ontology - Molecular function',
-         description: 'Consistent description of gene products',
-         url: 'http://geneontology.org/',
-         inMemory: false},
-        {id: 'GO-CC',
-         name: 'GO cellular component',
-         fullName: 'Gene Ontology - Cellular component',
-         description: 'Consistent description of gene products',
-         url: 'http://geneontology.org/',
-         inMemory: true},
+        // {id: 'GO-BP',
+        //  name: 'GO biological process',
+        //  fullName: 'Gene Ontology - Biological process',
+        //  description: 'Consistent description of gene products',
+        //  url: 'http://geneontology.org/',
+        //  inMemory: false},
+        // {id: 'GO-MF',
+        //  name: 'GO molecular function',
+        //  fullName: 'Gene Ontology - Molecular function',
+        //  description: 'Consistent description of gene products',
+        //  url: 'http://geneontology.org/',
+        //  inMemory: false},
+        // {id: 'GO-CC',
+        //  name: 'GO cellular component',
+        //  fullName: 'Gene Ontology - Cellular component',
+        //  description: 'Consistent description of gene products',
+        //  url: 'http://geneontology.org/',
+        //  inMemory: true},
         {id: 'HPO',
          name: 'Human Phenotype Ontology',
          fullName: 'Human Phenotype Ontology',
@@ -477,6 +477,8 @@ exp.getGeneJSON = function(gene, db, req, callback) {
                     })
             },
             function(cb) {
+                //TODO
+                return cb(null)
                 celltypedb.get('!RNASEQ!CELLTYPE', [{valueEncoding: 'json'}], function(err, data) {
                     if (err) sails.log.error(err)
                     else {
@@ -1088,7 +1090,7 @@ exp.getCoregulationBuffer = function(genes, groups, tissue, shortURL, callback) 
         var key = tissue ? ('RNASEQ!' + tissue.toUpperCase() + '!') : 'RNASEQ!'
 
         db.get(key + gene.id, function(err, data) {
-            if (err) cb(err)
+            if (err) return cb(err)
             var hashI = hash[gene.id]
             var buffer = new Buffer((genes.length - hashI - 1) * 2)
             for (var i = hashI + 1; i < genes.length; i++) {

@@ -101,6 +101,13 @@ function readGenes() {
     for (var i = 1; i < lines.length; i++) {
         var split = lines[i].split('\t')
         if (split.length > 8) {
+            var desc = split[8]
+            if (desc.substring(0, 1) == '"') {
+                desc = desc.substring(1)
+            }
+            if (desc.substring(desc.length - 1) == '"') {
+                desc = desc.substring(0, desc.length - 1)
+            }
             geneObjects.push({
                 id: split[0],
                 // so if you use 'index', it will be overwritten by something at some point:
@@ -113,7 +120,7 @@ function readGenes() {
                 start: Number(split[5]),
                 stop: Number(split[6]),
                 strand: Number(split[7]),
-                description: split[8],
+                description: desc,
                 biomartRelease: sails.config.version.biomartRelease,
                 assemblyRelease: sails.config.version.assemblyRelease,
                 transcripts: transcriptsPerGene[split[0]] ? transcriptsPerGene[split[0]].sort() : undefined

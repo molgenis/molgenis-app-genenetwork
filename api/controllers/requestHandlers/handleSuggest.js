@@ -18,32 +18,24 @@ module.exports = function(req, res) {
     }
 
     var query = req.body.q
-    
-    CLIENT.suggest({
-        index: '',
-        body: {
-            suggester: {
-                text: query,
-                completion: {
-                    field: 'suggest',
-                    size: 100000
-                }
-            }
-        }
+
+    CLIENT.search({
+        index: 'search',
+        from: 0,
+        size: 100,
+        q: 'name:' + query.replace(/\:/g, '\:') + '*'
     }, function(err, result) {
         if (err) {
             sails.log.warn(err)
             return res.serverError()
         } else {
-            // TODO remove if
-            if (req.socket && req.socket.id) {
-                sails.sockets.emit(req.socket.id, 'suggestions', {
-                    options: result.suggester[0].options
-                    //options: []
-                })
+            sails.log.debug('Suggest options for %s: %d', query, result.hits.total)
+            // sails.sockets.emit(req.socket.id, 'suggestions', result.hits.hits)
+            if (result.hits.total > 0) {
+                return res.json(result.hits.hits)
+            } else {
+                return res.notFound()
             }
-            sails.log.debug('Suggest options for %s: %d', query, result.suggester[0].options.length)
-            return res.json(result.suggester[0].options)
         }
     })
 }

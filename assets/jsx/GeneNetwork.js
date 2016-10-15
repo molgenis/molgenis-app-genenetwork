@@ -126,36 +126,61 @@ var Landing = React.createClass({
         return {}
     },
 
-    componentWillReceiveProps: function() {
+    componentWillReceiveProps: function(nextProps) {
+        console.log(nextProps)
     },
 
     componentDidMount: function() {
+        this.refs.select.focus()
     },
 
-    // TODO socket listener
     getSuggestions: function(input, callback) {
+
         if (!input || input.length < 2) {
             return callback(null, {})
         }
-        var ts = new Date()
+        
         io.socket.get(GN.urls.suggest,
                       {
                           q: input
                       },
                       function(res, jwres) {
-                          var options = _.map(res, function(o) {
-                              return {value: o.text, label: o.text}
-                          })
-                          console.debug('%d ms suggest: %d options', new Date() - ts, res.length)
-                          callback(null, {options: options, complete: true})
+                          if (jwres.statusCode === 200) {
+                              var options = _.compact(_.map(res, function(result) {
+                                  if (result._type === 'gene') {
+                                      return {
+                                          value: 'gene!' + result._source.id,
+                                          label: result._source.name + ' - ' + result._source.description
+                                      }
+                                  } else if (result._type === 'term') {
+                                      return {
+                                          value: 'term!' + result._source.id,
+                                          label: result._source.name + ' - ' + result._source.database + ' ' + result._source.type
+                                      }
+                                  } else if (result._type === 'trait_mapped') {
+                                      return {
+                                          value: 'network!' + result._source.shortURL,
+                                          label: result._source.name + ' - ' + result._source.numGenes + ' GWAS genes'
+                                      }
+                                  } else {
+                                      return null
+                                  }
+                              }))
+                              return callback(null, {options: options, complete: false})
+                          } else {
+                              return callback(null, {})
+                          }
                       })
-        io.socket.on('suggestions', function(msg) {
-            console.debug('%d ms socket suggest: %d options', new Date() - ts, msg.length)
-        })
     },
 
     onSelectChange: function(value, options) {
-        console.log('select ' + value)
+        
+        if (value.indexOf('!') > -1) {
+            
+            var type = value.substring(0, value.indexOf('!'))
+            var id = value.substring(value.indexOf('!') + 1)
+            this.history.pushState(null, '/' + type + '/' + id)
+        }
     },
 
     onLogoClick: function() {
@@ -176,26 +201,37 @@ var Landing = React.createClass({
                              </div>
                              <div className='selectcontainer'>
                              <Select
-                             name='search'
-                             value={'Search here'}
-                             matchPos='any'
-                             matchProp='label'
-                             placeholder=''
-                             autoload={false}
-                             asyncOptions={this.getSuggestions}
-                             onChange={this.onSelectChange} />
+                             ref='select'
+                     name='search'
+                     value={'Search here'}
+                     matchPos='any'
+                     matchProp='label'
+                     placeholder=''
+                     autoload={false}
+                     cacheAsyncResults={false}
+                     asyncOptions={this.getSuggestions}
+                     onChange={this.onSelectChange} />
                              </div>
                              <div className='examples noselect defaultcursor'>For example:&nbsp;
                              <Link className='clickable' title='MYOM1' to='/gene/MYOM1'>MYOM1</Link>,&nbsp;
-                             <Link className='clickable' title='Interferon signaling' to='/term/REACTOME_INTERFERON_SIGNALING'>Interferon signaling</Link>,&nbsp;
-                             <Link className='clickable' title='Schizophrenia' to='network' params={{ids: 'Schizophrenia'}}>Schizophrenia</Link>
+                             <Link className='clickable' title='Interferon signaling' to='/term/REACTOME:INTERFERON_SIGNALING'>Interferon signaling</Link>,&nbsp;
+                             <Link className='clickable' title='Schizophrenia' to='/network/1rAFEy' params={{ids: 'Schizophrenia'}}>Schizophrenia</Link>
                              </div>
                              </div>)
             }
         } else {
             topSearch = (<div className='gn-top-search flex11' style={{margin: '0 20px'}}>
-                         <Select name='search' value={'Search here'}
-                         matchProp='label' placeholder='' autoload={false} asyncOptions={this.getSuggestions} onChange={this.onSelectChange} />
+                             <Select
+                             ref='select'
+                     name='search'
+                     value={'Search here'}
+                     matchPos='any'
+                     matchProp='label'
+                     placeholder=''
+                     autoload={false}
+                     cacheAsyncResults={false}
+                     asyncOptions={this.getSuggestions}
+                     onChange={this.onSelectChange} />
                          </div>)
         }
         var that = this
@@ -209,7 +245,7 @@ var Landing = React.createClass({
                 </div>
                 </div>
                 {topSearch}
-                <MenuBar items={GN.menuItems} style={{backgroundColor: color.colors.gnverylightgray, padding: '20px'}} />
+                <MenuBar items={GN.menuItems} style={{backgroundColor: color.colors.gnwhite, padding: '20px'}} />
                 </div>
                 {topBanner}
                 {this.props.children}

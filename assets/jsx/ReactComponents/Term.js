@@ -1,4 +1,4 @@
-"use strict";
+"use strict"
 
 var _ = require('lodash')
 var color = require('../../js/color')
@@ -10,6 +10,7 @@ var Router = require('react-router')
 var Link = Router.Link
 var Select = require('react-select')
 var DocumentTitle = require('react-document-title')
+var DownloadPanel = require('./DownloadPanel')
 var Cookies = require('cookies-js')
 var SVGCollection = require('./SVGCollection.js')
 
@@ -28,7 +29,7 @@ var PredictedGeneRow = React.createClass({
         
         return ( <tr>
                  <td className='text'>
-                 <Link className='nodecoration black' title={desc} to={`/gene/${data.gene.name}`}>
+                 <Link className='nodecoration black' title={desc} to={`/gene/${data.gene.id}`}>
                  <SVGCollection.Rectangle className='tablerectangle' title={data.gene.biotype.replace(/_/g, ' ')} fill={color.biotype2color[data.gene.biotype] || color.colors.gnblack} />
                  <span>{data.gene.name}</span>
                  </Link>
@@ -42,7 +43,7 @@ var PredictedGeneRow = React.createClass({
                  <td style={{textAlign: 'center'}}>{data.zScore > 0 ? <SVGCollection.TriangleUp className='directiontriangleup' /> : <SVGCollection.TriangleDown className='directiontriangledown' />}</td>
                  <td style={{textAlign: 'center'}}>{data.annotated ? <SVGCollection.Annotated /> : <SVGCollection.NotAnnotated />}</td>
                  <td style={{textAlign: 'center'}}>
-                 <a title={'Open network ' + (data.annotated ? 'highlighting ' : 'with ') + data.gene.name} href={GN.urls.networkPage + this.props.termId + ',0!' + data.gene.name} target='_blank'>
+                 <a title={'Open network ' + (data.annotated ? 'highlighting ' : 'with ') + data.gene.name} href={GN.urls.networkPage + '0!' + data.gene.name + '|' + this.props.termId + ',0!' + data.gene.name} target='_blank'>
                  <SVGCollection.NetworkIcon />
                  </a>
                  </td>
@@ -65,9 +66,9 @@ var AnnotatedGeneRow = React.createClass({
         var data = this.props.data
         var desc = (data.gene.description || 'no description').replace(/\[[^\]]+\]/g, '')
         
-        return ( <tr>
+        return ( <tr className={this.props.num % 2 === 0 ? 'datarow evenrow' : 'datarow oddrow'}>
                  <td className='text'>
-                 <Link className='nodecoration black' title={desc} to={`/gene/${data.gene.name}`}>
+                 <Link className='nodecoration black' title={desc} to={`/gene/${data.gene.id}`}>
                  <SVGCollection.Rectangle className='tablerectangle' title={data.gene.biotype.replace(/_/g, ' ')} fill={color.biotype2color[data.gene.biotype] || color.colors.gnblack} />
                  {data.gene.name}
                  </Link>
@@ -81,7 +82,7 @@ var AnnotatedGeneRow = React.createClass({
                  <td style={{textAlign: 'center'}}>TBA</td>
                  <td style={{textAlign: 'center'}}><SVGCollection.Annotated /></td>
                  <td style={{textAlign: 'center'}}>
-                 <a title={'Open network highlighting ' + data.gene.name} href={GN.urls.networkPage + this.props.termId + ',0!' + data.gene.name} target='_blank'>
+                 <a title={'Open network highlighting ' + data.gene.name} href={GN.urls.networkPage + '0!' + data.gene.name + '|' + this.props.termId + ',0!' + data.gene.name} target='_blank'>
                  <SVGCollection.NetworkIcon />
                  </a>
                  </td>
@@ -97,7 +98,7 @@ var GeneTable = React.createClass({
         data: React.PropTypes.object.isRequired,
         listType: React.PropTypes.string
     },
-    
+
     render: function() {
 
         // console.log('pdt render, state:', this.state)
@@ -152,39 +153,42 @@ var Term = React.createClass({
         }
     },
     
-    loadData: function() {
+    loadData: function(props) {
 
         $.ajax({
-            url: GN.urls.pathway + '/' + this.props.params.termId + '?verbose',
+
+            url: GN.urls.pathway + '/' + props.params.termId + '?verbose',
             dataType: 'json',
+            
             success: function(data) {
-                if (this.isMounted()) {
-                    this.setState({
-                        data: data,
-                        error: null
-                    })
-                } else {
-                    console.log('Data for Term received but the component is not mounted.')
-                }
+                
+                this.setState({
+                    data: data,
+                    error: null
+                })
+                
             }.bind(this),
+            
             error: function(xhr, status, err) {
-		console.log('Error: ' + xhr)
-                if (this.isMounted()) {
-                    if (err === 'Not Found') {
-                        this.setState({
-                            data: null,
-                            error: 'Term ' + this.props.params.termId + ' not found',
-			    errorTitle: 'Error ' + xhr.status
-                        })
-                    } else {
-                        this.setState({
-                            data: null,
-                            error: 'Please try again later (' + xhr.status + ')',
-			    errorTitle: 'Error ' + xhr.status
-                        })
-                    }
+                
+		console.error(xhr)
+                
+                if (err === 'Not Found') {
+                    
+                    this.setState({
+                        data: null,
+                        error: 'Term ' + props.params.termId + ' not found',
+			errorTitle: 'Error ' + xhr.status
+                    })
+                    
                 } else {
-                    console.log('Error getting data for Term, the component is not mounted.')
+                    
+                    this.setState({
+                        data: null,
+                        error: 'Please try again later (' + xhr.status + ')',
+			errorTitle: 'Error ' + xhr.status
+                    })
+                    
                 }
             }.bind(this)
         })
@@ -192,12 +196,12 @@ var Term = React.createClass({
 
     componentDidMount: function() {
 
-        this.loadData()
+        this.loadData(this.props)
     },
 
-    componentWillReceiveProps: function() {
+    componentWillReceiveProps: function(nextProps) {
 
-        this.loadData()
+        this.loadData(nextProps)
     },
 
     onListTypeClick: function(type) {
@@ -207,6 +211,12 @@ var Term = React.createClass({
         this.setState({
             listType: type
         })
+    },
+    
+    download: function() {
+        
+        var form = document.getElementById('gn-term-downloadform')
+        form.submit()
     },
     
     render: function() {
@@ -264,8 +274,14 @@ var Term = React.createClass({
                     ANNOTATED GENES</div>
                     </div>
                     <GeneTable data={data} listType={this.state.listType} />
+                    <DownloadPanel onClick={this.download} text='DOWNLOAD PREDICTIONS' />
                     </div>
                     </div>
+                    <form id='gn-term-downloadform' method='post' encType='multipart/form-data' action={GN.urls.tabdelim}>
+                    <input type='hidden' id='termId' name='termId' value={data.pathway.id} />
+                    <input type='hidden' id='db' name='db' value={data.pathway.database} />
+                    <input type='hidden' id='what' name='what' value='termprediction' />
+                    </form>
                     </div>
 		    </DocumentTitle>
             )
