@@ -477,8 +477,6 @@ exp.getGeneJSON = function(gene, db, req, callback) {
                     })
             },
             function(cb) {
-                //TODO
-                //return cb(null)
                 celltypedb.get('!RNASEQ!CELLTYPE', [{valueEncoding: 'json'}], function(err, data) {
                     if (err) sails.log.error(err)
                     else {

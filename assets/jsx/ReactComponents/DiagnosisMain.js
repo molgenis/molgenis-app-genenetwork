@@ -26,34 +26,34 @@ var DiagnosisMain = React.createClass({
         this.refs.select.focus()
     },
 
-    getPhenotypeSuggestions: function(input, callback) {
+    // getPhenotypeSuggestions: function(input, callback) {
 
-        if (!input || input.length < 2) {
-            return callback(null, {})
-        }
+    //     if (!input || input.length < 2) {
+    //         return callback(null, {})
+    //     }
         
-        var ts = Date.now()
+    //     var ts = Date.now()
 
-        io.socket.get(GN.urls.diagnosisSuggest,
-                      {
-                          q: input
-                      },
-                      function(res, jwres) {
-                          if (jwres.statusCode === 404) {
-                              callback(null, {options: [], complete: false})
-                          }
-                      })
+    //     io.socket.get(GN.urls.diagnosisSuggest,
+    //                   {
+    //                       q: input
+    //                   },
+    //                   function(res, jwres) {
+    //                       if (jwres.statusCode === 404) {
+    //                           callback(null, {options: [], complete: false})
+    //                       }
+    //                   })
         
-        io.socket.on('suggestions', function(res) {
+    //     io.socket.on('suggestions', function(res) {
 
-            var options = _.map(res, function(o) {
-                return {id: o._source.id, value: o._source.name, label: o._source.name}
-            })
+    //         var options = _.map(res, function(o) {
+    //             return {id: o._source.id, value: o._source.name, label: o._source.name}
+    //         })
             
-            callback(null, {options: options, complete: false})
-            // console.debug('%d ms socket suggest: %d options', new Date() - ts, res.length)
-        })
-    },
+    //         callback(null, {options: options, complete: false})
+    //         // console.debug('%d ms socket suggest: %d options', new Date() - ts, res.length)
+    //     })
+    // },
 
     diagnose: function() {
 

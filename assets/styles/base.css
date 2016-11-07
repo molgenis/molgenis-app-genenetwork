@@ -939,7 +939,7 @@ line.link {
     content: '\25B2';
     zoom: 80%;
     color: #999999;
-    position: absolute;
+    position: relative;
 }
 
 .tissues-table th.reactable-header-sort-asc:after {
@@ -947,7 +947,7 @@ line.link {
     content: '\25BC';
     zoom: 80%;
     color: #999999;
-    position: absolute;
+    position: relative;
 }
 
 .diagnosis-table {
@@ -955,10 +955,6 @@ line.link {
     border-collapse: collapse;
     clear: left;
     margin-bottom: 50px;
-}
-
-.diagnosis-table thead {
-    border-bottom: 2px solid #dcdcdc;
 }
 
 .diagnosis-table tr:nth-child(even){
@@ -970,7 +966,7 @@ line.link {
     content: '\25B2';
     zoom: 80%;
     color: #999999;
-    position: absolute;
+    position: relative;
 }
 
 .diagnosis-table th.reactable-header-sort-asc:after {
@@ -978,7 +974,7 @@ line.link {
     content: '\25BC';
     zoom: 80%;
     color: #999999;
-    position: absolute;
+    position: relative;
 }
 
 .gn-network-panelcontainer {
