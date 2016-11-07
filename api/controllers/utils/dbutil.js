@@ -478,7 +478,7 @@ exp.getGeneJSON = function(gene, db, req, callback) {
             },
             function(cb) {
                 //TODO
-                return cb(null)
+                //return cb(null)
                 celltypedb.get('!RNASEQ!CELLTYPE', [{valueEncoding: 'json'}], function(err, data) {
                     if (err) sails.log.error(err)
                     else {
@@ -487,7 +487,7 @@ exp.getGeneJSON = function(gene, db, req, callback) {
                     	_.forEach(r.celltypes.fixed['header'], function(item){
                             r.celltypes.fixed['indices'][item.name] = i
                             i ++
-                    		if ('children' in item){
+                    	    if (item.children) {
                     			_.forEach(item.children, function(child){
                     				r.celltypes.fixed['indices'][child.name] = i
                     				i++ 
@@ -527,7 +527,8 @@ exp.getGeneJSON = function(gene, db, req, callback) {
                 })
             },
             function(cb) {
-            	// get transcript bars if gene has transcripts            	             
+            	// get transcript bars if gene has transcripts
+                //TODO
                 if (gene.transcripts){
                     var tissues
                     var transcripts = gene.transcripts.length <= 10 ? gene.transcripts : gene.transcripts.slice(0,10)

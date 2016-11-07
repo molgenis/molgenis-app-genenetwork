@@ -723,12 +723,6 @@ var Network = React.createClass({
                              addedGenes={this.state.addedGenes}
                              /> : null}
 
-                             <TissuesPanel
-                             onMouseOver={this.handleTissueHover}
-                             hoverTissue={this.state.hoverTissue}
-                             onClick={this.handleTissueClick}
-                             selectedTissue={this.state.selectedTissue}
-                             />
                         </div>
 
                     <form id='gn-network-svgform' method='post' encType='multipart/form-data' action={GN.urls.svg2pdf}>
@@ -765,5 +759,12 @@ var Network = React.createClass({
         }
     }
 })
+
+                             // <TissuesPanel
+                             // onMouseOver={this.handleTissueHover}
+                             // hoverTissue={this.state.hoverTissue}
+                             // onClick={this.handleTissueClick}
+                             // selectedTissue={this.state.selectedTissue}
+                             // />
 
 module.exports = Network

@@ -6,7 +6,7 @@ var quicksort = require('../api/controllers/utils/quicksort')
 var quicksortobj = require('../api/controllers/utils/quicksortobj')
 
 var level = require('level')
-var pathwayrankdb = level('/data/genenetwork/level/dbexternalranks', {
+var pathwayrankdb = level('/data/genenetwork/level/new/dbexternalranks', {
     valueEncoding: 'binary'
 })
 

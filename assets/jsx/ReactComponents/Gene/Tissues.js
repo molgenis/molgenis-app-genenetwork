@@ -33,6 +33,7 @@ var DataTable = React.createClass({
 	},
 
     componentWillMount: function() {
+        console.log(this.props)
         var indices = this.props.fixed.indices
         var avg = this.props.values.avg
         this.sortedItems = _.sortBy(this.props.fixed.header, function(item){
@@ -48,6 +49,20 @@ var DataTable = React.createClass({
         var auc = this.props.transcript ? this.props.transcript.auc : this.props.values.auc
         var transcriptBars = this.props.transcriptBars
     	var rows = _.map(this.sortedItems, function(item, i){
+                // <Td column="transcripts">
+                //     <TranscriptBars
+                //         showBars={this.props.showTranscriptBars}
+                //         values={transcriptBars[item.name]}
+                //         transcripts={this.props.transcripts}
+                //         endTranscriptbars={this.props.endTranscriptbars}
+                //         onTranscriptArrowClick={this.props.onTranscriptArrowClick}
+                //         onTranscriptBarClick={this.props.onTranscriptBarClick}
+                //         onClick={this.props.onClick}
+                //         onMouseOver={this.handleTranscriptBarHover}
+                //         hoverItem={this.state.transcriptBarHover}
+                //         selectedTranscript={this.props.selectedTranscript}
+                //         showTranscriptBarArrows={this.props.showTranscriptBarArrows} />
+                //     </Td>
     	    return(
                 <Tr key={item.name} className='clickable' onClick={this.props.onClick.bind(null, item)} onMouseOut={this.props.onMouseOver.bind(null, undefined)} onMouseOver={this.props.onMouseOver.bind(null, item)} style={this.props.hoverItem === item.name || this.props.clickedItem === item.name ? {backgroundColor: 'rgb(255,225,0)'} : {}}>
                 <Td column="">{item.name === "Brain" || item.name === "Blood" ? <ListIcon w={10} h={10} /> : null}</Td>
@@ -55,20 +70,6 @@ var DataTable = React.createClass({
                 <Td column="samples">{item.numAnnotated}</Td>
                 <Td column="average">{avg[indices[item.name]]}</Td> 
                 <Td column="auc">{auc[indices[item.name]]}</Td>
-                <Td column="transcripts">
-                    <TranscriptBars
-                        showBars={this.props.showTranscriptBars}
-                        values={transcriptBars[item.name]}
-                        transcripts={this.props.transcripts}
-                        endTranscriptbars={this.props.endTranscriptbars}
-                        onTranscriptArrowClick={this.props.onTranscriptArrowClick}
-                        onTranscriptBarClick={this.props.onTranscriptBarClick}
-                        onClick={this.props.onClick}
-                        onMouseOver={this.handleTranscriptBarHover}
-                        hoverItem={this.state.transcriptBarHover}
-                        selectedTranscript={this.props.selectedTranscript}
-                        showTranscriptBarArrows={this.props.showTranscriptBarArrows} />
-                    </Td>
                 </Tr>
     	    )
     	}.bind(this))

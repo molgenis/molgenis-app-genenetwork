@@ -620,15 +620,16 @@ var Diagnosis = React.createClass({
 
         </div>
           
-        <div className="prio-pastebox diagflex-container">
-
-          <div className="pastebox-flex"><PasteBox onSubmit={this.handleSubmit} prio={this.state.data} prioFiltered={this.state.newTable} onFilter={this.onFilter} /></div>
-        </div>
           </div>
           </DocumentTitle>
         )
     }
 })
+
+        // <div className="prio-pastebox diagflex-container">
+
+        //   <div className="pastebox-flex"><PasteBox onSubmit={this.handleSubmit} prio={this.state.data} prioFiltered={this.state.newTable} onFilter={this.onFilter} /></div>
+        // </div>
 
 module.exports = Diagnosis
 

@@ -178,17 +178,17 @@ var Gene = React.createClass({
                         <input type='hidden' id='geneId' name='geneId' value={data.gene.id} />
                         <input type='hidden' id='db' name='db' value={this.state.databaseSelection} />
                         <input type='hidden' id='what' name='what' value='geneprediction' />
-                        <input type='hidden' id='tissues' name='tissues' value={_.toArray(Object.keys(this.state.celltypes.fixed.indices))} />
-                        <input type='hidden' id='avg' name='avg' value={this.state.celltypes.values.avg} />
-                        <input type='hidden' id='stdev' name='stdev' value={this.state.celltypes.values.stdev} />
-                        <input type='hidden' id='z' name='z' value={this.state.celltypes.values.z} />
-                        <input type='hidden' id='auc' name='auc' value={this.state.celltypes.values.auc} />
                         </form>
                         </div>
                 )
             }
         }
         
+                        // <input type='hidden' id='tissues' name='tissues' value={_.toArray(Object.keys(this.state.celltypes.fixed.indices))} />
+                        // <input type='hidden' id='avg' name='avg' value={this.state.celltypes.values.avg} />
+                        // <input type='hidden' id='stdev' name='stdev' value={this.state.celltypes.values.stdev} />
+                        // <input type='hidden' id='z' name='z' value={this.state.celltypes.values.z} />
+                        // <input type='hidden' id='auc' name='auc' value={this.state.celltypes.values.auc} />
         return (
                 <DocumentTitle title={pageTitle}>
                 <div className='flex10'>

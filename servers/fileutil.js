@@ -1,4 +1,5 @@
 var fs = require('fs')
+var splitter = require('split')
 
 var exp = module.exports
 
@@ -60,4 +61,40 @@ exp.readBinary = function(filename, cb) {
         console.log(filename + ' read in ' + (new Date().getTime() - timeStart) / 1000 + ' s')
         cb(null, result)
     })
+}
+
+exp.readTXT = function(filename, cb) {
+
+    console.log('reading data from ' + filename)
+
+    var timeStart = new Date().getTime()
+    var rowsRead = 0
+    var result = []
+    
+    fs.createReadStream(filename, 'utf8')
+        .pipe(splitter())
+        .on('error', function(err) {
+            cb(err)
+        })
+        .on('data', function(line) {
+            var split = line.split(/\t/)
+            if (split.length > 1) {
+                if (rowsRead === 0) {
+                    console.log((split.length-1) + ' columns in ' + filename)
+                } else {
+                    var arr = []
+                    for (var i = 1; i < split.length; i++) {
+                        arr.push(+split[i])
+                    }
+                    result.push(arr)
+                }
+                if (++rowsRead % 10000 === 0) {
+                    console.log(rowsRead + ' rows read')
+                }
+            }
+        })
+        .on('end', function() {
+            console.log(filename + ' read in ' + (new Date().getTime() - timeStart) / 1000 + ' s')
+            cb(null, result)
+        })
 }

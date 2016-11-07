@@ -12,12 +12,10 @@ var NUM_NONCODING_GENES_TO_SEND = 50
 var GENEDATA, COMPDATA, NUM_COMPS, BACKGROUND_MATRIX
 
 var readData = function(callback) {
-    fileutil.readBinary('/data/genenetwork/files/169PCs.npy', function(err, data) {
+    //fileutil.readBinary('/data/genenetwork/files/169PCs.npy', function(err, data) {
+    fileutil.readTXT('/data/genenetwork/files/31_G_QCD_ONLYCHR_NODUPL_DESEQ_LOG_COV_G_eigenvectors_307_genescompsstdnorm.txt', function(err, data) {
         if (err) return callback(err)
         GENEDATA = data
-        for (var i = 0; i < GENEDATA.length; i++) {
-            genstats.standardNormalize(GENEDATA[i])
-        }
         COMPDATA = []
         for (var i = 0; i < GENEDATA[0].length; i++) {
             COMPDATA.push([])
@@ -26,6 +24,11 @@ var readData = function(callback) {
             }
         }
         NUM_COMPS = COMPDATA.length
+
+        for (var i = 0; i < GENEDATA.length; i++) {
+            genstats.standardNormalize(GENEDATA[i])
+        }
+
         callback(null)
     })
 }
