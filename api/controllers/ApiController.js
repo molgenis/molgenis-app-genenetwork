@@ -17,6 +17,7 @@ var handleTabdelim = require('./requestHandlers/handleTabdelim')
 //var handleSVG2PDF = require('./requestHandlers/handleUpload')
 var handleEigentest = require('./requestHandlers/handleEigentest')
 //var handlePC = require('./requestHandlers/handlePC')
+var handleVCF = require('./requestHandlers/handleVCF')
 
 var handleTemp = require('./requestHandlers/handleTemp')
 
@@ -122,6 +123,16 @@ module.exports = {
     eigentest: function(req, res) {
         try {
             handleEigentest(req, res, correlationdb, geneIDs)
+        } catch (e) {
+            sails.log.error(e)
+            res.serverError()
+        }
+    },
+
+    vcf: function(req, res) {
+
+        try {
+            handleVCF(req, res)
         } catch (e) {
             sails.log.error(e)
             res.serverError()

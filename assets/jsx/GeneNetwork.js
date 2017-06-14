@@ -69,7 +69,9 @@ GN.urls = {
     networkPage: DOMAIN + '/network/',
 
     svg2pdf: DOMAIN + '/api/v1/svg2pdf',
-    tabdelim: DOMAIN + '/api/v1/tabdelim',    
+    tabdelim: DOMAIN + '/api/v1/tabdelim',
+    
+    diagnosisVCF: DOMAIN + '/api/v1/vcf',
 }
 
 GN.pageTitleSuffix = ' - Gene Network'
@@ -131,7 +133,7 @@ var Landing = React.createClass({
     },
 
     componentDidMount: function() {
-        this.refs.select.focus()
+        this.refs.select && this.refs.select.focus()
     },
 
     getSuggestions: function(input, callback) {

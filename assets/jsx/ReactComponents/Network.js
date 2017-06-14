@@ -16,7 +16,6 @@ var NetworkControlPanel = require('./NetworkControlPanel')
 var TissuesPanel = require('./TissuesPanel')
 var EdgeLegend = require('./EdgeLegend')
 var LegendPanel = require('./LegendPanel')
-var DownloadPanel = require('./DownloadPanel')
 
 var Cookies = require('cookies-js')
 var D3Network = require('../../js/D3Network.js')

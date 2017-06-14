@@ -6,20 +6,26 @@
 
 module.exports = {
 
-    geneDescFile: '/data/genenetwork/files/ENSGToGeneNameHGNCBiotypeChromosomeStartStopStrandAndDescriptionV75.txt.filtered.txt',
     genesToTranscripts: '/data/genenetwork/files/genesToTranscripts.txt',
     transcriptMappingFile: 'xxx',
     
-    geneDBPath: '/data/genenetwork/level/dbgenes_uint16be',
-    pathwayDBPath: '/data/genenetwork/level/dbexternal_uint16be',
-    celltypeDBPath: '/data/genenetwork/level/celltype',
-    transcriptDBpath: '/data/genenetwork/level/transcriptdb',
-    transcriptBarsDBpath: '/data/genenetwork/level/transcriptbars',
-    tissuecorrelationDBPath: '/data/genenetwork/level/tissuedb',
-    // pcDBPath: '/data/genenetwork/level/dbpcsfloat',
-    correlationDBPath: '/data/genenetwork/level/coreg',
-    requestDBPath: '/data/genenetwork/level/dbreq',
-    networkShortURLDBPath: '/data/genenetwork/level/dbnetworks',
+    geneDescFile: '/data/genenetwork/files/new/ENSGToGeneNameHGNCBiotypeChromosomeStartStopStrandAndDescriptionV83FilteredNonChromosomesRemovedDuplicateTranscriptsRemoved.txt',
+    geneDBPath: '/data/genenetwork/level/new/dbgenes_uint16be',
+    pathwayDBPath: '/data/genenetwork/level/new/dbexternal_uint16be',
+    
+    transcriptDBpath: '/data/genenetwork/level/new/transcriptdb',
+    transcriptBarsDBpath: '/data/genenetwork/level/new/transcriptbars',
+    tissuecorrelationDBPath: '/data/genenetwork/level/new/tissuedb',
+
+    // geneDescFile: '/data/genenetwork/files/ENSGToGeneNameHGNCBiotypeChromosomeStartStopStrandAndDescriptionV75.txt.filtered.txt',
+    // geneDBPath: '/data/genenetwork/level/dbgenes_uint16be',
+    // pathwayDBPath: '/data/genenetwork/level/dbexternal_uint16be',
+
+    celltypeDBPath: '/data/genenetwork/level/new/celltypedb',
+    correlationDBPath: '/data/genenetwork/level/new/dbpccorrelationzscores_uint16be_genescompsstdnorm',
+    //correlationDBPath: '/srv/molgenis/dbpccorrelationzscores_uint16be',
+    requestDBPath: '/data/genenetwork/level/new/dbreq',
+    networkShortURLDBPath: '/data/genenetwork/level/new/dbnetworkurls',
 
     svgUploadDir: '/data/genenetwork/uploads/svg/',
     networkFontFamily: 'Geogrotesque Lg',
@@ -28,16 +34,16 @@ module.exports = {
     useElastic: true,
     elasticHost: 'localhost:9200',
     elasticLogLevel: 'info',
-
+    
     pubmine: {
-        journalFile: '/data/pubmine/GeneticsJournalsImpactFactorAboveThree.txt',
+	journalFile: '/data/pubmine/GeneticsJournalsImpactFactorAboveThree.txt',
         startYear: 2000,
         stopYear: 2014,
-        impactFactorBins: [3, 5, 10],
-        numTopJournals: 5
+	impactFactorBins: [3, 5, 10],
+	numTopJournals: 5
     },
 
-      /***************************************************************************
+  /***************************************************************************
    * Your SSL certificate and key, if you want to be able to serve HTTP      *
    * responses over https:// and/or use websockets over the wss:// protocol  *
    * (recommended for HTTP, strongly encouraged for WebSockets)              *
@@ -46,13 +52,13 @@ module.exports = {
    * `config/ssl` and dumped your certificate/key files there:               *
    ***************************************************************************/
 
-    // ssl: {
-    //   ca: require('fs').readFileSync(__dirname + './ssl/my_apps_ssl_gd_bundle.crt'),
-    //   key: require('fs').readFileSync(__dirname + './ssl/my_apps_ssl.key'),
-    //   cert: require('fs').readFileSync(__dirname + './ssl/my_apps_ssl.crt')
-    // },
+  // ssl: {
+  //   ca: require('fs').readFileSync(__dirname + './ssl/my_apps_ssl_gd_bundle.crt'),
+  //   key: require('fs').readFileSync(__dirname + './ssl/my_apps_ssl.key'),
+  //   cert: require('fs').readFileSync(__dirname + './ssl/my_apps_ssl.crt')
+  // },
 
-      /***************************************************************************
+  /***************************************************************************
    * The `port` setting determines which TCP port your app will be           *
    * deployed on.                                                            *
    *                                                                         *
@@ -68,9 +74,9 @@ module.exports = {
    * to 80 (http://) or 443 (https://) if you have an SSL certificate        *
    ***************************************************************************/
 
-    port: process.env.PORT || 1337,
+  port: process.env.PORT || 1337,
 
-      /***************************************************************************
+  /***************************************************************************
    * The runtime "environment" of your Sails app is either typically         *
    * 'development' or 'production'.                                          *
    *                                                                         *
@@ -88,6 +94,6 @@ module.exports = {
    * 'development' environment.                                              *
    ***************************************************************************/
 
-    environment: process.env.NODE_ENV || 'development'
-
+    environment: process.env.NODE_ENV || 'development',
+    hookTimeout: 120000 // 2 minutes
 };

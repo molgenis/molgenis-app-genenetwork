@@ -67,7 +67,7 @@ var DataTable = React.createClass({
                 <Tr key={item.name} className='clickable' onClick={this.props.onClick.bind(null, item)} onMouseOut={this.props.onMouseOver.bind(null, undefined)} onMouseOver={this.props.onMouseOver.bind(null, item)} style={this.props.hoverItem === item.name || this.props.clickedItem === item.name ? {backgroundColor: 'rgb(255,225,0)'} : {}}>
                 <Td column="">{item.name === "Brain" || item.name === "Blood" ? <ListIcon w={10} h={10} /> : null}</Td>
                 <Td column="tissue">{item.name}</Td>
-                <Td column="samples">{item.numAnnotated}</Td>
+                <Td column="samples">{item.numSamples}</Td>
                 <Td column="average">{avg[indices[item.name]]}</Td> 
                 <Td column="auc">{auc[indices[item.name]]}</Td>
                 </Tr>

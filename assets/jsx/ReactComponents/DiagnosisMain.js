@@ -10,6 +10,10 @@ var DiagnosisMain = React.createClass({
 
     mixins: [Router.History],
 
+    getInitialState: function() {
+        return {}
+    },
+    
     // DiagnosisMain is stateless
     // Selected terms are stored in the state of DiagnoseButton instead
     // because re-rendering DiagnosisMain would cause the Select component to lose its selections
@@ -22,8 +26,7 @@ var DiagnosisMain = React.createClass({
     },
 
     componentDidMount: function() {
-
-        this.refs.select.focus()
+        this.addFileListener()
     },
 
     // getPhenotypeSuggestions: function(input, callback) {
@@ -55,43 +58,94 @@ var DiagnosisMain = React.createClass({
     //     })
     // },
 
-    diagnose: function() {
+    // http://tympanus.net/codrops/2015/09/15/styling-customizing-file-inputs-smart-way/
+    addFileListener: function() {
+ 
+        var input = document.getElementById('vcffile')
+        var label = input.nextElementSibling
+        var labelVal = label.innerHTML
 
-        if (this.refs.diagnosebutton.state.selectedTerms.length === 0) {
-            this.refs.diagnosebutton.setState({
-                error: 'Please enter phenotypes above first'
+        input.addEventListener('change', function(e) {
+            
+            var fileName = ''
+            
+            if (input.files && input.files.length > 1) {
+                fileName = (input.getAttribute('data-multiple-caption') || '').replace('{count}', input.files.length)
+            } else {
+                fileName = e.target.value.split('\\').pop()
+            }
+            
+            if (fileName) {
+                label.innerHTML = fileName
+            } else {
+                label.innerHTML = labelVal
+            }
+
+            this.setState({
+                fileSelected: true
             })
-        } else {
-            this.history.pushState(null, `/diagnosis/${this.refs.diagnosebutton.state.selectedTerms.join(',')}`)
+            
+        }.bind(this))
+    },
+    
+    uploadVCF: function() {
+
+    },
+
+    vcfSelectionDone: function() {
+
+        // if file selected, upload/download it
+        if (this.state.fileSelected) {
+            var form = document.getElementById('gn-diagnosis-vcfform')
+            form.submit()
+            this.setState({
+                isDownloading: true
+            })
         }
+        
+        this.setState({
+            vcfSelectionDone: true
+        })
+        
+        console.log('continue to phenotype selection')
     },
 
     render: function() {
 
+        var content = null
+        
+        if (!this.state.fileSelected) {
+            content =
+                <div>
+                <div style={{color: color.colors.gnyellow}}>OR</div>
+                <ContinueButton ref='continuebutton' text="I DON'T HAVE A VCF FILE" onClick={this.vcfSelectionDone} />
+                </div>
+        } else {
+            content =
+                <div>
+                <ContinueButton ref='continuebutton' text='CONTINUE' onClick={this.vcfSelectionDone} />
+                </div>
+        }
+
         return (
                 <div className='searchcontainer'>
-                <div className='searchheader noselect defaultcursor'>
+                <div className='searchheader noselect defaultcursor' style={{textAlign: 'center'}}>
                 Discover disease genes for your patients.
                 </div>
-                <div className='selectcontainer'>
-                <Select
-            ref='select'
-            name='search'
-            matchPos='any'
-            matchProp='label'
-            multi={true}
-            placeholder='Search for phenotypes here'
-            searchPromptText=''
-            autoload={false}
-            asyncOptions={this.getPhenotypeSuggestions}
-            onChange={this.onSelectChange} />
+                <div style={{textAlign: 'center'}}>
+                <form id='gn-diagnosis-vcfform' method='post' encType='multipart/form-data' action={GN.urls.diagnosisVCF}>
+                <input id='vcffile' name='vcffile' type='file' className='vcffileinput' />
+                <label htmlFor='vcffile' className='button inversebutton noselect clickable' style={{margin: '20px'}}>
+                UPLOAD A VCF FILE
+            </label>
+                </form>
+                {content}
                 </div>
-                <DiagnoseButton ref='diagnosebutton' onDiagnose={this.diagnose} />
                 </div>)
     }
 })
 
-var DiagnoseButton = React.createClass({
+var ContinueButton = React.createClass({
 
     getInitialState: function() {
 
@@ -104,16 +158,46 @@ var DiagnoseButton = React.createClass({
 
     onKeyPress: function(e) {
         if (e.key.toLowerCase() === 'enter') {
-            this.props.onDiagnose()
+            this.props.onClick()
         }
     },
     
     render: function() {
         
         return (
-                <div className='hflex'>
-                <div tabIndex={0} className={this.state.buttonClasses.join(' ')} onClick={this.props.onDiagnose} onKeyPress={this.onKeyPress} style={{margin: '20px'}}>
-                DIAGNOSE
+                <div className='hflex' style={{display: 'inline-block'}}>
+                <div tabIndex={0} className={this.state.buttonClasses.join(' ')} onClick={this.props.onClick} onKeyPress={this.onKeyPress} style={{margin: '20px'}}>
+                {this.props.text}
+            </div>
+                <div className='flex11 flexselfcenter' style={{color: color.colors.gnyellow}}>{this.state.error}</div>
+                </div>
+        )
+    }
+})
+
+var UploadButton = React.createClass({
+
+    getInitialState: function() {
+
+        return {
+            error: null,
+            selectedTerms: [],
+            buttonClasses: ['button', 'inversebutton', 'noselect', 'clickable', 'disabledbutton', 'flex00']
+        }
+    },
+
+    onKeyPress: function(e) {
+        if (e.key.toLowerCase() === 'enter') {
+            this.props.onClick()
+        }
+    },
+    
+    render: function() {
+        
+        return (
+                <div className='hflex' style={{display: 'inline-block'}}>
+                <div tabIndex={0} className={this.state.buttonClasses.join(' ')} onClick={this.props.onClick} onKeyPress={this.onKeyPress} style={{margin: '20px'}}>
+                UPLOAD A VCF FILE
             </div>
                 <div className='flex11 flexselfcenter' style={{color: color.colors.gnyellow}}>{this.state.error}</div>
                 </div>
