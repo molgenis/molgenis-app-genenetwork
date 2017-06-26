@@ -9,6 +9,6 @@ module.exports.version = {
         // return '//' + this.serviceName + ' ' + this.version + ' // ' + this.affiliation + ' // ' + this.mainUrl
         return this.serviceName + ' ' + this.version + ' / ' + this.affiliation + ' / ' + this.mainUrl
     },
-    biomartRelease: "V71",
-    assemblyRelease: "GRCh37"
+    biomartRelease: "V83",
+    assemblyRelease: "GRCh38"
 }
