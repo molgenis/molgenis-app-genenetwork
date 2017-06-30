@@ -1,5 +1,6 @@
 var _ = require('lodash')
 var React = require('react')
+var ReactTooltip = require('react-tooltip')
 var Chr = require('../../js/chr')
 var htmlutil = require('../htmlutil.js')
 var color = require('../../js/color.js')
@@ -340,13 +341,14 @@ exp.I = React.createClass({
     render: function() {
         return (
             <div style={{display: 'inline-block', position: 'relative', top: '5px'}}>
-                <svg width="20" height="20" viewBox="0 0 22 22" style={{cursor: 'pointer'}}>
+                <svg data-tip={this.props.title} width="20" height="20" viewBox="0 0 22 22" style={{cursor: 'pointer'}}>
                     <g>
-                        <title>{this.props.title}</title>
                         <circle fill={color.colors.gnlightgray} cx="9.8" cy="9.5" r="9.2"/>
                         <text fill={color.colors.gndarkgray} transform="matrix(1 0 0 1 7.761 14.583)">i</text>
                     </g>
                 </svg>
+                <ReactTooltip place="bottom" type="dark" effect="solid" class='tooltip'/>
+ 
             </div>
         )
     }

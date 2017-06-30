@@ -93,8 +93,8 @@ var DataTable = React.createClass({
             <Thead>
             	<Th>{""}</Th>
             	<Th column="tissue"><span>{"TISSUE"}</span></Th>
-            	<Th column="samples"><span title="Number of samples">{"SAMPLES"}</span> <I title="Number of samples"/></Th>
-            	<Th column="average"><span title="Average">{"AVERAGE"}</span> <I title="Average"/></Th>
+            	<Th column="samples"><span>{"SAMPLES"}</span> <I title="Number of samples"/></Th>
+            	<Th column="average"><span>{"AVERAGE"}</span> <I title="Average"/></Th>
             </Thead>
             {rows}
             </Table>

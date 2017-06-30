@@ -156,7 +156,6 @@ var PWAPanel = React.createClass({
         if (!this.isMounted()) {
             console.warn('PWAPanel.setSocketListeners: pathwayanalysis.queueEvent received but component not mounted')
         }
-        
         if (msg.queueLength || msg.queueLength === 0) {
             var str = htmlutil.intToStr(msg.queueLength) + ' analyses'
             if (msg.queueLength === 0) str = 'Analysis started'
@@ -175,10 +174,11 @@ var PWAPanel = React.createClass({
     },
 
     _onIOError: function(msg) {
-
         if (!this.isMounted()) {
             console.warn('PWAPanel.setSocketListeners: pathwayanalysis.error received but component not mounted')
         }
+        console.log('_onIOERROR')
+        console.log(msg)
         
         this.setState({
             pwaMessage: msg.pwaMessage,

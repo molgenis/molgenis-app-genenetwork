@@ -515,14 +515,14 @@ a.externallink {
     fill: red;
 }
 
-.tooltip {
+/*.tooltip {
     position: absolute;
     margin-left: 10px;
     padding: 6px;
     pointer-events: none;
     background-color: black;
     color: white;
-}
+}*/
 
 .paddingleftalignright {
     text-align: right;
@@ -927,7 +927,7 @@ line.link {
 
 .tissues-table tr {
     text-align: left;
-    height: 20px;
+    height: 25px;
 }
 
 .tissues-table tr:nth-child(even){
@@ -948,6 +948,11 @@ line.link {
     zoom: 80%;
     color: #999999;
     position: relative;
+}
+
+.tooltip {
+    opacity: 0.4 !important;
+    background-color: #000000 !important;
 }
 
 .diagnosis-table {
