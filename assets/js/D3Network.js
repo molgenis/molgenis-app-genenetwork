@@ -1071,6 +1071,15 @@ D3Network.prototype._addLink = function(data) {
     }
 }
 
+D3Network.prototype.hide = function() {
+    d3.select('#networksvg').style('display', 'none')
+}
+
+D3Network.prototype.show = function() {
+    d3.select('#networksvg').style('display', 'block')
+}
+
+
 //TODO remove
 D3Network.prototype.getNodeById = function(id) {
     return this._hashNodes[id]
