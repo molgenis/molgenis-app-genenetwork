@@ -62,11 +62,11 @@ var AnnotatedGeneRow = React.createClass({
     },
     
     render: function() {
-        
+
         var data = this.props.data
         var desc = (data.gene.description || 'no description').replace(/\[[^\]]+\]/g, '')
         
-        return ( <tr className={this.props.num % 2 === 0 ? 'datarow evenrow' : 'datarow oddrow'}>
+        return ( <tr>
                  <td className='text'>
                  <Link className='nodecoration black' title={desc} to={`/gene/${data.gene.id}`}>
                  <SVGCollection.Rectangle className='tablerectangle' title={data.gene.biotype.replace(/_/g, ' ')} fill={color.biotype2color[data.gene.biotype] || color.colors.gnblack} />
@@ -161,7 +161,6 @@ var Term = React.createClass({
             dataType: 'json',
             
             success: function(data) {
-                
                 this.setState({
                     data: data,
                     error: null
@@ -170,7 +169,6 @@ var Term = React.createClass({
             }.bind(this),
             
             error: function(xhr, status, err) {
-                
 		console.error(xhr)
                 
                 if (err === 'Not Found') {
@@ -220,7 +218,7 @@ var Term = React.createClass({
     },
     
     render: function() {
-        
+
         if (this.state.error) {
             
             return (
