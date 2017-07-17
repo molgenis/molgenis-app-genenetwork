@@ -4,7 +4,10 @@ var _ = require('lodash')
 var async = require('async')
 var React = require('react')
 var ReactDOM = require('react-dom')
+var Router = require('react-router')
+var Link = Router.Link
 var DocumentTitle = require('react-document-title')
+var color = require('../../js/color')
 
 var NetworkPanel = require('./NetworkPanel')
 var GroupPanel = require('./GroupPanel')
@@ -16,6 +19,8 @@ var NetworkControlPanel = require('./NetworkControlPanel')
 var TissuesPanel = require('./TissuesPanel')
 var EdgeLegend = require('./EdgeLegend')
 var LegendPanel = require('./LegendPanel')
+var DownloadPanel = require('./DownloadPanel')
+var SVGCollection = require('./SVGCollection')
 
 var Cookies = require('cookies-js')
 var D3Network = require('../../js/D3Network.js')
@@ -48,7 +53,8 @@ var network2js = function(network) {
                     data: gene
                 }
             }),
-            edges: []
+            edges: [],
+            allEdges: [],
         },
         edgeValueScales: [[0, 12, 15], [0, -12, -15]],
         edgeColorScales: [['#ffffff', '#000000', '#ff3c00'], ['#ffffff', '#00a0d2', '#7a18ec']],
@@ -71,7 +77,6 @@ var network2js = function(network) {
     // get a suitable threshold for showing edges
     var dataCopy = data.slice(0)
     quicksort(dataCopy)
-
     js.threshold = Math.min(_.last(js.edgeValueScales[0]) - 1, dataCopy[Math.max(0, dataCopy.length - numNodes * 2)])
     // js.threshold = Math.min(_.last(js.edgeValueScales[0]) - 1, dataCopy[Math.max(0, dataCopy.length - numNodes * 10)])
 
@@ -80,11 +85,18 @@ var network2js = function(network) {
     for (var i = 0; i < isConnected.length; i++) {
         isConnected[i] = false
     }
-
     // add edges based on threshold
     var i = 0
     for (var i1 = 0; i1 < numNodes - 1; i1++) {
         for (var i2 = i1 + 1; i2 < numNodes; i2++) {
+            js.elements.allEdges.push({
+                data: {
+                    source: js.elements.nodes[i1].data.id,
+                    target: js.elements.nodes[i2].data.id,
+                    weight: data[i]
+                }
+            })
+
             if (Math.abs(data[i]) >= js.threshold) {
                 js.elements.edges.push({
                     data: {
@@ -181,6 +193,75 @@ var network2js = function(network) {
     return js
 }
 
+var AnnotatedGeneRow = React.createClass({
+
+    propTypes: {
+        
+        data: React.PropTypes.object.isRequired,
+        num: React.PropTypes.number
+    },
+    
+    render: function() {
+
+        var data = this.props.data
+        var desc = (data.gene.description || 'no description').replace(/\[[^\]]+\]/g, '')
+        
+        return ( <tr>
+                 <td className='text'>
+                 <Link className='nodecoration black' target='_blank' title={desc} to={`/gene/${data.gene.id}`}>
+                 <SVGCollection.Rectangle className='tablerectangle' title={data.gene.biotype.replace(/_/g, ' ')} fill={color.biotype2color[data.gene.biotype] || color.colors.gnblack} />
+                 {data.gene.name}
+                 </Link>
+                 </td>
+                 <td className='text'>
+                 <Link className='nodecoration black' title={desc} to={`/gene/${data.gene.name}`}>
+                 <span>{desc}</span>
+                 </Link>
+                 </td>
+                 <td style={{textAlign: 'center'}}>TBA</td>
+                 <td style={{textAlign: 'center'}}>TBA</td>
+                 <td style={{textAlign: 'center'}}><SVGCollection.Annotated /></td>
+                 <td style={{textAlign: 'center'}}>
+                 <a title={'Open network highlighting ' + data.gene.name} href={GN.urls.networkPage + '0!' + data.gene.name + '|' + this.props.termId + ',0!' + data.gene.name} target='_blank'>
+                 <SVGCollection.NetworkIcon />
+                 </a>
+                 </td>
+                 </tr>
+        )
+    }
+})
+
+var GeneTable = React.createClass({
+
+    render: function() {
+        var that = this
+        var rows = _.map(this.props.genes, function(data, i) {
+                return (<AnnotatedGeneRow key={data.gene.id} data={data} num={i} />)
+            })
+        return (
+            <div>
+            <div className='gn-term-container-outer' style={{backgroundColor: color.colors.gnwhite, marginTop: '10px'}}>
+                <div className='gn-term-container-inner maxwidth' style={{padding: '20px'}}>
+                <table className='gn-term-table datatable'>
+                <tbody>
+                <tr>
+                  <th className='tabletextheader' style={{width: '10%'}}>GENE</th>
+                  <th className='tabletextheader' style={{width: '60%'}}>DESCRIPTION</th>
+                  <th>P-VALUE</th>
+                  <th>DIRECTION</th>
+                  <th>ANNOTATED</th>
+                  <th>NETWORK</th>
+                  </tr>
+                  {rows}
+                </tbody>
+                </table>
+            </div>
+            </div>
+            </div>
+            )
+    }
+})
+
 var Network = React.createClass({
 
     propTypes: {
@@ -209,7 +290,8 @@ var Network = React.createClass({
             progressText: 'loading',
             progressDone: false,
             addedGenes: [],
-            selectedTissue: 'data'
+            selectedTissue: 'data',
+            tab: 'network'
         }
     },
     
@@ -255,7 +337,6 @@ var Network = React.createClass({
         var width = ReactDOM.findDOMNode(this).offsetWidth
         var height = document.getElementById('network').offsetHeight//ReactDOM.findDOMNode(this).offsetHeight
         var ts = new Date()
-        console.log('createNetwork')
 
         var network = new D3Network(document.getElementById('network'), {
             width: width,
@@ -309,12 +390,12 @@ var Network = React.createClass({
             this.state.network.draw(data)
             this.state.network.colorBy(coloring)
         }.bind(this), 10)
-        
+        console.log(this.state.data.elements)
         callback(null)
     },
 
     setTissueSocketListener: function() {
-    	io.socket.on('network', function(network) {
+        io.socket.on('network', function(network) {
             this.setState({
                 error: null,
                 progressText: 'creating visualization'
@@ -332,7 +413,7 @@ var Network = React.createClass({
     },
 
     loadTissueData: function(tissue) {
-    	var ids = this.props.params.ids.replace(/(\r\n|\n|\r)/g, ',')
+        var ids = this.props.params.ids.replace(/(\r\n|\n|\r)/g, ',')
         io.socket.get(GN.urls.network, {genes: ids, tissue: tissue}, function(res, jwres) {
             if (jwres.statusCode !== 200) {
                 this.setState({
@@ -362,9 +443,10 @@ var Network = React.createClass({
                 io.socket.off('network')
                 //load tissue data
                 setTimeout(function(){
-                	this.setTissueSocketListener()
-                	this.loadTissueData('brain')
-                	this.loadTissueData('blood')
+                    this.setTissueSocketListener()
+                    this.loadTissueData('brain')
+                    this.loadTissueData('blood')
+                    this.loadPredictedGenes(this.props.params.ids)
                 }.bind(this), 1500)          
             }
         }.bind(this))
@@ -411,41 +493,30 @@ var Network = React.createClass({
     },
     
     changeThreshold: function(n) {
-        console.log('Network.changeThreshold: TODO')
-        this.setState(function(previousState) { return {
-            threshold: previousState.threshold + n
-        }})
-        //calculate edges again based on new threshold, update network
-        var numNodes = this.state.data.elements.nodes.length
-        var edges = Array()
-        var dataView = new DataView(this.state[this.state.selectedTissue].buffer) // DataView is big-endian by default
-	    var data = new Array(numNodes * (numNodes - 1) / 2) // buffer contains a symmetric matrix
-	    for (var i = 0; i < data.length; i++) {
-	        data[i] = (dataView.getUint16(i * 2) - 32768) / 1000
-	    }
-		var isConnected = new Array(numNodes)
-	    for (var i = 0; i < isConnected.length; i++) {
-	        isConnected[i] = false
-	    }
 
-	    var i = 0
-	    for (var i1 = 0; i1 < numNodes - 1; i1++) {
-	        for (var i2 = i1 + 1; i2 < numNodes; i2++) {
-	            if (Math.abs(data[i]) >= this.state.threshold) {
-	                edges.push({
-	                    data: {
-	                        source: this.state.data.elements.nodes[i1].data.id,
-	                        target: this.state.data.elements.nodes[i2].data.id,
-	                        weight: data[i]
-	                    }
-	                })
-	                isConnected[i1] = true
-	                isConnected[i2] = true
-	            }
-	            i++
-	        }
-	    }
-	    this.state.network.updateEdges(edges)
+        //remove timeout, set state at end
+        this.setState(function(previousState) { return {
+            threshold: previousState.threshold + n,
+            previousThreshold: previousState.threshold
+        }})
+
+        setTimeout(function(){
+            var threshold = this.state.threshold
+            var previousThreshold = this.state.previousThreshold
+            if (n < 0){
+                // add edges
+                // todo: change data into [state.selectedtissue] to enable threshold changing for tissue-specific networks
+                // TODO: fix: high threshold does not remove all edges
+                var edgesToBeAdded = _.filter(this.state.data.elements.allEdges, function(edge){return _.inRange(Math.abs(edge.data.weight), threshold, previousThreshold)})
+                _.forEach(edgesToBeAdded, function(edge){this.state.data.elements.edges.push(edge)}.bind(this))
+                this.state.network.addEdges(edgesToBeAdded)
+            } else {
+                // remove edges
+                var edgesToBeRemoved = _.filter(this.state.data.elements.edges, function(edge){return _.inRange(Math.abs(edge.data.weight), threshold, previousThreshold)})
+                _.forEach(edgesToBeRemoved, function(edge){this.state.data.elements.edges.splice(this.state.data.elements.edges.indexOf(edge),1)}.bind(this))
+                this.state.network.removeEdges(edgesToBeRemoved)
+            }
+        }.bind(this), 10)
     },
     
     handleColoring: function(type) {
@@ -567,6 +638,7 @@ var Network = React.createClass({
             console.log('reselecting ' + this.state.selectedTerm.name)
             this.selectTerm(this.state.selectedTerm)
         }
+        console.log(this.state)
         this.setState({
             addedGenes: addedGenes
         })
@@ -637,7 +709,7 @@ var Network = React.createClass({
     },
 
     handleTissueClick: function(selectedTissue) {
-    	var tissue = selectedTissue === this.state.selectedTissue ? 'data' : selectedTissue
+        var tissue = selectedTissue === this.state.selectedTissue ? 'data' : selectedTissue
         var threshold = this.state[tissue].threshold
         this.state.network.toggleNetwork(this.state[tissue])
         this.setState({
@@ -648,15 +720,51 @@ var Network = React.createClass({
     },
 
     handleEdgeHover: function(hoverEdge){
-    	this.setState({
-    		hoverEdge: hoverEdge
-    	})
+        this.setState({
+            hoverEdge: hoverEdge
+        })
+    },
+
+    onTabClick: function(type) {
+        this.setState({
+            tab: type
+        })
+        type == 'network' ? this.state.network.show() : this.state.network.hide()
+    },
+
+    loadPredictedGenes: function(ids) {
+        var termId = ids.split(',')[0]  
+        $.ajax({
+            url: GN.urls.pathway + '/' + termId + '?verbose',
+            dataType: 'json',
+            success: function(data){
+                this.setState({
+                    predictedGenes: data.genes.predicted,
+                    error: null
+                })
+
+            }.bind(this),
+            error: function(xhr, status, err){
+                if (err == 'Not Found'){
+                    this.setState({
+                        predictedGenes: null,
+                        error: 'Term ' + termId + ' not found',
+                        errorTitle: 'Error ' + xhr.status
+                    })
+                } else {
+                    this.setState({
+                        predictedGenes: null,
+                        error: 'Please try again later (' + xhr.status + ')',
+                        errorTitle: 'Error ' + xhr.status
+                    }) 
+                }
+            }.bind(this)
+        })
     },
 
     render: function() {
 
         var pageTitle = this.state.error ? this.state.errorTitle : 'Loading' + GN.pageTitleSuffix
-        
         if (!this.state.progressDone || !this.state.data) {
             return (
                     <DocumentTitle title={pageTitle}>
@@ -672,20 +780,15 @@ var Network = React.createClass({
             )
         } else {
             pageTitle = this.state.data.elements.nodes.length + ' genes' + GN.pageTitleSuffix
-            return (
-                    <DocumentTitle title={pageTitle}>
 
-                    <div className='flex10 vflex'>
-                    <div id='networkdesc'>
-                    {this.state.data.elements.nodes.length > 4 ?
-                     (<span>Link to this network: {this.state.url}</span>) :
-                     (<span>This network contains {htmlutil.intToStr(this.state.data.elements.nodes.length)} genes. Pathway analysis and prediction of similar genes require five or more genes.</span>)}
-                </div>
-                    <div id='network' className='gn-network flex10' style={{position: 'relative', backgroundColor: color.colors.gnwhite}}>
-                    
-                        <NetworkControlPanel download={this.download} onSelectionModeChange={this.onSelectionModeChange} selectionMode={this.state.selectionMode}
-                    isZoomedMax={this.state.isZoomedMax} isZoomedMin={this.state.isZoomedMin} onZoom={this.onZoom} />
-                        
+            var genes = (
+                    <div>
+                        <GeneTable genes={this.state.predictedGenes}/>
+                    </div>
+                )
+            var network = (
+                <div id='network' className='gn-network flex10' style={{position: 'relative', backgroundColor: color.colors.gnwhite}}>
+                        <NetworkControlPanel download={this.download} onSelectionModeChange={this.onSelectionModeChange} selectionMode={this.state.selectionMode} isZoomedMax={this.state.isZoomedMax} isZoomedMin={this.state.isZoomedMin} onZoom={this.onZoom} />  
                         <EdgeLegend threshold={this.state.threshold} edgeValueScales={this.state.data.edgeValueScales} edgeColorScales={this.state.data.edgeColorScales} onMouseOver={this.handleEdgeHover} hoverEdge={this.state.hoverEdge} onClick={this.changeThreshold} />
                         
                     {this.state.selectedEdge ?
@@ -751,19 +854,32 @@ var Network = React.createClass({
                     <input type='hidden' id='what' name='what' value='prediction' />
                     </form>
 
-                </div>
                     </div>
-                    </DocumentTitle>
+                )
+
+
+            return (
+                    <DocumentTitle title={pageTitle}>
+                    <div className='flex10 vflex'>
+                    <div id='networkdesc'>
+                    <div className='gn-term-menu noselect' style={{paddingBottom: '20px'}}>
+                    <span style={{cursor: 'default', paddingRight: '10px'}}>SHOW</span>
+                    <div className={(this.state.tab == 'network') ? 'clickable button selectedbutton' : 'clickable button'} onClick={this.onTabClick.bind(null, 'network')}>
+                    NETWORK</div>
+                    <div className={(this.state.tab == 'genes') ? 'clickable button selectedbutton' : 'clickable button'} onClick={this.onTabClick.bind(null, 'genes')}>
+                    PREDICTED GENES</div>
+                    </div>
+                    {this.state.data.elements.nodes.length > 4 ?
+                     (<span>Link to this network: {this.state.url}</span>) :
+                     (<span>This network contains {htmlutil.intToStr(this.state.data.elements.nodes.length)} genes. Pathway analysis and prediction of similar genes require five or more genes.</span>)}
+                </div>
+               {this.state.tab == 'network' ? network : genes}
+                </div>
+
+                </DocumentTitle>
             )
         }
     }
 })
-
-                             // <TissuesPanel
-                             // onMouseOver={this.handleTissueHover}
-                             // hoverTissue={this.state.hoverTissue}
-                             // onClick={this.handleTissueClick}
-                             // selectedTissue={this.state.selectedTissue}
-                             // />
 
 module.exports = Network
