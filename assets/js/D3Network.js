@@ -140,20 +140,9 @@ D3Network.prototype._initForce = function() {
         .gravity(this._props.gravity || 0.7)
         .distance(this._props.distance || 150)
         .theta(this._props.theta || 0.1)
-        .friction(this._props.friction || 0.4) //0.65
-        .charge(this._props.charge || -80000) //-2000
+        .friction(this._props.friction || 0.65)
+        .charge(this._props.charge || -2000)
         .size([this._props.width, this._props.height])
-
-        
-        // this._force = d3.layout.force()
-        // .gravity(this._props.gravity || 0.9)
-        // .distance(this._props.distance || 150)
-        // .theta(this._props.theta || 0.1)
-        // .friction(this._props.friction || 0.1)
-        // .charge(this._props.charge || -5000)
-        // .size([this._props.width, this._props.height])
-        // .linkDistance(500)
-        // .linkStrength(0)
 
 
     this._force.on('start', this._startForce.bind(this))
@@ -815,50 +804,20 @@ D3Network.prototype.toggleNetwork = function(data) {
 
 }
 
-
-D3Network.prototype.addEdges = function(edges) {
-    for (var i = 0; i < edges.length; i++){
-        this._data.elements.edges.push({data: edges[i].data})
-        this._addLink(edges[i].data)
-    }
-    this._initNodes()
-    this._initLinks()
-    this._rehash()
-    this._show()
-    this.unfixNodes()
-    this._force.start()
-
-}
-
-
-D3Network.prototype.removeEdges = function(edges) {
-    // console.log('removeEdges')
-    for (var i = 0; i < edges.length; i++){
-        var index = this._data.elements.edges.indexOf(edges[i])
-        this._force.links().splice(index, 1)
-        this._data.elements.edges.splice(index, 1)
+D3Network.prototype.updateEdges = function(edges) {
+    this._force.links().splice(0)
+    for (var e = 0, ee = edges.length; e < ee; e++) {
+        if (this._state.showNegatives || edges[e].data.weight == undefined || edges[e].data.weight > 0) {
+            this._addLink(edges[e].data)
+        }
     }
     this._rehash()
+
     this._initNodes()
     this._initLinks()
     this.unfixNodes()
     this._force.start()
-
 }
-
-// D3Network.prototype.updateEdges = function(edges) {
-//     this._force.links().splice(0)
-//     for (var e = 0, ee = edges.length; e < ee; e++) {
-//         if (this._state.showNegatives || edges[e].data.weight == undefined || edges[e].data.weight > 0) {
-//             this._addLink(edges[e].data)
-//         }
-//     }
-//     this._rehash()
-//     this._initNodes()
-//     this._initLinks()
-//     this.unfixNodes()
-//     this._force.start()
-// }
 
 // TODO remove
 D3Network.prototype.addNodeToDataAndNetwork = function(gene, zScores) {
@@ -1110,14 +1069,6 @@ D3Network.prototype._addLink = function(data) {
             'weight': data.weight
         })
     }
-}
-
-D3Network.prototype.hide = function(){
-    d3.select('#networksvg').style('display', 'none')
-}
-
-D3Network.prototype.show = function(){
-    d3.select('#networksvg').style('display', 'block')
 }
 
 //TODO remove

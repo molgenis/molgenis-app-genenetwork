@@ -48,7 +48,6 @@ GN.urls = {
     gene: DOMAIN + '/api/v1/gene',
     transcript: DOMAIN + '/api/v1/transcript',
     transcriptBars: DOMAIN + '/api/v1/transcriptBars',
-
     pathway: DOMAIN + '/api/v1/pathway',
     coregulation: DOMAIN + '/api/v1/coregulation',
     tissues: DOMAIN + '/api/v1/tissues',
