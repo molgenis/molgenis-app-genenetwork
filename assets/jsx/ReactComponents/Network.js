@@ -193,7 +193,7 @@ var network2js = function(network) {
     return js
 }
 
-var AnnotatedGeneRow = React.createClass({
+var PredictedGenesRow = React.createClass({
 
     propTypes: {
         
@@ -214,7 +214,7 @@ var AnnotatedGeneRow = React.createClass({
                  </Link>
                  </td>
                  <td className='text'>
-                 <Link className='nodecoration black' title={desc} to={`/gene/${data.gene.name}`}>
+                 <Link className='nodecoration black' target='_blank' title={desc} to={`/gene/${data.gene.name}`}>
                  <span>{desc}</span>
                  </Link>
                  </td>
@@ -236,7 +236,7 @@ var GeneTable = React.createClass({
     render: function() {
         var that = this
         var rows = _.map(this.props.genes, function(data, i) {
-                return (<AnnotatedGeneRow key={data.gene.id} data={data} num={i} />)
+                return (<PredictedGenesRow key={data.gene.id} data={data} num={i} />)
             })
         return (
             <div>
