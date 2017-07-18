@@ -60,14 +60,16 @@ var DataTable = React.createClass({
             var data= pathway
             var isAnnotated= isAnnotated
             var num= i
-
+        //       <Link className='nodecoration black' title={data.term.numAnnotatedGenes + ' annotated genes, prediction accuracy ' + Math.round(100 * data.term.auc) / 100} to={`/term/${data.term.id}`}>
+                    // {data.term.name}
+                    // </Link>
             return (
 
                 <Tr key={key}>
                 <Td column="TERM" className='text'>
-                    <Link className='nodecoration black' title={data.term.numAnnotatedGenes + ' annotated genes, prediction accuracy ' + Math.round(100 * data.term.auc) / 100} to={`/term/${data.term.id}`}>
+                    <a className='nodecoration black clickable' title={'Open network ' + (data.annotated ? 'highlighting ' : 'with ') + gene.name} href={GN.urls.networkPage + data.term.id + ',0!' + gene.name} target='_blank'>
                     {data.term.name}
-                    </Link>
+                    </a>
                 </Td>
                 <Td column="P-VALUE" style={{whiteSpace: 'nowrap', textAlign: 'center'}} >{unsafe(htmlutil.pValueToReadable(data.pValue))}</Td>
                 <Td column="DIRECTION" style={{textAlign: 'center'}}>
