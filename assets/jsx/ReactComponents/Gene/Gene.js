@@ -125,11 +125,24 @@ var Gene = React.createClass({
     download: function() {
         
         var form = document.getElementById('gn-gene-downloadform')
+        var databaseSelection = this.state.databaseSelection
+        var filtered = _.filter(this.state.prediction.pathways.predicted, function(pathway){
+            return pathway.term.database.toUpperCase() === databaseSelection
+        })
+        var predictions = _.map(filtered, function(pathway){      
+                            return {
+                                id: pathway.term.id,
+                                name: pathway.term.name,
+                                pValue: pathway.pValue,
+                                direction: 'direction',
+                                annotated: pathway.annotated
+                            }
+                        })
+        form['predictions'].value = JSON.stringify(predictions)
         form.submit()
     },
     
     render: function() {
-        
         var content = null
         var contentTop = (
             <GeneHeader loading={true} />
@@ -146,6 +159,7 @@ var Gene = React.createClass({
         } else {
             
             var data = this.state.topMenuSelection == 'prediction' ? this.state.prediction : this.state.similar
+        
             if (data) {
                 var tableContent = null
                 if (this.state.topMenuSelection == 'prediction') {
@@ -178,6 +192,8 @@ var Gene = React.createClass({
                         <input type='hidden' id='geneId' name='geneId' value={data.gene.id} />
                         <input type='hidden' id='db' name='db' value={this.state.databaseSelection} />
                         <input type='hidden' id='what' name='what' value='geneprediction' />
+                        <input type='hidden' id='type' name='type' value={this.state.topMenuSelection} />
+                        <input type='hidden' id='predictions' name='predictions' value='' />
                         </form>
                         </div>
                 )

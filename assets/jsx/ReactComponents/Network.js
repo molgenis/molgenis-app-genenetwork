@@ -193,16 +193,16 @@ var network2js = function(network) {
     return js
 }
 
-var PredictedGenesRow = React.createClass({
+var PredictedGeneRow = React.createClass({
 
     propTypes: {
-        
         data: React.PropTypes.object.isRequired,
-        num: React.PropTypes.number
+        termId: React.PropTypes.string.isRequired,
+        num: React.PropTypes.number,
     },
     
     render: function() {
-
+        
         var data = this.props.data
         var desc = (data.gene.description || 'no description').replace(/\[[^\]]+\]/g, '')
         
@@ -210,7 +210,7 @@ var PredictedGenesRow = React.createClass({
                  <td className='text'>
                  <Link className='nodecoration black' target='_blank' title={desc} to={`/gene/${data.gene.id}`}>
                  <SVGCollection.Rectangle className='tablerectangle' title={data.gene.biotype.replace(/_/g, ' ')} fill={color.biotype2color[data.gene.biotype] || color.colors.gnblack} />
-                 {data.gene.name}
+                 <span>{data.gene.name}</span>
                  </Link>
                  </td>
                  <td className='text'>
@@ -218,11 +218,11 @@ var PredictedGenesRow = React.createClass({
                  <span>{desc}</span>
                  </Link>
                  </td>
-                 <td style={{textAlign: 'center'}}>TBA</td>
-                 <td style={{textAlign: 'center'}}>TBA</td>
-                 <td style={{textAlign: 'center'}}><SVGCollection.Annotated /></td>
+                 <td style={{textAlign: 'center'}} dangerouslySetInnerHTML={{__html: htmlutil.pValueToReadable(data.pValue)}}></td>
+                 <td style={{textAlign: 'center'}}>{data.zScore > 0 ? <SVGCollection.TriangleUp className='directiontriangleup' /> : <SVGCollection.TriangleDown className='directiontriangledown' />}</td>
+                 <td style={{textAlign: 'center'}}>{data.annotated ? <SVGCollection.Annotated /> : <SVGCollection.NotAnnotated />}</td>
                  <td style={{textAlign: 'center'}}>
-                 <a title={'Open network highlighting ' + data.gene.name} href={GN.urls.networkPage + '0!' + data.gene.name + '|' + this.props.termId + ',0!' + data.gene.name} target='_blank'>
+                 <a title={'Open network ' + (data.annotated ? 'highlighting ' : 'with ') + data.gene.name} href={GN.urls.networkPage + '0!' + data.gene.name + '|' + this.props.termId + ',0!' + data.gene.name} target='_blank'>
                  <SVGCollection.NetworkIcon />
                  </a>
                  </td>
@@ -236,7 +236,7 @@ var GeneTable = React.createClass({
     render: function() {
         var that = this
         var rows = _.map(this.props.genes, function(data, i) {
-                return (<PredictedGenesRow key={data.gene.id} data={data} num={i} />)
+                return (<PredictedGeneRow key={data.gene.id} data={data} num={i} />)
             })
         return (
             <div>
@@ -494,29 +494,52 @@ var Network = React.createClass({
     
     changeThreshold: function(n) {
 
-        //remove timeout, set state at end
-        this.setState(function(previousState) { return {
-            threshold: previousState.threshold + n,
-            previousThreshold: previousState.threshold
-        }})
+        var previousThreshold = this.state.threshold
+        var currentThreshold = this.state.threshold + n
 
-        setTimeout(function(){
-            var threshold = this.state.threshold
-            var previousThreshold = this.state.previousThreshold
-            if (n < 0){
-                // add edges
-                // todo: change data into [state.selectedtissue] to enable threshold changing for tissue-specific networks
-                // TODO: fix: high threshold does not remove all edges
-                var edgesToBeAdded = _.filter(this.state.data.elements.allEdges, function(edge){return _.inRange(Math.abs(edge.data.weight), threshold, previousThreshold)})
-                _.forEach(edgesToBeAdded, function(edge){this.state.data.elements.edges.push(edge)}.bind(this))
-                this.state.network.addEdges(edgesToBeAdded)
-            } else {
-                // remove edges
-                var edgesToBeRemoved = _.filter(this.state.data.elements.edges, function(edge){return _.inRange(Math.abs(edge.data.weight), threshold, previousThreshold)})
-                _.forEach(edgesToBeRemoved, function(edge){this.state.data.elements.edges.splice(this.state.data.elements.edges.indexOf(edge),1)}.bind(this))
-                this.state.network.removeEdges(edgesToBeRemoved)
-            }
-        }.bind(this), 10)
+        // console.log(previousThreshold, currentThreshold)
+
+        this.setState({
+            threshold: currentThreshold,
+        })
+
+        // setTimeout(function(){
+            // var threshold = this.state.threshold
+            // var previousThreshold = this.state.previousThreshold
+        if (n < 0){
+            // add edges
+            // todo: change data into [state.selectedtissue] to enable threshold changing for tissue-specific networks
+            // TODO: fix: high threshold does not remove all edges
+            
+            var edgesToBeAdded = _.filter(this.state.data.elements.allEdges, function(edge){return _.inRange(Math.abs(edge.data.weight), currentThreshold, previousThreshold)})
+            
+            // console.log('edgesBeforeAdding')
+            // console.log(this.state.data.elements.edges.length)
+            // console.log('edgesToBeAdded')
+            // console.log(edgesToBeAdded.length)
+
+            _.forEach(edgesToBeAdded, function(edge){this.state.data.elements.edges.push(edge)}.bind(this))
+            this.state.network.addEdges(edgesToBeAdded)
+
+            // console.log('edgesAfterAdding')
+            // console.log(this.state.data.elements.edges.length)
+
+        } else {
+            // remove edges
+            var edgesToBeRemoved = _.filter(this.state.data.elements.edges, function(edge){return _.inRange(Math.abs(edge.data.weight), currentThreshold, previousThreshold)})
+            
+            // console.log('edgesBeforeRemoving')
+            // console.log(this.state.data.elements.edges.length)
+            // console.log('edgesToBeRemoved')
+            // console.log(edgesToBeRemoved.length)
+            _.forEach(edgesToBeRemoved, function(edge){this.state.data.elements.edges.splice(this.state.data.elements.edges.indexOf(edge),1)}.bind(this))
+            this.state.network.removeEdges(edgesToBeRemoved)
+            // console.log('edgesAfterRemoving')
+            // console.log(this.state.data.elements.edges.length)
+        }
+        // }.bind(this), 10)
+
+        
     },
     
     handleColoring: function(type) {
@@ -780,7 +803,7 @@ var Network = React.createClass({
             )
         } else {
             pageTitle = this.state.data.elements.nodes.length + ' genes' + GN.pageTitleSuffix
-
+            
             var genes = (
                     <div>
                         <GeneTable genes={this.state.predictedGenes}/>
@@ -835,6 +858,7 @@ var Network = React.createClass({
                     <form id='gn-network-groupform' method='post' encType='multipart/form-data' action={GN.urls.tabdelim}>
                     <input type='hidden' id='genes' name='genes' value='' />
                     <input type='hidden' id='groups' name='groups' value='' />
+                    <input type='hidden' id='edges' name='edges' value='e' />
                     <input type='hidden' id='what' name='what' value='groups' />
                     </form>
                     

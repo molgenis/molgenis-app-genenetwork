@@ -91,8 +91,7 @@ module.exports = function(req, res) {
         rows.push('#')
         rows.push('# Number of genes: ' + geneIds.length)
         rows.push('#')
-        rows.push('gene_id\tgene_name\tcluster')
-        
+        rows.push('gene_id\tgene_name\tcluster')       
         var genesIncluded = false
         _.forEach(groups, function(group) {
             if (group.type === 'cluster') {
@@ -139,30 +138,48 @@ module.exports = function(req, res) {
     } else if (req.body.what === 'geneprediction' && req.body.geneId && req.body.db) {
 
         var geneName = genedesc.get(req.body.geneId) && genedesc.get(req.body.geneId).name
-
-        var tissues = req.body.tissues.split(',')
-        var avg = req.body.avg.split(',')
-        var stdev = req.body.stdev.split(',')
-        var auc = req.body.auc.split(',')
-        var z = req.body.z.split(',')
-
-
         var rows = []
         rows.push('# ' + sails.config.version.comment())
-        rows.push('#')
-        rows.push('# Gene function predictions')
-        rows.push('# Downloaded ' + new Date().yyyymmdd())
-        rows.push('#')
-        rows.push('# Gene name: ' + geneName)
-        rows.push('# Gene id: ' + req.body.geneId)
-        rows.push('# Database: ' + req.body.db)
-        rows.push('#')
-        rows.push('term_id\term_name\tp-value\tdirection\tannotated')
 
-        rows.push('\ntissue\taverage\tstandard deviation\tauc\tz-score')
-        for (var i = 0; i < tissues.length; i++){
-            rows.push(tissues[i].toLowerCase() + '\t' + avg[i] + '\t' + stdev[i] + '\t' + auc[i] + '\t' + z[i])
+        if (req.body.type === 'prediction'){
+            var predictions = JSON.parse(req.body.predictions)   
+            rows.push('#')
+            rows.push('# Gene function predictions')
+            rows.push('# Downloaded ' + new Date().yyyymmdd())
+            rows.push('#')
+            rows.push('# Gene name: ' + geneName)
+            rows.push('# Gene id: ' + req.body.geneId)
+            rows.push('# Database: ' + req.body.db)
+            rows.push('#')
+            rows.push('term_id\tterm_name\tp-value\tdirection\tannotated')
+            for (var i = 0; i < predictions.length; i++) {
+                rows.push(predictions[i].id + '\t' + predictions[i].name + '\t' + predictions[i].pValue + '\t' + predictions[i].direction + '\t' + predictions[i].annotated)
+            }
+        } else if (req.body.type == 'similar'){
+            rows.push('#')
+            rows.push('# Co-regulated genes')
+            rows.push('# Downloaded ' + new Date().yyyymmdd())
+            rows.push('#')
+            rows.push('# Gene name: ' + geneName)
+            rows.push('# Gene id: ' + req.body.geneId)
+            rows.push('#')
+            rows.push('gene\tdescription\tp-value')
+        } else {
+            rows.push('#')
+            rows.push('Tissue-specific expression')
+            rows.push('# Downloaded ' + new Date().yyyymmdd())
+            rows.push('#')
+            rows.push('# Gene name: ' + geneName)
+            rows.push('# Gene id: ' + req.body.geneId)
+            rows.push('#')
+            rows.push('tissue\tsamples\tp-value')
         }
+
+        // rows.push(data)
+        // rows.push('\ntissue\taverage\tstandard deviation\tauc\tz-score')
+        // for (var i = 0; i < tissues.length; i++){
+        //     rows.push(tissues[i].toLowerCase() + '\t' + avg[i] + '\t' + stdev[i] + '\t' + auc[i] + '\t' + z[i])
+        // }
         res.setHeader('Content-disposition', 'attachment; filename=GeneNetwork-' + geneName + '-' + req.body.db + '.txt')
         res.setHeader('Content-type', 'text/plain')
         res.charset = 'UTF-8'
