@@ -390,7 +390,6 @@ var Network = React.createClass({
             this.state.network.draw(data)
             this.state.network.colorBy(coloring)
         }.bind(this), 10)
-        console.log(this.state.data.elements)
         callback(null)
     },
 
@@ -492,54 +491,24 @@ var Network = React.createClass({
         }
     },
     
-    changeThreshold: function(n) {
-
+    updateThreshold: function(n) {
         var previousThreshold = this.state.threshold
         var currentThreshold = this.state.threshold + n
-
-        // console.log(previousThreshold, currentThreshold)
 
         this.setState({
             threshold: currentThreshold,
         })
 
-        // setTimeout(function(){
-            // var threshold = this.state.threshold
-            // var previousThreshold = this.state.previousThreshold
         if (n < 0){
             // add edges
-            // todo: change data into [state.selectedtissue] to enable threshold changing for tissue-specific networks
-            // TODO: fix: high threshold does not remove all edges
-            
+            // TODO: change data into [state.selectedtissue] to enable threshold changing for tissue-specific networks
             var edgesToBeAdded = _.filter(this.state.data.elements.allEdges, function(edge){return _.inRange(Math.abs(edge.data.weight), currentThreshold, previousThreshold)})
-            
-            // console.log('edgesBeforeAdding')
-            // console.log(this.state.data.elements.edges.length)
-            // console.log('edgesToBeAdded')
-            // console.log(edgesToBeAdded.length)
-
-            _.forEach(edgesToBeAdded, function(edge){this.state.data.elements.edges.push(edge)}.bind(this))
             this.state.network.addEdges(edgesToBeAdded)
-
-            // console.log('edgesAfterAdding')
-            // console.log(this.state.data.elements.edges.length)
-
         } else {
             // remove edges
             var edgesToBeRemoved = _.filter(this.state.data.elements.edges, function(edge){return _.inRange(Math.abs(edge.data.weight), currentThreshold, previousThreshold)})
-            
-            // console.log('edgesBeforeRemoving')
-            // console.log(this.state.data.elements.edges.length)
-            // console.log('edgesToBeRemoved')
-            // console.log(edgesToBeRemoved.length)
-            _.forEach(edgesToBeRemoved, function(edge){this.state.data.elements.edges.splice(this.state.data.elements.edges.indexOf(edge),1)}.bind(this))
             this.state.network.removeEdges(edgesToBeRemoved)
-            // console.log('edgesAfterRemoving')
-            // console.log(this.state.data.elements.edges.length)
-        }
-        // }.bind(this), 10)
-
-        
+        }        
     },
     
     handleColoring: function(type) {
@@ -812,7 +781,7 @@ var Network = React.createClass({
             var network = (
                 <div id='network' className='gn-network flex10' style={{position: 'relative', backgroundColor: color.colors.gnwhite}}>
                         <NetworkControlPanel download={this.download} onSelectionModeChange={this.onSelectionModeChange} selectionMode={this.state.selectionMode} isZoomedMax={this.state.isZoomedMax} isZoomedMin={this.state.isZoomedMin} onZoom={this.onZoom} />  
-                        <EdgeLegend threshold={this.state.threshold} edgeValueScales={this.state.data.edgeValueScales} edgeColorScales={this.state.data.edgeColorScales} onMouseOver={this.handleEdgeHover} hoverEdge={this.state.hoverEdge} onClick={this.changeThreshold} />
+                        <EdgeLegend threshold={this.state.threshold} edgeValueScales={this.state.data.edgeValueScales} edgeColorScales={this.state.data.edgeColorScales} onMouseOver={this.handleEdgeHover} hoverEdge={this.state.hoverEdge} onClick={this.updateThreshold} />
                         
                     {this.state.selectedEdge ?
                      (<EdgePanel edge={this.state.selectedEdge} />)
