@@ -616,7 +616,7 @@ var Diagnosis = React.createClass({
     
     console.log(document.getElementById('phenTab')) */}
 
-    console.log(this.state)
+    // console.log(this.state)
 
     var thisThese = this.state.data.terms.length == 1 ? 'this ' : 'these '
     var phenotypePhenotypes = this.state.data.terms.length == 1 ? ' phenotype:' : ' phenotypes:'

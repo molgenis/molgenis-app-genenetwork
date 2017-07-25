@@ -139,11 +139,11 @@ module.exports = function(req, res) {
             for (var i = 0; i < termsNotFound.length; i++){
                 downloadinfo.push('# ' + termsNotFound[i])
             }
-            downloadinfo.push('#\n')
+            downloadinfo.push('#')
         } else {
-            downloadinfo.push('#\n')
+            downloadinfo.push('#')
         }
-        downloadinfo.push('Name\tID\tRank\tOmimURL\tGeneCardsURL\tPubmedUrl\tWeightedZscore')
+        downloadinfo.push('Name\tID\tRank\tOmimURL\tGeneCardsURL\tPubmedUrl\tWeightedZscore\n')
 
         fs.writeFile(filename, downloadinfo.join('\n'), function(err){
             if (err){
@@ -161,9 +161,9 @@ module.exports = function(req, res) {
                 r.results[i].gene.name + '\t' + //name
                 r.results[i].gene.id + '\t' + //id
                 parseInt(i+1) + '\t' + //rank
-                (mim2gene.get(r.results[i].gene.name) !== undefined ? 'http://omim.org/entry/' + mim2gene.get(r.results[i].gene.name) : '') + '\t=hyperlink(D'+ parseInt(linesTop + i) +')' + '\t' + //omimURL
-                'http://www.genecards.org/cgi-bin/carddisp.pl?gene=' + r.results[i].gene.name + '\t=hyperlink(E' + parseInt(linesTop + i)+ ')' + '\t' + //genecardsURL
-                'https://www.ncbi.nlm.nih.gov/pubmed/?term=' + r.results[i].gene.name + '\t=hyperlink(F' + parseInt(linesTop + i) + ')' + '\t' + //pubmedURL
+                (mim2gene.get(r.results[i].gene.name) !== undefined ? 'http://omim.org/entry/' + mim2gene.get(r.results[i].gene.name) : '') + '\t=hyperlink(D'+ parseInt(linesTop + i+1) +')' + '\t' + //omimURL
+                'http://www.genecards.org/cgi-bin/carddisp.pl?gene=' + r.results[i].gene.name + '\t=hyperlink(E' + parseInt(linesTop + i+1)+ ')' + '\t' + //genecardsURL
+                'https://www.ncbi.nlm.nih.gov/pubmed/?term=' + r.results[i].gene.name + '\t=hyperlink(F' + parseInt(linesTop + i+1) + ')' + '\t' + //pubmedURL
                 r.results[i].weightedZScore //weightedZscore
             )
             // downloadcontent.push({
