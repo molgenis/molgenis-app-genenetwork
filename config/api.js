@@ -1,7 +1,7 @@
 module.exports.api = {
 
     maxNumEntries: 100, // how many entries to return at max (genes/pathways), overrides other limits
-    prioritizationMaxNumEntries: 100, // max for /prioritization
+    prioritizationMaxNumEntries: 100, //56439 // max for /prioritization
     maxNumGenesCofunction: 1000, // calculate cofunctionality for how many given genes at max
 
     numPathwaysLimit: 20, // how many pathways to give by default when no specific db given

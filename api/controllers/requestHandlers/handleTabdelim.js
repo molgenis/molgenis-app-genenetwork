@@ -156,6 +156,7 @@ module.exports = function(req, res) {
                 rows.push(predictions[i].id + '\t' + predictions[i].name + '\t' + predictions[i].pValue + '\t' + predictions[i].direction + '\t' + predictions[i].annotated)
             }
         } else if (req.body.type == 'similar'){
+            var similargenes = JSON.parse(req.body.similargenes)
             rows.push('#')
             rows.push('# Co-regulated genes')
             rows.push('# Downloaded ' + new Date().yyyymmdd())
@@ -163,23 +164,24 @@ module.exports = function(req, res) {
             rows.push('# Gene name: ' + geneName)
             rows.push('# Gene id: ' + req.body.geneId)
             rows.push('#')
-            rows.push('gene\tdescription\tp-value')
+            rows.push('gene_id\tgene_name\tp-value')
+            for (var i = 0; i < similargenes.length; i++){
+                rows.push(similargenes[i].id + '\t' + similargenes[i].name + '\t' + similargenes[i].pValue)
+            }
         } else {
+            var tissues = JSON.parse(req.body.tissues)
             rows.push('#')
-            rows.push('Tissue-specific expression')
+            rows.push('# Tissue-specific expression')
             rows.push('# Downloaded ' + new Date().yyyymmdd())
             rows.push('#')
             rows.push('# Gene name: ' + geneName)
             rows.push('# Gene id: ' + req.body.geneId)
             rows.push('#')
-            rows.push('tissue\tsamples\tp-value')
+            rows.push('tissue\tsamples\tavg\tauc')
+            for (var i = 0; i < tissues.length; i++){
+                rows.push(tissues[i].tissue + '\t' + tissues[i].samples + '\t' + tissues[i].avg + '\t' + tissues[i].auc)
+            }
         }
-
-        // rows.push(data)
-        // rows.push('\ntissue\taverage\tstandard deviation\tauc\tz-score')
-        // for (var i = 0; i < tissues.length; i++){
-        //     rows.push(tissues[i].toLowerCase() + '\t' + avg[i] + '\t' + stdev[i] + '\t' + auc[i] + '\t' + z[i])
-        // }
         res.setHeader('Content-disposition', 'attachment; filename=GeneNetwork-' + geneName + '-' + req.body.db + '.txt')
         res.setHeader('Content-type', 'text/plain')
         res.charset = 'UTF-8'
@@ -187,50 +189,6 @@ module.exports = function(req, res) {
 
         return res.end()
         
-    } else if (req.body.what === 'diagnosis') {
-        // var diagnosis = JSON.parse(req.body.diagnosis)
-        // var terms = JSON.parse(req.body.terms)
-        // var termsNotFound = JSON.parse(req.body.termsNotFound)
-        rows = []
-        rows.push('#')
-        rows.push('# Diagnosis')
-        rows.push('# Downloaded ' + new Date().yyyymmdd())
-        rows.push('#')
-        rows.push('# HPO terms used:')
-        // for (var i = 0; i < terms.length; i++){
-        //     rows.push('# ' + terms[i].name + ' (' + terms[i].id + ')')
-        // }
-        // if (termsNotFound.length != 0){
-        //     rows.push('#')
-        //     rows.push('# HPO terms not found:')
-        //     for (var i = 0; i < termsNotFound.length; i++){
-        //         rows.push('# ' + termsNotFound[i].name + ' (' + termsNotFound[i].id + ')')
-        //     } 
-        // }
-
-        // rows.push('#')
-        // rows.push('id\tname\tweightedZscore')
-        // for (var i = 0; i < diagnosis.length; i++) {
-        //     rows.push(
-        //         diagnosis[i].name + '\t' + 
-        //         diagnosis[i].id + '\t' + 
-        //         diagnosis[i].rank + '\t' + 
-        //         diagnosis[i].omimUrl + '\t' +
-        //         // TODO: add hyperlinkUrl
-        //         diagnosis[i].genecardsUrl + '\t' +
-        //         diagnosis[i].pubmedUrl + '\t' +
-        //         diagnosis[i].weightedZScore
-        //     )
-        // }
-
-        // TODO: add HPO terms to header
-        res.setHeader('Content-disposition', 'attachment; filename=GeneNetwork-diagnosis.txt')
-        res.setHeader('Content-type', 'text/plain')
-        res.charset = 'UTF-8'
-        res.write(rows.join('\n'))
-
-        return res.end()
-
     } else {
         
         return res.badRequest()

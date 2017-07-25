@@ -5104,7 +5104,27 @@ var Gene = React.createClass({displayName: "Gene",
                                 annotated: pathway.annotated
                             }
                         })
+        var similargenes = _.map(this.state.similar.data, function(item){
+            return {
+                id: item.gene.id,
+                name: item.gene.name,
+                pValue: item.pValue
+            }
+        })
+        var indices = this.state.celltypes.fixed.indices
+        var avg = this.state.celltypes.values.avg
+        var auc = this.state.celltypes.values.auc
+        var tissues = _.map(this.state.celltypes.fixed.header, function(item){
+            return {
+                tissue: item.name,
+                samples: item.numSamples,
+                avg: avg[indices[item.name]],
+                auc: auc[indices[item.name]]
+            }
+        })
         form['predictions'].value = JSON.stringify(predictions)
+        form['similargenes'].value = JSON.stringify(similargenes)
+        form['tissues'].value = JSON.stringify(tissues)
         form.submit()
     },
     
@@ -5159,7 +5179,9 @@ var Gene = React.createClass({displayName: "Gene",
                         React.createElement("input", {type: "hidden", id: "db", name: "db", value: this.state.databaseSelection}), 
                         React.createElement("input", {type: "hidden", id: "what", name: "what", value: "geneprediction"}), 
                         React.createElement("input", {type: "hidden", id: "type", name: "type", value: this.state.topMenuSelection}), 
-                        React.createElement("input", {type: "hidden", id: "predictions", name: "predictions", value: ""})
+                        React.createElement("input", {type: "hidden", id: "predictions", name: "predictions", value: ""}), 
+                        React.createElement("input", {type: "hidden", id: "similargenes", name: "similargenes", value: ""}), 
+                        React.createElement("input", {type: "hidden", id: "tissues", name: "tissues", value: ""})
                         )
                         )
                 )

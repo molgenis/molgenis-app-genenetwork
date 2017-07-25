@@ -8,7 +8,8 @@ module.exports = {
 
     genesToTranscripts: '/data/genenetwork/files/genesToTranscripts.txt',
     transcriptMappingFile: 'xxx',
-    
+    mim2gene: '/data/genenetwork/files/new/mim2gene.txt',
+
     geneDescFile: '/data/genenetwork/files/new/ENSGToGeneNameHGNCBiotypeChromosomeStartStopStrandAndDescriptionV83FilteredNonChromosomesRemovedDuplicateTranscriptsRemoved.txt',
     geneDBPath: '/data/genenetwork/level/new/dbgenes_uint16be',
     pathwayDBPath: '/data/genenetwork/level/new/dbexternal_uint16be',
@@ -28,6 +29,7 @@ module.exports = {
     networkShortURLDBPath: '/data/genenetwork/level/new/dbnetworkurls',
 
     svgUploadDir: '/data/genenetwork/uploads/svg/',
+    diagnosisUploadDir: '/data/genenetwork/uploads/diagnosis/',
     networkFontFamily: 'Geogrotesque Lg',
     networkFontFile: 'assets/fonts/Geogtq-Lg.svg',
 
