@@ -3,6 +3,7 @@ var elasticsearch = require('elasticsearch')
 var request = require('request')
 var level = require('level')
 var dbutil = require('./utils/dbutil')
+var mim2gene = require('./utils/mim2gene')
 
 var handleGene = require('./requestHandlers/handleGene')
 var handleTranscript = require('./requestHandlers/handleTranscript')
@@ -14,6 +15,7 @@ var handlePrioritization = require('./requestHandlers/handlePrioritization')
 var handleGeneScores = require('./requestHandlers/handleGeneScores')
 var handleSVG2PDF = require('./requestHandlers/handleSVG2PDF')
 var handleTabdelim = require('./requestHandlers/handleTabdelim')
+var handleDiagnosisResults = require('./requestHandlers/handleDiagnosisResults')
 //var handleSVG2PDF = require('./requestHandlers/handleUpload')
 var handleEigentest = require('./requestHandlers/handleEigentest')
 //var handlePC = require('./requestHandlers/handlePC')
@@ -114,6 +116,15 @@ module.exports = {
             res.serverError()
         }
 //        handleSVG2PDF.upload(req, res)
+    },
+
+    diagnosisResults: function(req, res) {
+        try {
+            handleDiagnosisResults(req, res)
+        } catch (e) {
+            sails.log.error(e)
+            res.serverError()
+        }
     },
 
     tabdelim: function(req, res) {

@@ -69,6 +69,7 @@ GN.urls = {
     networkPage: DOMAIN + '/network/',
 
     svg2pdf: DOMAIN + '/api/v1/svg2pdf',
+    diagnosisResults: DOMAIN + '/api/v1/diagnosisResults',
     tabdelim: DOMAIN + '/api/v1/tabdelim',
     
     diagnosisVCF: DOMAIN + '/api/v1/vcf',

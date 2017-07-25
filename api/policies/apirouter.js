@@ -38,7 +38,6 @@ module.exports = function(req, res, next) {
             }
             break
     }
-    sails.log.debug(action)
     if (!res.headersSent) {
         if (sails.controllers['api'][action]) {
             return sails.controllers['api'][action](req, res)

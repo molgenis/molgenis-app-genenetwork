@@ -94,17 +94,51 @@ var NetworkButton = React.createClass({
 
 var DownloadButton = React.createClass({
 
+    download: function(){
+        var form = document.getElementById('gn-diagnosis-downloadform')
+        // var terms = _.map(this.props.terms, function(item){
+        //     return {
+        //         name: item.term.name,
+        //         id: item.term.id
+        //     }
+        // })
+        // var termsNotFound = _.map(this.props.termsNotFound, function(item){
+        // return {
+        //         name: item.term.name,
+        //         id: item.term.id
+        //     }
+        // })
+
+        // form['diagnosis'].value = JSON.stringify(this.props.downloadInfo.slice(0, 5000))
+        // form['terms'].value = JSON.stringify(terms)
+        // form['termsNotFound'].value = JSON.stringify(termsNotFound)
+        form.submit()
+    },
+
     render: function() {
 
-        var subTable = this.props.prioFiltered
+        // var subTable = this.props.prioFiltered
 
-        if (subTable) {
-            // download filtered data
-        } else {
-            // download unfiltered data       
-        }
+        // if (subTable) {
+        //     // download filtered data
+        // } else {
+        //     // download unfiltered data       
+        // }
 
-        return(<span className='button clickable noselect'>DOWNLOAD RESULTS</span>)
+ /* <input type='hidden' id='geneId' name='geneId' value={data.gene.id} />
+             <input type='hidden' id='db' name='db' value={this.state.databaseSelection} />
+             <input type='hidden' id='what' name='what' value='geneprediction' />
+             <input type='hidden' id='type' name='type' value={this.state.topMenuSelection} />*/
+
+        return(
+            <div>
+               <form id='gn-diagnosis-downloadform' method='post' encType='multipart/form-data' action={GN.urls.diagnosisResults}>
+                <input type='hidden' id='filename' name='filename' value={this.props.filename} /> 
+                <input type='hidden' id='terms' name='terms' value={this.props.terms} /> 
+                <span className='button clickable noselect' onClick={this.download}>DOWNLOAD RESULTS</span>
+                </form>
+            </div>
+        )
     }
 })
 
@@ -167,7 +201,6 @@ var ShowPhenotypes3 = React.createClass({
 var GeneTable = React.createClass({
 
     render: function() {
-
 
         var subTable = this.props.prioFiltered
 
@@ -580,8 +613,10 @@ var Diagnosis = React.createClass({
         console.log('height')
         console.log(tableHeight)
     }}
-
+    
     console.log(document.getElementById('phenTab')) */}
+
+    console.log(this.state)
 
     var thisThese = this.state.data.terms.length == 1 ? 'this ' : 'these '
     var phenotypePhenotypes = this.state.data.terms.length == 1 ? ' phenotype:' : ' phenotypes:'
@@ -610,7 +645,8 @@ var Diagnosis = React.createClass({
 
           <div><p></p>
           <NetworkButton prio={this.state.data} prioFiltered={this.state.newTable} />
-          <DownloadButton prio={this.state.data} prioFiltered={this.state.newTable} />
+          <DownloadButton prio={this.state.data} prioFiltered={this.state.newTable} filename={this.state.data.filename} terms={this.props.params.id} />
+          <div>Warning: currently only the first 1000 genes are available for downloading. Under construction.</div>
           <p></p></div>
 
 {/*, width: "70%"*/}

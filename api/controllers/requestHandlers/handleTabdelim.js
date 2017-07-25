@@ -187,6 +187,50 @@ module.exports = function(req, res) {
 
         return res.end()
         
+    } else if (req.body.what === 'diagnosis') {
+        // var diagnosis = JSON.parse(req.body.diagnosis)
+        // var terms = JSON.parse(req.body.terms)
+        // var termsNotFound = JSON.parse(req.body.termsNotFound)
+        rows = []
+        rows.push('#')
+        rows.push('# Diagnosis')
+        rows.push('# Downloaded ' + new Date().yyyymmdd())
+        rows.push('#')
+        rows.push('# HPO terms used:')
+        // for (var i = 0; i < terms.length; i++){
+        //     rows.push('# ' + terms[i].name + ' (' + terms[i].id + ')')
+        // }
+        // if (termsNotFound.length != 0){
+        //     rows.push('#')
+        //     rows.push('# HPO terms not found:')
+        //     for (var i = 0; i < termsNotFound.length; i++){
+        //         rows.push('# ' + termsNotFound[i].name + ' (' + termsNotFound[i].id + ')')
+        //     } 
+        // }
+
+        // rows.push('#')
+        // rows.push('id\tname\tweightedZscore')
+        // for (var i = 0; i < diagnosis.length; i++) {
+        //     rows.push(
+        //         diagnosis[i].name + '\t' + 
+        //         diagnosis[i].id + '\t' + 
+        //         diagnosis[i].rank + '\t' + 
+        //         diagnosis[i].omimUrl + '\t' +
+        //         // TODO: add hyperlinkUrl
+        //         diagnosis[i].genecardsUrl + '\t' +
+        //         diagnosis[i].pubmedUrl + '\t' +
+        //         diagnosis[i].weightedZScore
+        //     )
+        // }
+
+        // TODO: add HPO terms to header
+        res.setHeader('Content-disposition', 'attachment; filename=GeneNetwork-diagnosis.txt')
+        res.setHeader('Content-type', 'text/plain')
+        res.charset = 'UTF-8'
+        res.write(rows.join('\n'))
+
+        return res.end()
+
     } else {
         
         return res.badRequest()

@@ -1,10 +1,22 @@
 var _ = require('lodash')
 var dbutil = require('../utils/dbutil')
+var mim2gene = require('../utils/mim2gene')
 var genedesc = require('../utils/genedesc')
 var quicksort = require('../utils/quicksort')
 var quicksortobj = require('../utils/quicksortobj')
 var cholesky = require('../../../stats/cholesky')
 var ziggurat = require('../../../stats/ziggurat')
+var crypto = require('crypto')
+var bs62 = require('base62')
+var json2csv = require('json2csv');
+var fs = require('fs')
+
+Date.prototype.yyyymmdd = function() {
+    var yyyy = this.getFullYear().toString()
+    var mm = (this.getMonth()+1).toString()
+    var dd  = this.getDate().toString()
+    return yyyy + '-' + (mm[1]?mm:"0"+mm[0]) + '-' + (dd[1]?dd:"0"+dd[0])
+}
 
 module.exports = function(req, res) {
 
@@ -105,6 +117,59 @@ module.exports = function(req, res) {
         r.results.reverse()
         sails.log.debug((new Date() - ts) + ' ms sorting')
 
+        // //create downloadable file
+        // var sha = crypto.createHash('sha1').update(termsQ.join()).digest('hex')
+        // var vanity = bs62.encode(parseInt(sha.substring(0, 8), 16))
+        // var filename = sails.config.diagnosisUploadDir + vanity + '.txt'
+        // r.filename = filename
+        // var downloadinfo = []
+
+        // downloadinfo.push('#')
+        // downloadinfo.push('# Diagnosis')
+        // downloadinfo.push('# Downloaded ' + new Date().yyyymmdd())
+        // downloadinfo.push('#')
+        // downloadinfo.push('# HPO terms used:')
+       
+        // for (var i = 0; i < r.terms.length; i++){
+        //     downloadinfo.push('# ' + r.terms[i].term.id + ' ' + r.terms[i].term.name)
+        // }
+
+        // if (r.termsNotFound.length != 0){
+        //     downloadinfo.push('# Terms not found: ')
+        //     for (var i = 0; i < termsNotFound.length; i++){
+        //         downloadinfo.push('# ' + r.termsNotFound[i])
+        //     }
+        //     downloadinfo.push('#\n')
+        // } else {
+        //     downloadinfo.push('#\n')
+        // }
+
+        // fs.writeFile(filename, downloadinfo.join('\n'), function(err){
+        //     if (err){
+        //         sails.log.debug(err)
+        //     }
+        // })
+
+        // downloadcontent = []
+        // for (var i = 0; i < r.results.length; i++){
+        //     downloadcontent.push({
+        //             name: r.results[i].gene.name,
+        //             id: r.results[i].gene.id,
+        //             rank: parseInt(i+1),
+        //             omimUrl: mim2gene[r.results[i].gene.name] !== undefined ? 'http://omim.org/entry/' + mim2gene[r.results[i].gene.name] : '',
+        //             genecardsUrl: 'http://www.genecards.org/cgi-bin/carddisp.pl?gene=' + r.results[i].gene.name,
+        //             pubmedUrl: 'https://www.ncbi.nlm.nih.gov/pubmed/?term=' + r.results[i].gene.name,
+        //             weightedZScore: r.results[i].weightedZScore,
+        //     })
+        // }
+
+        // fs.appendFile(filename, json2csv({data: downloadcontent, fieldNames: ['Name', 'ID', 'Rank', 'OmimURL', 'GeneCardsURL', 'PubmedURL', 'WeightedZscore'], del: '\t', quotes: ''}), function(err){
+        //     if (err){
+        //         sails.log.debug(err)
+        //     }
+        //     sails.log.info('diagnosis file written to ' + filename)
+        // })
+
         if (req.query.start) {
             if (req.query.start >= r.results.length) {
                 return res.send(400, {
@@ -114,6 +179,7 @@ module.exports = function(req, res) {
             }
             var start = Number(req.query.start)
             var stop = req.query.stop || start + sails.config.api.prioritizationMaxNumEntries
+            
             r.results = r.results.slice(start, Math.min(stop, start + sails.config.api.prioritizationMaxNumEntries))
         } else {
             r.results = r.results.slice(0, sails.config.api.prioritizationMaxNumEntries)
@@ -198,3 +264,5 @@ module.exports = function(req, res) {
         }
     })
 }
+
+
