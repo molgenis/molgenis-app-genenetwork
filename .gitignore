@@ -2,6 +2,7 @@
 .DS_STORE
 ._.DS_Store
 domain.js
+version.js
 data/
 node_modules/
 .tmp
