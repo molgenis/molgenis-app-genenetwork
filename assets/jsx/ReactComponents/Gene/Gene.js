@@ -126,10 +126,11 @@ var Gene = React.createClass({
         
         var form = document.getElementById('gn-gene-downloadform')
         var databaseSelection = this.state.databaseSelection
-        var filtered = _.filter(this.state.prediction.pathways.predicted, function(pathway){
+        var filteredPredictions = _.filter(this.state.prediction.pathways.predicted, function(pathway){
             return pathway.term.database.toUpperCase() === databaseSelection
         })
-        var predictions = _.map(filtered, function(pathway){      
+        console.log(filteredPredictions)
+        var predictions = _.map(filteredPredictions, function(pathway){      
                             return {
                                 id: pathway.term.id,
                                 name: pathway.term.name,
@@ -159,7 +160,7 @@ var Gene = React.createClass({
         form['predictions'].value = JSON.stringify(predictions)
         form['similargenes'].value = JSON.stringify(similargenes)
         form['tissues'].value = JSON.stringify(tissues)
-        form.submit()
+        // form.submit()
     },
     
     render: function() {

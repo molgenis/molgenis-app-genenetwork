@@ -161,24 +161,22 @@ var Term = React.createClass({
             dataType: 'json',
             
             success: function(data) {
-                
                 this.setState({
                     data: data,
                     error: null
                 })
-                
             }.bind(this),
             
             error: function(xhr, status, err) {
                 
-		console.error(xhr)
+		            console.error(xhr)
                 
                 if (err === 'Not Found') {
                     
                     this.setState({
                         data: null,
                         error: 'Term ' + props.params.termId + ' not found',
-			errorTitle: 'Error ' + xhr.status
+			                  errorTitle: 'Error ' + xhr.status
                     })
                     
                 } else {
@@ -186,7 +184,7 @@ var Term = React.createClass({
                     this.setState({
                         data: null,
                         error: 'Please try again later (' + xhr.status + ')',
-			errorTitle: 'Error ' + xhr.status
+			                  errorTitle: 'Error ' + xhr.status
                     })
                     
                 }
@@ -220,11 +218,15 @@ var Term = React.createClass({
     },
     
     render: function() {
+      console.log('PROPS')
+      console.log(this.props)
+      console.log('STATE')
+      console.log(this.state)
         
         if (this.state.error) {
             
             return (
-		    <DocumentTitle title={this.state.errorTitle + GN.pageTitleSuffix}>
+		            <DocumentTitle title={this.state.errorTitle + GN.pageTitleSuffix}>
                     <div className='flex10'>
                     <div className='gn-term-description-outer' style={{backgroundColor: color.colors.gnwhite, padding: '20px'}}>
                     <div className='gn-term-description-inner hflex flexcenter maxwidth'>
@@ -242,39 +244,44 @@ var Term = React.createClass({
         } else if (this.state.data) {
             
             var data = this.state.data
+            console.log(this.state)
             
             return (
-		    <DocumentTitle title={data.pathway.name + GN.pageTitleSuffix}>
+		            <DocumentTitle title={data.pathway.name + GN.pageTitleSuffix}>
                     <div className='flex10'>
-                    <div className='gn-term-description-outer' style={{backgroundColor: color.colors.gnwhite, padding: '20px'}}>
-                    <div className='gn-term-description-inner hflex flexcenter maxwidth'>
-                    <div className='gn-term-description-name'>
-                    <span style={{fontWeight: 'bold', fontFamily: 'GG', fontSize: '1.5em'}}>{data.pathway.database}: {data.pathway.name}</span>
-                    </div>
-                    <div className='flex11' />
-                    <div className='gn-term-description-stats' style={{textAlign: 'right'}}>
-                    <span>{data.pathway.numAnnotatedGenes} annotated genes</span><br/>
-                    <span>Prediction accuracy {(Math.round(100 * data.pathway.auc) / 100).toPrecision(2)}</span><br/>
-                    </div>
-                    <div className='gn-term-description-networkbutton flexend' style={{padding: '0 0 3px 10px'}}>
-                    <a className='clickable button noselect' title={'Open network: ' + data.pathway.name} href={GN.urls.networkPage + data.pathway.id} target='_blank'>
-                    OPEN NETWORK</a>
-                    </div>
-                    </div>
+                      <div className='gn-term-description-outer' style={{backgroundColor: color.colors.gnwhite, padding: '20px'}}>
+                        <div className='gn-term-description-inner hflex flexcenter maxwidth'>
+                          <div className='gn-term-description-name'>
+                          <span style={{fontWeight: 'bold', fontFamily: 'GG', fontSize: '1.5em'}}>{data.pathway.database}: {data.pathway.name}</span>
+                        </div>
+                        <div className='flex11' />
+                          <div className='gn-term-description-stats' style={{textAlign: 'right'}}>
+                            <span>{data.pathway.numAnnotatedGenes} annotated genes</span><br/>
+                            <span>Prediction accuracy {(Math.round(100 * data.pathway.auc) / 100).toPrecision(2)}</span><br/>
+                          </div>
+                        <div className='gn-term-description-networkbutton flexend' style={{padding: '0 0 3px 10px'}}>
+                          <a className='clickable button noselect' title={'Open network: ' + data.pathway.name} href={GN.urls.networkPage + data.pathway.id} target='_blank'>
+                          OPEN NETWORK</a>
+                        </div>
+                        </div>
                     </div>
                     <div className='gn-term-container-outer' style={{backgroundColor: color.colors.gnwhite, marginTop: '10px'}}>
-                    <div className='gn-term-container-inner maxwidth' style={{padding: '20px'}}>
-                    <div className='gn-term-menu noselect' style={{paddingBottom: '20px'}}>
-                    <span style={{cursor: 'default', paddingRight: '10px'}}>SHOW</span>
-                    <div className={(this.state.listType == 'prediction') ? 'clickable button selectedbutton' : 'clickable button'}
-                onClick={this.onListTypeClick.bind(null, 'prediction')}>
-                    PREDICTED GENES</div>
-                    <div className={(this.state.listType == 'annotation') ? 'clickable button selectedbutton' : 'clickable button'}
-                onClick={this.onListTypeClick.bind(null, 'annotation')}>
-                    ANNOTATED GENES</div>
-                    </div>
-                    <GeneTable data={data} listType={this.state.listType} />
-                    <DownloadPanel onClick={this.download} text='DOWNLOAD PREDICTIONS' />
+                      <div className='gn-term-container-inner maxwidth' style={{padding: '20px'}}>
+                        <div className='gn-term-menu noselect' style={{paddingBottom: '20px'}}>
+                          <span style={{cursor: 'default', paddingRight: '10px'}}>SHOW</span>
+                          
+                              <div className={(this.state.listType == 'prediction') ? 'clickable button selectedbutton' : 'clickable button'}
+                              onClick={this.onListTypeClick.bind(null, 'prediction')}>
+                                PREDICTED GENES</div>
+                                <div className={(this.state.listType == 'annotation') ? 'clickable button selectedbutton' : 'clickable button'}
+                                onClick={this.onListTypeClick.bind(null, 'annotation')}>
+                                ANNOTATED GENES</div>
+
+                         </div>
+
+                        <GeneTable data={data} listType={this.state.listType} />
+                        <DownloadPanel onClick={this.download} text='DOWNLOAD PREDICTIONS' />
+   
                     </div>
                     </div>
                     <form id='gn-term-downloadform' method='post' encType='multipart/form-data' action={GN.urls.tabdelim}>
@@ -287,7 +294,7 @@ var Term = React.createClass({
             )
         } else {
             return (
-		    <DocumentTitle title={'Loading' + GN.pageTitleSuffix}>
+		            <DocumentTitle title={'Loading' + GN.pageTitleSuffix}>
                     <div className='flex10'>
                     <div className='gn-term-description-outer' style={{backgroundColor: color.colors.gnwhite, padding: '20px'}}>
                     <div className='gn-term-description-inner hflex flexcenter maxwidth'>

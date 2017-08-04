@@ -103,6 +103,7 @@ module.exports = function(req, res) {
                 }
             }
         }
+        
         var sq = Math.sqrt(results.length)
         for (var i = 0; i < results.length; i++) {
             for (var j = 0; j < results[i].length; j++) {

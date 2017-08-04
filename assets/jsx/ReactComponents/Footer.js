@@ -11,17 +11,17 @@ var Footer = React.createClass({
                 University Medical Center Groningen</a>
                 </div>
                 <div className='flex01 hflex flexcenter flexwrap'>
-                <div>
+                <div style={{padding: '0 5px 0 5px'}}>
                 <a href='http://www.cleverfranke.com/cf/en/index.php' target='_blank'>
-                <img className='cleverfranke' title='CLEVER&deg;FRANKE' src={GN.urls.main + '/images/cleverfranke.png'} />
+                <img className='cleverfranke' title='CLEVER&deg;FRANKE' src={GN.urls.main + '/images/cleverfranke_small.png'} style={{height: '25px'}}/>
                 </a>
                 </div>
-                <div>
+                <div style={{padding: '0 5px 0 5px'}}>
                 <a href='https://www.rug.nl' target='_blank'>
                 <img className='rug' title='Rijksuniversiteit Groningen' src={GN.urls.main + '/images/rug_black.png'} />
                 </a>
                 </div>
-                <div>
+                <div style={{padding: '0 5px 0 5px'}}>
                 <a href='https://www.umcg.nl/EN' target='_blank'>
                 <img className='umcg' title='University Medical Center Groningen' src={GN.urls.main + '/images/umcg_black.png'} />
                 </a>

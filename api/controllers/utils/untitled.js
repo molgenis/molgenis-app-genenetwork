@@ -248,6 +248,7 @@ var getPredictions = function(buffer, dbname, options) {
                 }
             })
         }
+        
         //sails.log.debug((new Date() - ts) + ' ms reading ' + result.length + ' ' + dbname + ' z-scores')
     } else { // gene z scores
         for (var i = 1; i < buffer.length / 2; i++) {
@@ -809,7 +810,7 @@ exp.getPathwayJSON = function(pathway, req, callback) {
                     } else {
                         sails.log.debug('annotations read from db for ' + pathway.name)
                         r.genes.annotated = getAnnotations(data, null, {
-                            verbose: req.query.verbose
+                            verbose: req.query.verbose,
                         })
                         cb()
                     }

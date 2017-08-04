@@ -23,6 +23,7 @@ var EdgePanel = React.createClass({
 	    </div>
                 <br/>
                 <div dangerouslySetInnerHTML={{__html: 'p-value ' + htmlutil.pValueToReadable(genstats.probability.zToP(this.props.edge.weight))}} />
+                <div dangerouslySetInnerHTML={{__html: 'z-score ' + this.props.edge.weight}} />
                 </div>
 	)
     }

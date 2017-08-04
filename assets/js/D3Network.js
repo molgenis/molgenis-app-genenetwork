@@ -140,8 +140,8 @@ D3Network.prototype._initForce = function() {
         .gravity(this._props.gravity || 0.7)
         .distance(this._props.distance || 150)
         .theta(this._props.theta || 0.1)
-        .friction(this._props.friction || 0.4) //0.65
-        .charge(this._props.charge || -80000) //-2000
+        .friction(this._props.friction || 0.65)
+        .charge(this._props.charge || -2000) 
         .size([this._props.width, this._props.height])
 
         
@@ -832,12 +832,13 @@ D3Network.prototype.addEdges = function(edges) {
 
 
 D3Network.prototype.removeEdges = function(edges) {
-    // console.log('removeEdges')
+
     for (var i = 0; i < edges.length; i++){
         var index = this._data.elements.edges.indexOf(edges[i])
         this._force.links().splice(index, 1)
         this._data.elements.edges.splice(index, 1)
     }
+
     this._rehash()
     this._initNodes()
     this._initLinks()
@@ -898,16 +899,16 @@ D3Network.prototype.addNodeToDataAndNetwork = function(gene, zScores) {
 }
 
 //TODO assumes negative weight edges are in the end of edge list
-D3Network.prototype.toggleNegative = function() {
+D3Network.prototype.toggleNegative = function(negativeEdges) {
 
     if (!this._data) return
 
     var that = this
     this._state.showNegatives = !this._state.showNegatives
     if (this._state.showNegatives) {
-        for (var e = 0, ee = this._data.elements.edges.length; e < ee; e++) {
-            if (this._data.elements.edges[e].data.weight < 0) {
-                this._addLink(this._data.elements.edges[e].data)
+        for (var e = 0, ee = this._data.elements.allEdges.length; e < ee; e++) {
+            if (this._data.elements.allEdges[e].data.weight < -(this._data.threshold)) {
+                this._addLink(this._data.elements.allEdges[e].data)
             }
         }
     } else {
@@ -915,7 +916,7 @@ D3Network.prototype.toggleNegative = function() {
         var numLinks = links.length
         var numRemoved = 0
         for (var i = numLinks - 1; i >= 0; i--) {
-            if (links[i].weight < 0) {
+            if (links[i].weight < -(this._data.threshold)) {
                 numRemoved++
             } else {
                 break
@@ -1097,7 +1098,6 @@ D3Network.prototype._addNode = function(node) {
 }
 
 D3Network.prototype._addLink = function(data) {
-
     var sourceNode = this._force.nodes()[this._hashNodes[data.source]]
     var targetNode = this._force.nodes()[this._hashNodes[data.target]]
     if (!sourceNode || !targetNode) {
@@ -1112,12 +1112,20 @@ D3Network.prototype._addLink = function(data) {
     }
 }
 
+D3Network.prototype.updateThreshold = function(threshold){
+    this._data.threshold = threshold
+}
+
 D3Network.prototype.hide = function(){
     d3.select('#networksvg').style('display', 'none')
 }
 
 D3Network.prototype.show = function(){
-    d3.select('#networksvg').style('display', 'block')
+    d3.select('#networksvg').style('display', 'block').style('opacity', 1)
+}
+
+D3Network.prototype.transparant = function(){
+    d3.select('#networksvg').style('opacity', 0)
 }
 
 //TODO remove

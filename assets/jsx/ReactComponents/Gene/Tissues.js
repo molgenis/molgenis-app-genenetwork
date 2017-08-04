@@ -33,7 +33,6 @@ var DataTable = React.createClass({
 	},
 
     componentWillMount: function() {
-        console.log(this.props)
         var indices = this.props.fixed.indices
         var avg = this.props.values.avg
         this.sortedItems = _.sortBy(this.props.fixed.header, function(item){
@@ -75,7 +74,7 @@ var DataTable = React.createClass({
     	}.bind(this))
 
         return (
-            <Table className='sortable tissues-table' sortable={['tissue',
+            <Table className='sortable tissues-table rowcolors' sortable={['tissue',
                 {
                 	column: 'samples',
                 	sortFunction: function(a, b) {return b - a}
@@ -90,7 +89,7 @@ var DataTable = React.createClass({
                 }                
             ]}
             >
-            <Thead>
+            <Thead className='headercolor'>
             	<Th>{""}</Th>
             	<Th column="tissue"><span>{"TISSUE"}</span></Th>
             	<Th column="samples"><span>{"SAMPLES"}</span> <I title="Number of samples"/></Th>

@@ -22,7 +22,6 @@ var LegendPanel = require('./LegendPanel')
 var DownloadPanel = require('./DownloadPanel')
 var SVGCollection = require('./SVGCollection')
 var Footer = require('./Footer')
-var GeneTable = require('./GeneTable')
 
 var Cookies = require('cookies-js')
 var D3Network = require('../../js/D3Network.js')
@@ -87,7 +86,6 @@ var network2js = function(network) {
     for (var i = 0; i < isConnected.length; i++) {
         isConnected[i] = false
     }
-
     // add edges based on threshold
     var i = 0
     for (var i1 = 0; i1 < numNodes - 1; i1++) {
@@ -100,7 +98,7 @@ var network2js = function(network) {
                 }
             })
 
-            if (data[i] >= js.threshold) {
+            if (Math.abs(data[i]) >= js.threshold) {
                 js.elements.edges.push({
                     data: {
                         source: js.elements.nodes[i1].data.id,
@@ -114,7 +112,7 @@ var network2js = function(network) {
             i++
         }
     }
-
+    
     // add default groups
     js.elements.groups = [
         {
@@ -196,6 +194,70 @@ var network2js = function(network) {
     return js
 }
 
+var PredictedGeneRow = React.createClass({
+
+    propTypes: {
+        data: React.PropTypes.object.isRequired,
+        num: React.PropTypes.number,
+    },
+    
+    render: function() {
+        
+        var data = this.props.data
+        var desc = (data.gene.description || 'no description').replace(/\[[^\]]+\]/g, '')
+        
+        return ( <tr>
+                 <td className='text'>
+                 <Link className='nodecoration black' target='_blank' title={desc} to={`/gene/${data.gene.id}`}>
+                 <SVGCollection.Rectangle className='tablerectangle' title={data.gene.biotype.replace(/_/g, ' ')} fill={color.biotype2color[data.gene.biotype] || color.colors.gnblack} />
+                 <span>{data.gene.name}</span>
+                 </Link>
+                 </td>
+                 <td className='text'>
+                 <Link className='nodecoration black' target='_blank' title={desc} to={`/gene/${data.gene.name}`}>
+                 <span>{desc}</span>
+                 </Link>
+                 </td>
+                 <td style={{textAlign: 'center'}} dangerouslySetInnerHTML={{__html: htmlutil.pValueToReadable(data.pValue)}}></td>
+                 <td style={{textAlign: 'center'}}>{data.zScore > 0 ? <SVGCollection.TriangleUp className='directiontriangleup' /> : <SVGCollection.TriangleDown className='directiontriangledown' />}</td>
+                 <td style={{textAlign: 'center'}}>{data.annotated ? <SVGCollection.Annotated /> : <SVGCollection.NotAnnotated />}</td>
+                 <td style={{textAlign: 'center'}}>
+                 <a title={'Open network ' + (data.annotated ? 'highlighting ' : 'with ') + data.gene.name} href={GN.urls.networkPage + '0!' + data.gene.name + '|' + this.props.termId + ',0!' + data.gene.name} target='_blank'>
+                 <SVGCollection.NetworkIcon />
+                 </a>
+                 </td>
+                 </tr>
+        )
+    }
+})
+
+var GeneTable = React.createClass({
+
+    render: function() {
+        var that = this
+        var rows = _.map(this.props.predictedgenes, function(data, i) {
+                return (<PredictedGeneRow key={data.gene.id} data={data} num={i} />)
+            })
+        return (
+            <div>
+                <table className='gn-term-table datatable'>
+                <tbody>
+                <tr>
+                  <th className='tabletextheader' style={{width: '10%'}}>GENE</th>
+                  <th className='tabletextheader' style={{width: '60%'}}>DESCRIPTION</th>
+                  <th>P-VALUE</th>
+                  <th>DIRECTION</th>
+                  <th>ANNOTATED</th>
+                  <th>NETWORK</th>
+                  </tr>
+                  {rows}
+                </tbody>
+                </table>
+            </div>
+            )
+    }
+})
+
 var Network = React.createClass({
 
     propTypes: {
@@ -272,6 +334,7 @@ var Network = React.createClass({
         var width = ReactDOM.findDOMNode(this).offsetWidth
         var height = document.getElementById('network').offsetHeight//ReactDOM.findDOMNode(this).offsetHeight
         var ts = new Date()
+
         var network = new D3Network(document.getElementById('network'), {
             width: width,
             height: height,
@@ -281,8 +344,7 @@ var Network = React.createClass({
             labelColor: color.colors.gnwhite,
             nodeHeight: 30,
             gravity: 0.8,
-            friction: 0.1, //0.65
-            charge: -80000, //10000
+            charge: -10000,
             distance: 10,
             onSelect: this.updateGroup,
             onEdgeSelect: this.selectEdge,
@@ -361,58 +423,14 @@ var Network = React.createClass({
             }
         }.bind(this))
     },
-
-    loadGenes: function(callback) {
-        var ids = this.props.params.ids.replace(/(\r\n|\n|\r)/g, ',')
-        if (ids.split(',').length == 1 && (ids.startsWith('REACTOME:') || ids.startsWith('HP:'))){
-            console.log('Get genes from pathway database')
-            $.ajax({
-                url: GN.urls.pathway + '/' + ids + '?verbose',
-                dataType: 'json',
-                success: function(data){
-                    this.setState({
-                        genes: data,
-                        error: null
-                    })
-                }.bind(this),
-                error: function(xhr, status, err){
-                    if (err == 'Not Found'){
-                        this.setState({
-                            predictedGenes: null,
-                            error: 'Term ' + termId + ' not found',
-                            errorTitle: 'Error ' + xhr.status
-                        })
-                    } else {
-                        this.setState({
-                            predictedGenes: null,
-                            error: 'Please try again later (' + xhr.status + ')',
-                            errorTitle: 'Error ' + xhr.status
-                        }) 
-                    }
-                }.bind(this)
-            })
-            callback(null)
-
-        } else {
-            // console.log('Get genes from prediction server')
-            // console.log(this.state.activeGroup)
-            var genes = {
-                genes: {annotated: null, predicted: null },
-                pathway: {database: null, name: null}
-            }
-            this.setState({
-                genes: genes
-            })
-            callback(null)
-        }
-    },
     
     componentDidMount: function() {
+
         async.waterfall([
+            this.loadPredictedGenes,
             this.loadNetworkData,
             this.createNetwork,
-            this.drawNetwork,
-            this.loadGenes
+            this.drawNetwork
             
         ], function(err) {
             if (err) {
@@ -424,14 +442,14 @@ var Network = React.createClass({
                 //window.addEventListener('keydown', this.keyListener)
                 $(document).keydown(keyListener.bind(this))
 
-                // io.socket.off('network')
+                io.socket.off('network')
                 //load tissue data
-                // setTimeout(function(){
-                //     this.setTissueSocketListener()
-                //     this.loadTissueData('brain')
-                //     this.loadTissueData('blood')
-                //     // this.state.showGenes ? this.state.network.hide() : null
-                // }.bind(this), 1500)          
+                setTimeout(function(){
+                    this.setTissueSocketListener()
+                    this.loadTissueData('brain')
+                    this.loadTissueData('blood')
+                    // this.state.showGenes ? this.state.network.hide() : null
+                }.bind(this), 1500)          
             }
         }.bind(this))
     },
@@ -463,6 +481,7 @@ var Network = React.createClass({
     },
         
     updateProgress: function(progressText) {
+
         if (progressText === 'done') {
             this.setState({
                 progressDone: true
@@ -475,24 +494,23 @@ var Network = React.createClass({
     },
     
     updateThreshold: function(n) {
-        if (n != 0){ // if n is 0, the end of the threshold legend is reached
-            var previousThreshold = this.state.threshold
-            var currentThreshold = this.state.threshold + n
-            this.state.network.updateThreshold(currentThreshold)
-            this.setState({
-                threshold: currentThreshold,
-            })
-            if (n < 0){
-                // add edges
-                // TODO: change data into [state.selectedtissue] to enable threshold changing for tissue-specific networks
-                var edgesToBeAdded = _.filter(this.state.data.elements.allEdges, function(edge){return _.inRange(edge.data.weight, currentThreshold, previousThreshold)})
-                this.state.network.addEdges(edgesToBeAdded)
-            } else {
-                // remove edges
-                var edgesToBeRemoved = _.filter(this.state.data.elements.edges, function(edge){return _.inRange(edge.data.weight, currentThreshold, previousThreshold)})
-                this.state.network.removeEdges(edgesToBeRemoved)
-            }
-        }
+        var previousThreshold = this.state.threshold
+        var currentThreshold = this.state.threshold + n
+
+        this.setState({
+            threshold: currentThreshold,
+        })
+
+        if (n < 0){
+            // add edges
+            // TODO: change data into [state.selectedtissue] to enable threshold changing for tissue-specific networks
+            var edgesToBeAdded = _.filter(this.state.data.elements.allEdges, function(edge){return _.inRange(Math.abs(edge.data.weight), currentThreshold, previousThreshold)})
+            this.state.network.addEdges(edgesToBeAdded)
+        } else {
+            // remove edges
+            var edgesToBeRemoved = _.filter(this.state.data.elements.edges, function(edge){return _.inRange(Math.abs(edge.data.weight), currentThreshold, previousThreshold)})
+            this.state.network.removeEdges(edgesToBeRemoved)
+        }  
     },
     
     handleColoring: function(type) {
@@ -540,12 +558,14 @@ var Network = React.createClass({
     },
 
     selectEdge: function(edge) {
+
         this.setState({
             selectedEdge: edge
         })
     },
 
     onAnalyse: function(group) {
+
         this.setState({
             analysisGroup: group
         })
@@ -612,6 +632,7 @@ var Network = React.createClass({
             console.log('reselecting ' + this.state.selectedTerm.name)
             this.selectTerm(this.state.selectedTerm)
         }
+        console.log(this.state)
         this.setState({
             addedGenes: addedGenes
         })
@@ -706,43 +727,49 @@ var Network = React.createClass({
         type == 'network' ? this.state.network.show() : this.state.network.hide()
     },
 
-    render: function() {
+    loadPredictedGenes: function(callback) {
+        var termId = this.props.params.ids.split(',') 
+        $.ajax({
+            url: GN.urls.pathway + '/' + termId + '?verbose',
+            dataType: 'json',
+            success: function(data){
+                this.setState({
+                    genes: data,
+                    error: null
+                })
 
+            }.bind(this),
+            error: function(xhr, status, err){
+                if (err == 'Not Found'){
+                    this.setState({
+                        predictedGenes: null,
+                        error: 'Term ' + termId + ' not found',
+                        errorTitle: 'Error ' + xhr.status
+                    })
+                } else {
+                    this.setState({
+                        predictedGenes: null,
+                        error: 'Please try again later (' + xhr.status + ')',
+                        errorTitle: 'Error ' + xhr.status
+                    }) 
+                }
+            }.bind(this)
+        })
+        callback(null)
+    },
+
+    render: function() {
+        console.log('PROPS')
+        console.log(this.props)
+        // console.log('STATE')
         // console.log(this.state)
-        // console.log('props')
-        // console.log(this.props)
 
         var pageTitle = this.state.error ? this.state.errorTitle : 'Loading' + GN.pageTitleSuffix
-
         if (!this.state.progressDone || !this.state.data) {
             return (
                     <DocumentTitle title={pageTitle}>
                     <div className='flex10 vflex'>
-                    {/*<div id='networkdesc'>&nbsp;</div>*/}
-                    <div>
-                        <div id='networkdesc'>
-                            <div className='gn-term-description-outer' style={{backgroundColor: color.colors.gnwhite, padding: '20px'}}>
-                                <div className='gn-term-description-inner hflex flexcenter maxwidth'>
-                                    <div className='gn-term-description-name'>
-                                        <span style={{fontWeight: 'bold', fontFamily: 'GG', fontSize: '1.5em'}}>Loading</span>
-                                    </div>
-                                    <div className='flex11' />
-                                    <div className='gn-term-description-stats' style={{textAlign: 'right'}}>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        {this.state.showGenes ? 
-
-                            <div id='networkdesc' style={{paddingTop: '10px'}}>
-                            <div className='gn-term-description-outer' style={{backgroundColor: color.colors.gnwhite, padding: '20px 20px 10px 20px', height: '40px'}}>
-                            </div>
-                        </div>
-
-                         : null}
-                    </div>
-
-
+                    <div id='networkdesc'>&nbsp;</div>
                     <div id='network' className='flex10 hflex gn-network' style={{position: 'relative', backgroundColor: color.colors.gnwhite}}>
                     <div id='loadcontainer' className='vflex flexcenter flexjustifycenter fullwidth'>
                     <span>{this.state.error || this.state.progressText}</span>
@@ -751,15 +778,37 @@ var Network = React.createClass({
                     </div>
                     </DocumentTitle>
             )
-
+        // if (!this.state.genes){
+        //     return (
+        //         <DocumentTitle title={pageTitle}>
+        //             <div className='flex10 vflex'>
+        //                 <div id='network' className='flex10 hflex gn-network' style={{position: 'relative', backgroundColor: color.colors.gnwhite}}>
+        //                 <span style={{fontWeight: 'bold', fontFamily: 'GG', fontSize: '1.5em'}}>Loading</span>
+        //                 </div>
+        //             </div>
+        //         </DocumentTitle>
+        //         )
         } else {
             pageTitle = this.state.data.elements.nodes.length + ' genes' + GN.pageTitleSuffix
-            var title = this.state.genes.pathway.database != null ? (this.state.genes.pathway.database + ': ' + this.state.genes.pathway.name) : null
+          
+
+            //TODO: get pathway name from database, don't parse from URL
+            var firstId = this.props.params.ids.trim().split(/[\s,;]+/)[0]
+            var title = ''
+            if (_.startsWith(firstId, 'ENSG')){
+                title = ''
+            } else {
+                title = ''
+                // var database = firstId.split(':')[0].toUpperCase()
+                // var termname = (firstId.split(':')[1].charAt(0).toUpperCase() + firstId.split(':')[1].slice(1).toLowerCase()).replace(/\_/g, ' ');
+                // title = database + ': ' + termname
+            }
+
             var predictedgenes = (
                     <div>
                         <div className='gn-term-container-outer' style={{backgroundColor: color.colors.gnwhite}}>
                         <div className='gn-term-container-inner maxwidth' style={{padding: '20px'}}>                        
-                            <GeneTable genes={this.state.genes.genes.predicted} type='prediction' termId={this.state.genes.pathway.id} />
+                            <GeneTable predictedgenes={this.state.genes.genes.predicted}/>
                         </div>
                         </div>
                         <Footer />
@@ -767,19 +816,13 @@ var Network = React.createClass({
                 )
             var annotatedgenes = (
                 <div>
-                    <div className='gn-term-container-outer' style={{backgroundColor: color.colors.gnwhite}}>
-                        <div className='gn-term-container-inner maxwidth' style={{padding: '20px'}}>                        
-                            <GeneTable genes={this.state.genes.genes.annotated} type='annotation' termId={this.state.genes.pathway.id} />
-                        </div>
-                        </div>
-                        <Footer />
+                    <div>Annotated genes</div>
                 </div>
                 )
-
             var network = (
-                <div id='network' className='flex10 hflex gn-network' style={{position: 'relative', backgroundColor: color.colors.gnwhite}}>
+                <div id='network' className='gn-network flex10' style={{position: 'relative', backgroundColor: color.colors.gnwhite}}>
                                     
-                      <NetworkControlPanel download={this.download} onSelectionModeChange={this.onSelectionModeChange} selectionMode={this.state.selectionMode} isZoomedMax={this.state.isZoomedMax} isZoomedMin={this.state.isZoomedMin} onZoom={this.onZoom} />  
+                        <NetworkControlPanel download={this.download} onSelectionModeChange={this.onSelectionModeChange} selectionMode={this.state.selectionMode} isZoomedMax={this.state.isZoomedMax} isZoomedMin={this.state.isZoomedMin} onZoom={this.onZoom} />  
                         <EdgeLegend threshold={this.state.threshold} edgeValueScales={this.state.data.edgeValueScales} edgeColorScales={this.state.data.edgeColorScales} onMouseOver={this.handleEdgeHover} hoverEdge={this.state.hoverEdge} onClick={this.updateThreshold} />
                         
                     {this.state.selectedEdge ?
@@ -844,14 +887,14 @@ var Network = React.createClass({
                     <input type='hidden' id='name' name='name' value='' />
                     <input type='hidden' id='genes' name='genes' value='' />
                     <input type='hidden' id='what' name='what' value='prediction' />
-                    </form> 
+                    </form>
 
                     </div>
                 )
 
                 var menu = (
                     <div id='networkdesc' style={{paddingTop: '10px'}}>
-                            <div className='gn-term-description-outer' style={{backgroundColor: color.colors.gnwhite, padding: '20px 20px 10px 20px', height: '40px'}}>
+                            <div className='gn-term-description-outer' style={{backgroundColor: color.colors.gnwhite, padding: '20px 20px 10px 20px'}}>
                                 <div className='gn-term-description-inner hflex flexcenter maxwidth' style={{display: 'inline'}}>
                                     <div className='gn-term-menu noselect' style={{height: '45px', display: 'inline'}}>
                                         <span style={{cursor: 'default', paddingRight: '10px'}}>SHOW</span>
@@ -867,7 +910,7 @@ var Network = React.createClass({
                                     <div style={{textAlign: 'right', float: 'right'}}>
                                         {this.state.data.elements.nodes.length > 4 ?
                                         (<span>Link to this network: <br />{this.state.url}</span>) :
-                                        (<span>This network contains {htmlutil.intToStr(this.state.data.elements.nodes.length)} genes. Pathway analysis and prediction of similar genes require five or more genes.</span>)} 
+                                        (<span>This network contains {htmlutil.intToStr(this.state.data.elements.nodes.length)} genes. Pathway analysis and prediction of similar genes require five or more genes.</span>)}    
                                     </div>
                                     : null}
                                 </div>
@@ -885,12 +928,22 @@ var Network = React.createClass({
 
                                 <div className='flex11' />
                                 <div className='gn-term-description-stats' style={{textAlign: 'right'}}>
-
-                                </div>
+                                    <span>{this.state.genes.pathway.numAnnotatedGenes} annotated genes</span><br/>
+                                    <span>Prediction accuracy {(Math.round(100 * this.state.genes.pathway.auc) / 100).toPrecision(2)}</span><br/>
+                                  </div>
+                            
                             </div>
                         </div>
                     </div>
                 )
+
+                 //       <div className='gn-term-menu noselect' style={{paddingBottom: '20px'}}>
+                    //        <span style={{cursor: 'default', paddingRight: '10px'}}>SHOW</span>
+                      //      <div className={(this.state.tab == 'network') ? 'clickable button selectedbutton' : 'clickable button'} onClick={this.onTabClick.bind(null, 'network')}>
+                        //    NETWORK</div>
+                          //  <div className={(this.state.tab == 'genes') ? 'clickable button selectedbutton' : 'clickable button'} onClick={this.onTabClick.bind(null, 'genes')}>
+                            //PREDICTED GENES</div>
+                      //  </div>
 
             return (
                     <DocumentTitle title={pageTitle}>

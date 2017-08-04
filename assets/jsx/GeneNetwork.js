@@ -67,6 +67,7 @@ GN.urls = {
     genePage: DOMAIN + '/gene/',
     termPage: DOMAIN + '/term/',
     networkPage: DOMAIN + '/network/',
+    diagnosisPage: DOMAIN + '/diagnosis/',
 
     svg2pdf: DOMAIN + '/api/v1/svg2pdf',
     diagnosisResults: DOMAIN + '/api/v1/diagnosisResults',
@@ -121,6 +122,42 @@ var GeneMain = React.createClass({
     }
 })
 
+var ExampleBox = React.createClass({
+	render: function(){
+	return (
+        <div>
+          <div style={{backgroundColor: color.colors.gnwhite, margin: '30px 15px 30px 15px', padding: '20px', textAlign: 'center', width: '27%', height: '150px', float: 'left'}} >
+            <p>Example.</p>
+            <a className='button noselect clickable' href={GN.urls.diagnosisPage}>Go to page</a>
+          </div>
+        </div>
+		)
+	}
+})
+
+var DiagnosisBox = React.createClass({
+    render: function(){
+      return (
+        <div>
+          <div style={{backgroundColor: color.colors.gnwhite, margin: '30px 15px 30px 15px', padding: '20px', textAlign: 'center', width: '27%', height: '150px', float: 'left'}} >
+            <p>Description about diagnosis page.</p>
+            <a className='button noselect clickable' href={GN.urls.diagnosisPage}>Go to Diagnosis</a>
+          </div>
+        </div>
+        )
+    }
+})
+
+var Boxes = React.createClass({
+	render: function(){
+		return (
+			<div style={{textAlign: 'center'}}>
+				<DiagnosisBox />
+			</div>
+			)
+	}
+})
+
 var Landing = React.createClass({
 
     mixins: [ReactRouter.History],
@@ -169,7 +206,7 @@ var Landing = React.createClass({
                                       return null
                                   }
                               }))
-                              return callback(null, {options: options, complete: false})
+                              return callback(null, {options: _.sortBy(options, function(item){return item.value}), complete: false})
                           } else {
                               return callback(null, {})
                           }
@@ -191,7 +228,7 @@ var Landing = React.createClass({
     },
     
     render: function() {
-
+        console.log(this.props)
         var topSearch = (<div className='flex11' />)
         var topBanner = null
         if (_.size(this.props.params) === 0) {
@@ -241,6 +278,8 @@ var Landing = React.createClass({
         var that = this
         // 'Enter your search or paste a gene list here'
                 //{!this.props.children || this.props.children.props.route.path.indexOf('network') < 0 ? <Footer /> : null}
+        // {!this.props.children || (this.props.children.props.route.path.indexOf('network') < 0) ? <Footer /> : null}
+
         return (<div className='gn-app vflex'>
                 <div className='gn-top flex00 flexcenter hflex'>
                 <div className='gn-top-logo clickable flex00' style={{margin: '10px 0'}} onClick={this.onLogoClick}>
@@ -254,6 +293,7 @@ var Landing = React.createClass({
                 </div>
                 {topBanner}
                 {this.props.children}
+                {!this.props.children ? <Boxes /> : null}
                 {!this.props.children || (this.props.children.props.route.path.indexOf('network') < 0 && this.props.children.props.route.path.indexOf('diagnosis') < 0) ? <Footer /> : null}
                 </div>
         )

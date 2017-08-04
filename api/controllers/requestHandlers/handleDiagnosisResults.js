@@ -149,7 +149,6 @@ module.exports = function(req, res) {
             if (err){
                 sails.log.debug(err)
             }
-            return res.download(filename, 'GeneNetwork-Diagnosis.txt')
         })
 
         linesTop = downloadinfo.length
@@ -161,28 +160,19 @@ module.exports = function(req, res) {
                 r.results[i].gene.name + '\t' + //name
                 r.results[i].gene.id + '\t' + //id
                 parseInt(i+1) + '\t' + //rank
-                (mim2gene.get(r.results[i].gene.name) !== undefined ? 'http://omim.org/entry/' + mim2gene.get(r.results[i].gene.name) : '') + '\t=hyperlink(D'+ parseInt(linesTop + i+1) +')' + '\t' + //omimURL
-                'http://www.genecards.org/cgi-bin/carddisp.pl?gene=' + r.results[i].gene.name + '\t=hyperlink(E' + parseInt(linesTop + i+1)+ ')' + '\t' + //genecardsURL
-                'https://www.ncbi.nlm.nih.gov/pubmed/?term=' + r.results[i].gene.name + '\t=hyperlink(F' + parseInt(linesTop + i+1) + ')' + '\t' + //pubmedURL
-                r.results[i].weightedZScore //weightedZscore
+                (mim2gene.get(r.results[i].gene.name) !== undefined ? ('=HYPERLINK("http://omim.org/entry/' + mim2gene.get(r.results[i].gene.name) + '")') : '') + '\t' + //omimURL
+                '=HYPERLINK("http://www.genecards.org/cgi-bin/carddisp.pl?gene=' + r.results[i].gene.name + '")\t' + //genecardsURL
+                '=HYPERLINK("https://www.ncbi.nlm.nih.gov/pubmed/?term=' + r.results[i].gene.name + '")\t' + //pubmedURL
+                r.results[i].weightedZScore //weightedZscore 
             )
-            // downloadcontent.push({
-            //         name: r.results[i].gene.name,
-            //         id: r.results[i].gene.id,
-            //         rank: parseInt(i+1),
-            //         omimUrl: (mim2gene.get(r.results[i].gene.name) !== undefined ? 'http://omim.org/entry/' + mim2gene.get(r.results[i].gene.name) : '') + '\t=hyperlink(D'+ parseInt(linesTop + i) +')',
-            //         genecardsUrl: 'http://www.genecards.org/cgi-bin/carddisp.pl?gene=' + r.results[i].gene.name + '\t=hyperlink(E' + parseInt(linesTop + i)+ ')',
-            //         pubmedUrl: 'https://www.ncbi.nlm.nih.gov/pubmed/?term=' + r.results[i].gene.name + '\t=hyperlink(F' + parseInt(linesTop + i) + ')',
-            //         weightedZScore: r.results[i].weightedZScore,
-            // })
         }
 
-        // fs.appendFile(filename, json2csv({data: downloadcontent, fieldNames: ['Name', 'ID', 'Rank', 'OmimURL', 'GeneCardsURL', 'PubmedURL', 'WeightedZscore'], del: '\t', quotes: ''}), function(err){
         fs.appendFile(filename, downloadcontent.join('\n'), function(err){
             if (err){
                 sails.log.debug(err)
             }
             sails.log.debug('diagnosis file written to ' + filename)
+            return res.download(filename, 'GeneNetwork-Diagnosis.txt')
         })
     })
 }

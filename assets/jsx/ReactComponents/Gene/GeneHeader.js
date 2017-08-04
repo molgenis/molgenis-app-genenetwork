@@ -46,7 +46,7 @@ var GeneHeader = React.createClass({
                 <div className='gn-gene-description-outer' style={{backgroundColor: color.colors.gnwhite, padding: '20px'}}>
                 <div className='gn-gene-description-inner hflex flexcenter maxwidth'>
                 <div className='gn-gene-description-name'>
-                <span style={{fontWeight: 'bold', fontFamily: 'GG', fontSize: '1.5em', paddingRight: '10px'}}>{this.props.gene.name}</span>
+                <span style={{fontWeight: 'bold', fontFamily: 'GG', fontSize: '1.5em', paddingRight: '10px'}}>{this.props.gene.name + ' '}</span>
                 <span>{desc}</span>
                 </div>
                 <div className='flex11' />

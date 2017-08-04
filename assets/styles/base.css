@@ -628,13 +628,21 @@ line.link {
     color: rgb(77,77,77);
 }
 
-.evenrow {
+/*.evenrow {
     background-color: #ffffff;
 }
 
 .oddrow {
     background-color: #f8f8f8;
+}*/
+
+.rowcolors tr:nth-child(even){
+    background-color: #f8f8f8;
 }
+
+/*.rowcolors tr:first-child{
+    background-color: #fff;
+}*/
 
 .movable {
     cursor: move;
@@ -713,9 +721,9 @@ line.link {
     background-color: #ffffff;
 }
 
-.gn-network {
+/*.gn-network {
     margin-top: 10px;
-}
+}*/
 
 .gn-network-legendpanel {
     display: flex;
@@ -928,10 +936,6 @@ line.link {
 .tissues-table tr {
     text-align: left;
     height: 25px;
-}
-
-.tissues-table tr:nth-child(even){
-    background-color: #f8f8f8;
 }
 
 .tissues-table th.reactable-header-sort-desc:after {

@@ -27,6 +27,8 @@ var AnalysisPanel = React.createClass({
     },
     
     componentDidMount: function() {
+        console.log('analysis group')
+        console.log(this.props.analysisGroup)
         if (this.refs.pwa.pwaRequest(this.props.analysisGroup)) {
             this.refs.pred.gpRequest(this.props.analysisGroup)
         }

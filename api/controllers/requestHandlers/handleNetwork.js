@@ -82,6 +82,7 @@ var handle = function(groupNumToName, geneQuery, tissue, callback) {
                 tissue: tissue,
                 genes: genes,
                 groups: groups,
+                //TODO: add pathway object (or name) so the name can be retrieved when short URL is given. 
                 shortURL: shortURL,
             }
 
@@ -109,7 +110,6 @@ module.exports = function(req, res) {
     var tissue = req.body.tissue ? req.body.tissue : undefined
     var groupNumToName = (query.length !== 2) ? null : _.zipObject(_.map(query[0].split(/[,;]+/), function(group) { return group.split('!') }))
     var geneQuery = query[query.length-1].split(/[\s,;]+/)
-
     checkDB(query, function(err, result) {
         
         if (err) {
