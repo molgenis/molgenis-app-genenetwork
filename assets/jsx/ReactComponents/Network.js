@@ -60,7 +60,8 @@ var network2js = function(network) {
         },
         edgeValueScales: [[0, 12, 15], [0, -12, -15]],
         edgeColorScales: [['#ffffff', '#000000', '#ff3c00'], ['#ffffff', '#00a0d2', '#7a18ec']],
-        buffer: network.buffer
+        buffer: network.buffer,
+        pathway: network.pathway
     }
 
     js.elements.hashNodes = _.indexBy(js.elements.nodes, function(node) {
@@ -210,6 +211,10 @@ var Network = React.createClass({
         var coloring = Cookies.get('networkcoloring') || 'cluster'
         // coloring by term prediction/annotation not available until pathway analysis has been done
         if (coloring == 'term') coloring = 'cluster'
+        var genes = {
+                genes: {annotated: null, predicted: null },
+                pathway: {database: null, name: null}
+            }
 
         return {
             network: null,
@@ -226,7 +231,9 @@ var Network = React.createClass({
             addedGenes: [],
             selectedTissue: 'data',
             showGenes: true,
-            tab: 'network' //Cookies.get('tab') || 
+            tab: 'network', //Cookies.get('tab') || 
+            genes: genes,
+            gpMessage: null
         }
     },
     
@@ -263,7 +270,9 @@ var Network = React.createClass({
                     errorTitle: jwres.statusCode
                 })
                 callback({name: 'Error', message: 'Couldn\'t load data'})
-            }
+             } //else {
+            //     console.log(res)
+            // }
         }.bind(this))
     },
 
@@ -317,7 +326,7 @@ var Network = React.createClass({
             coloring: coloring,
             activeGroup: data.elements.groups[0],
             threshold: data.threshold,
-            progressText: 'creating visualization'
+            progressText: 'creating visualization',
         })
 
         // allow state change
@@ -363,11 +372,11 @@ var Network = React.createClass({
     },
 
     loadGenes: function(callback) {
-        var ids = this.props.params.ids.replace(/(\r\n|\n|\r)/g, ',')
-        if (ids.split(',').length == 1 && (ids.startsWith('REACTOME:') || ids.startsWith('HP:'))){
+        if (this.state.data.pathway != null) {
+        // if (ids.split(',').length == 1 && (ids.startsWith('REACTOME:') || ids.startsWith('HP:'))){
             console.log('Get genes from pathway database')
             $.ajax({
-                url: GN.urls.pathway + '/' + ids + '?verbose',
+                url: GN.urls.pathway + '/' + this.state.data.pathway.id + '?verbose',
                 dataType: 'json',
                 success: function(data){
                     this.setState({
@@ -393,20 +402,82 @@ var Network = React.createClass({
             })
             callback(null)
 
-        } else {
-            // console.log('Get genes from prediction server')
-            // console.log(this.state.activeGroup)
-            var genes = {
-                genes: {annotated: null, predicted: null },
-                pathway: {database: null, name: null}
-            }
-            this.setState({
-                genes: genes
+        } else if (this.state.activeGroup.nodes.length >= 5) {
+            console.log('Get genes from prediction server')
+
+            io.socket.on('geneprediction.queueEvent', this._onIOQueueEvent)
+            io.socket.on('geneprediction.result', this._onIOResult)
+	        var genes = this.state.activeGroup.nodes
+            io.socket.get(GN.urls.geneprediction, {genes: genes, geneOfInterest: undefined}, function(res, jwres) {
+                if (jwres.statusCode !== 200) {
+                    window.alert('Please try again later.')
+                }
             })
             callback(null)
+        } 
+    },
+
+    _onIOQueueEvent: function(msg) {
+    	console.log('onIOQueueEvent')
+        if (msg.queueLength || msg.queueLength === 0) {
+            var str = htmlutil.intToStr(msg.queueLength) + ' analyses'
+            if (msg.queueLength === 0) str = 'Starting analysis...'
+            else if (msg.queueLength < 2) str = 'Your analysis will start in a few seconds...'
+            else if (msg.queueLength < 10) str = 'Your analysis will start in less than a minute, please be patient. '
+                + 'You\'re ' + htmlutil.intToOrdinalStr(msg.queueLength) + ' in the queue.'
+            else str = 'This will take some time as our servers are busy right now, please be patient. '
+                + 'You\'re ' + htmlutil.intToOrdinalStr(msg.queueLength) + ' in the queue.'
+            this.setState({
+                gpMessage: str
+            })
+        } else {
+            console.log('PredictedGenesPanel.setSocketListeners: unhandled queueEvent')
         }
     },
-    
+
+    _onIOResult: function(msg) {
+
+        if (msg.gpResults.auc && msg.gpResults.auc > 0) {
+            
+            this.setState({
+                gpAUC: msg.gpResults.auc
+            })
+            
+        } else {
+
+			var genes = {
+                genes: {annotated: null, predicted: msg.gpResults.results },
+                pathway: {database: null, name: null}
+            }
+
+            this.setState({
+                gpMessage: null,
+                genes: genes,
+                gpStatus: msg.gpStatus,
+                gpRunning: true,
+                gpAUC: msg.gpResults.auc
+            })
+        }
+    },
+
+    _onIOError: function(msg) {
+
+        this.setState({
+            gpMessage: msg.gpMessage,
+            gpRunning: false
+        })
+    },
+
+    _onIOEnd: function(msg) {
+
+        this.props.onPredFinish()
+
+        this.setState({
+            gpMessage: msg.gpMessage,
+            gpRunning: false
+        })
+    },
+
     componentDidMount: function() {
         async.waterfall([
             this.loadNetworkData,
@@ -431,7 +502,7 @@ var Network = React.createClass({
                 //     this.loadTissueData('brain')
                 //     this.loadTissueData('blood')
                 //     // this.state.showGenes ? this.state.network.hide() : null
-                // }.bind(this), 1500)          
+                // }.bind(this), 1500)
             }
         }.bind(this))
     },
@@ -707,7 +778,7 @@ var Network = React.createClass({
     },
 
     render: function() {
-
+        // console.log('state')
         // console.log(this.state)
         // console.log('props')
         // console.log(this.props)
@@ -754,12 +825,12 @@ var Network = React.createClass({
 
         } else {
             pageTitle = this.state.data.elements.nodes.length + ' genes' + GN.pageTitleSuffix
-            var title = this.state.genes.pathway.database != null ? (this.state.genes.pathway.database + ': ' + this.state.genes.pathway.name) : null
+            var title = this.state.data.pathway != null ? (this.state.data.pathway.database + ': ' + this.state.data.pathway.name) : null
             var predictedgenes = (
                     <div>
                         <div className='gn-term-container-outer' style={{backgroundColor: color.colors.gnwhite}}>
                         <div className='gn-term-container-inner maxwidth' style={{padding: '20px'}}>                        
-                            <GeneTable genes={this.state.genes.genes.predicted} type='prediction' termId={this.state.genes.pathway.id} />
+                            <GeneTable genes={this.state.genes.genes.predicted ? this.state.genes.genes.predicted : null} type='prediction' gpMessage={this.state.gpMessage}/>
                         </div>
                         </div>
                         <Footer />
@@ -769,7 +840,7 @@ var Network = React.createClass({
                 <div>
                     <div className='gn-term-container-outer' style={{backgroundColor: color.colors.gnwhite}}>
                         <div className='gn-term-container-inner maxwidth' style={{padding: '20px'}}>                        
-                            <GeneTable genes={this.state.genes.genes.annotated} type='annotation' termId={this.state.genes.pathway.id} />
+                            <GeneTable genes={this.state.genes.genes.annotated ? this.state.genes.genes.annotated : null} type='annotation' />
                         </div>
                         </div>
                         <Footer />

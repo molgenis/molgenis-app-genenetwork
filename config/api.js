@@ -5,10 +5,10 @@ module.exports.api = {
     maxNumGenesCofunction: 1000, // calculate cofunctionality for how many given genes at max
 
     numPathwaysLimit: 20, // how many pathways to give by default when no specific db given
-    predictedNumGenesToSend: 20,
+    predictedNumGenesToSend: 200,
 
-    numGenesLimit: 20,
-    numGenesMax: 1000,
+    numGenesLimit: 1000, //20
+    numGenesMax: 1000, //1000
     defaultCoregulationZScoreThreshold: 5,
     defaultCoregulationCorrelationThreshold: 0.3,
     defaultCofunctionCorrelationThreshold: 0.3,

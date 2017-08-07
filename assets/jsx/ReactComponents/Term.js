@@ -218,10 +218,6 @@ var Term = React.createClass({
     },
     
     render: function() {
-      console.log('PROPS')
-      console.log(this.props)
-      console.log('STATE')
-      console.log(this.state)
         
         if (this.state.error) {
             

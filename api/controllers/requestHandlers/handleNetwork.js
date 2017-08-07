@@ -10,7 +10,6 @@ var query2genes = require('../utils/query2genes')
 var networkShortURLDB = level(sails.config.networkShortURLDBPath, {valueEncoding: 'json'})
 
 var createGroups = function(groupNumToName, tissue, genes, group2genes, callback) {
-
     var groups = []
     var groupStr = ''
 
@@ -62,7 +61,7 @@ var checkDB = function(query, callback) {
     })
 }
 
-var handle = function(groupNumToName, geneQuery, tissue, callback) {
+var handle = function(groupNumToName, geneQuery, pw, tissue, callback) {
 
     async.waterfall([
         
@@ -82,8 +81,8 @@ var handle = function(groupNumToName, geneQuery, tissue, callback) {
                 tissue: tissue,
                 genes: genes,
                 groups: groups,
-                //TODO: add pathway object (or name) so the name can be retrieved when short URL is given. 
                 shortURL: shortURL,
+                pathway: pw
             }
 
             networkShortURLDB.put(shortURL, network, function(err) {
@@ -110,6 +109,7 @@ module.exports = function(req, res) {
     var tissue = req.body.tissue ? req.body.tissue : undefined
     var groupNumToName = (query.length !== 2) ? null : _.zipObject(_.map(query[0].split(/[,;]+/), function(group) { return group.split('!') }))
     var geneQuery = query[query.length-1].split(/[\s,;]+/)
+
     checkDB(query, function(err, result) {
         
         if (err) {
@@ -133,8 +133,8 @@ module.exports = function(req, res) {
                 })
                 
             } else {
-             
-                handle(groupNumToName, geneQuery, tissue, function(err, network) {
+                var pw = dbutil.pathwayObject(req.body.genes.trim()) // if query is a pathway, get name and info pathway
+                handle(groupNumToName, geneQuery, pw, tissue, function(err, network) {
                     if (err) {
                         sails.log.error(err)
                         return res.serverError()

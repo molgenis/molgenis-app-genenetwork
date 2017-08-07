@@ -50,7 +50,7 @@ var EdgeLegend = React.createClass({
                       style={{fill: color.colors.gnblue}}/>)
         }
 
-        var endLeft = this.props.threshold < 0
+        var endLeft = this.props.threshold < 2
         var endRight = this.props.threshold > 13
         // pytrik
             // <polygon fill={this.props.hoverEdge === 'left' ? color.colors.gndarkgray : color.colors.gngray} onMouseOver={this.props.onMouseOver.bind(null, 'left')} onMouseOut={this.props.onMouseOver.bind(null, undefined)} onClick={this.props.onClick.bind(null, -0.5)} className="clickable" points="0.9,8 7.7,4 7.7,12 " />

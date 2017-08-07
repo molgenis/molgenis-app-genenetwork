@@ -8,6 +8,7 @@ var Link = Router.Link
 var SVGCollection = require('./SVGCollection')
 var htmlutil = require('../htmlutil')
 var PredictionRow = require('./PredictionRow')
+var color = require('../../js/color')
 
 var reactable = require('reactable')
 var Tr = reactable.Tr
@@ -67,9 +68,12 @@ var DataTable = React.createClass({
 
                 <Tr key={key}>
                 <Td column="TERM" className='text'>
-                    <Link className='nodecoration black' title={data.term.numAnnotatedGenes + ' annotated genes, prediction accuracy ' + Math.round(100 * data.term.auc) / 100} to={`/term/${data.term.id}`}>
+                    {/*<Link className='nodecoration black' title={data.term.numAnnotatedGenes + ' annotated genes, prediction accuracy ' + Math.round(100 * data.term.auc) / 100} to={`/term/${data.term.id}`}>
                     {data.term.name}
-                    </Link>
+                    </Link>*/}
+                    <a href={GN.urls.networkPage + data.term.id} className='nodecoration' target='_blank' style={{color: color.colors.gnblack}}>
+                    {data.term.name}
+                    </a>
                 </Td>
                 <Td column="P-VALUE" style={{whiteSpace: 'nowrap', textAlign: 'center'}} >{unsafe(htmlutil.pValueToReadable(data.pValue))}</Td>
                 <Td column="DIRECTION" style={{textAlign: 'center'}}>

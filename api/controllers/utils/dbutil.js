@@ -153,7 +153,7 @@ var handleDBError = function(err, callback) {
     }
 }
 
-var getAnnotations = function(buffer, dbname, options) {
+var getAnnotations = function(buffer, pathway, dbname, options) {
 
     var result = []
     var numAnnotations = buffer.length / 2
@@ -183,21 +183,44 @@ var getAnnotations = function(buffer, dbname, options) {
         }
         sails.log.debug(result.length + ' pathway annotations read (' + dbname + ')')
     } else { // gene annotations
-        for (var a = 0; a < numAnnotations; a++) {
-            var geneIndex = buffer.readUInt16BE(a * 2)
-            var gene = genedesc.get(geneIndex)
-            if (options && (options.verbose === '' || options.verbose === 'true')) {
-                result.push({
-                    href: sails.config.version.apiUrl + '/gene/' + gene.id,
-                    gene: gene
-                })
-            } else {
-                result.push({
-                    href: sails.config.version.apiUrl + '/gene/' + gene.id
-                })
+
+        //GET P-VALUES FOR ANNOTATIONS
+        // solve this in a neat way
+        // var predictions = []
+        // pathwaydb.get('RNASEQ!PREDICTIONS!' + pathway.database.toUpperCase() + '!' + pathway.id, function(err, data) {
+            
+            // if (err) {
+            //     handleDBError(err)
+            // } else {
+            //     for (var i = 1; i < data.length / 2; i++){
+            //         var z = lookup(data.readUInt16BE(i * 2))
+            //         predictions.push(z)
+            //     }
+            // }
+            ////////// 
+            for (var a = 0; a < numAnnotations; a++) {
+                var geneIndex = buffer.readUInt16BE(a * 2)
+                var gene = genedesc.get(geneIndex)
+                // var z = predictions[geneIndex] //
+                // var p = probability.zToP(z) //
+                if (options && (options.verbose === '' || options.verbose === 'true')) {
+                    result.push({
+                        href: sails.config.version.apiUrl + '/gene/' + gene.id,
+                        gene: gene,
+                        // zScore: z, //
+                        // pValue: p //
+                    })
+                } else {
+                    result.push({
+                        href: sails.config.version.apiUrl + '/gene/' + gene.id,
+                        zScore: z, //
+                        // pValue: p //
+                    })
+                }
             }
-        }
-        sails.log.debug(result.length + ' gene annotations read')
+            sails.log.debug(result.length + ' gene annotations read')
+            // })
+        
     }
     return result
 }
@@ -388,7 +411,7 @@ exp.getGeneJSON = function(gene, db, req, callback) {
                             handleDBError(err, cb)
                         }
                     } else {
-                        r.pathways.annotated = getAnnotations(data, db, {
+                        r.pathways.annotated = getAnnotations(data, null, db, {
                             verbose: req.query.verbose
                         })
                     }
@@ -433,7 +456,7 @@ exp.getGeneJSON = function(gene, db, req, callback) {
                 })
                     .on('data', function(data) {
                         var db = data.key.substring(data.key.lastIndexOf('!') + 1, data.key.length)
-                        var annotationsThisDB = getAnnotations(data.value, db, {
+                        var annotationsThisDB = getAnnotations(data.value, null, db, {
                             verbose: req.query.verbose
                         })
                         r.pathways.annotated.push.apply(
@@ -796,7 +819,7 @@ exp.getPathwayJSON = function(pathway, req, callback) {
         }
     }
 
-    async.series([
+    async.waterfall([
             function(cb) {
                 sails.log.debug('reading annotations for ' + pathway.id)
                 pathwaydb.get('RNASEQ!ANNOTATIONS!' + pathway.database.toUpperCase() + '!' + pathway.id, function(err, data) {
@@ -808,8 +831,10 @@ exp.getPathwayJSON = function(pathway, req, callback) {
                         }
                     } else {
                         sails.log.debug('annotations read from db for ' + pathway.name)
-                        r.genes.annotated = getAnnotations(data, null, {
-                            verbose: req.query.verbose
+                        r.genes.annotated = getAnnotations(data, pathway, null, {
+                        // r.genes.annotated = getAnnotations(data, null, {
+                            verbose: req.query.verbose,
+                            pValue: true
                         })
                         cb()
                     }

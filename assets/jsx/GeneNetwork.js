@@ -206,7 +206,11 @@ var Landing = React.createClass({
                                       return null
                                   }
                               }))
-                              return callback(null, {options: _.sortBy(options, function(item){return item.value}), complete: false})
+                              var sorted = _.chain(options)
+                                  .sortBy(function(item){return item.label.split(' - ')[0]}) //sorts on name of gene/term/network
+                                  .sortBy(function(item){return item.value.split('!')[0]}) //sorts on type of entry (gene, term or network)
+                                  .value()
+                              return callback(null, {options: sorted, complete: false})
                           } else {
                               return callback(null, {})
                           }
@@ -255,8 +259,10 @@ var Landing = React.createClass({
                              <div className='examples noselect defaultcursor'>For example:&nbsp;
                              <Link className='clickable' title='SMIM1' to='/gene/SMIM1'>SMIM1</Link>,&nbsp;
                              <Link className='clickable' title='Interferon signaling' to='/term/REACTOME:INTERFERON_SIGNALING'>Interferon signaling</Link>,&nbsp;
-                             <Link className='clickable' title='Migraine' to='/network/4CiuBn' params={{ids: 'Migraine'}}>Migraine</Link>,&nbsp;
-                             <Link className='clickable' title='Autism' to='/network/2jujak' params={{ids: 'Autism'}}>Autism</Link>
+                             <Link className='clickable' title='Migraine' to='/network/3ZLYoS' params={{ids: 'Migraine'}}>Migraine</Link>,&nbsp;
+                             <Link className='clickable' title='Autism' to='/network/2iGTR8' params={{ids: 'Autism'}}>Autism</Link>
+                             {/*<Link className='clickable' title='Migraine' to='/network/4CiuBn' params={{ids: 'Migraine'}}>Migraine</Link>,&nbsp;
+                             <Link className='clickable' title='Autism' to='/network/2jujak' params={{ids: 'Autism'}}>Autism</Link>*/}
                              </div>
                              </div>)
             }
@@ -289,7 +295,7 @@ var Landing = React.createClass({
                 </div>
                 </div>
                 {topSearch}
-                <MenuBar items={GN.menuItems} style={{backgroundColor: color.colors.gnwhite, padding: '20px'}} />
+                <MenuBar items={GN.menuItems} style={{padding: '30px 20px 20px 20px'}} />
                 </div>
                 {topBanner}
                 {this.props.children}

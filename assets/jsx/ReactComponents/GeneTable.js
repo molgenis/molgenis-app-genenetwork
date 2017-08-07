@@ -19,7 +19,7 @@ var AnnotatedGeneRow = React.createClass({
     propTypes: {
         
         data: React.PropTypes.object.isRequired,
-        termId: React.PropTypes.string.isRequired,
+        // termId: React.PropTypes.string.isRequired,
 
     },
     
@@ -40,14 +40,15 @@ var AnnotatedGeneRow = React.createClass({
                  <span>{desc}</span>
                  </Link>
                  </td>
-                 <td style={{textAlign: 'center'}}>TBA</td>
+                 {/*<td style={{textAlign: 'center'}}>TBA</td>*/}
+                 <td style={{textAlign: 'center'}} dangerouslySetInnerHTML={{__html: htmlutil.pValueToReadable(data.pValue)}}></td>
                  <td style={{textAlign: 'center'}}>TBA</td>
                  <td style={{textAlign: 'center'}}><SVGCollection.Annotated /></td>
-                 <td style={{textAlign: 'center'}}>
+                 {/*<td style={{textAlign: 'center'}}>
                  <a title={'Open network highlighting ' + data.gene.name} href={GN.urls.networkPage + '0!' + data.gene.name + '|' + this.props.termId + ',0!' + data.gene.name} target='_blank'>
                  <SVGCollection.NetworkIcon />
                  </a>
-                 </td>
+                 </td>*/}
                  </tr>
         )
     }
@@ -57,13 +58,15 @@ var PredictedGeneRow = React.createClass({
 
     propTypes: {
         data: React.PropTypes.object.isRequired,
+        // termId: React.PropTypes.string.isRequired
     },
     
     render: function() {
         
         var data = this.props.data
         var desc = (data.gene.description || 'no description').replace(/\[[^\]]+\]/g, '')
-        
+        var pValue = data.pValue ? data.pValue : data.p
+        var zScore = data.zScore ? data.zScore : data.z
         return ( <tr>
                  <td className='text'>
                  <Link className='nodecoration black' target='_blank' title={desc} to={`/gene/${data.gene.id}`}>
@@ -76,14 +79,14 @@ var PredictedGeneRow = React.createClass({
                  <span>{desc}</span>
                  </Link>
                  </td>
-                 <td style={{textAlign: 'center'}} dangerouslySetInnerHTML={{__html: htmlutil.pValueToReadable(data.pValue)}}></td>
-                 <td style={{textAlign: 'center'}}>{data.zScore > 0 ? <SVGCollection.TriangleUp className='directiontriangleup' /> : <SVGCollection.TriangleDown className='directiontriangledown' />}</td>
+                 <td style={{textAlign: 'center'}} dangerouslySetInnerHTML={{__html: htmlutil.pValueToReadable(pValue)}}></td>
+                 <td style={{textAlign: 'center'}}>{zScore > 0 ? <SVGCollection.TriangleUp className='directiontriangleup' /> : <SVGCollection.TriangleDown className='directiontriangledown' />}</td>
                  <td style={{textAlign: 'center'}}>{data.annotated ? <SVGCollection.Annotated /> : <SVGCollection.NotAnnotated />}</td>
-                 <td style={{textAlign: 'center'}}>
+                 {/*<td style={{textAlign: 'center'}}>
                  <a title={'Open network ' + (data.annotated ? 'highlighting ' : 'with ') + data.gene.name} href={GN.urls.networkPage + '0!' + data.gene.name + '|' + this.props.termId + ',0!' + data.gene.name} target='_blank'>
                  <SVGCollection.NetworkIcon />
                  </a>
-                 </td>
+                 </td>*/}
                  </tr>
         )
     }
@@ -92,7 +95,7 @@ var PredictedGeneRow = React.createClass({
 var GeneTable = React.createClass({
 
     propTypes: {
-        genes: React.PropTypes.array.isRequired,
+        // genes: React.PropTypes.array.isRequired,
         // type: React.Proptypes.string.isRequired
     },
 
@@ -100,6 +103,10 @@ var GeneTable = React.createClass({
         var that = this
         var rows = null
         var termId = this.props.termId
+
+        if (!this.props.genes && this.props.gpMessage){
+            return (<div>{this.props.gpMessage}</div>)
+        }
 
         if (this.props.type == 'prediction'){
             rows = _.map(this.props.genes, function(data, i) {
@@ -121,7 +128,7 @@ var GeneTable = React.createClass({
                   <th>P-VALUE</th>
                   <th>DIRECTION</th>
                   <th>ANNOTATED</th>
-                  <th>NETWORK</th>
+                  {/*<th>NETWORK</th>*/}
                   </tr>
                   {rows}
                 </tbody>

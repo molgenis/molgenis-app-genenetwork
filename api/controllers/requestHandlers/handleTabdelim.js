@@ -151,9 +151,9 @@ module.exports = function(req, res) {
             rows.push('# Gene id: ' + req.body.geneId)
             rows.push('# Database: ' + req.body.db)
             rows.push('#')
-            rows.push('term_id\tterm_name\tp-value\tdirection\tannotated')
+            rows.push('term_id\tterm_name\tp-value\tz-score\tannotated')
             for (var i = 0; i < predictions.length; i++) {
-                rows.push(predictions[i].id + '\t' + predictions[i].name + '\t' + predictions[i].pValue + '\t' + predictions[i].direction + '\t' + predictions[i].annotated)
+                rows.push(predictions[i].id + '\t' + predictions[i].name + '\t' + predictions[i].pValue + '\t' + predictions[i].zScore + '\t' + predictions[i].annotated)
             }
         } else if (req.body.type == 'similar'){
             var similargenes = JSON.parse(req.body.similargenes)

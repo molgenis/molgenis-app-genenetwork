@@ -3149,7 +3149,11 @@ var Landing = React.createClass({displayName: "Landing",
                                       return null
                                   }
                               }))
-                              return callback(null, {options: _.sortBy(options, function(item){return item.value}), complete: false})
+                              var sorted = _.chain(options)
+                                  .sortBy(function(item){return item.label.split(' - ')[0]}) //sorts on name of gene/term/network
+                                  .sortBy(function(item){return item.value.split('!')[0]}) //sorts on type of entry (gene, term or network)
+                                  .value()
+                              return callback(null, {options: sorted, complete: false})
                           } else {
                               return callback(null, {})
                           }
@@ -3198,8 +3202,10 @@ var Landing = React.createClass({displayName: "Landing",
                              React.createElement("div", {className: "examples noselect defaultcursor"}, "For example: ", 
                              React.createElement(Link, {className: "clickable", title: "SMIM1", to: "/gene/SMIM1"}, "SMIM1"), ", ", 
                              React.createElement(Link, {className: "clickable", title: "Interferon signaling", to: "/term/REACTOME:INTERFERON_SIGNALING"}, "Interferon signaling"), ", ", 
-                             React.createElement(Link, {className: "clickable", title: "Migraine", to: "/network/4CiuBn", params: {ids: 'Migraine'}}, "Migraine"), ", ", 
-                             React.createElement(Link, {className: "clickable", title: "Autism", to: "/network/2jujak", params: {ids: 'Autism'}}, "Autism")
+                             React.createElement(Link, {className: "clickable", title: "Migraine", to: "/network/3ZLYoS", params: {ids: 'Migraine'}}, "Migraine"), ", ", 
+                             React.createElement(Link, {className: "clickable", title: "Autism", to: "/network/2iGTR8", params: {ids: 'Autism'}}, "Autism")
+                             /*<Link className='clickable' title='Migraine' to='/network/4CiuBn' params={{ids: 'Migraine'}}>Migraine</Link>,&nbsp;
+                             <Link className='clickable' title='Autism' to='/network/2jujak' params={{ids: 'Autism'}}>Autism</Link>*/
                              )
                              ))
             }
@@ -3232,7 +3238,7 @@ var Landing = React.createClass({displayName: "Landing",
                 )
                 ), 
                 topSearch, 
-                React.createElement(MenuBar, {items: GN.menuItems, style: {backgroundColor: color.colors.gnwhite, padding: '20px'}})
+                React.createElement(MenuBar, {items: GN.menuItems, style: {padding: '30px 20px 20px 20px'}})
                 ), 
                 topBanner, 
                 this.props.children, 
@@ -3667,6 +3673,7 @@ var Link = Router.Link
 var SVGCollection = require('./SVGCollection')
 var htmlutil = require('../htmlutil')
 var PredictionRow = require('./PredictionRow')
+var color = require('../../js/color')
 
 var reactable = require('reactable')
 var Tr = reactable.Tr
@@ -3726,7 +3733,10 @@ var DataTable = React.createClass({displayName: "DataTable",
 
                 React.createElement(Tr, {key: key}, 
                 React.createElement(Td, {column: "TERM", className: "text"}, 
-                    React.createElement(Link, {className: "nodecoration black", title: data.term.numAnnotatedGenes + ' annotated genes, prediction accuracy ' + Math.round(100 * data.term.auc) / 100, to: "/term/" + data.term.id + ""}, 
+                    /*<Link className='nodecoration black' title={data.term.numAnnotatedGenes + ' annotated genes, prediction accuracy ' + Math.round(100 * data.term.auc) / 100} to={`/term/${data.term.id}`}>
+                    {data.term.name}
+                    </Link>*/
+                    React.createElement("a", {href: GN.urls.networkPage + data.term.id, className: "nodecoration", target: "_blank", style: {color: color.colors.gnblack}}, 
                     data.term.name
                     )
                 ), 
@@ -3882,7 +3892,7 @@ var DataTable = React.createClass({displayName: "DataTable",
 })
 
 module.exports = DataTable
-},{"../htmlutil":48,"./PredictionRow":41,"./SVGCollection":44,"lodash":81,"react":312,"react-router":104,"reactable":313}],14:[function(require,module,exports){
+},{"../../js/color":3,"../htmlutil":48,"./PredictionRow":41,"./SVGCollection":44,"lodash":81,"react":312,"react-router":104,"reactable":313}],14:[function(require,module,exports){
 'use strict'
 
 var _ = require('lodash')
@@ -4715,7 +4725,7 @@ var EdgeLegend = React.createClass({displayName: "EdgeLegend",
                       style: {fill: color.colors.gnblue}}))
         }
 
-        var endLeft = this.props.threshold < 0
+        var endLeft = this.props.threshold < 2
         var endRight = this.props.threshold > 13
         // pytrik
             // <polygon fill={this.props.hoverEdge === 'left' ? color.colors.gndarkgray : color.colors.gngray} onMouseOver={this.props.onMouseOver.bind(null, 'left')} onMouseOut={this.props.onMouseOver.bind(null, undefined)} onClick={this.props.onClick.bind(null, -0.5)} className="clickable" points="0.9,8 7.7,4 7.7,12 " />
@@ -4938,13 +4948,12 @@ var Gene = React.createClass({displayName: "Gene",
         var filteredPredictions = _.filter(this.state.prediction.pathways.predicted, function(pathway){
             return pathway.term.database.toUpperCase() === databaseSelection
         })
-        console.log(filteredPredictions)
         var predictions = _.map(filteredPredictions, function(pathway){      
                             return {
                                 id: pathway.term.id,
                                 name: pathway.term.name,
                                 pValue: pathway.pValue,
-                                direction: 'direction',
+                                zScore: pathway.zScore,
                                 annotated: pathway.annotated
                             }
                         })
@@ -4969,7 +4978,7 @@ var Gene = React.createClass({displayName: "Gene",
         form['predictions'].value = JSON.stringify(predictions)
         form['similargenes'].value = JSON.stringify(similargenes)
         form['tissues'].value = JSON.stringify(tissues)
-        // form.submit()
+        form.submit()
     },
     
     render: function() {
@@ -6028,7 +6037,7 @@ var AnnotatedGeneRow = React.createClass({displayName: "AnnotatedGeneRow",
     propTypes: {
         
         data: React.PropTypes.object.isRequired,
-        termId: React.PropTypes.string.isRequired,
+        // termId: React.PropTypes.string.isRequired,
 
     },
     
@@ -6049,14 +6058,15 @@ var AnnotatedGeneRow = React.createClass({displayName: "AnnotatedGeneRow",
                  React.createElement("span", null, desc)
                  )
                  ), 
+                 /*<td style={{textAlign: 'center'}}>TBA</td>*/
+                 React.createElement("td", {style: {textAlign: 'center'}, dangerouslySetInnerHTML: {__html: htmlutil.pValueToReadable(data.pValue)}}), 
                  React.createElement("td", {style: {textAlign: 'center'}}, "TBA"), 
-                 React.createElement("td", {style: {textAlign: 'center'}}, "TBA"), 
-                 React.createElement("td", {style: {textAlign: 'center'}}, React.createElement(SVGCollection.Annotated, null)), 
-                 React.createElement("td", {style: {textAlign: 'center'}}, 
-                 React.createElement("a", {title: 'Open network highlighting ' + data.gene.name, href: GN.urls.networkPage + '0!' + data.gene.name + '|' + this.props.termId + ',0!' + data.gene.name, target: "_blank"}, 
-                 React.createElement(SVGCollection.NetworkIcon, null)
-                 )
-                 )
+                 React.createElement("td", {style: {textAlign: 'center'}}, React.createElement(SVGCollection.Annotated, null))
+                 /*<td style={{textAlign: 'center'}}>
+                 <a title={'Open network highlighting ' + data.gene.name} href={GN.urls.networkPage + '0!' + data.gene.name + '|' + this.props.termId + ',0!' + data.gene.name} target='_blank'>
+                 <SVGCollection.NetworkIcon />
+                 </a>
+                 </td>*/
                  )
         )
     }
@@ -6066,13 +6076,15 @@ var PredictedGeneRow = React.createClass({displayName: "PredictedGeneRow",
 
     propTypes: {
         data: React.PropTypes.object.isRequired,
+        // termId: React.PropTypes.string.isRequired
     },
     
     render: function() {
         
         var data = this.props.data
         var desc = (data.gene.description || 'no description').replace(/\[[^\]]+\]/g, '')
-        
+        var pValue = data.pValue ? data.pValue : data.p
+        var zScore = data.zScore ? data.zScore : data.z
         return ( React.createElement("tr", null, 
                  React.createElement("td", {className: "text"}, 
                  React.createElement(Link, {className: "nodecoration black", target: "_blank", title: desc, to: "/gene/" + data.gene.id + ""}, 
@@ -6085,14 +6097,14 @@ var PredictedGeneRow = React.createClass({displayName: "PredictedGeneRow",
                  React.createElement("span", null, desc)
                  )
                  ), 
-                 React.createElement("td", {style: {textAlign: 'center'}, dangerouslySetInnerHTML: {__html: htmlutil.pValueToReadable(data.pValue)}}), 
-                 React.createElement("td", {style: {textAlign: 'center'}}, data.zScore > 0 ? React.createElement(SVGCollection.TriangleUp, {className: "directiontriangleup"}) : React.createElement(SVGCollection.TriangleDown, {className: "directiontriangledown"})), 
-                 React.createElement("td", {style: {textAlign: 'center'}}, data.annotated ? React.createElement(SVGCollection.Annotated, null) : React.createElement(SVGCollection.NotAnnotated, null)), 
-                 React.createElement("td", {style: {textAlign: 'center'}}, 
-                 React.createElement("a", {title: 'Open network ' + (data.annotated ? 'highlighting ' : 'with ') + data.gene.name, href: GN.urls.networkPage + '0!' + data.gene.name + '|' + this.props.termId + ',0!' + data.gene.name, target: "_blank"}, 
-                 React.createElement(SVGCollection.NetworkIcon, null)
-                 )
-                 )
+                 React.createElement("td", {style: {textAlign: 'center'}, dangerouslySetInnerHTML: {__html: htmlutil.pValueToReadable(pValue)}}), 
+                 React.createElement("td", {style: {textAlign: 'center'}}, zScore > 0 ? React.createElement(SVGCollection.TriangleUp, {className: "directiontriangleup"}) : React.createElement(SVGCollection.TriangleDown, {className: "directiontriangledown"})), 
+                 React.createElement("td", {style: {textAlign: 'center'}}, data.annotated ? React.createElement(SVGCollection.Annotated, null) : React.createElement(SVGCollection.NotAnnotated, null))
+                 /*<td style={{textAlign: 'center'}}>
+                 <a title={'Open network ' + (data.annotated ? 'highlighting ' : 'with ') + data.gene.name} href={GN.urls.networkPage + '0!' + data.gene.name + '|' + this.props.termId + ',0!' + data.gene.name} target='_blank'>
+                 <SVGCollection.NetworkIcon />
+                 </a>
+                 </td>*/
                  )
         )
     }
@@ -6101,7 +6113,7 @@ var PredictedGeneRow = React.createClass({displayName: "PredictedGeneRow",
 var GeneTable = React.createClass({displayName: "GeneTable",
 
     propTypes: {
-        genes: React.PropTypes.array.isRequired,
+        // genes: React.PropTypes.array.isRequired,
         // type: React.Proptypes.string.isRequired
     },
 
@@ -6109,6 +6121,10 @@ var GeneTable = React.createClass({displayName: "GeneTable",
         var that = this
         var rows = null
         var termId = this.props.termId
+
+        if (!this.props.genes && this.props.gpMessage){
+            return (React.createElement("div", null, this.props.gpMessage))
+        }
 
         if (this.props.type == 'prediction'){
             rows = _.map(this.props.genes, function(data, i) {
@@ -6129,8 +6145,8 @@ var GeneTable = React.createClass({displayName: "GeneTable",
                   React.createElement("th", {className: "tabletextheader", style: {width: '60%'}}, "DESCRIPTION"), 
                   React.createElement("th", null, "P-VALUE"), 
                   React.createElement("th", null, "DIRECTION"), 
-                  React.createElement("th", null, "ANNOTATED"), 
-                  React.createElement("th", null, "NETWORK")
+                  React.createElement("th", null, "ANNOTATED")
+                  /*<th>NETWORK</th>*/
                   ), 
                   rows
                 )
@@ -6582,7 +6598,8 @@ var network2js = function(network) {
         },
         edgeValueScales: [[0, 12, 15], [0, -12, -15]],
         edgeColorScales: [['#ffffff', '#000000', '#ff3c00'], ['#ffffff', '#00a0d2', '#7a18ec']],
-        buffer: network.buffer
+        buffer: network.buffer,
+        pathway: network.pathway
     }
 
     js.elements.hashNodes = _.indexBy(js.elements.nodes, function(node) {
@@ -6732,6 +6749,10 @@ var Network = React.createClass({displayName: "Network",
         var coloring = Cookies.get('networkcoloring') || 'cluster'
         // coloring by term prediction/annotation not available until pathway analysis has been done
         if (coloring == 'term') coloring = 'cluster'
+        var genes = {
+                genes: {annotated: null, predicted: null },
+                pathway: {database: null, name: null}
+            }
 
         return {
             network: null,
@@ -6748,7 +6769,9 @@ var Network = React.createClass({displayName: "Network",
             addedGenes: [],
             selectedTissue: 'data',
             showGenes: true,
-            tab: 'network' //Cookies.get('tab') || 
+            tab: 'network', //Cookies.get('tab') || 
+            genes: genes,
+            gpMessage: null
         }
     },
     
@@ -6785,7 +6808,9 @@ var Network = React.createClass({displayName: "Network",
                     errorTitle: jwres.statusCode
                 })
                 callback({name: 'Error', message: 'Couldn\'t load data'})
-            }
+             } //else {
+            //     console.log(res)
+            // }
         }.bind(this))
     },
 
@@ -6839,7 +6864,7 @@ var Network = React.createClass({displayName: "Network",
             coloring: coloring,
             activeGroup: data.elements.groups[0],
             threshold: data.threshold,
-            progressText: 'creating visualization'
+            progressText: 'creating visualization',
         })
 
         // allow state change
@@ -6885,11 +6910,11 @@ var Network = React.createClass({displayName: "Network",
     },
 
     loadGenes: function(callback) {
-        var ids = this.props.params.ids.replace(/(\r\n|\n|\r)/g, ',')
-        if (ids.split(',').length == 1 && (ids.startsWith('REACTOME:') || ids.startsWith('HP:'))){
+        if (this.state.data.pathway != null) {
+        // if (ids.split(',').length == 1 && (ids.startsWith('REACTOME:') || ids.startsWith('HP:'))){
             console.log('Get genes from pathway database')
             $.ajax({
-                url: GN.urls.pathway + '/' + ids + '?verbose',
+                url: GN.urls.pathway + '/' + this.state.data.pathway.id + '?verbose',
                 dataType: 'json',
                 success: function(data){
                     this.setState({
@@ -6915,20 +6940,82 @@ var Network = React.createClass({displayName: "Network",
             })
             callback(null)
 
-        } else {
-            // console.log('Get genes from prediction server')
-            // console.log(this.state.activeGroup)
-            var genes = {
-                genes: {annotated: null, predicted: null },
-                pathway: {database: null, name: null}
-            }
-            this.setState({
-                genes: genes
+        } else if (this.state.activeGroup.nodes.length >= 5) {
+            console.log('Get genes from prediction server')
+
+            io.socket.on('geneprediction.queueEvent', this._onIOQueueEvent)
+            io.socket.on('geneprediction.result', this._onIOResult)
+	        var genes = this.state.activeGroup.nodes
+            io.socket.get(GN.urls.geneprediction, {genes: genes, geneOfInterest: undefined}, function(res, jwres) {
+                if (jwres.statusCode !== 200) {
+                    window.alert('Please try again later.')
+                }
             })
             callback(null)
+        } 
+    },
+
+    _onIOQueueEvent: function(msg) {
+    	console.log('onIOQueueEvent')
+        if (msg.queueLength || msg.queueLength === 0) {
+            var str = htmlutil.intToStr(msg.queueLength) + ' analyses'
+            if (msg.queueLength === 0) str = 'Starting analysis...'
+            else if (msg.queueLength < 2) str = 'Your analysis will start in a few seconds...'
+            else if (msg.queueLength < 10) str = 'Your analysis will start in less than a minute, please be patient. '
+                + 'You\'re ' + htmlutil.intToOrdinalStr(msg.queueLength) + ' in the queue.'
+            else str = 'This will take some time as our servers are busy right now, please be patient. '
+                + 'You\'re ' + htmlutil.intToOrdinalStr(msg.queueLength) + ' in the queue.'
+            this.setState({
+                gpMessage: str
+            })
+        } else {
+            console.log('PredictedGenesPanel.setSocketListeners: unhandled queueEvent')
         }
     },
-    
+
+    _onIOResult: function(msg) {
+
+        if (msg.gpResults.auc && msg.gpResults.auc > 0) {
+            
+            this.setState({
+                gpAUC: msg.gpResults.auc
+            })
+            
+        } else {
+
+			var genes = {
+                genes: {annotated: null, predicted: msg.gpResults.results },
+                pathway: {database: null, name: null}
+            }
+
+            this.setState({
+                gpMessage: null,
+                genes: genes,
+                gpStatus: msg.gpStatus,
+                gpRunning: true,
+                gpAUC: msg.gpResults.auc
+            })
+        }
+    },
+
+    _onIOError: function(msg) {
+
+        this.setState({
+            gpMessage: msg.gpMessage,
+            gpRunning: false
+        })
+    },
+
+    _onIOEnd: function(msg) {
+
+        this.props.onPredFinish()
+
+        this.setState({
+            gpMessage: msg.gpMessage,
+            gpRunning: false
+        })
+    },
+
     componentDidMount: function() {
         async.waterfall([
             this.loadNetworkData,
@@ -6953,7 +7040,7 @@ var Network = React.createClass({displayName: "Network",
                 //     this.loadTissueData('brain')
                 //     this.loadTissueData('blood')
                 //     // this.state.showGenes ? this.state.network.hide() : null
-                // }.bind(this), 1500)          
+                // }.bind(this), 1500)
             }
         }.bind(this))
     },
@@ -7229,7 +7316,7 @@ var Network = React.createClass({displayName: "Network",
     },
 
     render: function() {
-
+        // console.log('state')
         // console.log(this.state)
         // console.log('props')
         // console.log(this.props)
@@ -7276,12 +7363,12 @@ var Network = React.createClass({displayName: "Network",
 
         } else {
             pageTitle = this.state.data.elements.nodes.length + ' genes' + GN.pageTitleSuffix
-            var title = this.state.genes.pathway.database != null ? (this.state.genes.pathway.database + ': ' + this.state.genes.pathway.name) : null
+            var title = this.state.data.pathway != null ? (this.state.data.pathway.database + ': ' + this.state.data.pathway.name) : null
             var predictedgenes = (
                     React.createElement("div", null, 
                         React.createElement("div", {className: "gn-term-container-outer", style: {backgroundColor: color.colors.gnwhite}}, 
                         React.createElement("div", {className: "gn-term-container-inner maxwidth", style: {padding: '20px'}}, 
-                            React.createElement(GeneTable, {genes: this.state.genes.genes.predicted, type: "prediction", termId: this.state.genes.pathway.id})
+                            React.createElement(GeneTable, {genes: this.state.genes.genes.predicted ? this.state.genes.genes.predicted : null, type: "prediction", gpMessage: this.state.gpMessage})
                         )
                         ), 
                         React.createElement(Footer, null)
@@ -7291,7 +7378,7 @@ var Network = React.createClass({displayName: "Network",
                 React.createElement("div", null, 
                     React.createElement("div", {className: "gn-term-container-outer", style: {backgroundColor: color.colors.gnwhite}}, 
                         React.createElement("div", {className: "gn-term-container-inner maxwidth", style: {padding: '20px'}}, 
-                            React.createElement(GeneTable, {genes: this.state.genes.genes.annotated, type: "annotation", termId: this.state.genes.pathway.id})
+                            React.createElement(GeneTable, {genes: this.state.genes.genes.annotated ? this.state.genes.genes.annotated : null, type: "annotation"})
                         )
                         ), 
                         React.createElement(Footer, null)
@@ -8405,7 +8492,6 @@ var PredictedGenesPanel = React.createClass({displayName: "PredictedGenesPanel",
     },
     
     setSocketListeners: function() {
-
         io.socket.on('geneprediction.queueEvent', this._onIOQueueEvent)
         io.socket.on('geneprediction.error', this._onIOError)
         io.socket.on('geneprediction.result', this._onIOResult)
@@ -8413,8 +8499,10 @@ var PredictedGenesPanel = React.createClass({displayName: "PredictedGenesPanel",
     },
     
     gpRequest: function(group, geneOfInterest) {
-
+        console.log('GROUP')
+        console.log(group)
         group = group || this.props.group
+
 
         if (!group) {
             
@@ -8469,6 +8557,8 @@ var PredictedGenesPanel = React.createClass({displayName: "PredictedGenesPanel",
     },
     
     render: function() {
+        console.log('this.state')
+        console.log(this.state)
         if (!this.props.group) return null
         if (!this.state.gpResults && this.state.gpMessage) {
             return (React.createElement("div", {style: this.props.style}, 
@@ -9286,10 +9376,6 @@ var Term = React.createClass({displayName: "Term",
     },
     
     render: function() {
-      console.log('PROPS')
-      console.log(this.props)
-      console.log('STATE')
-      console.log(this.state)
         
         if (this.state.error) {
             

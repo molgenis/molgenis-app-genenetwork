@@ -30,7 +30,7 @@ function getAllCorrelations(gene, options, callback) {
     }
     if (!callback || !_.isFunction(callback)) callback({name: 'ArgumentError', message: 'getAllCorrelations: The last argument has to be a callback function'})
     if (!_.isPlainObject(options)) callback({name: 'ArgumentError', message: 'getAllCorrelations: The second argument has to be an options object'})
-    var limit = options.limit || sails.config.api.numGenesLimit || 20
+    var limit = options.limit || sails.config.api.numGenesLimit || 2000 // 20
     if (limit && _.isNumber(limit)) {
         limit = Math.min(sails.config.api.numGenesMax || 1000, limit)
     } else {

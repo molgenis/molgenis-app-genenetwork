@@ -161,7 +161,6 @@ var PredictedGenesPanel = React.createClass({
     },
     
     setSocketListeners: function() {
-
         io.socket.on('geneprediction.queueEvent', this._onIOQueueEvent)
         io.socket.on('geneprediction.error', this._onIOError)
         io.socket.on('geneprediction.result', this._onIOResult)
@@ -169,8 +168,10 @@ var PredictedGenesPanel = React.createClass({
     },
     
     gpRequest: function(group, geneOfInterest) {
-
+        console.log('GROUP')
+        console.log(group)
         group = group || this.props.group
+
 
         if (!group) {
             
@@ -225,6 +226,8 @@ var PredictedGenesPanel = React.createClass({
     },
     
     render: function() {
+        console.log('this.state')
+        console.log(this.state)
         if (!this.props.group) return null
         if (!this.state.gpResults && this.state.gpMessage) {
             return (<div style={this.props.style}>
