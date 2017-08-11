@@ -11,6 +11,7 @@ exp.colors = {
     gndarkgray: '#4d4d4d',
     gngray: '#999999',
     gnlightgray: '#dcdcdc',
+    gnlightergray: '#ededed',
     gnverylightgray: '#f8f8f8',
     gnblack: '#000000',
     gnwhite: '#ffffff',

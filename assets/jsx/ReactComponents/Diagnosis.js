@@ -593,8 +593,9 @@ var Diagnosis = React.createClass({
           <div className='button clickable noselect' onClick={this.download}>DOWNLOAD COMPLETE RESULTS</div>
     
           <div>
-               <form id='gn-diagnosis-downloadform' method='post' encType='multipart/form-data' action={GN.urls.diagnosisResults}> 
-                <input type='hidden' id='terms' name='terms' value={this.props.params.id} /> 
+               <form id='gn-diagnosis-downloadform' method='post' encType='multipart/form-data' action={GN.urls.tabdelim}> 
+                <input type='hidden' id='what' name='what' value='diagnosis' />
+                <input type='hidden' id='terms' name='terms' value={this.props.params.id} />
                 </form>
             </div>
 

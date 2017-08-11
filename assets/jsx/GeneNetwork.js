@@ -24,6 +24,7 @@ var Network = require('./ReactComponents/Network')
 var Ontology = require('./ReactComponents/Ontology')
 var DiagnosisMain = require('./ReactComponents/DiagnosisMain')
 var Diagnosis = require('./ReactComponents/Diagnosis')
+var SVGCollection = require('./ReactComponents/SVGCollection')
 var Footer = require('./ReactComponents/Footer')
 
 var GN = {}
@@ -67,10 +68,10 @@ GN.urls = {
     genePage: DOMAIN + '/gene/',
     termPage: DOMAIN + '/term/',
     networkPage: DOMAIN + '/network/',
-    diagnosisPage: DOMAIN + '/diagnosis/',
+    diagnosisPage: DOMAIN + '/diagnosis',
 
     svg2pdf: DOMAIN + '/api/v1/svg2pdf',
-    diagnosisResults: DOMAIN + '/api/v1/diagnosisResults',
+    // diagnosisResults: DOMAIN + '/api/v1/diagnosisResults',
     tabdelim: DOMAIN + '/api/v1/tabdelim',
     
     diagnosisVCF: DOMAIN + '/api/v1/vcf',
@@ -122,38 +123,53 @@ var GeneMain = React.createClass({
     }
 })
 
-var ExampleBox = React.createClass({
-	render: function(){
-	return (
-        <div>
-          <div style={{backgroundColor: color.colors.gnwhite, margin: '30px 15px 30px 15px', padding: '20px', textAlign: 'center', width: '27%', height: '150px', float: 'left'}} >
-            <p>Example.</p>
-            <a className='button noselect clickable' href={GN.urls.diagnosisPage}>Go to page</a>
-          </div>
-        </div>
-		)
-	}
-})
+var Box = React.createClass({
+    getInitialState: function() {
+      return {
+        color: color.colors.gngray
+      }
+    },
 
-var DiagnosisBox = React.createClass({
+    onMouseOver: function() {
+      this.setState({
+        color: color.colors.gndarkgray
+      })
+    },
+
+    onMouseOut: function() {
+      this.setState({
+        color: color.colors.gngray
+      })
+    },
+
     render: function(){
+      // padding: '40px 40px 40px 40px', margin: '10px',
       return (
         <div>
-          <div style={{backgroundColor: color.colors.gnwhite, margin: '30px 15px 30px 15px', padding: '20px', textAlign: 'center', width: '27%', height: '150px', float: 'left'}} >
-            <p>Description about diagnosis page.</p>
-            <a className='button noselect clickable' href={GN.urls.diagnosisPage}>Go to Diagnosis</a>
+          <div className='box-sizing' style={{backgroundColor: color.colors.gnlightergray, border: '20px solid #fff', padding: '40px', width: '33.33333%', float: 'left', minWidth: '350px'}} >
+            <h3 style={{color: color.colors.gndarkgray}}>{this.props.title}</h3>
+            <p style={{color: color.colors.gndarkgray}}>{this.props.text}</p>
+            <div style={{float: 'right'}}>
+              <Link style={{color: this.state.color, fontSize: '10pt'}} onMouseOver={this.onMouseOver} onMouseOut={this.onMouseOut} className='nodecoration black clickable' to={this.props.url}>
+                <SVGCollection.ArrowRight color={this.state.color} onMouseOver={this.onMouseOver} onMouseOut={this.onMouseOut} /> 
+                <b style={{paddingLeft: '5px'}}>CONTINUE</b>
+              </Link>
+            </div>
           </div>
         </div>
         )
     }
 })
 
-var Boxes = React.createClass({
+var Tools = React.createClass({
 	render: function(){
 		return (
-			<div style={{textAlign: 'center'}}>
-				<DiagnosisBox />
-			</div>
+			<div style={{backgroundColor: color.colors.gnwhite, marginTop: '10px', padding: '20px'}}>
+				<Box 
+            title="DIAGNOSIS"
+            text="Prioritize genes for HPO phenotypes. Small description about diagnosis page, what it does, how it works, etc etc etc etc."
+			       url={GN.urls.diagnosisPage} />
+      </div>
 			)
 	}
 })
@@ -208,7 +224,7 @@ var Landing = React.createClass({
                               }))
                               var sorted = _.chain(options)
                                   .sortBy(function(item){return item.label.split(' - ')[0]}) //sorts on name of gene/term/network
-                                  .sortBy(function(item){return item.value.split('!')[0]}) //sorts on type of entry (gene, term or network)
+                                  .sortBy(function(item){return item.value.split('!')[0]}) //sorts on type of entry (first gene, then term, then network)
                                   .value()
                               return callback(null, {options: sorted, complete: false})
                           } else {
@@ -285,7 +301,8 @@ var Landing = React.createClass({
         // 'Enter your search or paste a gene list here'
                 //{!this.props.children || this.props.children.props.route.path.indexOf('network') < 0 ? <Footer /> : null}
         // {!this.props.children || (this.props.children.props.route.path.indexOf('network') < 0) ? <Footer /> : null}
-
+        console.log('this.props.childr')
+        console.log(this.props.children)
         return (<div className='gn-app vflex'>
                 <div className='gn-top flex00 flexcenter hflex'>
                 <div className='gn-top-logo clickable flex00' style={{margin: '10px 0'}} onClick={this.onLogoClick}>
@@ -299,8 +316,9 @@ var Landing = React.createClass({
                 </div>
                 {topBanner}
                 {this.props.children}
-                {!this.props.children ? <Boxes /> : null}
-                {!this.props.children || (this.props.children.props.route.path.indexOf('network') < 0 && this.props.children.props.route.path.indexOf('diagnosis') < 0) ? <Footer /> : null}
+                {!this.props.children ? <Tools /> : null}
+                {/*} {!this.props.children || (this.props.children.props.route.path.indexOf('network') < 0 && this.props.children.props.route.path.indexOf('diagnosis') < 0) ? <Footer /> : null} */}
+                {!this.props.children || this.props.children.props.route.path.indexOf('network') < 0 ? <Footer /> : null}
                 </div>
         )
     }

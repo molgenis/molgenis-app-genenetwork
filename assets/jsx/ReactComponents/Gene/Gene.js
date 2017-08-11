@@ -138,13 +138,6 @@ var Gene = React.createClass({
                                 annotated: pathway.annotated
                             }
                         })
-        var similargenes = _.map(this.state.similar.data, function(item){
-            return {
-                id: item.gene.id,
-                name: item.gene.name,
-                pValue: item.pValue
-            }
-        })
         var indices = this.state.celltypes.fixed.indices
         var avg = this.state.celltypes.values.avg
         var auc = this.state.celltypes.values.auc
@@ -157,12 +150,15 @@ var Gene = React.createClass({
             }
         })
         form['predictions'].value = JSON.stringify(predictions)
-        form['similargenes'].value = JSON.stringify(similargenes)
         form['tissues'].value = JSON.stringify(tissues)
         form.submit()
     },
     
     render: function() {
+
+        console.log('state')
+        console.log(this.state)
+        
         var content = null
         var contentTop = (
             <GeneHeader loading={true} />
@@ -214,7 +210,6 @@ var Gene = React.createClass({
                         <input type='hidden' id='what' name='what' value='geneprediction' />
                         <input type='hidden' id='type' name='type' value={this.state.topMenuSelection} />
                         <input type='hidden' id='predictions' name='predictions' value='' />
-                        <input type='hidden' id='similargenes' name='similargenes' value='' />
                         <input type='hidden' id='tissues' name='tissues' value='' />
                         </form>
                         </div>

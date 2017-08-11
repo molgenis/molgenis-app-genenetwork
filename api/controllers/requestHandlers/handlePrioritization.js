@@ -6,6 +6,7 @@ var quicksort = require('../utils/quicksort')
 var quicksortobj = require('../utils/quicksortobj')
 var cholesky = require('../../../stats/cholesky')
 var ziggurat = require('../../../stats/ziggurat')
+var getprioritizedgenes = require('../utils/getprioritizedgenes')
 var crypto = require('crypto')
 var bs62 = require('base62')
 var json2csv = require('json2csv');
@@ -20,103 +21,10 @@ Date.prototype.yyyymmdd = function() {
 
 module.exports = function(req, res) {
 
-    var termsQ = req.params.id.trim().split(/[\s,;]+/)
-    var terms = [] // objects
-    var termsFound = []
-    var termsNotFound = []
-    var pathwayDBs = []
+    var terms = req.params.id
 
-    var genesToGet = []
-    if (req.query.genes) {
-        var genesQ = req.query.genes.split(/[\s,;]+/)
-        for (var i = 0; i < genesQ.length; i++) {
-            var gene = genedesc.get(genesQ[i])
-            if (gene) {
-                genesToGet.push(gene)
-            }
-        }
-    }
-
-    for (var i = 0; i < termsQ.length; i++) {
-        var pathwayObj = dbutil.pathwayObject(termsQ[i])
-        console.log(pathwayObj)
-        if (pathwayObj) {
-            terms.push(pathwayObj)
-            termsFound.push(pathwayObj.id)
-            if (pathwayDBs.indexOf(pathwayObj.database) < 0) {
-                pathwayDBs.push(pathwayObj.database)
-            }
-        } else {
-            termsNotFound.push(termsQ[i])
-        }
-    }
-
-    if (terms.length === 0) {
-        return res.notFound({
-            status: 404,
-            message: 'No pathways/phenotypes found for \'' + req.params.id + '\''
-        })
-    }
-
-    async.map(terms, function(term, cb) {
-        dbutil.getGeneZScoresForTerm(term, {
-            array: true,
-            sort: false
-        }, function(err, result) {
-            if (err) {
-                cb(err)
-            } else {
-                cb(null, result)
-            }
-        })
-    }, function(err, results) {
-
-        if (err) {
-            return res.send(err.status, err)
-        }
-
-        var ts = new Date()
-
-        var r = {}
+    getprioritizedgenes(terms, true, function(err, r){
         r.href = req.protocol + '://' + req.get('host') + req.originalUrl
-        r.termsNotFound = termsNotFound
-        r.terms = []
-        for (var i = 0; i < terms.length; i++) {
-            r.terms.push({
-                href: sails.config.version.apiUrl + '/pathway/' + terms[i].id
-            })
-            if (req.query.verbose === '' || req.query.verbose === 'true') {
-                r.terms[i].term = terms[i]
-            }
-        }
-        r.results = []
-        for (var j = 0; j < results[0].length; j++) {
-            var gene = genedesc.get(j)
-            if (genesToGet.length == 0 || genesToGet.indexOf(gene) >= 0) {
-                r.results.push({
-                    href: sails.config.version.apiUrl + '/gene/' + gene.id,
-                    predicted: [],
-                    weightedZScore: 0
-                })
-                if (req.query.verbose === '' || req.query.verbose === 'true') {
-                    _.last(r.results).gene = gene
-                }
-            }
-        }
-        
-        var sq = Math.sqrt(results.length)
-        for (var i = 0; i < results.length; i++) {
-            for (var j = 0; j < results[i].length; j++) {
-                r.results[j].weightedZScore += results[i][j] / sq
-                r.results[j].predicted[i] = results[i][j]
-            }
-        }
-
-        sails.log.debug((new Date() - ts) + ' ms creating result array')
-        ts = new Date()
-        quicksortobj(r.results, 'weightedZScore')
-        r.results.reverse()
-        sails.log.debug((new Date() - ts) + ' ms sorting')
 
         if (req.query.start) {
             if (req.query.start >= r.results.length) {
@@ -199,7 +107,7 @@ module.exports = function(req, res) {
                 dbutil.getAnnotatedPathwayIDsForGene(genedesc.get(geneID), null, function(err, annotations) {
                     if (err) cb(err)
                     else {
-                        result.annotated = _.intersection(annotations, termsFound)
+                        result.annotated = _.intersection(annotations, r.termsFound)
                         cb(null, annotations)
                     }
                 })
@@ -210,7 +118,10 @@ module.exports = function(req, res) {
                 return res.json(r)
             })
         }
+
+
     })
 }
 
+        
 

@@ -429,7 +429,8 @@ exp.getGeneJSON = function(gene, db, req, callback) {
                             start: req.query.start,
                             stop: req.query.stop,
                             sort: true,
-                            pvalue: true
+                            pvalue: true,
+                            array: req.query.array
                         })
                         //TODO fix
                         if (req.query.verbose !== '' && req.query.verbose !== 'true') {
@@ -912,6 +913,7 @@ exp.getCorrelationsJSON = function(gene, options, callback) {
                     }
                 }
             }
+
             r.data.sort(sortby('zScore', true, Math.abs))
 
             if (options.limit) {

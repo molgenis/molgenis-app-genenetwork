@@ -29,7 +29,6 @@ module.exports = {
     networkShortURLDBPath: '/data/genenetwork/level/new/dbnetworkurls',
 
     svgUploadDir: '/data/genenetwork/uploads/svg/',
-    diagnosisUploadDir: '/data/genenetwork/uploads/diagnosis/',
     networkFontFamily: 'Geogrotesque Lg',
     networkFontFile: 'assets/fonts/Geogtq-Lg.svg',
 

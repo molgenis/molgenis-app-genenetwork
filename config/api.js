@@ -7,8 +7,9 @@ module.exports.api = {
     numPathwaysLimit: 20, // how many pathways to give by default when no specific db given
     predictedNumGenesToSend: 200,
 
-    numGenesLimit: 1000, //20
+    numGenesLimit: 20, //20
     numGenesMax: 1000, //1000
+    numGenesTotal: 56439,
     defaultCoregulationZScoreThreshold: 5,
     defaultCoregulationCorrelationThreshold: 0.3,
     defaultCofunctionCorrelationThreshold: 0.3,

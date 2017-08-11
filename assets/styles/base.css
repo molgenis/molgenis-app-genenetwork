@@ -954,6 +954,43 @@ line.link {
     position: relative;
 }
 
+.hpo-table tbody {
+    height: 150px;
+    width: 100%;
+    overflow-y: scroll;
+    display: block;
+}
+
+.hpo-table thead {
+    width: 100%;
+    display: block;
+    border-bottom: 1px solid #dcdcdc;
+}
+
+.hpo-table th:nth-child(1){
+    width:100%;
+}
+
+.hpo-table td:nth-child(1){
+    width: 100%;
+}
+
+.hpo-table th:nth-child(2){
+    min-width: 137px;
+}
+
+.hpo-table td:nth-child(2){
+    min-width: 137px;
+}
+
+.hpo-table th:nth-child(3){
+    min-width: 30px;
+}
+
+.hpo-table td:nth-child(3){
+    min-width: 30px;
+}
+
 .tooltip {
     opacity: 0.4 !important;
     background-color: #000000 !important;
@@ -1311,4 +1348,10 @@ label > input + img {
     overflow: hidden;
     position: absolute;
     z-index: -1;
+}
+
+.box-sizing { 
+	box-sizing: border-box;
+	 -moz-box-sizing:border-box;
+
 }

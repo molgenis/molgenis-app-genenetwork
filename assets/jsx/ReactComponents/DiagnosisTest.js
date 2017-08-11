@@ -7,9 +7,6 @@ var color = require('../../js/color.js')
 var Select = require('react-select')
 
 var reactable = require('reactable')
-var ReactRouter = require('react-router')
-var Router = ReactRouter.Router
-var Link = ReactRouter.Link
 var Tr = reactable.Tr
 var Td = reactable.Td
 var Th = reactable.Th
@@ -18,7 +15,6 @@ var Table = reactable.Table
 
 var SVGCollection = require('./SVGCollection')
 var UploadPanel = require('./UploadPanel')
-var Back = require('./Back')
 
 var TermTable = React.createClass({
 
@@ -38,12 +34,11 @@ var TermTable = React.createClass({
 
         if (terms.length < 1){
             rows.push(
-                <Tr id='no-term-selected'>
+                <Tr>
                     <Td column="TERM" className='text'>
                         <span style={{color: color.colors.gngray, fontStyle: 'italic'}}>No terms selected</span>
                     </Td>
                     <Td column="ID" style={{whiteSpace: 'nowrap', textAlign: 'center'}} ></Td>
-                    <Th column="REMOVE"></Th>
                 </Tr>
                 )
         } else {
@@ -54,10 +49,9 @@ var TermTable = React.createClass({
                             {term.name}
                         </Td>
                         <Td column="ID" style={{whiteSpace: 'nowrap', textAlign: 'center'}} >{term.value}</Td>
-                        <Th column="REMOVE"><span className='clickable' onClick={this.props.removeTerm.bind(null, term.value)}>X</span></Th>
                     </Tr>
                     )
-            }.bind(this))
+            })
         }
 
         return (
@@ -66,7 +60,6 @@ var TermTable = React.createClass({
                     <Thead>
                     <Th column="TERM">TERM</Th>
                     <Th column="ID" style={{width: '100px'}}>ID</Th>
-                    <Th column="REMOVE" style={{width: '30px'}}></Th>
                 </Thead>
                 {rows}
                 </Table>
@@ -76,7 +69,7 @@ var TermTable = React.createClass({
     }
 })
 
-var DiagnosisMain = React.createClass({
+var Diagnosis = React.createClass({
 
     getInitialState: function() {
         return {
@@ -129,27 +122,27 @@ var DiagnosisMain = React.createClass({
         })
     },
 
-    removeTerm: function(value) {
-      var terms = _.filter(this.state.selectedTerms, function(term){
-        return term.value != value
-      })
-      this.setState({
-        selectedTerms: terms
-      })
+    onTermRemove: function(id) {
+        // selectedTerms.filter, remove given id
     },
 
+    onClick: function() {
+        var terms = _.map(this.state.selectedTerms, function(term){
+            return term.value
+        })
+        window.location = GN.urls.diagnosisPage + terms.join(',')
+    },
+    
     render: function() {
         // console.log('STATE')
         // console.log(this.state)
-        var terms = _.map(this.state.selectedTerms, function(term){ return term.value }).join(',')
-        
+
         return (
                 <DocumentTitle title={'Diagnosis' + GN.pageTitleSuffix}>
                 <div className='flex10' style={{backgroundColor: color.colors.gnwhite, marginTop: '10px', padding: '40px'}}>
-                <div style={{width: '100%'}}>
-                    <h2 style={{display: 'inline'}}>DIAGNOSIS</h2> <Back url={GN.urls.main} />
+                <div style={{}}>
+                    <h2>DIAGNOSIS</h2>
                     <p>Search for HPO terms below to add, or upload a file with HPO term ID's.</p>
-
                 </div>
                     <div className='hflex' style={{marginTop: '40px'}}>
                         <div className='' style={{width: '60%', minWidth: '300px', paddingRight: '40px'}}>
@@ -177,11 +170,10 @@ var DiagnosisMain = React.createClass({
 
                             </div>     
 
-                            <TermTable terms={this.state.selectedTerms} removeTerm={this.removeTerm}/>
+                            <TermTable terms={this.state.selectedTerms}/>
 
-                            <Link onMouseOver={this.onMouseOver} onMouseOut={this.onMouseOut} className='nodecoration black clickable' to={GN.urls.diagnosisPage + '/' + terms}>
-                              <span className='button noselect clickable'>Prioritize genes for given HPO terms</span>
-                            </Link>
+                            <div className='button noselect clickable' onClick={this.onClick}>Prioritize genes for given HPO terms</div>
+
                         </div>
 
                         <div className='' style={{width: '40%', minWidth: '300px', paddingLeft: '40px'}}>
@@ -194,4 +186,4 @@ var DiagnosisMain = React.createClass({
     }
 })
 
-module.exports = DiagnosisMain
+module.exports = Diagnosis

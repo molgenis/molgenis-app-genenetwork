@@ -3,6 +3,8 @@ var fs = require('fs')
 var async = require('async')
 var genedesc = require('../utils/genedesc')
 var dbutil = require('../utils/dbutil')
+var getprioritizedgenes = require('../utils/getprioritizedgenes')
+var mim2gene = require('../utils/mim2gene')
 
 Date.prototype.yyyymmdd = function() {
     var yyyy = this.getFullYear().toString()
@@ -136,13 +138,12 @@ module.exports = function(req, res) {
         return res.end()
         
     } else if (req.body.what === 'geneprediction' && req.body.geneId && req.body.db) {
-
-        var geneName = genedesc.get(req.body.geneId) && genedesc.get(req.body.geneId).name
+        var gene = genedesc.get(req.body.geneId)
+        var geneName = gene && gene.name
         var rows = []
         rows.push('# ' + sails.config.version.comment())
 
         if (req.body.type === 'prediction'){
-            var predictions = JSON.parse(req.body.predictions)   
             rows.push('#')
             rows.push('# Gene function predictions')
             rows.push('# Downloaded ' + new Date().yyyymmdd())
@@ -151,12 +152,32 @@ module.exports = function(req, res) {
             rows.push('# Gene id: ' + req.body.geneId)
             rows.push('# Database: ' + req.body.db)
             rows.push('#')
-            rows.push('term_id\tterm_name\tp-value\tz-score\tannotated')
-            for (var i = 0; i < predictions.length; i++) {
-                rows.push(predictions[i].id + '\t' + predictions[i].name + '\t' + predictions[i].pValue + '\t' + predictions[i].zScore + '\t' + predictions[i].annotated)
-            }
+            rows.push('term_id\tterm_name\tz-score\tannotated')
+            dbutil.getGeneJSON(gene, req.body.db, {query: {verbose: 'true', array: true}}, function(err, json) {
+                if (err) {
+                    res.setHeader('Content-disposition', 'attachment; filename=GeneNetwork-' + geneName + '-' + req.body.db + '.txt')
+                    res.setHeader('Content-type', 'text/plain')
+                    res.charset = 'UTF-8'
+                    res.write(rows.join('\n'))
+                    return res.end()
+                } else {
+                    var predictions = json.pathways.predicted
+                    for (var i = 0; i < predictions.length; i++){
+                        //TODO add annotated
+                        rows.push(predictions[i].term.id + '\t' + predictions[i].term.name + '\t' + predictions[i].zScore)
+                    }
+                }
+                res.setHeader('Content-disposition', 'attachment; filename=GeneNetwork-' + geneName + '-' + req.body.db + '.txt')
+                res.setHeader('Content-type', 'text/plain')
+                res.charset = 'UTF-8'
+                res.write(rows.join('\n'))
+                return res.end()
+            })
+            // for (var i = 0; i < predictions.length; i++) {
+            //     rows.push(predictions[i].id + '\t' + predictions[i].name + '\t' + predictions[i].pValue + '\t' + predictions[i].zScore + '\t' + predictions[i].annotated)
+            // }
+            
         } else if (req.body.type == 'similar'){
-            var similargenes = JSON.parse(req.body.similargenes)
             rows.push('#')
             rows.push('# Co-regulated genes')
             rows.push('# Downloaded ' + new Date().yyyymmdd())
@@ -165,9 +186,17 @@ module.exports = function(req, res) {
             rows.push('# Gene id: ' + req.body.geneId)
             rows.push('#')
             rows.push('gene_id\tgene_name\tp-value')
-            for (var i = 0; i < similargenes.length; i++){
-                rows.push(similargenes[i].id + '\t' + similargenes[i].name + '\t' + similargenes[i].pValue)
-            }
+            dbutil.getCorrelationsJSON(gene, {limit: sails.config.api.numGenesTotal - 2, verbose: false}, function(err, result) {
+                for (var i = 0; i < result.data.length; i++){
+                    rows.push(result.data[i].gene + '\t' + genedesc.get(result.data[i].gene).name + '\t' + result.data[i].pValue)
+                }
+                res.setHeader('Content-disposition', 'attachment; filename=GeneNetwork-' + geneName + '-' + req.body.db + '.txt')
+                res.setHeader('Content-type', 'text/plain')
+                res.charset = 'UTF-8'
+                res.write(rows.join('\n'))
+                return res.end()
+            })
+
         } else {
             var tissues = JSON.parse(req.body.tissues)
             rows.push('#')
@@ -181,14 +210,63 @@ module.exports = function(req, res) {
             for (var i = 0; i < tissues.length; i++){
                 rows.push(tissues[i].tissue + '\t' + tissues[i].samples + '\t' + tissues[i].avg + '\t' + tissues[i].auc)
             }
+            res.setHeader('Content-disposition', 'attachment; filename=GeneNetwork-' + geneName + '-' + req.body.db + '.txt')
+            res.setHeader('Content-type', 'text/plain')
+            res.charset = 'UTF-8'
+            res.write(rows.join('\n'))
+            return res.end()
         }
-        res.setHeader('Content-disposition', 'attachment; filename=GeneNetwork-' + geneName + '-' + req.body.db + '.txt')
-        res.setHeader('Content-type', 'text/plain')
-        res.charset = 'UTF-8'
-        res.write(rows.join('\n'))
-
-        return res.end()
         
+        
+    } else if (req.body.what === 'diagnosis') {
+        var rows = []
+        var terms = req.body.terms
+        rows.push('# ' + sails.config.version.comment())
+        rows.push('#')
+        rows.push('# Diagnosis')
+        rows.push('# Downloaded ' + new Date().yyyymmdd())
+        rows.push('#')
+        rows.push('# HPO terms used:')
+        
+        getprioritizedgenes(terms, true, function(err, result){
+            for (var i = 0; i < result.terms.length; i++){
+                rows.push('# ' + result.terms[i].term.id + ' ' + result.terms[i].term.name)
+            }
+
+            if (result.termsNotFound.length != 0){
+                rows.push('#')
+                rows.push('# Terms not found: ')
+                for (var i = 0; i < result.termsNotFound.length; i++){
+                    rows.push('# ' + result.termsNotFound[i])
+                }
+                rows.push('#')
+            } else {
+                rows.push('#')
+            }
+            rows.push('Name\tID\tRank\tOmimURL\tGeneCardsURL\tPubmedUrl\tWeightedZscore')
+            var linesTop = rows.length
+            rows.push(terms)
+            for (var i = 0; i < result.results.length; i++){
+                rows.push(
+                    result.results[i].gene.name + '\t' + //name
+                    result.results[i].gene.id + '\t' + //id
+                    parseInt(i+1) + '\t' + //rank
+                    (mim2gene.get(result.results[i].gene.name) !== undefined ? ('=HYPERLINK("http://omim.org/entry/' + mim2gene.get(result.results[i].gene.name) + '")') : '') + '\t' + //omimURL
+                    '=HYPERLINK("http://www.genecards.org/cgi-bin/carddisp.pl?gene=' + result.results[i].gene.name + '")\t' + //genecardsURL
+                    '=HYPERLINK("https://www.ncbi.nlm.nih.gov/pubmed/?term=' + result.results[i].gene.name + '")\t' + //pubmedURL
+                    result.results[i].weightedZScore //weightedZscore 
+                )
+            }
+            res.setHeader('Content-disposition', 'attachment; filename=GeneNetwork-Diagnosis-' + terms.split(',').join('-') + '.txt')
+            res.setHeader('Content-type', 'text/plain')
+            res.charset = 'UTF-8'
+            res.write(rows.join('\n'))
+            return res.end()
+        })
+
+
+        
+
     } else {
         
         return res.badRequest()

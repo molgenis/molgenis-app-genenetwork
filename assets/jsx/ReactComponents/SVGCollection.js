@@ -59,6 +59,34 @@ exp.Download = React.createClass({
     }
 })
 
+exp.Upload = React.createClass({
+
+    getInitialState: function() {
+        return {
+            hover: false
+        }
+    },
+
+    hover: function() {
+        this.setState({
+            hover: !this.state.hover
+        })
+    },
+
+    render: function() {
+        return (
+                <svg className='clickable' fill={this.state.hover ? color.colors.gngray : color.colors.gndarkgray} onMouseOver={this.hover} onMouseOut={this.hover} width={40} height={40} style={{float: 'right', padding: '0 20px'}}>
+                    <path d="M42.8,25.6c0,3.9,0,7.9,0,11.8c0.4-0.4,0.8-0.8,1.2-1.2c-12.2,0-24.5,0-36.7,0c0.4,0.4,0.8,0.8,1.2,1.2
+                            c0-3.9,0-7.9,0-11.8c0-1.6-2.5-1.6-2.5,0c0,3.9,0,7.9,0,11.8c0,0.7,0.6,1.2,1.2,1.2c12.2,0,24.5,0,36.7,0c0.7,0,1.2-0.6,1.2-1.2
+                            c0-3.9,0-7.9,0-11.8C45.3,24,42.8,24,42.8,25.6L42.8,25.6z
+                            M24.1,3.9c2.3,2.8,4.6,5.6,6.8,8.3c1,1.2,2.8-0.5,1.8-1.8c-2.3-2.8-4.6-5.6-6.8-8.3C24.9,0.9,23.1,2.6,24.1,3.9L24.1,3.9z
+                            M26.2,27.2c0-8.1,0-16.1,0-24.2c0-1-1.4-1.8-2.1-0.9c-2.3,2.8-4.6,5.6-6.8,8.3c-1,1.2,0.7,3,1.8,1.8
+                            c2.3-2.8,4.6-5.6,6.8-8.3c-0.7-0.3-1.4-0.6-2.1-0.9c0,8.1,0,16.1,0,24.2C23.8,28.8,26.2,28.8,26.2,27.2L26.2,27.2z"/>
+                </svg>
+            )
+    }
+})
+
 exp.Plus = React.createClass({
     render: function() {
         return (
@@ -350,6 +378,34 @@ exp.I = React.createClass({
                 <ReactTooltip place="bottom" type="dark" effect="solid" class='tooltip'/>
  
             </div>
+        )
+    }
+})
+
+exp.ArrowRight = React.createClass({
+
+    render: function() {
+        return (
+
+                <svg width={13} height={13}>
+                    <g>
+                        <path fill={this.props.color} onMouseOver={this.onMouseOver} onMouseOut={this.onMouseOut} d="M11.6,7.7c-1.2,1.5-2.5,3-3.7,4.5c-0.5,0.7,0.2,1.8,0.8,1.2c1.2-1.5,2.5-3,3.7-4.5C12.9,8.2,12.1,7,11.6,7.7L11.6,7.7zM1.1,9c3.6,0,7.1,0,10.8,0c0.5,0,0.8-0.9,0.4-1.4c-1.2-1.5-2.5-3-3.7-4.5C8.1,2.5,7.3,3.7,7.8,4.4c1.2,1.5,2.5,3,3.7,4.5c0.1-0.5,0.3-0.9,0.4-1.4c-3.6,0-7.1,0-10.8,0C0.5,7.5,0.5,9,1.1,9L1.1,9z"/>
+                    </g>
+                </svg>
+        )
+    }
+})
+
+exp.ArrowLeft = React.createClass({
+
+    render: function() {
+        return (
+                
+                <svg width={13} height={13}>
+                    <g>
+                        <path fill={this.props.color} onMouseOver={this.onMouseOver} onMouseOut={this.onMouseOut} d="M1.6,7.7C1.1,7,0.3,8.2,0.8,8.8c1.2,1.4,2.4,3,3.7,4.5c0.6,0.7,1.3-0.5,0.8-1.2C4.1,10.7,2.9,9.2,1.6,7.7L1.6,7.7z M12,9c0.7,0,0.7-1.6,0-1.6c-3.6,0-7.1,0-10.8,0c0.1,0.5,0.3,0.9,0.4,1.4c1.2-1.4,2.4-3,3.7-4.5c0.5-0.7-0.3-1.8-0.8-1.2c-1.2,1.4-2.4,3-3.7,4.5C0.5,8.1,0.8,9,1.3,9C4.9,9,8.4,9,12,9L12,9z"/>
+                    </g>
+                </svg>
         )
     }
 })
