@@ -28,7 +28,7 @@ var D3Network = require('../../js/D3Network.js')
 var d3fd = require('../../js/d3fd.js')
 var AffinityPropagation = require('affinity-propagation')
 var color = require('../../js/color')
-var htmlutil = require('../htmlutil')
+var htmlutil = require('../../js/htmlutil')
 var quicksort = require('../../js/sort/quicksort')
 
 var ZOOM_SCALE = [0.05, 10]

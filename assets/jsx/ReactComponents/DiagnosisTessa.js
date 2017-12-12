@@ -1,27 +1,22 @@
-'use strict'
+'use strict';
 
-var _ = require('lodash')
-var color = require('../../js/color')
-var htmlutil = require('../htmlutil')
-var genstats = require('genstats')
-var prob = genstats.probability
+var genstats = require('genstats');
+var prob = genstats.probability;
 
-var React = require('react')
-var Router = require('react-router')
-var DocumentTitle = require('react-document-title')
+var React = require('react');
 
-var SVGCollection = require('./SVGCollection')
-var I = SVGCollection.I
-var htmlutil = require('../htmlutil')
-var color = require('../../js/color')
+var SVGCollection = require('./SVGCollection');
+var I = SVGCollection.I;
+var htmlutil = require('../../js/htmlutil');
+var color = require('../../js/color');
 
-var reactable = require('reactable')
-var Tr = reactable.Tr
-var Td = reactable.Td
-var Th = reactable.Th
-var Thead = reactable.Thead
-var Table = reactable.Table
-var unsafe = reactable.unsafe
+var reactable = require('reactable');
+var Tr = reactable.Tr;
+var Td = reactable.Td;
+var Th = reactable.Th;
+var Thead = reactable.Thead;
+var Table = reactable.Table;
+var unsafe = reactable.unsafe;
 
 
 /* For the Z-score colours in the phenotype table: */
@@ -55,13 +50,13 @@ function HSVtoRGB(h, s, v) {
 /* For the Z-score colours in the phenotype table: */
 
 function getRGB(avg){
-    var v = 1-(parseFloat(avg)/20)
-    var s = 0.6 + (parseFloat(Math.abs(avg))/7)
+    var v = 1-(parseFloat(avg)/20);
+    var s = 0.6 + (parseFloat(Math.abs(avg))/7);
     if (parseFloat(avg) >= 0){
-        var colors = HSVtoRGB(0.0389, s, v)
+        var colors = HSVtoRGB(0.0389, s, v);
         return 'rgb(' + colors.r + ',' + colors.g + ', ' + colors.b + ')'
     } else {
-        var colors = HSVtoRGB(0.58, s, v)
+        var colors = HSVtoRGB(0.58, s, v);
         return 'rgb(' + colors.r + ',' + colors.g + ', ' + colors.b + ')'
     }
 }
@@ -72,8 +67,8 @@ var NetworkButton = React.createClass({
 
     render: function() {
 
-        var subTable = this.props.prioFiltered
-        var urlGenes = ''
+        var subTable = this.props.prioFiltered;
+        var urlGenes = '';
 
         if (subTable) {
             for (var i = 0; i < subTable.length; i++) {
@@ -84,19 +79,19 @@ var NetworkButton = React.createClass({
                 urlGenes = urlGenes + this.props.prio.results[i].gene.id + ','
             }        
         }
-        var networkLink = GN.urls.networkPage + urlGenes
+        var networkLink = GN.urls.networkPage + urlGenes;
 
-        return(<a href={networkLink} target="_blank"><span className='button clickable noselect'>100 GENES NETWORK</span></a>)
+        return(<a href={networkLink} target="_blank"><span className='button clickable noselect'>100 GENES NETWORK</span></a>);
 
         {/*return(<a href={networkLink} target="_blank"><button type="button" >View network of prioritized genes!</button></a>)*/}
     }
-})
+});
 
 var DownloadButton = React.createClass({
 
     render: function() {
 
-        var subTable = this.props.prioFiltered
+        var subTable = this.props.prioFiltered;
 
         if (subTable) {
             // download filtered data
@@ -106,21 +101,21 @@ var DownloadButton = React.createClass({
 
         return(<span className='button clickable noselect'>DOWNLOAD RESULTS</span>)
     }
-})
+});
 
 var ShowPhenotypes3 = React.createClass({
 
 
     render: function() {
-        var hoverZScores = this.props.hoverItem
-        var rows = []
+        var hoverZScores = this.props.hoverItem;
+        var rows = [];
 
         /* Getting the colour: */
         for (var i = 0; i < this.props.prio.terms.length; i++) {
-            var zToCol = hoverZScores ? Math.ceil(hoverZScores[i] * 60) : ''
-            var hoverColour =  hoverZScores ? 'rgb(' + zToCol + ',255,255)' : ''
+            var zToCol = hoverZScores ? Math.ceil(hoverZScores[i] * 60) : '';
+            var hoverColour =  hoverZScores ? 'rgb(' + zToCol + ',255,255)' : '';
             // var rowtype = i % 2 === 0 ? 'datarow evenrow' : 'datarow oddrow'
-            var backgroundColour = hoverZScores ? getRGB(hoverZScores[i]) : 'rgb(0,0,0)'
+            var backgroundColour = hoverZScores ? getRGB(hoverZScores[i]) : 'rgb(0,0,0)';
 
             /* Coloured squares: */
             var square =
@@ -128,7 +123,7 @@ var ShowPhenotypes3 = React.createClass({
                 <svg viewBox='0 0 10 10' width={20} height={this.props.h}>
                 <rect x1='0' y1='0' width='10' height='10' style={{fill: backgroundColour}} />
                 </svg>
-                </div>
+                </div>;
 
 
             /* The actual phenotype information: */
@@ -160,7 +155,7 @@ var ShowPhenotypes3 = React.createClass({
             </table>
         )
     }
-})
+});
 
 /* Shows a table of all of the prioritized genes: */
 
@@ -169,25 +164,25 @@ var GeneTable = React.createClass({
     render: function() {
 
 
-        var subTable = this.props.prioFiltered
+        var subTable = this.props.prioFiltered;
 
         /* if geneslist is submitted */
 
         if (subTable) {
 
-            var newRows = []        // Rows in the table
+            var newRows = [];        // Rows in the table
 
             for (var i = 0; i < subTable.length; i++) {
 
-                var rowtype = i % 2 === 0 ? 'datarow evenrow' : 'datarow oddrow'
+                var rowtype = i % 2 === 0 ? 'datarow evenrow' : 'datarow oddrow';
 
                 /* network urls: */
-                var phens = ""
+                var phens = "";
                 for (var j = 0; j < this.props.prio.terms.length; j++) {
                     phens = phens.concat(this.props.prio.terms[j].term.id + ',')
                 }
-                var gene = "0!" + subTable[i].gene.name
-                var networkLink = GN.urls.networkPage + phens + gene
+                var gene = "0!" + subTable[i].gene.name;
+                var networkLink = GN.urls.networkPage + phens + gene;
 
                 /* biotype squares: */
                 var square =
@@ -195,17 +190,17 @@ var GeneTable = React.createClass({
                     <svg viewBox='0 0 10 10' width={20} height={this.props.h}>
                     <rect x1='0' y1='0' width='10' height='10' style={{fill: color.biotype2color[subTable[i].gene.biotype] || color.colors.default}} />
                     </svg>
-                    </div>
+                    </div>;
 
                 /* If impact scorses provided, include column in rows: */
-                var impactScore = null
+                var impactScore = null;
                 if (subTable[i].gene.score || subTable[i].gene.score === "") {
                     impactScore = <Td column="IMPACT" style={{textAlign: 'center'}}>{subTable[i].gene.score}</Td>
                 } else {
                     impactScore = null
                 }
 
-                var geneLink = GN.urls.genePage + subTable[i].gene.name
+                var geneLink = GN.urls.genePage + subTable[i].gene.name;
 
                 newRows.push(
                     <Tr key={i} className = {rowtype} onMouseOver={this.props.onMouseOver.bind(null, subTable[i].predicted)}>
@@ -223,18 +218,18 @@ var GeneTable = React.createClass({
 
         } else {
 
-            var newRows = []        // Rows in the table
+            var newRows = [];        // Rows in the table
 
             for (var i = 0; i < this.props.prio.results.length; i++) {
 
                 
                 /* network urls: */
-                var phens = ""
+                var phens = "";
                 for (var j = 0; j < this.props.prio.terms.length; j++) {
                     phens = phens.concat(this.props.prio.terms[j].term.id + ',')
                 }
-                var gene = "0!" + this.props.prio.results[i].gene.name
-                var networkLink = GN.urls.networkPage + phens + gene
+                var gene = "0!" + this.props.prio.results[i].gene.name;
+                var networkLink = GN.urls.networkPage + phens + gene;
 
                 /* biotype squares: */
                 var square =
@@ -242,9 +237,9 @@ var GeneTable = React.createClass({
                     <svg viewBox='0 0 10 10' width={20} height={this.props.h}>
                     <rect x1='0' y1='0' width='10' height='10' style={{fill: color.biotype2color[this.props.prio.results[i].gene.biotype] || color.colors.default}} />
                     </svg>
-                    </div>
+                    </div>;
 
-                var geneLink = GN.urls.genePage + this.props.prio.results[i].gene.name
+                var geneLink = GN.urls.genePage + this.props.prio.results[i].gene.name;
 
                 newRows.push(
                     <Tr key={i} onMouseOver={this.props.onMouseOver.bind(null, this.props.prio.results[i].predicted)}>
@@ -261,7 +256,7 @@ var GeneTable = React.createClass({
         }
 
         /* If variant impact is provided, include header in table: */
-        var scoreHeader = null
+        var scoreHeader = null;
         if (subTable && subTable.length > 0) {
             if (subTable[0].gene.score || subTable[0].gene.score === "") {
                 scoreHeader = <Th column="impact" style={{textAlign: 'center'}}>VAR. IMPACT</Th>
@@ -323,15 +318,15 @@ var GeneTable = React.createClass({
                                 return -1
                             } else if (b[0] != '<') {    {/* a ?? b */}
 
-                                a = a.toString()
-                                var aExponent = a.slice(53)
-                                var aExp = aExponent.slice(0, aExponent.indexOf("<"))
-                                var aNumber = a.slice(0,3)
+                                a = a.toString();
+                                var aExponent = a.slice(53);
+                                var aExp = aExponent.slice(0, aExponent.indexOf("<"));
+                                var aNumber = a.slice(0,3);
 
-                                b = b.toString()
-                                var bExponent = b.slice(53)
-                                var bExp = bExponent.slice(0, bExponent.indexOf("<"))
-                                var bNumber = b.slice(0,3)
+                                b = b.toString();
+                                var bExponent = b.slice(53);
+                                var bExp = bExponent.slice(0, bExponent.indexOf("<"));
+                                var bNumber = b.slice(0,3);
 
                                 return aExp - bExp || aNumber - bNumber
 
@@ -345,15 +340,15 @@ var GeneTable = React.createClass({
                                 return -1
                             } else {
 
-                                a = a.toString()
-                                var aExponent = a.slice(55)
-                                var aExp = aExponent.slice(0, aExponent.indexOf("<"))
-                                var aNumber = a.slice(2,5)
+                                a = a.toString();
+                                var aExponent = a.slice(55);
+                                var aExp = aExponent.slice(0, aExponent.indexOf("<"));
+                                var aNumber = a.slice(2,5);
 
-                                b = b.toString()
-                                var bExponent = b.slice(55)
-                                var bExp = bExponent.slice(0, bExponent.indexOf("<"))
-                                var bNumber = b.slice(2,5)
+                                b = b.toString();
+                                var bExponent = b.slice(55);
+                                var bExp = bExponent.slice(0, bExponent.indexOf("<"));
+                                var bNumber = b.slice(2,5);
 
                                 return aExp - bExp || aNumber - bNumber
 
@@ -378,38 +373,38 @@ var GeneTable = React.createClass({
             {newRows}
             </Table>)
     }
-})
+});
 
 // Uses geneslist (& variant scores) provided by user to return new (filtered) data for the GenesTable:
 
 var compareGenes = function (newList, data) {
 
     /* Splitting submitted geneslist at \n ; , and \t --> into (uppercase) array */
-    newList = newList.replace(/\n/g, ' ')
-    newList = newList.replace(/;/g, ' ')
-    newList = newList.replace(/,/g, ' ')
-    newList = newList.replace(/\t/g, ' ')
-    var newArray = newList.split(' ')
+    newList = newList.replace(/\n/g, ' ');
+    newList = newList.replace(/;/g, ' ');
+    newList = newList.replace(/,/g, ' ');
+    newList = newList.replace(/\t/g, ' ');
+    var newArray = newList.split(' ');
 
-    var neatArray = []
+    var neatArray = [];
     for (var i = 0; i < newArray.length; i++) {
         if (newArray[i].length !== 0) {
             neatArray.push(newArray[i])
         }
     }
 
-    var upperCaseArray = []
+    var upperCaseArray = [];
     for (i = 0; i < neatArray.length; i++) {
         upperCaseArray.push(neatArray[i].toUpperCase())
     }
 
     /* Storing genesList in two seperate arrays (genes & scores, if available) */
-    var snpScores = []
-    var neaterArray = []
+    var snpScores = [];
+    var neaterArray = [];
 
     for (i = 0; i < upperCaseArray.length; i++) {
         if (isNaN(Number(upperCaseArray[i]))) {
-            neaterArray.push(upperCaseArray[i])
+            neaterArray.push(upperCaseArray[i]);
             if (isNaN(Number(upperCaseArray[i+1]))) {
                 snpScores.push('')
                 
@@ -421,7 +416,7 @@ var compareGenes = function (newList, data) {
     }
 
     /* ENSG --> gene-name, pushing results to newTableData array */
-    var newTableData = []
+    var newTableData = [];
     for (var i = 0; i < neaterArray.length; i++) {
         if (neaterArray[i].slice(0,4) == 'ENSG' || neaterArray[i].slice(0,4) == 'ensg') {
             for (var j = 0; j < data.results.length; j++) {
@@ -439,7 +434,7 @@ var compareGenes = function (newList, data) {
     }
 
     /* Checking whether any variant impact scores were provided:*/
-    var snpScoresEmptied = []
+    var snpScoresEmptied = [];
         for (var i = 0; i < snpScores.length; i++) {
         if (snpScores[i].length !== 0) {
             snpScoresEmptied.push(snpScores[i])
@@ -454,7 +449,7 @@ var compareGenes = function (newList, data) {
     }
 
     return (newTableData)
-}
+};
 
 
 /* Textbox to paste a list of genes in, to filter the table: */
@@ -469,17 +464,17 @@ var PasteBox = React.createClass({
     },
 
     render: function() {
-        var value = this.state.value 
+        var value = this.state.value;
 
 
-        var phens = ""
+        var phens = "";
         for (var j = 0; j < this.props.prio.terms.length; j++) {
             phens = phens.concat(this.props.prio.terms[j].term.id + ',')
         }
 
-        var url = GN.urls.main + "/diagnosis/" + phens
+        var url = GN.urls.main + "/diagnosis/" + phens;
 
-        var unfilterButton = this.props.prioFiltered ? <a href={url}><span className="button clickable noselect" >UNFILTER</span></a> : null // Results in error: Invariant Violation: Expected onClick listener to be a function, instead got type string
+        var unfilterButton = this.props.prioFiltered ? <a href={url}><span className="button clickable noselect" >UNFILTER</span></a> : null; // Results in error: Invariant Violation: Expected onClick listener to be a function, instead got type string
 
         return (
             <form>
@@ -495,7 +490,7 @@ var PasteBox = React.createClass({
             </form>
         )
     }
-})
+});
 
 
 var Diagnosis = React.createClass({
@@ -536,7 +531,7 @@ var Diagnosis = React.createClass({
                 })
             }.bind(this),
             error: function(xhr, status, err) {
-                console.log(xhr)
+                console.log(xhr);
                 if (err === 'Not Found') {
                     this.setState({
                         error: 'Pathways ' + this.props.params.id + ' not found',
@@ -554,12 +549,12 @@ var Diagnosis = React.createClass({
     
     onFilter: function(e) {
 
-        var text = document.getElementById('pastegenes').value
-        var newTableInfo = compareGenes(text, this.state.data)
+        var text = document.getElementById('pastegenes').value;
+        var newTableInfo = compareGenes(text, this.state.data);
 
         this.setState({
             newTable: newTableInfo
-        })
+        });
 
         document.getElementById('pastegenes').value = ''
     },
@@ -583,8 +578,8 @@ var Diagnosis = React.createClass({
 
     console.log(document.getElementById('phenTab')) */}
 
-    var thisThese = this.state.data.terms.length == 1 ? 'this ' : 'these '
-    var phenotypePhenotypes = this.state.data.terms.length == 1 ? ' phenotype:' : ' phenotypes:'
+    var thisThese = this.state.data.terms.length == 1 ? 'this ' : 'these ';
+    var phenotypePhenotypes = this.state.data.terms.length == 1 ? ' phenotype:' : ' phenotypes:';
 
         return (
 
@@ -624,14 +619,14 @@ var Diagnosis = React.createClass({
           </DocumentTitle>
         )
     }
-})
+});
 
         // <div className="prio-pastebox diagflex-container">
 
         //   <div className="pastebox-flex"><PasteBox onSubmit={this.handleSubmit} prio={this.state.data} prioFiltered={this.state.newTable} onFilter={this.onFilter} /></div>
         // </div>
 
-module.exports = Diagnosis
+module.exports = Diagnosis;
 
 /*
 

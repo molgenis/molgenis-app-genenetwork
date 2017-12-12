@@ -1,7 +1,6 @@
 var _ = require('lodash')
 var React = require('react')
 var SVGCollection = require('./SVGCollection')
-var ListSVG = require('./ListSVG')
 var color = require('../../js/color')
 
 var GroupPanel = React.createClass({

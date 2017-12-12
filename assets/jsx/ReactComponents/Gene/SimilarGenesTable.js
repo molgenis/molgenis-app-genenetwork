@@ -3,7 +3,7 @@ var React = require('react')
 var Link = require('react-router').Link
 var SVGCollection= require('../SVGCollection')
 var Cookies = require('cookies-js')
-var htmlutil = require('../../htmlutil')
+var htmlutil = require('../../../js/htmlutil')
 var color = require('../../../js/color')
 
 var reactable = require('reactable')

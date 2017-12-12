@@ -163,7 +163,7 @@ module.exports = function(req, res) {
                     })
                 } else {
                     if (format == 'json') {
-                        dbutil.getPairWiseCorrelationsJSON(genes, function(err, result) {
+                        dbutil.getPairwiseCorrelationsJSON(genes, function(err, result) {
                             cb(err, result)
                         })
                     } else if (format == 'network') {

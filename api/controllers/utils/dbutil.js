@@ -1,15 +1,17 @@
-var _ = require('lodash')
-var fs = require('fs')
-var level = require('level')
-var genedesc = require('./genedesc')
-var genstats = require('genstats')
-var descriptives = genstats.descriptives
-var probability = genstats.probability
-var wilcoxon = genstats.wilcoxon
-var quicksort = require('./quicksort')
-var quicksortobj = require('./quicksortobj')
-var sortby = require('./sort').sortby
-var lookup = function(value) { return (value - 32768) / 1000 }
+const _ = require('lodash')
+const fs = require('fs')
+const level = require('level')
+const genedesc = require('./genedesc');
+const genstats = require('genstats');
+const descriptives = genstats.descriptives;
+const probability = genstats.probability;
+const wilcoxon = genstats.wilcoxon;
+const quicksort = require('./quicksort');
+const quicksortobj = require('./quicksortobj');
+const sortby = require('./sort').sortby;
+const lookup = function (value) {
+    return (value - 32768) / 1000
+};
 
 var exp = module.exports
 

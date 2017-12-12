@@ -2,7 +2,7 @@
 
 var _ = require('lodash')
 var color = require('../../js/color')
-var htmlutil = require('../htmlutil')
+var htmlutil = require('../../js/htmlutil')
 
 var React = require('react')
 var ReactDOM = require('react-dom')

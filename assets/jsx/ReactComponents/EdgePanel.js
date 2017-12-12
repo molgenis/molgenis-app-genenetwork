@@ -3,7 +3,7 @@ var React = require('react')
 var GeneOpenMenu = require('./GeneOpenMenu')
 var SVGCollection = require('./SVGCollection')
 var genstats = require('genstats')
-var htmlutil = require('../htmlutil')
+var htmlutil = require('../../js/htmlutil')
 var color = require('../../js/color')
 
 var EdgePanel = React.createClass({

@@ -1,23 +1,19 @@
-'use strict'
+'use strict';
 
-var _ = require('lodash')
-var React = require('react')
-var ReactDOM = require('react-dom')
-var Router = require('react-router')
-var Select = require('react-select')
-var DocumentTitle = require('react-document-title')
-var Route = Router.Route
+var _ = require('lodash');
+var React = require('react');
+var Router = require('react-router');
+var DocumentTitle = require('react-document-title');
 
-var GeneHeader = require('./GeneHeader')
-var GeneMenu = require('./GeneMenu')
-var SimilarGenesTable = require('./SimilarGenesTable')
-var Tissues = require('./Tissues')
-var DownloadPanel = require('../DownloadPanel')
-var SVGCollection = require('../SVGCollection')
-var Cookies = require('cookies-js')
-var color = require('../../../js/color')
-var htmlutil = require('../../htmlutil')
-var DataTable = require('../DataTable')
+var GeneHeader = require('./GeneHeader');
+var GeneMenu = require('./GeneMenu');
+var SimilarGenesTable = require('./SimilarGenesTable');
+var Tissues = require('./Tissues');
+var DownloadPanel = require('../DownloadPanel');
+var SVGCollection = require('../SVGCollection');
+var Cookies = require('cookies-js');
+var color = require('../../../js/color');
+var DataTable = require('../DataTable');
 
 var Gene = React.createClass({
 
@@ -35,16 +31,17 @@ var Gene = React.createClass({
 
     loadData: function(geneId) {
 
-        if (!geneId) geneId = this.props.params.geneId
+        if (!geneId) geneId = this.props.params.geneId;
 
         var tasks = [{url: GN.urls.gene + '/' + geneId + '?verbose',
                       name: 'prediction'},
                      {url: GN.urls.coregulation + '/' + geneId + '?verbose',
-                      name: 'similar'}]
-        if (this.state.topMenuSelection == 'similar') {
-            tasks.reverse()
-        }
-        var that = this
+                      name: 'similar'}];
+
+        if (this.state.topMenuSelection == 'similar') tasks.reverse();
+
+
+        var that = this;
         _.forEach(tasks, function(task) {
             $.ajax({
                 url: task.url,
@@ -66,7 +63,7 @@ var Gene = React.createClass({
                     }
                 }.bind(that),
                 error: function(xhr, status, err) {
-                    console.log(xhr)
+                    console.log(xhr);
                     if (this.isMounted() && task.name !== 'similar') {
                         if (err === 'Not Found') {
                             this.setState({
@@ -86,49 +83,40 @@ var Gene = React.createClass({
     },
     
     componentDidMount: function() {
-
         this.loadData()
-    },
-    
-    componentWillUnmount: function() {
     },
 
     componentWillReceiveProps: function(nextProps) {
-        
         this.loadData(nextProps.params.geneId)
     },
     
     handleTopMenuClick: function(type) {
-        
-        Cookies.set('genetopmenu', type)
+        Cookies.set('genetopmenu', type);
         this.setState({
             topMenuSelection: type
         })
     },
 
     handleDatabaseClick: function(db) {
-        
-        Cookies.set('genedb', db.id)
+        Cookies.set('genedb', db.id);
         this.setState({
             databaseSelection: db.id
         })
     },
 
     handleShowTypeClick: function(type) {
-        
-        Cookies.set('geneshowtype', type)
+        Cookies.set('geneshowtype', type);
         this.setState({
             showTypeSelection: type
         })
     },
 
     download: function() {
-        
-        var form = document.getElementById('gn-gene-downloadform')
-        var databaseSelection = this.state.databaseSelection
+        var form = document.getElementById('gn-gene-downloadform');
+        var databaseSelection = this.state.databaseSelection;
         var filteredPredictions = _.filter(this.state.prediction.pathways.predicted, function(pathway){
             return pathway.term.database.toUpperCase() === databaseSelection
-        })
+        });
         var predictions = _.map(filteredPredictions, function(pathway){      
                             return {
                                 id: pathway.term.id,
@@ -137,10 +125,10 @@ var Gene = React.createClass({
                                 zScore: pathway.zScore,
                                 annotated: pathway.annotated
                             }
-                        })
-        var indices = this.state.celltypes.fixed.indices
-        var avg = this.state.celltypes.values.avg
-        var auc = this.state.celltypes.values.auc
+                        });
+        var indices = this.state.celltypes.fixed.indices;
+        var avg = this.state.celltypes.values.avg;
+        var auc = this.state.celltypes.values.auc;
         var tissues = _.map(this.state.celltypes.fixed.header, function(item){
             return {
                 tissue: item.name,
@@ -148,36 +136,25 @@ var Gene = React.createClass({
                 avg: avg[indices[item.name]],
                 auc: auc[indices[item.name]]
             }
-        })
-        form['predictions'].value = JSON.stringify(predictions)
-        form['tissues'].value = JSON.stringify(tissues)
+        });
+        form['predictions'].value = JSON.stringify(predictions);
+        form['tissues'].value = JSON.stringify(tissues);
         form.submit()
     },
     
     render: function() {
-
-        console.log('state')
-        console.log(this.state)
-        
-        var content = null
-        var contentTop = (
-            <GeneHeader loading={true} />
-        )
-        var pageTitle = 'Loading' + GN.pageTitleSuffix
+        var content = null;
+        var contentTop = <GeneHeader loading={true} />;
+        var pageTitle = 'Loading' + GN.pageTitleSuffix;
         
         if (this.state.error) {
-
-            contentTop = (
-                <GeneHeader notFound={this.props.params.geneId} />
-            )
+            contentTop = <GeneHeader notFound={this.props.params.geneId} />;
             pageTitle = this.state.errorTitle + GN.pageTitleSuffix
-            
         } else {
-            
-            var data = this.state.topMenuSelection == 'prediction' ? this.state.prediction : this.state.similar
+            var data = this.state.topMenuSelection == 'prediction' ? this.state.prediction : this.state.similar;
         
             if (data) {
-                var tableContent = null
+                var tableContent = null;
                 if (this.state.topMenuSelection == 'prediction') {
                     tableContent = <DataTable data={data} db={this.state.databaseSelection} />
                 } else if (this.state.topMenuSelection == 'similar') {
@@ -185,10 +162,9 @@ var Gene = React.createClass({
                 } else if (this.state.topMenuSelection == 'tissues') {
                     tableContent = <Tissues style={{paddingBottom: '100px'}} data={data} celltypes={this.state.celltypes}/>
                 }
-                pageTitle = data.gene.name + GN.pageTitleSuffix
-                contentTop = (
-                        <GeneHeader gene={data.gene} />
-                )
+
+                pageTitle = data.gene.name + GN.pageTitleSuffix;
+                contentTop = <GeneHeader gene={data.gene} />;
                 content = (
                         <div className={'gn-gene-container-outer'} style={{backgroundColor: color.colors.gnwhite, marginTop: '10px'}}>
                         <div className='gn-gene-container-inner maxwidth' style={{padding: '20px'}}>
@@ -216,12 +192,7 @@ var Gene = React.createClass({
                 )
             }
         }
-        
-                        // <input type='hidden' id='tissues' name='tissues' value={_.toArray(Object.keys(this.state.celltypes.fixed.indices))} />
-                        // <input type='hidden' id='avg' name='avg' value={this.state.celltypes.values.avg} />
-                        // <input type='hidden' id='stdev' name='stdev' value={this.state.celltypes.values.stdev} />
-                        // <input type='hidden' id='z' name='z' value={this.state.celltypes.values.z} />
-                        // <input type='hidden' id='auc' name='auc' value={this.state.celltypes.values.auc} />
+
         return (
                 <DocumentTitle title={pageTitle}>
                 <div className='flex10'>
@@ -231,6 +202,6 @@ var Gene = React.createClass({
                 </DocumentTitle>
         )
     }
-})
+});
 
-module.exports = Gene
+module.exports = Gene;

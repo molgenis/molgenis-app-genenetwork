@@ -1,7 +1,7 @@
 'use strict'
 
 var _ = require('lodash')
-var htmlutil = require('../htmlutil.js')
+var htmlutil = require('../../js/htmlutil.js')
 var color = require('../../js/color.js')
 var React = require('react')
 var ReactDOM = require('react-dom')
