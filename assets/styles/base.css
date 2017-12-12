@@ -209,6 +209,20 @@ h1, h2, h3, h4, h5 {
     padding: 0 20px 0 20px;
 }
 
+.textarea-genes {
+    position: relative;
+    overflow: hidden;
+    background-color: #ffffff;
+    box-sizing: border-box;
+    color: #333333;
+    cursor: default;
+    outline: none;
+    padding: 8px 52px 8px 10px;
+    transition: all 200ms ease;
+    font-family: GG;
+    font-size: 15px;
+}
+
 .searchheader {
     color: rgb(255,225,0);
     font-family: GPC;
@@ -249,7 +263,7 @@ h1, h2, h3, h4, h5 {
     color: #ffffff;
     padding: 8px;
     text-decoration: none;
-    stroke-width: 10;
+    /*stroke-width: 10;*/
     display: inline-block;
 }
 
@@ -354,7 +368,7 @@ h1, h2, h3, h4, h5 {
     color: #4d4d4d;
     border: 1px solid #dcdcdc;
     text-decoration: none;
-    stroke-width: 10;
+    /*stroke-width: 10;*/
     display: inline-block;
     position: relative;
 }
