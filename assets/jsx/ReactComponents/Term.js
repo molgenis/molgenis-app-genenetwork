@@ -1,18 +1,18 @@
-"use strict"
+"use strict";
 
-var _ = require('lodash')
-var color = require('../../js/color')
-var htmlutil = require('../../js/htmlutil')
+var _ = require('lodash');
+var color = require('../../js/color');
+var htmlutil = require('../../js/htmlutil');
 
-var React = require('react')
-var ReactDOM = require('react-dom')
-var Router = require('react-router')
-var Link = Router.Link
-var Select = require('react-select')
-var DocumentTitle = require('react-document-title')
-var DownloadPanel = require('./DownloadPanel')
-var Cookies = require('cookies-js')
-var SVGCollection = require('./SVGCollection.js')
+var React = require('react');
+var ReactDOM = require('react-dom');
+var Router = require('react-router');
+var Link = Router.Link;
+var Select = require('react-select');
+var DocumentTitle = require('react-document-title');
+var DownloadPanel = require('./DownloadPanel');
+var Cookies = require('cookies-js');
+var SVGCollection = require('./SVGCollection.js');
 
 var PredictedGeneRow = React.createClass({
 
@@ -24,8 +24,8 @@ var PredictedGeneRow = React.createClass({
     
     render: function() {
         
-        var data = this.props.data
-        var desc = (data.gene.description || 'no description').replace(/\[[^\]]+\]/g, '')
+        var data = this.props.data;
+        var desc = (data.gene.description || 'no description').replace(/\[[^\]]+\]/g, '');
         
         return ( <tr>
                  <td className='text'>
@@ -39,7 +39,7 @@ var PredictedGeneRow = React.createClass({
                  <span>{desc}</span>
                  </Link>
                  </td>
-                 <td style={{textAlign: 'center'}} dangerouslySetInnerHTML={{__html: htmlutil.pValueToReadable(data.pValue)}}></td>
+                 <td style={{textAlign: 'center'}} dangerouslySetInnerHTML={{__html: htmlutil.pValueToReadable(data.pValue)}} />
                  <td style={{textAlign: 'center'}}>{data.zScore > 0 ? <SVGCollection.TriangleUp className='directiontriangleup' /> : <SVGCollection.TriangleDown className='directiontriangledown' />}</td>
                  <td style={{textAlign: 'center'}}>{data.annotated ? <SVGCollection.Annotated /> : <SVGCollection.NotAnnotated />}</td>
                  <td style={{textAlign: 'center'}}>
@@ -50,7 +50,7 @@ var PredictedGeneRow = React.createClass({
                  </tr>
         )
     }
-})
+});
 
 var AnnotatedGeneRow = React.createClass({
 
@@ -63,8 +63,8 @@ var AnnotatedGeneRow = React.createClass({
     
     render: function() {
         
-        var data = this.props.data
-        var desc = (data.gene.description || 'no description').replace(/\[[^\]]+\]/g, '')
+        var data = this.props.data;
+        var desc = (data.gene.description || 'no description').replace(/\[[^\]]+\]/g, '');
         
         return ( <tr className={this.props.num % 2 === 0 ? 'datarow evenrow' : 'datarow oddrow'}>
                  <td className='text'>
@@ -78,8 +78,8 @@ var AnnotatedGeneRow = React.createClass({
                  <span>{desc}</span>
                  </Link>
                  </td>
-                 <td style={{textAlign: 'center'}}>TBA</td>
-                 <td style={{textAlign: 'center'}}>TBA</td>
+                <td style={{textAlign: 'center'}} dangerouslySetInnerHTML={{__html: htmlutil.pValueToReadable(data.pValue)}} />
+                <td style={{textAlign: 'center'}}>{data.zScore > 0 ? <SVGCollection.TriangleUp className='directiontriangleup' /> : <SVGCollection.TriangleDown className='directiontriangledown' />}</td>
                  <td style={{textAlign: 'center'}}><SVGCollection.Annotated /></td>
                  <td style={{textAlign: 'center'}}>
                  <a title={'Open network highlighting ' + data.gene.name} href={GN.urls.networkPage + '0!' + data.gene.name + '|' + this.props.termId + ',0!' + data.gene.name} target='_blank'>
@@ -89,22 +89,20 @@ var AnnotatedGeneRow = React.createClass({
                  </tr>
         )
     }
-})
+});
 
 var GeneTable = React.createClass({
 
     propTypes: {
-
         data: React.PropTypes.object.isRequired,
         listType: React.PropTypes.string
     },
 
     render: function() {
 
-        // console.log('pdt render, state:', this.state)
-        var that = this
-        var header = null
-        var rows = null
+        var that = this;
+        var header = null;
+        var rows = null;
         if (this.props.listType == 'annotation') {
             header = (<tr>
                       <th className='tabletextheader' style={{width: '10%'}}>GENE</th>
@@ -113,7 +111,7 @@ var GeneTable = React.createClass({
                       <th>DIRECTION</th>
                       <th>ANNOTATED</th>
                       <th>NETWORK</th>
-                      </tr>)
+                      </tr>);
             rows = _.map(this.props.data.genes.annotated, function(data, i) {
                 return (<AnnotatedGeneRow key={data.gene.id} termId={that.props.data.pathway.id} data={data} num={i} />)
             })
@@ -125,7 +123,7 @@ var GeneTable = React.createClass({
                       <th>DIRECTION</th>
                       <th>ANNOTATED</th>
                       <th>NETWORK</th>
-                      </tr>)
+                      </tr>);
             rows = _.map(this.props.data.genes.predicted, function(data, i) {
                 return (<PredictedGeneRow key={data.gene.id} termId={that.props.data.pathway.id} data={data} num={i} />)
             })
@@ -140,7 +138,7 @@ var GeneTable = React.createClass({
                 </table>
         )
     }
-})
+});
 
 var Term = React.createClass({
 
@@ -154,6 +152,7 @@ var Term = React.createClass({
     },
     
     loadData: function(props) {
+        console.log(GN.urls.pathway + '/' + props.params.termId + '?verbose');
 
         $.ajax({
 
@@ -169,7 +168,7 @@ var Term = React.createClass({
             
             error: function(xhr, status, err) {
                 
-		            console.error(xhr)
+		            console.error(xhr);
                 
                 if (err === 'Not Found') {
                     
@@ -204,7 +203,7 @@ var Term = React.createClass({
 
     onListTypeClick: function(type) {
         
-        Cookies.set('termlist', type)
+        Cookies.set('termlist', type);
         
         this.setState({
             listType: type
@@ -213,7 +212,7 @@ var Term = React.createClass({
     
     download: function() {
         
-        var form = document.getElementById('gn-term-downloadform')
+        var form = document.getElementById('gn-term-downloadform');
         form.submit()
     },
     
@@ -239,8 +238,8 @@ var Term = React.createClass({
             
         } else if (this.state.data) {
             
-            var data = this.state.data
-            console.log(this.state)
+            var data = this.state.data;
+            console.log(this.state);
             
             return (
 		            <DocumentTitle title={data.pathway.name + GN.pageTitleSuffix}>
@@ -304,6 +303,6 @@ var Term = React.createClass({
             )
         }
     }
-})
+});
 
-module.exports = Term
+module.exports = Term;

@@ -2,8 +2,8 @@
 
 var _ = require('lodash')
 var React = require('react')
-var GeneOpenMenu = require('../GeneOpenMenu')
-var SVGCollection = require('../SVGCollection')
+var GeneOpenMenu = require('../ReactComponents/GeneOpenMenu')
+var SVGCollection = require('../ReactComponents/SVGCollection')
 
 var GeneMenu = React.createClass({
 

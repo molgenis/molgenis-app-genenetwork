@@ -3,7 +3,7 @@ var React = require('react');
 var ReactRouter = require('react-router');
 var Link = ReactRouter.Link;
 var Select = require('react-select');
-var TextareaAutosize = require('react-textarea-autosize')
+var TextareaAutosize = require('react-textarea-autosize');
 
 var GN = require('../../config/gn.js');
 var color = require('../js/color');
@@ -12,8 +12,10 @@ var MenuBar = require('./MenuBar');
 var Logo = require('./ReactComponents/Logo');
 var Footer = require('./ReactComponents/Footer');
 var Tools = require('./Tools');
-var SVGCollection = require('./ReactComponents/SVGCollection');
 
+/**
+ * Component for root url
+ */
 var Landing = React.createClass({
 
     mixins: [ReactRouter.History],
@@ -25,13 +27,37 @@ var Landing = React.createClass({
         }
     },
 
+    /**
+     * Focus on search bar when page gets active
+     */
     componentDidMount: function() {
-        this.refs.select && this.refs.select.focus()
+        this.refs.select && this.refs.select.focus();
     },
 
+    /**
+     * Checks if value of the search bar input is a list of multiple genes
+     * @param geneList input of search bar
+     * @returns {boolean} is geneList
+     */
+    isGeneList: function (geneList) {
+        // TODO: Better logic to determine if input is a gene list
+        return (geneList.length > 10 && /[\n\r;,]+/.test(geneList) || geneList.length > 30);
+    },
+
+    /**
+     * Uses an elasticsearch index to search for valid search options in the search bar
+     * @param input
+     * @param callback
+     * @returns {*}
+     */
     getSuggestions: function(input, callback) {
-        if (!input || input.length < 2) {
-            return callback(null, {})
+        // Start search after 1 character
+        if (!input || input.length < 1) return callback(null, {});
+
+        // If a list of genes is passed change state update components
+        if (this.isGeneList(input)) {
+            this.setState({geneList: input,pasteGeneList: true});
+            return callback(null, {});
         }
 
         io.socket.get(GN.urls.suggest,
@@ -71,9 +97,13 @@ var Landing = React.createClass({
             })
     },
 
+    /**
+     * When a search options is clicked push to relevant view
+     * @param value
+     * @param options
+     */
     onSelectChange: function(value, options) {
         if (value.indexOf('!') > -1) {
-
             var type = value.substring(0, value.indexOf('!'));
             var id = value.substring(value.indexOf('!') + 1);
             this.history.pushState(null, '/' + type + '/' + id)
@@ -84,44 +114,59 @@ var Landing = React.createClass({
         this.history.pushState(null, '/')
     },
 
-    onListIconClick: function () {
-        this.setState({ pasteGeneList: !this.state.pasteGeneList });
-    },
-    
+    /**
+     * Checks if the value of the search bar is still a list
+     * @param event
+     */
     onGeneListChange: function (event) {
         this.setState({ geneList: event.target.value });
+
+        if (!this.isGeneList(event.target.value)) {
+            this.setState({
+                pasteGeneList: false,
+            });
+        }
     },
 
     onGeneListSubmit: function () {
-        console.log(this.state.geneList);
-        this.setState({ pasteGeneList: !this.state.pasteGeneList });
-        this.history.pushState(null, '/network/' + this.state.geneList)
+        this.setState({ pasteGeneList: false });
+        this.history.pushState({ geneList: this.state.geneList }, '/gene-list/')
+    },
+
+    /**
+     * Necessary to maintain focus at the end of the search bar when the state.geneList == true
+     * @param event
+     */
+    moveCaretAtEnd(event) {
+        var temp_value = event.target.value;
+        event.target.value = '';
+        event.target.value = temp_value
     },
 
     renderSearchBar() {
-        var searchBar = [];
-
-        if (this.state.pasteGeneList) {
-            searchBar.push (
+        if (this.state.pasteGeneList && _.size(this.props.params) === 0) {
+            return (
                 <TextareaAutosize
                     key = 'gene-list'
+                    ref = 'select'
                     value={this.state.geneList}
                     className='flex11 textarea-genes'
                     minRows={5}
                     maxRows={20}
-                    placeholder='Paste a list of gene symbols or ensembl ids'
+                    placeholder='Paste a list of gene symbols or Ensembl IDs'
+                    autoFocus
                     onChange={this.onGeneListChange}
+                    onFocus={this.moveCaretAtEnd}
                 />
             );
         } else {
-            searchBar.push (
+            return (
                 <Select key='gene'
                     ref='select'
                     name='search'
-                    value={'Search here'}
                     matchPos='any'
                     matchProp='label'
-                    placeholder=''
+                    placeholder='Search here or paste a list of multiple genes (Ensemble IDs or HGNC symbols)'
                     autoload={false}
                     cacheAsyncResults={false}
                     asyncOptions={this.getSuggestions}
@@ -130,16 +175,6 @@ var Landing = React.createClass({
                 />
             )
         }
-
-        if (_.size(this.props.params) === 0) {
-            searchBar.push (
-                <div key='list-icon' style={{margin: '5px 0 0 10px', cursor: 'pointer', height: '37px' }} onClick={ this.onListIconClick }>
-                    <SVGCollection.ListIcon h={25} w={25} color={ color.colors.gnyellow } n={5} />
-                </div>
-            )
-        }
-
-        return searchBar;
     },
 
     render: function() {

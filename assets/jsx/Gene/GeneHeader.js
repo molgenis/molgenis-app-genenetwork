@@ -1,8 +1,8 @@
 'use strict'
 
 var React = require('react')
-var SVGCollection = require('../SVGCollection')
-var color = require('../../../js/color.js')
+var SVGCollection = require('../ReactComponents/SVGCollection')
+var color = require('../../js/color.js')
 
 var GeneHeader = React.createClass({
     

@@ -1,3 +1,8 @@
 fixes socket not found error:
 https://github.com/balderdashy/sails/issues/2968
 
+server start up:
+redis-server
+/usr/local/Cellar/elasticsearch\@2.4/2.4.6/bin/elasticsearch
+node servers/PredictionServer.js
+node --max-old-space-size=8192 servers/PWAServerInMem.js
