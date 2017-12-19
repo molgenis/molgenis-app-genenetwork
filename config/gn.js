@@ -19,6 +19,7 @@ module.exports.menuItems = [{
 module.exports.urls = {
     main: module.exports.domain,
     gene: DOMAIN + '/api/v1/gene',
+    genes: DOMAIN + '/api/v1/genes',
     transcript: DOMAIN + '/api/v1/transcript',
     transcriptBars: DOMAIN + '/api/v1/transcriptBars',
     pathway: DOMAIN + '/api/v1/pathway',

@@ -572,7 +572,7 @@ exp.getGeneJSON = function(gene, db, req, callback) {
                     })
 
                     .on('data', function(buffer) {
-                        if (_.contains(transcripts, buffer.key.split('!')[3])){
+                        if (_.includes(transcripts, buffer.key.split('!')[3])){
                             for (var i = 0; i < buffer.value.length; i += 2) {
                                 r.celltypes.transcriptBars[tissues[i/2]][transcripts.indexOf(buffer.key.split('!')[3])] = ((buffer.value.readUInt16BE(i) - 32768) / 1000) + 0.1
                             }

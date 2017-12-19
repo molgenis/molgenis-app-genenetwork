@@ -1,11 +1,5 @@
-var elasticsearch = require('elasticsearch')
-// var memwatch = require('memwatch')
-var request = require('request')
-var level = require('level')
-var dbutil = require('./utils/dbutil')
-var mim2gene = require('./utils/mim2gene')
-
 var handleGene = require('./requestHandlers/handleGene')
+var handleGenes = require('./requestHandlers/handleGenes')
 var handleTranscript = require('./requestHandlers/handleTranscript')
 var handleTranscriptBars = require('./requestHandlers/handleTranscriptBars')
 var handlePathway = require('./requestHandlers/handlePathway')
@@ -15,22 +9,11 @@ var handlePrioritization = require('./requestHandlers/handlePrioritization')
 var handleGeneScores = require('./requestHandlers/handleGeneScores')
 var handleSVG2PDF = require('./requestHandlers/handleSVG2PDF')
 var handleTabdelim = require('./requestHandlers/handleTabdelim')
-//var handleSVG2PDF = require('./requestHandlers/handleUpload')
 var handleEigentest = require('./requestHandlers/handleEigentest')
-//var handlePC = require('./requestHandlers/handlePC')
 var handleVCF = require('./requestHandlers/handleVCF')
 
 var handleTemp = require('./requestHandlers/handleTemp')
 
-// memwatch.on('leak', function(info) {
-//     sails.log.warn('memwatch: leak: ' + info.growth + ': ' + info.reason)
-//     sails.log.verbose(info)
-// })
-
-// memwatch.on('stats', function(stats) {
-//     sails.log.verbose('memwatch: usage trend: ' + stats.usage_trend)
-//     sails.log.verbose(stats)
-// })
 
 module.exports = {
 
@@ -44,6 +27,15 @@ module.exports = {
         } catch (e) {
             sails.log.error(e)
             res.serverError()
+        }
+    },
+
+    genes: function (req, res) {
+        try {
+            handleGenes(req, res);
+        } catch (e) {
+            sails.log.error(e);
+            res.serverError();
         }
     },
 
