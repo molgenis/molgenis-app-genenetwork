@@ -209,6 +209,20 @@ h1, h2, h3, h4, h5 {
     padding: 0 20px 0 20px;
 }
 
+.textarea-genes {
+    position: relative;
+    overflow: hidden;
+    background-color: #ffffff;
+    box-sizing: border-box;
+    color: #333333;
+    cursor: default;
+    outline: none;
+    padding: 8px 52px 8px 10px;
+    transition: all 200ms ease;
+    font-family: GG;
+    font-size: 15px;
+}
+
 .searchheader {
     color: rgb(255,225,0);
     font-family: GPC;
@@ -249,7 +263,7 @@ h1, h2, h3, h4, h5 {
     color: #ffffff;
     padding: 8px;
     text-decoration: none;
-    stroke-width: 10;
+    /*stroke-width: 10;*/
     display: inline-block;
 }
 
@@ -354,7 +368,7 @@ h1, h2, h3, h4, h5 {
     color: #4d4d4d;
     border: 1px solid #dcdcdc;
     text-decoration: none;
-    stroke-width: 10;
+    /*stroke-width: 10;*/
     display: inline-block;
     position: relative;
 }
@@ -730,8 +744,8 @@ line.link {
     flex-flow: row nowrap;
     align-items: flex-end;
     position: absolute;
-    bottom: 0px;
-    left: 0px;
+    bottom: 0;
+    right: 0;
     /* padding: 10px; */
     /* max-width: 75%; */
     z-index: 1;
@@ -1025,17 +1039,28 @@ line.link {
 
 .gn-network-panelcontainer {
     position: absolute;
-    top: 0px;
+    top: 0;
     bottom: 50px;
-    right: 0px;
+    left: 10px;
     display: flex;
     flex-flow: column nowrap;
     
     padding: 10px 10px 0 0;
     width: 30%;
     max-height: 95vh;
-    /* max-width: 300px; */
+    /*max-width: 300px;*/
     z-index: 1;
+}
+
+.gn-network-controlpanel{
+    display: inline-block;
+    position: absolute;
+    top: 0;
+    right: 20px;
+    padding: 10px 0 0 10px;
+    z-index: 1;
+    background-color: #fff;
+    opacity: 0.95
 }
 
 .networkleftpanel {
@@ -1077,6 +1102,8 @@ line.link {
     flex: 2 1 auto;
     /* max-width: 700px; */
     margin-top: 10px;
+    background-color: #ffffff;
+    opacity: 0.95;
 }
 
 .defaultcursor {
@@ -1114,7 +1141,7 @@ line.link {
     z-index: 1;
     position: absolute;
     top: 35px;
-    left: 70px;
+    right: 90px;
     max-width: 200px;
     background-color: #ffffff;
     opacity: 0.95;

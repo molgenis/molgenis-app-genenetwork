@@ -2,7 +2,7 @@ var _ = require('lodash')
 var React = require('react')
 var ReactTooltip = require('react-tooltip')
 var Chr = require('../../js/chr')
-var htmlutil = require('../htmlutil.js')
+var htmlutil = require('../../js/htmlutil.js')
 var color = require('../../js/color.js')
 var exp = {}
 
@@ -250,16 +250,22 @@ exp.ListIcon = React.createClass({
     },
     
     render: function() {
+
+        let lines = [];
+        let n = this.props.n;
+        let size = n * 5;
+        let viewBox = '0 0 ' + size + ' ' + size;
+
+        for (var i = 0; i < this.props.n; i++) {
+            lines.push(<line key={i} x1='0' y1={2 + n *i} x2={size} y2={2 + n * i} />);
+        }
+
         return (
-                <div style={{display: 'inline-block'}}>
-                <svg viewBox='0 0 16 16' width={this.props.w} height={this.props.h} style={{shapeRendering: 'crispEdges', strokeWidth: 1, stroke: this.props.color || color.colors.gngray}}>
-                <line x1='0' y1='2' x2='16' y2='2' />
-                <line x1='0' y1='7' x2='16' y2='7' />
-                {!this.props.n || this.props.n > 2 ?
-                 (<line x1='0' y1='12' x2='16' y2='12' />) :
-                 null}
-            </svg>
-                </div>
+            <div style={{display: 'inline-block'}}>
+                <svg viewBox={viewBox} width={this.props.w} height={this.props.h} style={{shapeRendering: 'crispEdges', strokeWidth: 1, stroke: this.props.color || color.colors.gngray}}>
+                    {lines}
+                </svg>
+            </div>
         )
     }
 })
@@ -408,6 +414,6 @@ exp.ArrowLeft = React.createClass({
                 </svg>
         )
     }
-})
+});
 
-module.exports = exp
+module.exports = exp;

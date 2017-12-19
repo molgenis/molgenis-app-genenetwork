@@ -12,7 +12,7 @@ var Table = reactable.Table
 var unsafe = reactable.unsafe
 
 var SVGCollection = require('./SVGCollection')
-var htmlutil = require('../htmlutil')
+var htmlutil = require('../../js/htmlutil')
 
 var PredictionRow = React.createClass({
 

@@ -1,9 +1,11 @@
 .DS_Store
 .DS_STORE
 ._.DS_Store
+.idea/
 domain.js
 version.js
 data/
 node_modules/
 .tmp
 ReactBundle.js
+backup_elasticsearch

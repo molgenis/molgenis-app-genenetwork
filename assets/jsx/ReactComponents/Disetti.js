@@ -1,5 +1,5 @@
 var _ = require('lodash')
-var htmlutil = require('../../jsx/htmlutil.js')
+var htmlutil = require('../../js/htmlutil.js')
 var React = require('react')
 var Cookies = require('cookies-js')
 

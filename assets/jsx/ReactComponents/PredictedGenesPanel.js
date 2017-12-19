@@ -1,7 +1,7 @@
 'use strict'
 
 var _ = require('lodash')
-var htmlutil = require('../../jsx/htmlutil.js')
+var htmlutil = require('../../js/htmlutil.js')
 var React = require('react')
 var SVGCollection = require('./SVGCollection')
 var Disetti = require('./Disetti')

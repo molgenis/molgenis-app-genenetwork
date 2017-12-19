@@ -2,7 +2,7 @@
 
 var _ = require('lodash')
 var color = require('../../js/color')
-var htmlutil = require('../htmlutil')
+var htmlutil = require('../../js/htmlutil')
 var genstats = require('genstats')
 var prob = genstats.probability
 
@@ -12,7 +12,7 @@ var DocumentTitle = require('react-document-title')
 
 var SVGCollection = require('./SVGCollection')
 var I = SVGCollection.I
-var htmlutil = require('../htmlutil')
+var htmlutil = require('../../js/htmlutil')
 var color = require('../../js/color')
 
 var reactable = require('reactable')

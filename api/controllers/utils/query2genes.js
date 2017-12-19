@@ -1,8 +1,8 @@
-var _ = require('lodash')
-var async = require('async')
-var dbutil = require('./dbutil')
-var genedesc = require('./genedesc')
-var quicksortobj = require('./quicksortobj')
+var _ = require('lodash');
+var async = require('async');
+var dbutil = require('./dbutil');
+var genedesc = require('./genedesc');
+var quicksortobj = require('./quicksortobj');
 
 /**
 * Returns an array of gene objects according to the given query.
@@ -21,47 +21,47 @@ var quicksortobj = require('./quicksortobj')
 var getGenes = function(query, options, callback) {
 
     if (!callback) {
-        callback = options
+        callback = options;
         options = {}
     } else {
         options = options || {}
     }
 
-    if (!_.isFunction(callback)) callback({name: 'ArgumentError', message: 'getGenes: Last argument has to be a callback function'})
-    if (_.isString(query)) query = [query]
-    if (!_.isArray(query)) callback({name: 'ArgumentError', message: 'getGenes: Query has to be a string or an array'})
-    if (query.length === 0) callback(null, [])
+    if (!_.isFunction(callback)) callback({name: 'ArgumentError', message: 'getGenes: Last argument has to be a callback function'});
+    if (_.isString(query)) query = [query];
+    if (!_.isArray(query)) callback({name: 'ArgumentError', message: 'getGenes: Query has to be a string or an array'});
+    if (query.length === 0) callback(null, []);
 
     async.map(query, function(q, cb) {
-        var groupNum = null
-        var ei = q.indexOf('!')
+        var groupNum = null;
+        var ei = q.indexOf('!');
         if (ei > 0) {
-            var ci = +(q.substring(0, ei))
+            var ci = +(q.substring(0, ei));
             if (_.isNumber(ci)) {
-                groupNum = ci
+                groupNum = ci;
                 q = q.substring(ei + 1)
             }
         }
-    	var gene = genedesc.get(q)
+    	var gene = genedesc.get(q);
     	if (gene) {
     	    return cb(null, {genes: [gene], groupNum: groupNum})
     	} else {
-    	    var pw = dbutil.pathwayObject(q)
+    	    var pw = dbutil.pathwayObject(q);
     	    if (pw) {
-    		dbutil.getAnnotatedGenes(pw, function(err, genes) {
-                        return err ? cb(err) : cb(null, {genes: genes, groupNum: groupNum})
+    	        dbutil.getAnnotatedGenes(pw, function(err, genes) {
+    		    return err ? cb(err) : cb(null, {genes: genes, groupNum: groupNum})
     		})
     	    } else {
-    		return cb(null)
+    	        return cb(null, {not_found: q})
     	    }
     	}
     }, function(err, genesNGroups) {
-        if (err) return callback(err)
-	uniqGenes = _.uniq(_.compact(_.flatten(_.pluck(genesNGroups, 'genes'))))
-	quicksortobj(uniqGenes, options.sortField || 'index_')
-	sails.log.debug(uniqGenes.length + ' genes found, query length was ' + query.length)
-	callback(null, uniqGenes, _.compact(genesNGroups))
+        if (err) return callback(err);
+        var uniqueGenes = _.uniq(_.compact(_.flatten(_.map(genesNGroups, 'genes'))));
+        quicksortobj(uniqueGenes, options.sortField || 'index_');
+        sails.log.debug(uniqueGenes.length + ' genes found, query length was ' + query.length);
+        callback(null, uniqueGenes, _.compact(genesNGroups))
     })
-}
+};
 
-module.exports = getGenes
+module.exports = getGenes;

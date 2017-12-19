@@ -12,7 +12,7 @@ var color = require('../../js/color')
 var SVGCollection = require('./SVGCollection')
 
 var color = require('../../js/color')
-var htmlutil = require('../htmlutil')
+var htmlutil = require('../../js/htmlutil')
 
 var AnnotatedGeneRow = React.createClass({
 
