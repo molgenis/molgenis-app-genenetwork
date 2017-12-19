@@ -55,7 +55,7 @@ var network2js = function(network) {
         pathway: network.pathway
     };
 
-    js.elements.hashNodes = _.indexBy(js.elements.nodes, function(node) {
+    js.elements.hashNodes = _.keyBy(js.elements.nodes, function(node) {
         return node.data.id
     });
 
