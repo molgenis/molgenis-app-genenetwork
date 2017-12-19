@@ -22,8 +22,8 @@ var GeneList = React.createClass({
     },
 
     parseGeneList: function(geneList) {
-        geneList = geneList.trim().replace(/(\r\n|\n|\r|\t)/g, ',');
-        let genes = geneList.split(',');
+        geneList = geneList.trim().replace(/(\r\n|\n|\r|\t|\s)/g, ',');
+        let genes = geneList.split(',').filter(function(e){return e});
         return(genes);
     },
 
@@ -57,6 +57,8 @@ var GeneList = React.createClass({
     },
 
     render: function() {
+        var notFound = this.state.notFound;
+
         return (
             <DocumentTitle title={'Gene set enrichment' + GN.pageTitleSuffix}>
             <div className='flex10'>
@@ -80,8 +82,9 @@ var GeneList = React.createClass({
                 <div className={'gn-gene-container-outer'} style={{backgroundColor: color.colors.gnwhite, marginTop: '10px'}}>
                     <div className='gn-gene-container-inner maxwidth' style={{padding: '20px'}}>
                         <span style={{fontWeight: 'bold', fontFamily: 'GG', fontSize: '1.2em'}}>Not found:</span><br />
-                        {_.map(this.state.notFound, function (geneItem) {
-                            return <span key={geneItem}>{geneItem}, </span>
+                        {_.map(notFound, function (geneItem, i) {
+                            if (notFound.length === i+1) return <span key={geneItem}>{geneItem}</span>;
+                            else return <span key={geneItem}>{geneItem}, </span>
                         })}
                         <div><br />
                             <span style={{fontWeight: 'bold', fontFamily: 'GG', fontSize: '1.2em'}}>Found:</span>
