@@ -1,4 +1,4 @@
-var DOMAIN = 'http://localhost:1337';
+var DOMAIN = 'http://molgenis27.target.rug.nl';
 
 module.exports.domain = DOMAIN;
 
