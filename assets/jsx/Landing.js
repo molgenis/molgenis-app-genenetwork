@@ -3,6 +3,7 @@ var React = require('react');
 var ReactRouter = require('react-router');
 var Link = ReactRouter.Link;
 var Select = require('react-select');
+var Async = Select.Async;
 var TextareaAutosize = require('react-textarea-autosize');
 
 var GN = require('../../config/gn.js');
@@ -102,7 +103,8 @@ var Landing = React.createClass({
      * @param value
      * @param options
      */
-    onSelectChange: function(value, options) {
+    onSelectChange: function(selectedOption) {
+        let value = selectedOption.value;
         if (value.indexOf('!') > -1) {
             var type = value.substring(0, value.indexOf('!'));
             var id = value.substring(value.indexOf('!') + 1);
@@ -161,7 +163,7 @@ var Landing = React.createClass({
             );
         } else {
             return (
-                <Select key='gene'
+                <Async key='gene'
                     ref='select'
                     name='search'
                     matchPos='any'
@@ -169,7 +171,7 @@ var Landing = React.createClass({
                     placeholder='Search here or paste a list of multiple genes (Ensembl IDs or HGNC symbols)'
                     autoload={false}
                     cacheAsyncResults={false}
-                    asyncOptions={this.getSuggestions}
+                    loadOptions={this.getSuggestions}
                     onChange={this.onSelectChange}
                     className='flex11'
                 />
