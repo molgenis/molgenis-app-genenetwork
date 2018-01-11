@@ -1,4 +1,4 @@
-var elasticsearch = require('elasticsearch')
+var elasticsearch = require('elasticsearch');
 
 if (sails.config.useElastic === true) {
     var CLIENT = new elasticsearch.Client({
@@ -17,20 +17,27 @@ module.exports = function(req, res) {
         return res.badRequest()
     }
 
-    var query = req.body.q
+    var query = req.body.q;
 
     CLIENT.search({
         index: 'search',
         from: 0,
         size: 100,
-        q: 'name:' + query.replace(/\:/g, '\:') + '*'
+        body: {
+            query: {
+                query_string : {
+                    fields : ["name", "id"],
+                    query : query.replace(/\:/g, '\:') + '*'
+                }
+            }
+        }
     }, function(err, result) {
+        sails.log.debug(result);
         if (err) {
-            sails.log.warn(err)
+            sails.log.warn(err);
             return res.serverError()
         } else {
-            sails.log.debug('Suggest options for %s: %d', query, result.hits.total)
-            // sails.sockets.emit(req.socket.id, 'suggestions', result.hits.hits)
+            sails.log.debug('Suggest options for %s: %d', query, result.hits.total);
             if (result.hits.total > 0) {
                 return res.json(result.hits.hits)
             } else {
@@ -38,4 +45,5 @@ module.exports = function(req, res) {
             }
         }
     })
-}
+
+};

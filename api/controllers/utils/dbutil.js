@@ -726,7 +726,7 @@ exp.getGivenGenesAnnotationArrayForTerm = function(termObj, geneIndices, callbac
             for (var i = 0; i < buffer.length / 2; i++) {
                 termAnnotations.push(buffer.readUInt16BE(i * 2))
             }
-            var annotations = _.map(geneIndices, function(geneIndex) { return _.contains(termAnnotations, +geneIndex) });
+            var annotations = _.map(geneIndices, function(geneIndex) { return _.includes(termAnnotations, +geneIndex) });
             callback(null, annotations)
         }
     })
