@@ -1,6 +1,6 @@
-let domain = require('./domain').domain;
+var DOMAIN = require('./domain').domain;
 
-module.exports.domain = domain;
+module.exports.domain = DOMAIN;
 
 module.exports.menuItems = [{
     name: 'HOME',
@@ -18,36 +18,36 @@ module.exports.menuItems = [{
 
 module.exports.urls = {
     main: module.exports.domain,
-    gene: domain + '/api/v1/gene',
-    genes: domain + '/api/v1/genes',
-    transcript: domain + '/api/v1/transcript',
-    transcriptBars: domain + '/api/v1/transcriptBars',
-    pathway: domain + '/api/v1/pathway',
-    coregulation: domain + '/api/v1/coregulation',
-    tissues: domain + '/api/v1/tissues',
-    cofunction: domain + '/api/v1/cofunction',
-    pc: domain + '/api/v1/pc',
+    gene: DOMAIN + '/api/v1/gene',
+    genes: DOMAIN + '/api/v1/genes',
+    transcript: DOMAIN + '/api/v1/transcript',
+    transcriptBars: DOMAIN + '/api/v1/transcriptBars',
+    pathway: DOMAIN + '/api/v1/pathway',
+    coregulation: DOMAIN + '/api/v1/coregulation',
+    tissues: DOMAIN + '/api/v1/tissues',
+    cofunction: DOMAIN + '/api/v1/cofunction',
+    pc: DOMAIN + '/api/v1/pc',
 
-    suggest: domain + '/socketapi/suggest',
-    diagnosisSuggest: domain + '/socketapi/diagnosisSuggest',
-    pathwayanalysis: domain + '/socketapi/pathwayanalysis',
-    geneprediction: domain + '/socketapi/geneprediction',
-    network: domain + '/socketapi/network',
-    genescores: domain + '/socketapi/genescores',
-    genevsnetwork: domain + '/socketapi/genevsnetwork',
+    suggest: DOMAIN + '/socketapi/suggest',
+    diagnosisSuggest: DOMAIN + '/socketapi/diagnosisSuggest',
+    pathwayanalysis: DOMAIN + '/socketapi/pathwayanalysis',
+    geneprediction: DOMAIN + '/socketapi/geneprediction',
+    network: DOMAIN + '/socketapi/network',
+    genescores: DOMAIN + '/socketapi/genescores',
+    genevsnetwork: DOMAIN + '/socketapi/genevsnetwork',
 
-    prioritization: domain + '/api/v1/prioritization',
+    prioritization: DOMAIN + '/api/v1/prioritization',
 
-    genePage: domain + '/gene/',
-    termPage: domain + '/term/',
-    networkPage: domain + '/network/',
-    diagnosisPage: domain + '/diagnosis',
+    genePage: DOMAIN + '/gene/',
+    termPage: DOMAIN + '/term/',
+    networkPage: DOMAIN + '/network/',
+    diagnosisPage: DOMAIN + '/diagnosis',
 
-    svg2pdf: domain + '/api/v1/svg2pdf',
+    svg2pdf: DOMAIN + '/api/v1/svg2pdf',
     // diagnosisResults: domain + '/api/v1/diagnosisResults',
-    tabdelim: domain + '/api/v1/tabdelim',
+    tabdelim: DOMAIN + '/api/v1/tabdelim',
 
-    diagnosisVCF: domain + '/api/v1/vcf',
+    diagnosisVCF: DOMAIN + '/api/v1/vcf',
 };
 
 module.exports.pageTitleSuffix = ' - Gene Network';
