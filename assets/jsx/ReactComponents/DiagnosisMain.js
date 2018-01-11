@@ -4,8 +4,8 @@ var _ = require('lodash')
 var React = require('react')
 var DocumentTitle = require('react-document-title')
 var color = require('../../js/color.js')
-var Select = require('react-select')
-
+var Select = require('react-select');
+var Async = Select.Async;
 var reactable = require('reactable')
 var ReactRouter = require('react-router')
 var Router = ReactRouter.Router
@@ -121,9 +121,9 @@ var DiagnosisMain = React.createClass({
                       })
     },
 
-    onSelectChange: function(value, options) {
-        this.state.selectedTerms.push({value: value, name: options[0].name})
-        var terms = this.state.selectedTerms
+    onSelectChange: function(selectedOption) {
+        var terms = this.state.selectedTerms;
+        terms.push({value: selectedOption.value, name: selectedOption.name});
         this.setState({
             selectedTerms: terms
         })
@@ -159,21 +159,21 @@ var DiagnosisMain = React.createClass({
                             </div>
 
                             <div style={{float: 'left', width: 'calc(100% - 160px)', paddingBottom: '20px'}}>
-                                
-                                <Select
-                             // ref='select'
-                             name='diagnosis-search'
-                             // options={options}
-                             // multi={true}
-                             // value={'Search here'}
-                             // matchPos='any'
-                             // matchProp='label'
-                             // placeholder=''
-                             autoload={false}
-                             cacheAsyncResults={false}
-                             asyncOptions={this.getSuggestions}
-                             onChange={this.onSelectChange} 
-                             />
+
+                                <Async
+                                 // ref='select'
+                                 name='diagnosis-search'
+                                 // options={options}
+                                 // multi={true}
+                                 // value={'Search here'}
+                                 // matchPos='any'
+                                 // matchProp='label'
+                                 // placeholder=''
+                                 autoload={false}
+                                 cacheAsyncResults={false}
+                                 loadOptions={this.getSuggestions}
+                                 onChange={this.onSelectChange}
+                                 />
 
                             </div>     
 

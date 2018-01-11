@@ -55,7 +55,7 @@ var Landing = React.createClass({
         // Start search after 1 character
         if (!input || input.length < 1) return callback(null, {});
 
-        // If a list of genes is passed change state update components
+        // If a list of genes is passed cancel suggestion search and change state to update components
         if (this.isGeneList(input)) {
             this.setState({geneList: input,pasteGeneList: true});
             return callback(null, {});
@@ -71,7 +71,7 @@ var Landing = React.createClass({
                         if (result._type === 'gene') {
                             return {
                                 value: 'gene!' + result._source.id,
-                                label: result._source.name + ' - ' + result._source.description
+                                label: result._source.name + ' - ' + result._source.description + ' (' + result._source.id + ')'
                             }
                         } else if (result._type === 'term') {
                             return {
@@ -172,6 +172,7 @@ var Landing = React.createClass({
                     autoload={false}
                     cacheAsyncResults={false}
                     loadOptions={this.getSuggestions}
+                    filterOption={function (options) { return options }} // Prevents filtering on input
                     onChange={this.onSelectChange}
                     className='flex11'
                 />
