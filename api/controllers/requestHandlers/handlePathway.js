@@ -1,4 +1,4 @@
-var dbutil = require('../utils/dbutil')
+var dbutil = require('../utils/dbutil');
 
 module.exports = function(req, res) {
 
@@ -7,14 +7,14 @@ module.exports = function(req, res) {
             todo: 'TODO pathway list'
         })
     } else {
-        var pathwayObj = dbutil.pathwayObject(req.params.id)
+        var pathwayObj = dbutil.pathwayObject(req.params.id);
         if (!pathwayObj) {
             return res.notFound({
                 status: 404,
                 message: 'Pathway \'' + req.params.id + '\' not found'
             })
         }
-        sails.log.debug('getting data for ' + pathwayObj.name)
+        sails.log.debug('getting data for ' + pathwayObj.name);
         dbutil.getPathwayJSON(pathwayObj, req, function(err, json) {
             if (err) {
                 return res.send(err.status, err)
@@ -23,4 +23,5 @@ module.exports = function(req, res) {
             }
         })
     }
-}
+
+};
