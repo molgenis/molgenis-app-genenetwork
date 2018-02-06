@@ -83,5 +83,7 @@ module.exports.routes = {
 
     '/bloodeqtlbrowser': 'https://molgenis58.target.rug.nl/bloodeqtlbrowser/',
 
+    '/cd4cd8eqtlbrowser': 'https://molgenis58.target.rug.nl/cd4cd8eqtlbrowser/'
+
 
 };
