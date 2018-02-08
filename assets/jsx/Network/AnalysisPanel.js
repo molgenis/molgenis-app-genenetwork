@@ -1,8 +1,8 @@
-var React = require('react')
-var PredictedGenesPanel = require('../ReactComponents/PredictedGenesPanel')
-var PWAPanel = require('../ReactComponents/PWAPanel')
-var SVGCollection = require('../ReactComponents/SVGCollection')
-var color = require('../../js/color.js')
+var React = require('react');
+var PredictedGenesPanel = require('../ReactComponents/PredictedGenesPanel');
+var PWAPanel = require('./PWAPanel');
+var SVGCollection = require('../ReactComponents/SVGCollection');
+var color = require('../../js/color.js');
 var DownloadPanel = require('../ReactComponents/DownloadPanel');
 
 var AnalysisPanel = React.createClass({
@@ -28,8 +28,6 @@ var AnalysisPanel = React.createClass({
     },
     
     componentDidMount: function() {
-        console.log('analysis group')
-        console.log(this.props.analysisGroup)
         if (this.refs.pwa.pwaRequest(this.props.analysisGroup)) {
             this.refs.pred.gpRequest(this.props.analysisGroup)
         }
@@ -46,7 +44,7 @@ var AnalysisPanel = React.createClass({
     onTabSelect: function(index) {
         this.setState({
             activeTab: index
-        })
+        });
     },
 
     onPWAStart: function() {
@@ -75,16 +73,16 @@ var AnalysisPanel = React.createClass({
 
     render: function() {
 
-        var d3fd = {getNodeById: function() { return null }}
+        var d3fd = {getNodeById: function() { return null }};
         var styles = [
             // {position: 'relative', height: '100%', overflow: 'hidden', backgroundColor: color.colors.gnwhite},//, position: 'relative'},
             // {position: 'relative', height: '100%', overflow: 'hidden', backgroundColor: color.colors.gnwhite, display: 'none'}//, position: 'relative'}
             {position: 'relative', backgroundColor: color.colors.gnwhite},
             {position: 'relative', backgroundColor: color.colors.gnwhite, display: 'none'}
-        ]
-        var classNames = ['button selectedbutton clickable', 'button clickable']
+        ];
+        var classNames = ['button selectedbutton clickable', 'button clickable'];
         if (this.state.activeTab === 1) {
-            styles.reverse()
+            styles.reverse();
             classNames.reverse()
         }
 
@@ -143,6 +141,6 @@ var DownloadButton = React.createClass({
                 </div>
         )
     }
-})
+});
 
-module.exports = AnalysisPanel
+module.exports = AnalysisPanel;

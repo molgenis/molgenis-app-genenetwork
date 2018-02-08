@@ -1764,7 +1764,7 @@ var Gene = React.createClass({displayName: "Gene",
 
 module.exports = Gene;
 
-},{"../../js/color":3,"../ReactComponents/DataTable":29,"../ReactComponents/DownloadPanel":33,"./GeneHeader":9,"./GeneMenu":10,"./SimilarGenesTable":12,"./Tissues":13,"cookies-js":54,"lodash":116,"react":318,"react-document-title":128,"react-router":150}],9:[function(require,module,exports){
+},{"../../js/color":3,"../ReactComponents/DataTable":30,"../ReactComponents/DownloadPanel":34,"./GeneHeader":9,"./GeneMenu":10,"./SimilarGenesTable":12,"./Tissues":13,"cookies-js":54,"lodash":116,"react":318,"react-document-title":128,"react-router":150}],9:[function(require,module,exports){
 'use strict'
 
 var React = require('react')
@@ -1921,7 +1921,7 @@ var GeneMenu = React.createClass({displayName: "GeneMenu",
 
 module.exports = GeneMenu
 
-},{"../ReactComponents/GeneOpenMenu":35,"../ReactComponents/SVGCollection":43,"lodash":116,"react":318}],11:[function(require,module,exports){
+},{"../ReactComponents/GeneOpenMenu":36,"../ReactComponents/SVGCollection":43,"lodash":116,"react":318}],11:[function(require,module,exports){
 'use strict'
 
 var React = require('react')
@@ -2591,7 +2591,7 @@ var Tissues = React.createClass({displayName: "Tissues",
 
 module.exports = Tissues
 
-},{"../../js/htmlutil":4,"../ReactComponents/OpenMenu":39,"../ReactComponents/SVGCollection":43,"./HomoSapiens":11,"lodash":116,"react":318,"reactable":319}],14:[function(require,module,exports){
+},{"../../js/htmlutil":4,"../ReactComponents/OpenMenu":40,"../ReactComponents/SVGCollection":43,"./HomoSapiens":11,"lodash":116,"react":318,"reactable":319}],14:[function(require,module,exports){
 var _ = require('lodash');
 var React = require('react');
 var ReactTable = require('react-table').default;
@@ -2759,7 +2759,7 @@ ReactDOM.render(React.createElement(Router, {history: history},
                 document.getElementById('reactcontainer')
                );
 
-},{"../../config/gn.js":49,"./About":6,"./Gene/Gene":8,"./GeneList":14,"./How":16,"./Landing":17,"./Network/Network":25,"./ReactComponents/API":27,"./ReactComponents/Diagnosis":30,"./ReactComponents/DiagnosisMain":31,"./ReactComponents/Ontology":38,"./ReactComponents/Term":45,"history/lib/createBrowserHistory":100,"react":318,"react-dom":129,"react-router":150}],16:[function(require,module,exports){
+},{"../../config/gn.js":49,"./About":6,"./Gene/Gene":8,"./GeneList":14,"./How":16,"./Landing":17,"./Network/Network":25,"./ReactComponents/API":28,"./ReactComponents/Diagnosis":31,"./ReactComponents/DiagnosisMain":32,"./ReactComponents/Ontology":39,"./ReactComponents/Term":45,"history/lib/createBrowserHistory":100,"react":318,"react-dom":129,"react-router":150}],16:[function(require,module,exports){
 var React = require('react');
 
 var How = React.createClass({displayName: "How",
@@ -2852,7 +2852,7 @@ var Landing = React.createClass({displayName: "Landing",
                             }
                         } else if (result._type === 'term') {
                             return {
-                                value: 'term!' + result._source.id,
+                                value: 'network!' + result._source.id,
                                 label: result._source.name + ' - ' + result._source.database + ' ' + result._source.type
                             }
                         } else if (result._type === 'trait_mapped') {
@@ -2983,7 +2983,7 @@ var Landing = React.createClass({displayName: "Landing",
                     
                     React.createElement("div", {className: "examples noselect defaultcursor"}, "For example: ", 
                         React.createElement(Link, {className: "clickable", title: "SMIM1", to: "/gene/SMIM1"}, "SMIM1"), ", ", 
-                        React.createElement(Link, {className: "clickable", title: "Interferon signaling", to: "/term/REACTOME:INTERFERON_SIGNALING"}, "Interferon signaling"), ", ", 
+                        React.createElement(Link, {className: "clickable", title: "Interferon signaling", to: "/network/REACTOME:INTERFERON_SIGNALING"}, "Interferon signaling"), ", ", 
                         React.createElement(Link, {className: "clickable", title: "Migraine", to: "/network/3ZLYoS", params: {ids: 'Migraine'}}, "Migraine"), ", ", 
                         React.createElement(Link, {className: "clickable", title: "Autism", to: "/network/2iGTR8", params: {ids: 'Autism'}}, "Autism")
                     )
@@ -3016,7 +3016,7 @@ var Landing = React.createClass({displayName: "Landing",
 
 module.exports = Landing;
 
-},{"../../config/gn.js":49,"../js/color":3,"./MenuBar":18,"./ReactComponents/Footer":34,"./ReactComponents/Logo":37,"./Tools":47,"lodash":116,"react":318,"react-router":150,"react-select":161,"react-textarea-autosize":176}],18:[function(require,module,exports){
+},{"../../config/gn.js":49,"../js/color":3,"./MenuBar":18,"./ReactComponents/Footer":35,"./ReactComponents/Logo":38,"./Tools":47,"lodash":116,"react":318,"react-router":150,"react-select":161,"react-textarea-autosize":176}],18:[function(require,module,exports){
 var _ = require('lodash');
 var React = require('react');
 var ReactRouter = require('react-router');
@@ -3035,11 +3035,11 @@ var MenuBar = React.createClass({displayName: "MenuBar",
 module.exports = MenuBar;
 
 },{"lodash":116,"react":318,"react-router":150}],19:[function(require,module,exports){
-var React = require('react')
-var PredictedGenesPanel = require('../ReactComponents/PredictedGenesPanel')
-var PWAPanel = require('../ReactComponents/PWAPanel')
-var SVGCollection = require('../ReactComponents/SVGCollection')
-var color = require('../../js/color.js')
+var React = require('react');
+var PredictedGenesPanel = require('../ReactComponents/PredictedGenesPanel');
+var PWAPanel = require('./PWAPanel');
+var SVGCollection = require('../ReactComponents/SVGCollection');
+var color = require('../../js/color.js');
 var DownloadPanel = require('../ReactComponents/DownloadPanel');
 
 var AnalysisPanel = React.createClass({displayName: "AnalysisPanel",
@@ -3065,8 +3065,6 @@ var AnalysisPanel = React.createClass({displayName: "AnalysisPanel",
     },
     
     componentDidMount: function() {
-        console.log('analysis group')
-        console.log(this.props.analysisGroup)
         if (this.refs.pwa.pwaRequest(this.props.analysisGroup)) {
             this.refs.pred.gpRequest(this.props.analysisGroup)
         }
@@ -3083,7 +3081,7 @@ var AnalysisPanel = React.createClass({displayName: "AnalysisPanel",
     onTabSelect: function(index) {
         this.setState({
             activeTab: index
-        })
+        });
     },
 
     onPWAStart: function() {
@@ -3112,16 +3110,16 @@ var AnalysisPanel = React.createClass({displayName: "AnalysisPanel",
 
     render: function() {
 
-        var d3fd = {getNodeById: function() { return null }}
+        var d3fd = {getNodeById: function() { return null }};
         var styles = [
             // {position: 'relative', height: '100%', overflow: 'hidden', backgroundColor: color.colors.gnwhite},//, position: 'relative'},
             // {position: 'relative', height: '100%', overflow: 'hidden', backgroundColor: color.colors.gnwhite, display: 'none'}//, position: 'relative'}
             {position: 'relative', backgroundColor: color.colors.gnwhite},
             {position: 'relative', backgroundColor: color.colors.gnwhite, display: 'none'}
-        ]
-        var classNames = ['button selectedbutton clickable', 'button clickable']
+        ];
+        var classNames = ['button selectedbutton clickable', 'button clickable'];
         if (this.state.activeTab === 1) {
-            styles.reverse()
+            styles.reverse();
             classNames.reverse()
         }
 
@@ -3180,11 +3178,11 @@ var DownloadButton = React.createClass({displayName: "DownloadButton",
                 )
         )
     }
-})
+});
 
-module.exports = AnalysisPanel
+module.exports = AnalysisPanel;
 
-},{"../../js/color.js":3,"../ReactComponents/DownloadPanel":33,"../ReactComponents/PWAPanel":40,"../ReactComponents/PredictedGenesPanel":41,"../ReactComponents/SVGCollection":43,"react":318}],20:[function(require,module,exports){
+},{"../../js/color.js":3,"../ReactComponents/DownloadPanel":34,"../ReactComponents/PredictedGenesPanel":41,"../ReactComponents/SVGCollection":43,"./PWAPanel":27,"react":318}],20:[function(require,module,exports){
 var _ = require('lodash')
 var React = require('react')
 var d3 = require('d3')
@@ -3291,7 +3289,7 @@ var EdgePanel = React.createClass({displayName: "EdgePanel",
 
 module.exports = EdgePanel
 
-},{"../../js/color":3,"../../js/htmlutil":4,"../ReactComponents/GeneOpenMenu":35,"../ReactComponents/SVGCollection":43,"genstats":84,"lodash":116,"react":318}],22:[function(require,module,exports){
+},{"../../js/color":3,"../../js/htmlutil":4,"../ReactComponents/GeneOpenMenu":36,"../ReactComponents/SVGCollection":43,"genstats":84,"lodash":116,"react":318}],22:[function(require,module,exports){
 var _ = require('lodash')
 var React = require('react')
 var GeneOpenMenu = require('../ReactComponents/GeneOpenMenu')
@@ -3356,7 +3354,7 @@ var GenePanel = React.createClass({displayName: "GenePanel",
 
 module.exports = GenePanel
 
-},{"../../js/color":3,"../ReactComponents/GeneOpenMenu":35,"../ReactComponents/SVGCollection":43,"lodash":116,"react":318}],23:[function(require,module,exports){
+},{"../../js/color":3,"../ReactComponents/GeneOpenMenu":36,"../ReactComponents/SVGCollection":43,"lodash":116,"react":318}],23:[function(require,module,exports){
 var _ = require('lodash')
 var React = require('react')
 var SVGCollection = require('../ReactComponents/SVGCollection')
@@ -3373,7 +3371,11 @@ var GroupPanel = React.createClass({displayName: "GroupPanel",
         onAnalyse: React.PropTypes.func
     },
 
+    /**
+     * Start pathway analysis automatically
+     */
     componentDidMount: function() {
+        this.props.onAnalyse(this.props.activeGroup);
     },
 
     download: function() {
@@ -3440,11 +3442,9 @@ var GroupPanel = React.createClass({displayName: "GroupPanel",
                 )
         )
     }
-})
+});
 
-module.exports = GroupPanel
-
-//                 <div style={{display: 'flex', flexFlow: 'row nowrap', alignItems: 'flex-start'}}>
+module.exports = GroupPanel;
 
 },{"../../js/color":3,"../ReactComponents/SVGCollection":43,"lodash":116,"react":318}],24:[function(require,module,exports){
 'use strict'
@@ -3634,7 +3634,7 @@ var LegendPanel = React.createClass({displayName: "LegendPanel",
 
 module.exports = LegendPanel
 
-},{"../../js/color":3,"../ReactComponents/OpenMenu":39,"../ReactComponents/SVGCollection":43,"lodash":116,"react":318}],25:[function(require,module,exports){
+},{"../../js/color":3,"../ReactComponents/OpenMenu":40,"../ReactComponents/SVGCollection":43,"lodash":116,"react":318}],25:[function(require,module,exports){
 'use strict';
 
 var _ = require('lodash');
@@ -3836,9 +3836,8 @@ var Network = React.createClass({displayName: "Network",
 
     getInitialState: function() {
 
-        var coloring = Cookies.get('networkcoloring') || 'cluster';
-        // coloring by term prediction/annotation not available until pathway analysis has been done
-        if (coloring == 'term') coloring = 'cluster';
+        var coloring = 'cluster';
+
         var genes = {
                 genes: {annotated: null, predicted: null },
                 pathway: {database: null, name: null}
@@ -3858,8 +3857,9 @@ var Network = React.createClass({displayName: "Network",
             progressDone: false,
             addedGenes: [],
             selectedTissue: 'data',
+            selectedTerm: 'Pathway',
             showGenes: true,
-            tab: 'network', //Cookies.get('tab') || 
+            tab: 'network',
             genes: genes,
             gpMessage: null
         }
@@ -3910,7 +3910,7 @@ var Network = React.createClass({displayName: "Network",
         var height = document.getElementById('network').offsetHeight;//ReactDOM.findDOMNode(this).offsetHeight
         var ts = new Date();
         var network = new D3Network(document.getElementById('network'), {
-            width: width,
+            width: width + 300,
             height: height,
             minZoomScale: ZOOM_SCALE[0],
             maxZoomScale: ZOOM_SCALE[1],
@@ -4132,7 +4132,7 @@ var Network = React.createClass({displayName: "Network",
                 //     // this.state.showGenes ? this.state.network.hide() : null
                 // }.bind(this), 1500)
             }
-        }.bind(this))
+        }.bind(this));
     },
 
     componentWillUnmount: function() {
@@ -4197,7 +4197,7 @@ var Network = React.createClass({displayName: "Network",
     handleColoring: function(type) {
         var type2 = null;
         if (type == 'term') {
-            type2 = Cookies.get('termcoloring') || 'prediction';
+            type2 = 'prediction';
             // console.log('coloring by ' + type2)
             this.state.network.colorBy(type2);
             if (this.state.coloring === type) {
@@ -4219,7 +4219,7 @@ var Network = React.createClass({displayName: "Network",
                 coloring: type
             })
         }
-        Cookies.set('networkcoloring', type, { expires: 365 * 24 * 60 * 60 })
+        // Cookies.set('networkcoloring', type, { expires: 365 * 24 * 60 * 60 })
     },
     
     onLegendSelect: function(filter) {
@@ -4398,7 +4398,7 @@ var Network = React.createClass({displayName: "Network",
     },
 
     onTabClick: function(type) {
-        Cookies.set('tab', type);
+        // Cookies.set('tab', type);
         this.setState({
             tab: type
         });
@@ -4602,7 +4602,7 @@ var Network = React.createClass({displayName: "Network",
 
 module.exports = Network;
 
-},{"../../js/D3Network.js":1,"../../js/color":3,"../../js/htmlutil":4,"../../js/sort/quicksort":5,"../ReactComponents/Footer":34,"../ReactComponents/GeneTable":36,"./AnalysisPanel":19,"./EdgeLegend":20,"./EdgePanel":21,"./GenePanel":22,"./GroupPanel":23,"./LegendPanel":24,"./NetworkControlPanel":26,"affinity-propagation":51,"async":52,"cookies-js":54,"lodash":116,"react":318,"react-document-title":128,"react-dom":129}],26:[function(require,module,exports){
+},{"../../js/D3Network.js":1,"../../js/color":3,"../../js/htmlutil":4,"../../js/sort/quicksort":5,"../ReactComponents/Footer":35,"../ReactComponents/GeneTable":37,"./AnalysisPanel":19,"./EdgeLegend":20,"./EdgePanel":21,"./GenePanel":22,"./GroupPanel":23,"./LegendPanel":24,"./NetworkControlPanel":26,"affinity-propagation":51,"async":52,"cookies-js":54,"lodash":116,"react":318,"react-document-title":128,"react-dom":129}],26:[function(require,module,exports){
 var React = require('react')
 var SVGCollection =  require('../ReactComponents/SVGCollection')
 var color = require('../../js/color')
@@ -4665,6 +4665,447 @@ var NetworkControlPanel = React.createClass({displayName: "NetworkControlPanel",
 module.exports = NetworkControlPanel
 
 },{"../../js/color":3,"../ReactComponents/SVGCollection":43,"react":318}],27:[function(require,module,exports){
+'use strict'
+
+var _ = require('lodash')
+var htmlutil = require('../../js/htmlutil.js')
+var color = require('../../js/color.js')
+var React = require('react')
+var ReactDOM = require('react-dom')
+var StatusBar = require('../ReactComponents/StatusBar')
+var Disetti = require('../ReactComponents/Disetti')
+var SVGCollection = require('../ReactComponents/SVGCollection')
+var Rectangle = SVGCollection.Rectangle
+var Cookies = require('cookies-js')
+
+// TODO handle resize: width
+
+var PWAPanel = React.createClass({displayName: "PWAPanel",
+
+    propTypes: {
+        group: React.PropTypes.object,
+        selectedTerm: React.PropTypes.object,
+        termColoring: React.PropTypes.string,
+        areNodesColoredByTerm: React.PropTypes.bool
+    },
+
+    keyListener: function(e) {
+
+        var pwaResults = this.state.pwaResults && this.state.pwaResults[this.state.currentDatabase]
+        var domNode = ReactDOM.findDOMNode(this)
+        
+        if (e.keyCode === 38 && pwaResults) { // bob marley - wake up and live
+            if (this.props.selectedTerm && pwaResults[0].pathway != this.props.selectedTerm) {
+                e.preventDefault()
+                e.stopPropagation()
+                var numTerms = pwaResults.length
+                for (var i = 1; i < numTerms; i++) {
+                    if (pwaResults[i].pathway == this.props.selectedTerm) {
+                        this.props.onTermClick(pwaResults[i-1].pathway)
+                        if (this.refs && this.refs.selectedrow) {
+                            var offset = this.refs.selectedrow.offsetHeight
+                            domNode.scrollTop -= offset
+                        }
+                        break
+                    }
+                }
+            }
+        } else if (e.keyCode === 40 && pwaResults) { // sentenced - down
+            if (this.props.selectedTerm && _.last(pwaResults).pathway != this.props.selectedTerm) {
+                e.preventDefault()
+                e.stopPropagation()
+                var numTerms = pwaResults.length
+                for (var i = 0; i < numTerms - 1; i++) {
+                    if (pwaResults[i].pathway == this.props.selectedTerm) {
+                        this.props.onTermClick(pwaResults[i+1].pathway)
+                        if (this.refs && this.refs.selectedrow) {
+                            var offset = this.refs.selectedrow.offsetHeight
+                            domNode.scrollTop += offset
+                        }
+                        break
+                    }
+                }
+            }
+        } else if (e.keyCode === 37 && pwaResults) { // entombed - left hand path
+            if (this.props.selectedTerm && pwaResults[0].pathway != this.props.selectedTerm) {
+                e.preventDefault()
+                e.stopPropagation()
+                var numTerms = pwaResults.length
+                for (var i = 1; i < numTerms; i++) {
+                    if (pwaResults[i].pathway == this.props.selectedTerm) {
+                        var numMoved = (i - 10 >= 0) ? 10 : i
+                        this.props.onTermClick(pwaResults[i - numMoved].pathway)
+                        if (this.refs && this.refs.selectedrow) {
+                            var offset = this.refs.selectedrow.offsetHeight
+                            domNode.scrollTop -= numMoved * offset
+                        }
+                        break
+                    }
+                }
+            }
+        } else if (e.keyCode === 39 && pwaResults) { // right is the new wrong
+            if (this.props.selectedTerm && _.last(pwaResults).pathway != this.props.selectedTerm) {
+                e.preventDefault()
+                e.stopPropagation()
+                var numTerms = pwaResults.length
+                for (var i = 0; i < numTerms - 1; i++) {
+                    if (pwaResults[i].pathway == this.props.selectedTerm) {
+                        var numMoved = (i + 10 <= numTerms - 1) ? 10 : i
+                        this.props.onTermClick(pwaResults[i + numMoved].pathway)
+                        if (this.refs && this.refs.selectedrow) {
+                            var offset = this.refs.selectedrow.offsetHeight
+                            domNode.scrollTop += numMoved * offset
+                        }
+                        break
+                    }
+                }
+            }
+        }
+    },
+    
+    getInitialState: function() {
+        return {
+            currentDatabase: 'REACTOME',
+            progress: 0,
+            pwaResults: {}
+        }
+    },
+    
+    componentDidMount: function() {
+        this.w = ReactDOM.findDOMNode(this).offsetWidth - 3 * 10 - 16 // 3 * padding - diskette width
+        window.addEventListener('resize', this.handleResize)
+        $(document).keydown(this.keyListener)
+        this.setSocketListeners()
+    },
+    
+    shouldComponentUpdate: function(nextProps, nextState) {
+        return _.size(this.state.pwaResults) === 0
+            || nextState.currentDatabase != this.state.currentDatabase
+            || nextState.progress != this.state.progress
+            || nextState.filterValue !== this.state.filterValue
+            || nextState.pwaRunning != this.state.pwaRunning
+            || nextProps.selectedTerm != this.props.selectedTerm
+            || nextProps.termColoring != this.props.termColoring
+            || nextProps.areNodesColoredByTerm != this.props.areNodesColoredByTerm
+            || nextProps.style.display != this.props.style.display
+    },
+    
+    componentWillReceiveProps: function(nextProps) {
+
+        this.w = ReactDOM.findDOMNode(this).offsetWidth - 3 * 10 - 16 // 3 * padding - diskette width
+    },
+
+    handleResize: function(e) {
+
+        this.w = ReactDOM.findDOMNode(this).offsetWidth - 3 * 10 - 16 // 3 * padding - diskette width
+        this.setState({
+            w: this.w
+        })
+    },
+    
+    componentWillUnmount: function() {
+
+        console.log('PWAPanel.componentWillUnmount: called')
+        window.removeEventListener('resize', this.handleResize)
+        $(document).unbind('keydown', this.keyListener)
+        io.socket._raw.removeListener('pathwayanalysis.queueEvent', this._onIOQueueEvent)
+        io.socket._raw.removeListener('pathwayanalysis.error', this._onIOError)
+        io.socket._raw.removeListener('pathwayanalysis.result', this._onIOResult)
+        io.socket._raw.removeListener('pathwayanalysis.end', this._onIOEnd)
+    },
+
+    _onIOQueueEvent: function(msg) {
+
+        if (!this.isMounted()) {
+            console.warn('PWAPanel.setSocketListeners: pathwayanalysis.queueEvent received but component not mounted')
+        }
+        if (msg.queueLength || msg.queueLength === 0) {
+            var str = htmlutil.intToStr(msg.queueLength) + ' analyses'
+            if (msg.queueLength === 0) str = 'Analysis started'
+            else if (msg.queueLength < 2) str = 'Your analysis will start in a few seconds...'
+            else if (msg.queueLength < 8) str = 'Your analysis will start in less than a minute, please be patient.<br/>'
+                + 'I\'m ' + htmlutil.intToOrdinalStr(msg.queueLength) + ' in the queue.'
+            else str = 'This will take some time as our servers are busy right now, please be patient.<br/>'
+                + 'I\'m ' + htmlutil.intToOrdinalStr(msg.queueLength) + ' in the queue.'
+            this.setState({
+                pwaMessage: str,
+                currentDatabase: msg.db || this.state.currentDatabase
+            })
+        } else {
+            console.log('PWAPanel.setSocketListeners: unhandled queueEvent')
+        }
+    },
+
+    _onIOError: function(msg) {
+        if (!this.isMounted()) {
+            console.warn('PWAPanel.setSocketListeners: pathwayanalysis.error received but component not mounted')
+        }
+        console.log('_onIOERROR')
+        console.log(msg)
+        
+        this.setState({
+            pwaMessage: msg.pwaMessage,
+            pwaRunning: false
+        })
+    },
+
+    _onIOResult: function(msg) {
+
+        if (!this.isMounted()) {
+            console.warn('PWAPanel.setSocketListeners: pathwayanalysis.result received but component not mounted')
+        }
+        
+        // console.log(msg)
+        var allResults = this.state.pwaResults // also other databases, should probably go to some storage
+        var oldResults = allResults[msg.db] || []
+        var newResults = []
+        var curI = 0
+        for (var i = 0; i < oldResults.length; i++) {
+            while (curI < msg.pwaResults.length && msg.pwaResults[curI].p < oldResults[i].p) {
+                newResults.push(msg.pwaResults[curI])
+                curI++
+            }
+            newResults.push(oldResults[i])
+        }
+        for (var i = curI; i < msg.pwaResults.length; i++) {
+            newResults.push(msg.pwaResults[i])
+        }
+        allResults[msg.db] = newResults
+        this.setState({
+            pwaMessage: 'Analysis ' + msg.progress + ' % done',
+            pwaResults: allResults,
+            pwaRunning: true,
+            progress: msg.progress,
+            currentDatabase: msg.db,
+            testType: msg.testType,
+            availableDatabases: msg.availableDatabases
+        })
+    },
+
+    _onIOEnd: function(msg) {
+
+        if (!this.isMounted()) {
+            console.warn('PWAPanel.setSocketListeners: pathwayanalysis.end received but component not mounted')
+        }
+        // Cookies.set('pwadb', msg.db)
+        this.props.onPWAFinish()
+        this.setState({
+            pwaRunning: false
+        })
+    },
+    
+    setSocketListeners: function() {
+
+        // TODO own vs broadcast
+        io.socket.on('pathwayanalysis.queueEvent', this._onIOQueueEvent)
+        io.socket.on('pathwayanalysis.error', this._onIOError)
+        io.socket.on('pathwayanalysis.result', this._onIOResult)
+        io.socket.on('pathwayanalysis.end', this._onIOEnd)
+    },
+
+    handleDatabaseClick: function(db) {
+
+        if (!db) return
+
+        if (this.state.pwaResults[db]) { // results already fetched
+            this.setState({
+                currentDatabase: db
+            })
+        } else {
+            this.state.pwaResults[db] = []
+            this.pwaRequest(this.state.group, db)
+        }
+    },
+    
+    pwaRequest: function(group, db) {
+
+        if (!this.isMounted()) {
+            console.warn('PWAPanel.pwaRequest: component not mounted!')
+            return false
+        }
+        
+        this.clearFilter()
+        
+        group = group || this.props.group
+        if (!group) {
+            console.warn('PWAPanel.pwaRequest: no group!')
+            return false
+        }
+        
+        if (this.state.pwaRunning === true) {
+            
+            window.alert('A pathway analysis is already running, not starting a new one.')
+            return false
+            
+        } else {
+            
+            var db = db || this.state.currentDatabase
+            console.log('PWAPanel.pwaRequest: sending pathway analysis request: ' + db)
+            var genes = _.map(group.nodes, function(gene) { return gene })
+
+            io.socket.get(GN.urls.pathwayanalysis,
+                          {db: db,
+                           genes: genes},
+                          function(res, jwres) {
+                              if (jwres.statusCode === 500) {
+                                  that.setState({
+                                      pwaMessage: 'Please try again later.'
+                                  })
+                              }
+                          }.bind(this))
+            
+            this.props.onPWAStart()
+            this.state.pwaResults[db] = null
+            this.setState({
+                pwaMessage: 'Analysis requested',
+                progress: 0,
+                pwaResults: this.state.pwaResults,
+                pwaRunning: true
+            })
+            
+            return true
+            
+        }
+    },
+
+    download: function() {
+        var form = document.getElementById('gn-network-pwaform')
+        form['data'].value = JSON.stringify(this.state.pwaResults[this.state.currentDatabase])
+        form['name'].value = this.props.group.name
+        form['db'].value = this.state.currentDatabase
+        form['genes'].value = JSON.stringify(this.props.group.nodes)
+        form['testType'].value = this.state.testType
+        form.submit()
+    },
+
+    clearFilter: function() {
+        this.setState({
+            filterValue: ''
+        })
+    },
+    
+    handleFilterChange: function(e) {
+        this.setState({
+            filterValue: e.target.value.toLowerCase()
+        })
+    },
+
+    // TODO move stuff to componentWillUpdate for speedup
+    render: function() {
+
+        if (!this.props.group) return (React.createElement("div", null))
+
+        var that = this
+        var numDatabasesWithResults = _.size(this.state.pwaResults)
+        if (numDatabasesWithResults === 0 && this.state.pwaMessage) {
+            return (React.createElement("div", {className: "flex10", style: {position: 'relative'}}, 
+                    React.createElement("div", {dangerouslySetInnerHTML: {__html: this.state.pwaMessage}})
+                    ))
+        } else if (numDatabasesWithResults > 0) {
+            //TODO fix 'HPO' .. type of database over the wire
+            var rows = []
+            if (this.state.pwaResults[this.state.currentDatabase]) {
+                rows.push((React.createElement("tr", {key: "pwaheader", className: "headerrow"}, React.createElement("th", null, this.state.currentDatabase == 'HPO' ? 'PHENOTYPE' : 'PATHWAY'), React.createElement("th", {className: "pvalueheader"}, "P-VALUE"))))
+                rows.push.apply(rows, _.map(this.state.pwaResults[this.state.currentDatabase], function(result, rowNum) {
+                    if (!that.state.filterValue || result.pathway.name.toLowerCase().indexOf(that.state.filterValue) >= 0) {
+                        var cls = rowNum++ % 2 === 0 ? 'datarow evenrow' : 'datarow oddrow'
+                        if (that.props.selectedTerm && that.props.selectedTerm.id == result.pathway.id) {
+                            return (
+                                    React.createElement("tr", {ref: "selectedrow", key: result.pathway.database + result.pathway.id, className: "datarow selectedrow"}, 
+        	                    React.createElement("td", {className: "clickable", title: result.pathway.numAnnotatedGenes + ' annotated genes, prediction accuracy ' + Math.round(100 * result.pathway.auc) / 100, onClick: that.props.onTermClick.bind(null, null)}, result.pathway.name), 
+                                    React.createElement("td", {className: "pvalue", style: {whiteSpace: 'nowrap'}, dangerouslySetInnerHTML: {__html: htmlutil.pValueToReadable(result.p)}})
+    		                    )
+                            )
+                        } else {
+                            return (
+                                    React.createElement("tr", {key: result.pathway.database + result.pathway.id, className: cls}, 
+        	                    React.createElement("td", {className: "clickable", title: result.pathway.numAnnotatedGenes + ' annotated genes, prediction accuracy ' + Math.round(100 * result.pathway.auc) / 100, onClick: that.props.onTermClick.bind(null, result.pathway)}, result.pathway.name), 
+                                    React.createElement("td", {className: "pvalue", style: {whiteSpace: 'nowrap'}, dangerouslySetInnerHTML: {__html: htmlutil.pValueToReadable(result.p)}})
+    		                    )
+                            )
+                        }
+                    }
+                }))
+            }
+
+            // console.log(this.state.progress)
+            var clrs = [color.colors.gngray, color.colors.gngray]
+            var buttonClasses = this.state.pwaRunning ? ['button small disabled noselect', 'button small disabled noselect'] : ['clickable button small noselect', 'clickable button small noselect']
+            buttonClasses = ['clickable noselect', 'clickable noselect']
+            if (this.props.areNodesColoredByTerm && this.props.termColoring == 'prediction') {
+                // buttonClasses = ['noselect', 'noselect']//['clickable button small selectedbutton noselect', 'clickable button small noselect']
+                clrs[0] = color.colors.gndarkgray
+            } else if (this.props.areNodesColoredByTerm && this.props.termColoring == 'annotation') {
+                // buttonClasses = ['noselect', 'noselect']//['clickable button small noselect', 'clickable button small selectedbutton noselect']
+                clrs[1] = color.colors.gndarkgray
+            }
+            var buttonTitles = this.state.pwaRunning
+                ? ['Waiting for the analysis to finish', 'Waiting for the analysis to finish']
+                : ['Color genes by Gene Network prediction score', 'Color genes by ' + (this.state.currentDatabase || '') + ' annotation']
+
+            var databaseButtons = _.map(this.state.availableDatabases, function(db) {
+                var cls = 'button small noselect ' + (that.state.pwaRunning ? 'disabled' : 'clickable')
+                if (db.id == that.state.currentDatabase) {
+                    cls += ' selectedbutton'
+                }
+                return (
+                        React.createElement("div", {key: db.id, onClick: that.handleDatabaseClick.bind(that, db.id), className: cls, style: {float: 'left'}}, 
+                        db.id.replace('-', ' ')
+                    )
+                )
+            })
+
+
+//            var message = {These are <strong>pathways</strong})
+            return (
+                    React.createElement("div", {className: "vflex flexnowrap", style: this.props.style}, 
+                    React.createElement("div", {className: "flex00"}, 
+                    databaseButtons
+                ), 
+                    this.state.progress !== 100 ?
+                     React.createElement("span", {style: {padding: '10px 0'}}, 
+                     this.state.pwaMessage
+                     ) :
+                     React.createElement("span", {style: {padding: '10px 0'}}, 
+                     "This is ", React.createElement("strong", null, this.state.currentDatabase), " pathway enrichment for ", React.createElement("strong", null, this.props.group.name, ".")
+                     ), 
+                rows.length > 0 ? React.createElement(Filter, {filterValue: this.state.filterValue, onChange: this.handleFilterChange, onClear: this.clearFilter}) : null, 
+                    React.createElement("div", {style: {overflow: 'auto', maxHeight: this.props.maxTableHeight}}, 
+                    React.createElement("table", {className: "pwatable"}, React.createElement("tbody", null, rows))
+                    )
+      	            )
+            )
+        } else {
+            return(React.createElement("div", null, "Loading..."))
+        }
+    }
+})
+
+var Filter = React.createClass({displayName: "Filter",
+
+    render: function() {
+        
+        return (
+                React.createElement("div", {className: "flex00 hflex"}, 
+                React.createElement("form", {className: "flex00", onSubmit: function(e) { e.preventDefault() }}, 
+                React.createElement("input", {ref: "pwfilter", type: "text", name: "pwfilter", placeholder: "filter", autoComplete: "off", value: this.props.filterValue, onChange: this.props.onChange})
+                ), 
+                this.props.filterValue && this.props.filterValue.length > 0 ?
+                 (React.createElement("div", {style: {padding:'1px 0px 0px 3px'}, className: "flex00"}, 
+                  React.createElement("svg", {viewBox: "0 0 16 16", width: "12", height: "12", className: "clickable delete", onClick: this.props.onClear}, 
+                  React.createElement("line", {x1: "2", x2: "14", y1: "2", y2: "14"}), 
+                  React.createElement("line", {x1: "14", x2: "2", y1: "2", y2: "14"})
+                  )
+                  )) : null
+            )
+        )
+    }
+})
+                              
+
+module.exports = PWAPanel
+
+},{"../../js/color.js":3,"../../js/htmlutil.js":4,"../ReactComponents/Disetti":33,"../ReactComponents/SVGCollection":43,"../ReactComponents/StatusBar":44,"cookies-js":54,"lodash":116,"react":318,"react-dom":129}],28:[function(require,module,exports){
 'use strict'
 
 var _ = require('lodash')
@@ -4836,7 +5277,7 @@ var Api = React.createClass({displayName: "Api",
 
 module.exports = Api
 
-},{"../../js/color.js":3,"lodash":116,"react":318,"react-document-title":128}],28:[function(require,module,exports){
+},{"../../js/color.js":3,"lodash":116,"react":318,"react-document-title":128}],29:[function(require,module,exports){
 'use strict'
 
 var _ = require('lodash')
@@ -4887,7 +5328,7 @@ var Back = React.createClass({displayName: "Back",
 
 module.exports = Back
 
-},{"../../js/color.js":3,"./SVGCollection":43,"lodash":116,"react":318,"react-document-title":128,"react-router":150,"react-select":161,"reactable":319}],29:[function(require,module,exports){
+},{"../../js/color.js":3,"./SVGCollection":43,"lodash":116,"react":318,"react-document-title":128,"react-router":150,"react-select":161,"reactable":319}],30:[function(require,module,exports){
 'use strict';
 
 var _ = require('lodash');
@@ -5118,7 +5559,7 @@ var DataTable = React.createClass({displayName: "DataTable",
 
 module.exports = DataTable;
 
-},{"../../js/color":3,"../../js/htmlutil":4,"./PredictionRow":42,"./SVGCollection":43,"lodash":116,"react":318,"react-router":150,"reactable":319}],30:[function(require,module,exports){
+},{"../../js/color":3,"../../js/htmlutil":4,"./PredictionRow":42,"./SVGCollection":43,"lodash":116,"react":318,"react-router":150,"reactable":319}],31:[function(require,module,exports){
 'use strict'
 
 var _ = require('lodash')
@@ -5779,7 +6220,7 @@ To do:
 
 */
 
-},{"../../js/color":3,"../../js/htmlutil":4,"./SVGCollection":43,"genstats":84,"lodash":116,"react":318,"react-document-title":128,"react-router":150,"reactable":319}],31:[function(require,module,exports){
+},{"../../js/color":3,"../../js/htmlutil":4,"./SVGCollection":43,"genstats":84,"lodash":116,"react":318,"react-document-title":128,"react-router":150,"reactable":319}],32:[function(require,module,exports){
 'use strict'
 
 var _ = require('lodash')
@@ -5978,7 +6419,7 @@ var DiagnosisMain = React.createClass({displayName: "DiagnosisMain",
 
 module.exports = DiagnosisMain
 
-},{"../../js/color.js":3,"./Back":28,"./SVGCollection":43,"./UploadPanel":46,"lodash":116,"react":318,"react-document-title":128,"react-router":150,"react-select":161,"reactable":319}],32:[function(require,module,exports){
+},{"../../js/color.js":3,"./Back":29,"./SVGCollection":43,"./UploadPanel":46,"lodash":116,"react":318,"react-document-title":128,"react-router":150,"react-select":161,"reactable":319}],33:[function(require,module,exports){
 var _ = require('lodash')
 var htmlutil = require('../../js/htmlutil.js')
 var React = require('react')
@@ -6014,7 +6455,7 @@ var Disetti = React.createClass({displayName: "Disetti",
 
 module.exports = Disetti
 
-},{"../../js/htmlutil.js":4,"cookies-js":54,"lodash":116,"react":318}],33:[function(require,module,exports){
+},{"../../js/htmlutil.js":4,"cookies-js":54,"lodash":116,"react":318}],34:[function(require,module,exports){
 'use strict'
 
 var React = require('react')
@@ -6047,7 +6488,7 @@ var DownloadPanel = React.createClass({displayName: "DownloadPanel",
 
 module.exports = DownloadPanel
 
-},{"react":318}],34:[function(require,module,exports){
+},{"react":318}],35:[function(require,module,exports){
 var React = require('react')
 
 var Footer = React.createClass({displayName: "Footer",
@@ -6084,7 +6525,7 @@ var Footer = React.createClass({displayName: "Footer",
 
 module.exports = Footer
 
-},{"react":318}],35:[function(require,module,exports){
+},{"react":318}],36:[function(require,module,exports){
 var _ = require('lodash')
 var React = require('react')
 var TriangleDown = require('./SVGCollection').TriangleDown
@@ -6147,7 +6588,7 @@ var GeneOpenMenu = React.createClass({displayName: "GeneOpenMenu",
 
 module.exports = GeneOpenMenu
 
-},{"../../js/color":3,"./SVGCollection":43,"lodash":116,"react":318}],36:[function(require,module,exports){
+},{"../../js/color":3,"./SVGCollection":43,"lodash":116,"react":318}],37:[function(require,module,exports){
 'use strict'
 
 var _ = require('lodash')
@@ -6288,7 +6729,7 @@ var GeneTable = React.createClass({displayName: "GeneTable",
 
 module.exports = GeneTable
 
-},{"../../js/color":3,"../../js/htmlutil":4,"./SVGCollection":43,"async":52,"lodash":116,"react":318,"react-document-title":128,"react-dom":129,"react-router":150}],37:[function(require,module,exports){
+},{"../../js/color":3,"../../js/htmlutil":4,"./SVGCollection":43,"async":52,"lodash":116,"react":318,"react-document-title":128,"react-dom":129,"react-router":150}],38:[function(require,module,exports){
 var _ = require('lodash')
 var React = require('react')
 
@@ -6349,7 +6790,7 @@ var Logo = React.createClass({displayName: "Logo",
 
 module.exports = Logo
 
-},{"lodash":116,"react":318}],38:[function(require,module,exports){
+},{"lodash":116,"react":318}],39:[function(require,module,exports){
 'use strict';
 
 var _ = require('lodash')
@@ -6498,7 +6939,7 @@ var Ontology = React.createClass({displayName: "Ontology",
 
 module.exports = Ontology
 
-},{"../../js/D3Network.js":1,"../../js/color":3,"../../js/htmlutil":4,"./Footer":34,"lodash":116,"react":318,"react-document-title":128,"react-router":150}],39:[function(require,module,exports){
+},{"../../js/D3Network.js":1,"../../js/color":3,"../../js/htmlutil":4,"./Footer":35,"lodash":116,"react":318,"react-document-title":128,"react-router":150}],40:[function(require,module,exports){
 var _ = require('lodash')
 var React = require('react')
 var TriangleDown = require('./SVGCollection').TriangleDown
@@ -6567,452 +7008,7 @@ var OpenMenu = React.createClass({displayName: "OpenMenu",
 
 module.exports = OpenMenu
 
-},{"../../js/color":3,"./SVGCollection":43,"lodash":116,"react":318}],40:[function(require,module,exports){
-'use strict'
-
-var _ = require('lodash')
-var htmlutil = require('../../js/htmlutil.js')
-var color = require('../../js/color.js')
-var React = require('react')
-var ReactDOM = require('react-dom')
-var StatusBar = require('./StatusBar')
-var Disetti = require('./Disetti')
-var SVGCollection = require('./SVGCollection')
-var Rectangle = SVGCollection.Rectangle
-var Cookies = require('cookies-js')
-
-// TODO handle resize: width
-
-var PWAPanel = React.createClass({displayName: "PWAPanel",
-
-    propTypes: {
-        group: React.PropTypes.object,
-        selectedTerm: React.PropTypes.object,
-        termColoring: React.PropTypes.string,
-        areNodesColoredByTerm: React.PropTypes.bool
-    },
-
-    keyListener: function(e) {
-
-        var pwaResults = this.state.pwaResults && this.state.pwaResults[this.state.currentDatabase]
-        var domNode = ReactDOM.findDOMNode(this)
-        
-        if (e.keyCode === 38 && pwaResults) { // bob marley - wake up and live
-            if (this.props.selectedTerm && pwaResults[0].pathway != this.props.selectedTerm) {
-                e.preventDefault()
-                e.stopPropagation()
-                var numTerms = pwaResults.length
-                for (var i = 1; i < numTerms; i++) {
-                    if (pwaResults[i].pathway == this.props.selectedTerm) {
-                        this.props.onTermClick(pwaResults[i-1].pathway)
-                        if (this.refs && this.refs.selectedrow) {
-                            var offset = this.refs.selectedrow.offsetHeight
-                            domNode.scrollTop -= offset
-                        }
-                        break
-                    }
-                }
-            }
-        } else if (e.keyCode === 40 && pwaResults) { // sentenced - down
-            if (this.props.selectedTerm && _.last(pwaResults).pathway != this.props.selectedTerm) {
-                e.preventDefault()
-                e.stopPropagation()
-                var numTerms = pwaResults.length
-                for (var i = 0; i < numTerms - 1; i++) {
-                    if (pwaResults[i].pathway == this.props.selectedTerm) {
-                        this.props.onTermClick(pwaResults[i+1].pathway)
-                        if (this.refs && this.refs.selectedrow) {
-                            var offset = this.refs.selectedrow.offsetHeight
-                            domNode.scrollTop += offset
-                        }
-                        break
-                    }
-                }
-            }
-        } else if (e.keyCode === 37 && pwaResults) { // entombed - left hand path
-            if (this.props.selectedTerm && pwaResults[0].pathway != this.props.selectedTerm) {
-                e.preventDefault()
-                e.stopPropagation()
-                var numTerms = pwaResults.length
-                for (var i = 1; i < numTerms; i++) {
-                    if (pwaResults[i].pathway == this.props.selectedTerm) {
-                        var numMoved = (i - 10 >= 0) ? 10 : i
-                        this.props.onTermClick(pwaResults[i - numMoved].pathway)
-                        if (this.refs && this.refs.selectedrow) {
-                            var offset = this.refs.selectedrow.offsetHeight
-                            domNode.scrollTop -= numMoved * offset
-                        }
-                        break
-                    }
-                }
-            }
-        } else if (e.keyCode === 39 && pwaResults) { // right is the new wrong
-            if (this.props.selectedTerm && _.last(pwaResults).pathway != this.props.selectedTerm) {
-                e.preventDefault()
-                e.stopPropagation()
-                var numTerms = pwaResults.length
-                for (var i = 0; i < numTerms - 1; i++) {
-                    if (pwaResults[i].pathway == this.props.selectedTerm) {
-                        var numMoved = (i + 10 <= numTerms - 1) ? 10 : i
-                        this.props.onTermClick(pwaResults[i + numMoved].pathway)
-                        if (this.refs && this.refs.selectedrow) {
-                            var offset = this.refs.selectedrow.offsetHeight
-                            domNode.scrollTop += numMoved * offset
-                        }
-                        break
-                    }
-                }
-            }
-        }
-    },
-    
-    getInitialState: function() {
-
-        return {
-            currentDatabase: Cookies.get('pwadb') || 'REACTOME',
-            progress: 0,
-            pwaResults: {}
-        }
-    },
-    
-    componentDidMount: function() {
-
-        console.log('PWAPanel.componentDidMount: called')
-        this.w = ReactDOM.findDOMNode(this).offsetWidth - 3 * 10 - 16 // 3 * padding - diskette width
-        window.addEventListener('resize', this.handleResize)
-        $(document).keydown(this.keyListener)
-        this.setSocketListeners()
-    },
-    
-    shouldComponentUpdate: function(nextProps, nextState) {
-
-        return _.size(this.state.pwaResults) === 0
-            || nextState.currentDatabase != this.state.currentDatabase
-            || nextState.progress != this.state.progress
-            || nextState.filterValue !== this.state.filterValue
-            || nextState.pwaRunning != this.state.pwaRunning
-            || nextProps.selectedTerm != this.props.selectedTerm
-            || nextProps.termColoring != this.props.termColoring
-            || nextProps.areNodesColoredByTerm != this.props.areNodesColoredByTerm
-            || nextProps.style.display != this.props.style.display
-    },
-    
-    componentWillReceiveProps: function(nextProps) {
-
-        this.w = ReactDOM.findDOMNode(this).offsetWidth - 3 * 10 - 16 // 3 * padding - diskette width
-    },
-
-    handleResize: function(e) {
-
-        this.w = ReactDOM.findDOMNode(this).offsetWidth - 3 * 10 - 16 // 3 * padding - diskette width
-        this.setState({
-            w: this.w
-        })
-    },
-    
-    componentWillUnmount: function() {
-
-        console.log('PWAPanel.componentWillUnmount: called')
-        window.removeEventListener('resize', this.handleResize)
-        $(document).unbind('keydown', this.keyListener)
-        io.socket._raw.removeListener('pathwayanalysis.queueEvent', this._onIOQueueEvent)
-        io.socket._raw.removeListener('pathwayanalysis.error', this._onIOError)
-        io.socket._raw.removeListener('pathwayanalysis.result', this._onIOResult)
-        io.socket._raw.removeListener('pathwayanalysis.end', this._onIOEnd)
-    },
-
-    _onIOQueueEvent: function(msg) {
-
-        if (!this.isMounted()) {
-            console.warn('PWAPanel.setSocketListeners: pathwayanalysis.queueEvent received but component not mounted')
-        }
-        if (msg.queueLength || msg.queueLength === 0) {
-            var str = htmlutil.intToStr(msg.queueLength) + ' analyses'
-            if (msg.queueLength === 0) str = 'Analysis started'
-            else if (msg.queueLength < 2) str = 'Your analysis will start in a few seconds...'
-            else if (msg.queueLength < 8) str = 'Your analysis will start in less than a minute, please be patient.<br/>'
-                + 'I\'m ' + htmlutil.intToOrdinalStr(msg.queueLength) + ' in the queue.'
-            else str = 'This will take some time as our servers are busy right now, please be patient.<br/>'
-                + 'I\'m ' + htmlutil.intToOrdinalStr(msg.queueLength) + ' in the queue.'
-            this.setState({
-                pwaMessage: str,
-                currentDatabase: msg.db || this.state.currentDatabase
-            })
-        } else {
-            console.log('PWAPanel.setSocketListeners: unhandled queueEvent')
-        }
-    },
-
-    _onIOError: function(msg) {
-        if (!this.isMounted()) {
-            console.warn('PWAPanel.setSocketListeners: pathwayanalysis.error received but component not mounted')
-        }
-        console.log('_onIOERROR')
-        console.log(msg)
-        
-        this.setState({
-            pwaMessage: msg.pwaMessage,
-            pwaRunning: false
-        })
-    },
-
-    _onIOResult: function(msg) {
-
-        if (!this.isMounted()) {
-            console.warn('PWAPanel.setSocketListeners: pathwayanalysis.result received but component not mounted')
-        }
-        
-        // console.log(msg)
-        var allResults = this.state.pwaResults // also other databases, should probably go to some storage
-        var oldResults = allResults[msg.db] || []
-        var newResults = []
-        var curI = 0
-        for (var i = 0; i < oldResults.length; i++) {
-            while (curI < msg.pwaResults.length && msg.pwaResults[curI].p < oldResults[i].p) {
-                newResults.push(msg.pwaResults[curI])
-                curI++
-            }
-            newResults.push(oldResults[i])
-        }
-        for (var i = curI; i < msg.pwaResults.length; i++) {
-            newResults.push(msg.pwaResults[i])
-        }
-        allResults[msg.db] = newResults
-        this.setState({
-            pwaMessage: 'Analysis ' + msg.progress + ' % done',
-            pwaResults: allResults,
-            pwaRunning: true,
-            progress: msg.progress,
-            currentDatabase: msg.db,
-            testType: msg.testType,
-            availableDatabases: msg.availableDatabases
-        })
-    },
-
-    _onIOEnd: function(msg) {
-
-        if (!this.isMounted()) {
-            console.warn('PWAPanel.setSocketListeners: pathwayanalysis.end received but component not mounted')
-        }
-        Cookies.set('pwadb', msg.db)
-        this.props.onPWAFinish()
-        this.setState({
-            pwaRunning: false
-        })
-    },
-    
-    setSocketListeners: function() {
-
-        // TODO own vs broadcast
-        io.socket.on('pathwayanalysis.queueEvent', this._onIOQueueEvent)
-        io.socket.on('pathwayanalysis.error', this._onIOError)
-        io.socket.on('pathwayanalysis.result', this._onIOResult)
-        io.socket.on('pathwayanalysis.end', this._onIOEnd)
-    },
-
-    handleDatabaseClick: function(db) {
-
-        if (!db) return
-
-        if (this.state.pwaResults[db]) { // results already fetched
-            this.setState({
-                currentDatabase: db
-            })
-        } else {
-            this.state.pwaResults[db] = []
-            this.pwaRequest(this.state.group, db)
-        }
-    },
-    
-    pwaRequest: function(group, db) {
-
-        if (!this.isMounted()) {
-            console.warn('PWAPanel.pwaRequest: component not mounted!')
-            return false
-        }
-        
-        this.clearFilter()
-        
-        group = group || this.props.group
-        if (!group) {
-            console.warn('PWAPanel.pwaRequest: no group!')
-            return false
-        }
-        
-        if (this.state.pwaRunning === true) {
-            
-            window.alert('A pathway analysis is already running, not starting a new one.')
-            return false
-            
-        } else {
-            
-            var db = db || this.state.currentDatabase
-            console.log('PWAPanel.pwaRequest: sending pathway analysis request: ' + db)
-            var genes = _.map(group.nodes, function(gene) { return gene })
-
-            io.socket.get(GN.urls.pathwayanalysis,
-                          {db: db,
-                           genes: genes},
-                          function(res, jwres) {
-                              if (jwres.statusCode === 500) {
-                                  that.setState({
-                                      pwaMessage: 'Please try again later.'
-                                  })
-                              }
-                          }.bind(this))
-            
-            this.props.onPWAStart()
-            this.state.pwaResults[db] = null
-            this.setState({
-                pwaMessage: 'Analysis requested',
-                progress: 0,
-                pwaResults: this.state.pwaResults,
-                pwaRunning: true
-            })
-            
-            return true
-            
-        }
-    },
-
-    download: function() {
-        var form = document.getElementById('gn-network-pwaform')
-        form['data'].value = JSON.stringify(this.state.pwaResults[this.state.currentDatabase])
-        form['name'].value = this.props.group.name
-        form['db'].value = this.state.currentDatabase
-        form['genes'].value = JSON.stringify(this.props.group.nodes)
-        form['testType'].value = this.state.testType
-        form.submit()
-    },
-
-    clearFilter: function() {
-        this.setState({
-            filterValue: ''
-        })
-    },
-    
-    handleFilterChange: function(e) {
-        this.setState({
-            filterValue: e.target.value.toLowerCase()
-        })
-    },
-
-    // TODO move stuff to componentWillUpdate for speedup
-    render: function() {
-
-        if (!this.props.group) return (React.createElement("div", null))
-
-        var that = this
-        var numDatabasesWithResults = _.size(this.state.pwaResults)
-        if (numDatabasesWithResults === 0 && this.state.pwaMessage) {
-            return (React.createElement("div", {className: "flex10", style: {position: 'relative'}}, 
-                    React.createElement("div", {dangerouslySetInnerHTML: {__html: this.state.pwaMessage}})
-                    ))
-        } else if (numDatabasesWithResults > 0) {
-            //TODO fix 'HPO' .. type of database over the wire
-            var rows = []
-            if (this.state.pwaResults[this.state.currentDatabase]) {
-                rows.push((React.createElement("tr", {key: "pwaheader", className: "headerrow"}, React.createElement("th", null, this.state.currentDatabase == 'HPO' ? 'PHENOTYPE' : 'PATHWAY'), React.createElement("th", {className: "pvalueheader"}, "P-VALUE"))))
-                rows.push.apply(rows, _.map(this.state.pwaResults[this.state.currentDatabase], function(result, rowNum) {
-                    if (!that.state.filterValue || result.pathway.name.toLowerCase().indexOf(that.state.filterValue) >= 0) {
-                        var cls = rowNum++ % 2 === 0 ? 'datarow evenrow' : 'datarow oddrow'
-                        if (that.props.selectedTerm && that.props.selectedTerm.id == result.pathway.id) {
-                            return (
-                                    React.createElement("tr", {ref: "selectedrow", key: result.pathway.database + result.pathway.id, className: "datarow selectedrow"}, 
-        	                    React.createElement("td", {className: "clickable", title: result.pathway.numAnnotatedGenes + ' annotated genes, prediction accuracy ' + Math.round(100 * result.pathway.auc) / 100, onClick: that.props.onTermClick.bind(null, null)}, result.pathway.name), 
-                                    React.createElement("td", {className: "pvalue", style: {whiteSpace: 'nowrap'}, dangerouslySetInnerHTML: {__html: htmlutil.pValueToReadable(result.p)}})
-    		                    )
-                            )
-                        } else {
-                            return (
-                                    React.createElement("tr", {key: result.pathway.database + result.pathway.id, className: cls}, 
-        	                    React.createElement("td", {className: "clickable", title: result.pathway.numAnnotatedGenes + ' annotated genes, prediction accuracy ' + Math.round(100 * result.pathway.auc) / 100, onClick: that.props.onTermClick.bind(null, result.pathway)}, result.pathway.name), 
-                                    React.createElement("td", {className: "pvalue", style: {whiteSpace: 'nowrap'}, dangerouslySetInnerHTML: {__html: htmlutil.pValueToReadable(result.p)}})
-    		                    )
-                            )
-                        }
-                    }
-                }))
-            }
-
-            // console.log(this.state.progress)
-            var clrs = [color.colors.gngray, color.colors.gngray]
-            var buttonClasses = this.state.pwaRunning ? ['button small disabled noselect', 'button small disabled noselect'] : ['clickable button small noselect', 'clickable button small noselect']
-            buttonClasses = ['clickable noselect', 'clickable noselect']
-            if (this.props.areNodesColoredByTerm && this.props.termColoring == 'prediction') {
-                // buttonClasses = ['noselect', 'noselect']//['clickable button small selectedbutton noselect', 'clickable button small noselect']
-                clrs[0] = color.colors.gndarkgray
-            } else if (this.props.areNodesColoredByTerm && this.props.termColoring == 'annotation') {
-                // buttonClasses = ['noselect', 'noselect']//['clickable button small noselect', 'clickable button small selectedbutton noselect']
-                clrs[1] = color.colors.gndarkgray
-            }
-            var buttonTitles = this.state.pwaRunning
-                ? ['Waiting for the analysis to finish', 'Waiting for the analysis to finish']
-                : ['Color genes by Gene Network prediction score', 'Color genes by ' + (this.state.currentDatabase || '') + ' annotation']
-
-            var databaseButtons = _.map(this.state.availableDatabases, function(db) {
-                var cls = 'button small noselect ' + (that.state.pwaRunning ? 'disabled' : 'clickable')
-                if (db.id == that.state.currentDatabase) {
-                    cls += ' selectedbutton'
-                }
-                return (
-                        React.createElement("div", {key: db.id, onClick: that.handleDatabaseClick.bind(that, db.id), className: cls, style: {float: 'left'}}, 
-                        db.id.replace('-', ' ')
-                    )
-                )
-            })
-
-
-//            var message = {These are <strong>pathways</strong})
-            return (
-                    React.createElement("div", {className: "vflex flexnowrap", style: this.props.style}, 
-                    React.createElement("div", {className: "flex00"}, 
-                    databaseButtons
-                ), 
-                    this.state.progress !== 100 ?
-                     React.createElement("span", {style: {padding: '10px 0'}}, 
-                     this.state.pwaMessage
-                     ) :
-                     React.createElement("span", {style: {padding: '10px 0'}}, 
-                     "This is ", React.createElement("strong", null, this.state.currentDatabase), " pathway enrichment for ", React.createElement("strong", null, this.props.group.name, ".")
-                     ), 
-                rows.length > 0 ? React.createElement(Filter, {filterValue: this.state.filterValue, onChange: this.handleFilterChange, onClear: this.clearFilter}) : null, 
-                    React.createElement("div", {style: {overflow: 'auto', maxHeight: this.props.maxTableHeight}}, 
-                    React.createElement("table", {className: "pwatable"}, React.createElement("tbody", null, rows))
-                    )
-      	            )
-            )
-        } else {
-            return(React.createElement("div", null, "Loading..."))
-        }
-    }
-})
-
-var Filter = React.createClass({displayName: "Filter",
-
-    render: function() {
-        
-        return (
-                React.createElement("div", {className: "flex00 hflex"}, 
-                React.createElement("form", {className: "flex00", onSubmit: function(e) { e.preventDefault() }}, 
-                React.createElement("input", {ref: "pwfilter", type: "text", name: "pwfilter", placeholder: "filter", autoComplete: "off", value: this.props.filterValue, onChange: this.props.onChange})
-                ), 
-                this.props.filterValue && this.props.filterValue.length > 0 ?
-                 (React.createElement("div", {style: {padding:'1px 0px 0px 3px'}, className: "flex00"}, 
-                  React.createElement("svg", {viewBox: "0 0 16 16", width: "12", height: "12", className: "clickable delete", onClick: this.props.onClear}, 
-                  React.createElement("line", {x1: "2", x2: "14", y1: "2", y2: "14"}), 
-                  React.createElement("line", {x1: "14", x2: "2", y1: "2", y2: "14"})
-                  )
-                  )) : null
-            )
-        )
-    }
-})
-                              
-
-module.exports = PWAPanel
-
-},{"../../js/color.js":3,"../../js/htmlutil.js":4,"./Disetti":32,"./SVGCollection":43,"./StatusBar":44,"cookies-js":54,"lodash":116,"react":318,"react-dom":129}],41:[function(require,module,exports){
+},{"../../js/color":3,"./SVGCollection":43,"lodash":116,"react":318}],41:[function(require,module,exports){
 'use strict'
 
 var _ = require('lodash')
@@ -7298,7 +7294,7 @@ var PredictedGenesPanel = React.createClass({displayName: "PredictedGenesPanel",
 
 module.exports = PredictedGenesPanel
 
-},{"../../js/color":3,"../../js/htmlutil.js":4,"./Disetti":32,"./SVGCollection":43,"lodash":116,"react":318}],42:[function(require,module,exports){
+},{"../../js/color":3,"../../js/htmlutil.js":4,"./Disetti":33,"./SVGCollection":43,"lodash":116,"react":318}],42:[function(require,module,exports){
 var _ = require('lodash')
 var React = require('react')
 var Router = require('react-router')
@@ -8136,7 +8132,7 @@ var Term = React.createClass({displayName: "Term",
 
 module.exports = Term;
 
-},{"../../js/color":3,"../../js/htmlutil":4,"./DownloadPanel":33,"./SVGCollection.js":43,"cookies-js":54,"lodash":116,"react":318,"react-document-title":128,"react-dom":129,"react-router":150,"react-select":161}],46:[function(require,module,exports){
+},{"../../js/color":3,"../../js/htmlutil":4,"./DownloadPanel":34,"./SVGCollection.js":43,"cookies-js":54,"lodash":116,"react":318,"react-document-title":128,"react-dom":129,"react-router":150,"react-select":161}],46:[function(require,module,exports){
 'use strict'
 
 var React = require('react')

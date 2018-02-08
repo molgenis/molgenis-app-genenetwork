@@ -199,9 +199,8 @@ var Network = React.createClass({
 
     getInitialState: function() {
 
-        var coloring = Cookies.get('networkcoloring') || 'cluster';
-        // coloring by term prediction/annotation not available until pathway analysis has been done
-        if (coloring == 'term') coloring = 'cluster';
+        var coloring = 'cluster';
+
         var genes = {
                 genes: {annotated: null, predicted: null },
                 pathway: {database: null, name: null}
@@ -221,8 +220,9 @@ var Network = React.createClass({
             progressDone: false,
             addedGenes: [],
             selectedTissue: 'data',
+            selectedTerm: 'Pathway',
             showGenes: true,
-            tab: 'network', //Cookies.get('tab') || 
+            tab: 'network',
             genes: genes,
             gpMessage: null
         }
@@ -273,7 +273,7 @@ var Network = React.createClass({
         var height = document.getElementById('network').offsetHeight;//ReactDOM.findDOMNode(this).offsetHeight
         var ts = new Date();
         var network = new D3Network(document.getElementById('network'), {
-            width: width,
+            width: width + 300,
             height: height,
             minZoomScale: ZOOM_SCALE[0],
             maxZoomScale: ZOOM_SCALE[1],
@@ -495,7 +495,7 @@ var Network = React.createClass({
                 //     // this.state.showGenes ? this.state.network.hide() : null
                 // }.bind(this), 1500)
             }
-        }.bind(this))
+        }.bind(this));
     },
 
     componentWillUnmount: function() {
@@ -560,7 +560,7 @@ var Network = React.createClass({
     handleColoring: function(type) {
         var type2 = null;
         if (type == 'term') {
-            type2 = Cookies.get('termcoloring') || 'prediction';
+            type2 = 'prediction';
             // console.log('coloring by ' + type2)
             this.state.network.colorBy(type2);
             if (this.state.coloring === type) {
@@ -582,7 +582,7 @@ var Network = React.createClass({
                 coloring: type
             })
         }
-        Cookies.set('networkcoloring', type, { expires: 365 * 24 * 60 * 60 })
+        // Cookies.set('networkcoloring', type, { expires: 365 * 24 * 60 * 60 })
     },
     
     onLegendSelect: function(filter) {
@@ -761,7 +761,7 @@ var Network = React.createClass({
     },
 
     onTabClick: function(type) {
-        Cookies.set('tab', type);
+        // Cookies.set('tab', type);
         this.setState({
             tab: type
         });
