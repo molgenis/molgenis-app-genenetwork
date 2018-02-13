@@ -1006,8 +1006,8 @@ line.link {
 }
 
 .tooltip {
-    opacity: 0.4 !important;
-    background-color: #000000 !important;
+    opacity: 1 !important;
+    background-color: #4d4d4d !important;
 }
 
 .diagnosis-table {

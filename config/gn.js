@@ -5,13 +5,16 @@ module.exports.domain = DOMAIN;
 module.exports.menuItems = [{
     name: 'HOME',
     route: '/'
-}, {
-    name: 'HOW IT WORKS',
-    route: '/how'
-}, {
-    name: 'ABOUT',
-    route: '/about'
-}, {
+},
+//     {
+//     name: 'HOW IT WORKS',
+//     route: '/how'
+// },
+//     {
+//     name: 'ABOUT',
+//     route: '/about'
+// },
+    {
     name: 'API',
     route: '/api'
 }];

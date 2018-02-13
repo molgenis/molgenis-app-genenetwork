@@ -139,8 +139,6 @@ var DiagnosisMain = React.createClass({
     },
 
     render: function() {
-        // console.log('STATE')
-        // console.log(this.state)
         var terms = _.map(this.state.selectedTerms, function(term){ return term.value }).join(',')
         
         return (
@@ -185,7 +183,7 @@ var DiagnosisMain = React.createClass({
                         </div>
 
                         <div className='' style={{width: '40%', minWidth: '300px', paddingLeft: '40px'}}>
-                        <p>Predict genes for HPO terms. Description about this page, how it works, etc etc. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p><p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+                        <p>Predict genes for HPO terms. </p>
                         </div>
                     </div>
                 </div>

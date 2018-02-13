@@ -1,16 +1,24 @@
 var React = require('react');
 var Box = require('./Box');
+var BoxFunctionEnrichment = require('./BoxFunctionEnrichment');
 var GN = require("../../config/gn");
 var color = require('../js/color');
 
 var Tools = React.createClass({
-    render: function(){
+
+
+    render: function() {
         return (
             <div style={{backgroundColor: color.colors.gnwhite, marginTop: '10px', padding: '20px'}}>
+                <h2 style={{display: 'inline'}}>TOOLS</h2>
                 <Box
-                    title="DIAGNOSIS"
-                    text="Prioritize genes for HPO phenotypes. Small description about diagnosis page, what it does, how it works, etc etc etc etc."
+                    title="HPO gene prioritisation"
+                    text="Prioritize genes based on one or multiple HPO phenotypes."
                     url={GN.urls.diagnosisPage} />
+                <BoxFunctionEnrichment
+                    title="Function enrichment"
+                    text="Predict which pathways are enriched for a set of genes."
+                    onClick={this.props.onClick}/>
             </div>
         )
     }
