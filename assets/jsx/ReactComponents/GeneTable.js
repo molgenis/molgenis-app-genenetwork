@@ -25,8 +25,10 @@ var AnnotatedGeneRow = React.createClass({
     
     render: function() {
         
-        var data = this.props.data
-        var desc = (data.gene.description || 'no description').replace(/\[[^\]]+\]/g, '')
+        var data = this.props.data;
+        var desc = (data.gene.description || 'no description').replace(/\[[^\]]+\]/g, '');
+
+        console.log("pvalue", data.pvalue);
         
         return ( <tr className={this.props.num % 2 === 0 ? 'datarow evenrow' : 'datarow oddrow'}>
                  <td className='text'>
@@ -41,9 +43,10 @@ var AnnotatedGeneRow = React.createClass({
                  </Link>
                  </td>
                  {/*<td style={{textAlign: 'center'}}>TBA</td>*/}
-                 <td style={{textAlign: 'center'}} dangerouslySetInnerHTML={{__html: htmlutil.pValueToReadable(data.pValue)}}></td>
-                 <td style={{textAlign: 'center'}}>TBA</td>
-                 <td style={{textAlign: 'center'}}><SVGCollection.Annotated /></td>
+
+                 {/* data.pvalue ?  <td style={{textAlign: 'center'}} dangerouslySetInnerHTML={{__html: htmlutil.pValueToReadable(data.pValue)}}></td> :  null */}
+                 {/*<td style={{textAlign: 'center'}}>TBA</td>*/}
+                 {/*<td style={{textAlign: 'center'}}><SVGCollection.Annotated /></td>*/}
                  {/*<td style={{textAlign: 'center'}}>
                  <a title={'Open network highlighting ' + data.gene.name} href={GN.urls.networkPage + '0!' + data.gene.name + '|' + this.props.termId + ',0!' + data.gene.name} target='_blank'>
                  <SVGCollection.NetworkIcon />
@@ -125,9 +128,9 @@ var GeneTable = React.createClass({
                 <tr>
                   <th className='tabletextheader' style={{width: '10%'}}>GENE</th>
                   <th className='tabletextheader' style={{width: '60%'}}>DESCRIPTION</th>
-                  <th>P-VALUE</th>
-                  <th>DIRECTION</th>
-                  <th>ANNOTATED</th>
+                    { this.props.type == 'prediction' ? <th>P-VALUE</th> : null}
+                    { this.props.type == 'prediction' ? <th>DIRECTION</th> : null}
+                    { this.props.type == 'prediction' ? <th>ANNOTATED</th> : null}
                   {/*<th>NETWORK</th>*/}
                   </tr>
                   {rows}

@@ -6691,8 +6691,10 @@ var AnnotatedGeneRow = React.createClass({displayName: "AnnotatedGeneRow",
     
     render: function() {
         
-        var data = this.props.data
-        var desc = (data.gene.description || 'no description').replace(/\[[^\]]+\]/g, '')
+        var data = this.props.data;
+        var desc = (data.gene.description || 'no description').replace(/\[[^\]]+\]/g, '');
+
+        console.log("pvalue", data.pvalue);
         
         return React.createElement("tr", {className: this.props.num % 2 === 0 ? 'datarow evenrow' : 'datarow oddrow'}, 
                  React.createElement("td", {className: "text"}, 
@@ -6705,11 +6707,12 @@ var AnnotatedGeneRow = React.createClass({displayName: "AnnotatedGeneRow",
                  React.createElement(Link, {className: "nodecoration black", title: desc, to: "/gene/" + data.gene.name + ""}, 
                  React.createElement("span", null, desc)
                  )
-                 ), 
+                 )
                  /*<td style={{textAlign: 'center'}}>TBA</td>*/
-                 React.createElement("td", {style: {textAlign: 'center'}, dangerouslySetInnerHTML: {__html: htmlutil.pValueToReadable(data.pValue)}}), 
-                 React.createElement("td", {style: {textAlign: 'center'}}, "TBA"), 
-                 React.createElement("td", {style: {textAlign: 'center'}}, React.createElement(SVGCollection.Annotated, null))
+
+                 /* data.pvalue ?  <td style={{textAlign: 'center'}} dangerouslySetInnerHTML={{__html: htmlutil.pValueToReadable(data.pValue)}}></td> :  null */
+                 /*<td style={{textAlign: 'center'}}>TBA</td>*/
+                 /*<td style={{textAlign: 'center'}}><SVGCollection.Annotated /></td>*/
                  /*<td style={{textAlign: 'center'}}>
                  <a title={'Open network highlighting ' + data.gene.name} href={GN.urls.networkPage + '0!' + data.gene.name + '|' + this.props.termId + ',0!' + data.gene.name} target='_blank'>
                  <SVGCollection.NetworkIcon />
@@ -6789,9 +6792,9 @@ var GeneTable = React.createClass({displayName: "GeneTable",
                 React.createElement("tr", null, 
                   React.createElement("th", {className: "tabletextheader", style: {width: '10%'}}, "GENE"), 
                   React.createElement("th", {className: "tabletextheader", style: {width: '60%'}}, "DESCRIPTION"), 
-                  React.createElement("th", null, "P-VALUE"), 
-                  React.createElement("th", null, "DIRECTION"), 
-                  React.createElement("th", null, "ANNOTATED")
+                     this.props.type == 'prediction' ? React.createElement("th", null, "P-VALUE") : null, 
+                     this.props.type == 'prediction' ? React.createElement("th", null, "DIRECTION") : null, 
+                     this.props.type == 'prediction' ? React.createElement("th", null, "ANNOTATED") : null
                   /*<th>NETWORK</th>*/
                   ), 
                   rows
