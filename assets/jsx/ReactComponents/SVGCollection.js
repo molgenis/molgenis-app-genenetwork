@@ -382,7 +382,6 @@ exp.I = React.createClass({
                     </g>
                 </svg>
                 <ReactTooltip place="bottom" type="dark" effect="solid" class='tooltip'/>
- 
             </div>
         )
     }

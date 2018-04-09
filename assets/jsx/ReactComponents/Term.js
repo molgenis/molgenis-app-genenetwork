@@ -55,7 +55,6 @@ var PredictedGeneRow = React.createClass({
 var AnnotatedGeneRow = React.createClass({
 
     propTypes: {
-        
         data: React.PropTypes.object.isRequired,
         termId: React.PropTypes.string.isRequired,
         num: React.PropTypes.number
@@ -167,8 +166,7 @@ var Term = React.createClass({
             }.bind(this),
             
             error: function(xhr, status, err) {
-                
-		            console.error(xhr);
+                console.error(xhr);
                 
                 if (err === 'Not Found') {
                     

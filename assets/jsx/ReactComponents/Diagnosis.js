@@ -583,8 +583,6 @@ var Diagnosis = React.createClass({
           <div className="hflex diagflex-container" style={{backgroundColor: '#ffffff'}}>
              <div className="prio-tables">
 
-        {/* style={{width: "70%"}} */}
-          
           <div style={{paddingTop: '20px'}}>{this.state.data ? <ShowPhenotypes3 prio={this.state.data} hoverItem={this.state.hoverItem} /> : 'loading'}</div>
           <p>{this.state.data ? 'The ' + this.state.data.results.length + ' highest prioritized genes for the combination of ' + thisThese 
           + this.state.data.terms.length + phenotypePhenotypes : 'loading'}</p>
@@ -600,7 +598,6 @@ var Diagnosis = React.createClass({
             </div>
 
           </div>
-{/*, width: "70%"*/}
           <div style={{height: "450px", overflow: "auto"}}>
           <GeneTable prio={this.state.data} prioFiltered={this.state.newTable} onMouseOver={this.handleMouseOver} />
           </div>

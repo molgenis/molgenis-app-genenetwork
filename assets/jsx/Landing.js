@@ -24,6 +24,7 @@ var Landing = React.createClass({
     getInitialState: function() {
         return {
             pasteGeneList: false,
+            onlyGeneList: false,
             geneList: ''
         }
     },
@@ -75,7 +76,7 @@ var Landing = React.createClass({
                             }
                         } else if (result._type === 'term') {
                             return {
-                                value: 'term!' + result._source.id,
+                                value: 'network!' + result._source.id,
                                 label: result._source.name + ' - ' + result._source.database + ' ' + result._source.type
                             }
                         } else if (result._type === 'trait_mapped') {
@@ -121,14 +122,31 @@ var Landing = React.createClass({
      * @param event
      */
     onGeneListChange: function (event) {
+
         this.setState({ geneList: event.target.value });
 
-        if (!this.isGeneList(event.target.value)) {
+        if (!this.state.onlyGeneList && !this.isGeneList(event.target.value)) {
+//         if (!this.isGeneList(event.target.value)) {
             this.setState({
                 pasteGeneList: false,
             });
         }
     },
+
+    onFunctionEnrichmentClick: function () {
+        this.setState({
+            pasteGeneList: true,
+            onlyGeneList: true
+        });
+    },
+
+    onFunctionEnrichmentCancelClick: function () {
+        this.setState({
+            onlyGeneList: false,
+            pasteGeneList: false
+        })
+    },
+
 
     onGeneListSubmit: function () {
         this.setState({ pasteGeneList: false });
@@ -192,6 +210,15 @@ var Landing = React.createClass({
                     <div className='searchheader noselect defaultcursor'>
                         Predict gene functions. Discover potential disease genes.
                     </div>
+                    {
+                        this.state.onlyGeneList ?
+                            <div style={{ color: "#999999", marginLeft: "20px", fontSize: "1.17em", fontWeight:"bold"}}>
+                                <span>Function enrichment:</span>
+                                <span style={{ color: "#f8f8f8", marginLeft: "4px", cursor: "pointer"}} onClick={this.onFunctionEnrichmentCancelClick}>x</span>
+                            </div> :
+                            null
+
+                    }
                     <div className='selectcontainer hflex'>
                         {this.renderSearchBar()}
                     </div>
@@ -206,7 +233,7 @@ var Landing = React.createClass({
                     }
                     <div className='examples noselect defaultcursor'>For example:&nbsp;
                         <Link className='clickable' title='SMIM1' to='/gene/SMIM1'>SMIM1</Link>,&nbsp;
-                        <Link className='clickable' title='Interferon signaling' to='/term/REACTOME:INTERFERON_SIGNALING'>Interferon signaling</Link>,&nbsp;
+                        <Link className='clickable' title='Interferon signaling' to='/network/REACTOME:INTERFERON_SIGNALING'>Interferon signaling</Link>,&nbsp;
                         <Link className='clickable' title='Migraine' to='/network/3ZLYoS' params={{ids: 'Migraine'}}>Migraine</Link>,&nbsp;
                         <Link className='clickable' title='Autism' to='/network/2iGTR8' params={{ids: 'Autism'}}>Autism</Link>
                     </div>
@@ -230,7 +257,7 @@ var Landing = React.createClass({
                 </div>
                 {topBanner}
                 {this.props.children}
-                {!this.props.children ? <Tools /> : null}
+                {!this.props.children ? <Tools onClick={this.onFunctionEnrichmentClick}/> : null}
                 {!this.props.children || this.props.children.props.route.path.indexOf('network') < 0 ? <Footer /> : null}
             </div>
         )

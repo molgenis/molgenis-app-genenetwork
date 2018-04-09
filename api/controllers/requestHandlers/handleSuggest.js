@@ -32,7 +32,6 @@ module.exports = function(req, res) {
             }
         }
     }, function(err, result) {
-        sails.log.debug(result);
         if (err) {
             sails.log.warn(err);
             return res.serverError()

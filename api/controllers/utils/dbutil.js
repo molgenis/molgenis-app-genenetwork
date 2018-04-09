@@ -289,6 +289,7 @@ var getPredictions = function(buffer, dbname, options) {
                     })
                 } else {
                     result.push({
+                        gene: gene,
                         href: sails.config.version.apiUrl + '/gene/' + gene.id,
                         zScore: z,
                     })
@@ -316,21 +317,20 @@ var getPredictions = function(buffer, dbname, options) {
         var start = options.start;
         var stop = options.stop || start + sails.config.api.maxNumEntries;
         result = result.slice(start, Math.min(Number(stop), start + sails.config.api.maxNumEntries))
-    } else if (!options.array) { // don't slice if array is returned
+    } else if (!options.array && !options.all) { // don't slice if array is returned
         result = result.slice(0, sails.config.api.maxNumEntries)
     }
 
     if (!options.array) {
         for (var i = 0; i < result.length; i++) {
-	    result[i].zScore = Number(result[i].zScore.toPrecision(4));
-	    if (options.pvalue) {
-		if (dbname && dbname == 'OMIM') {
-		    result[i].pValue = result[i].zScore
-		} else {
-                    result[i].pValue = probability.zToP(result[i].zScore) //Number(Number(probability.zToP(result[i].zScore).toPrecision(2)).toExponential())
-		}
-	    }
-
+	        result[i].zScore = Number(result[i].zScore.toPrecision(4));
+	        if (options.pvalue) {
+	            if (dbname && dbname == 'OMIM') {
+		        result[i].pValue = result[i].zScore
+                } else {
+	                result[i].pValue = probability.zToP(result[i].zScore) //Number(Number(probability.zToP(result[i].zScore).toPrecision(2)).toExponential())
+		        }
+	        }
         }
     }
 
@@ -806,6 +806,16 @@ exp.getAnnotatedGenes = function(pathway, callback) {
             }
             sails.log.debug('annotations read from db for ' + pathway.name);
 	    callback(null, genes)
+        }
+    })
+};
+
+exp.getPathwayPredictionsJSON = function(pathway, cb) {
+    pathwaydb.get('RNASEQ!PREDICTIONS!' + pathway.database.toUpperCase() + '!' + pathway.id, function(err, data) {
+        if (err) {
+            handleDBError(err, cb)
+        } else {
+            cb(null, getPredictions(data, null, { all: true, pvalue: true, sort: true, verbose: true } ));
         }
     })
 };

@@ -1,10 +1,14 @@
-'use strict'
+'use strict';
 
-var _ = require('lodash')
-var React = require('react')
-var OpenMenu = require('../ReactComponents/OpenMenu')
-var SquareSVG = require('../ReactComponents/SVGCollection').SquareSVG
-var color = require('../../js/color')
+var _ = require('lodash');
+var React = require('react');
+var ReactTooltip = require('react-tooltip');
+var OpenMenu = require('../ReactComponents/OpenMenu');
+var SquareSVG = require('../ReactComponents/SVGCollection').SquareSVG;
+var color = require('../../js/color');
+var SVGCollection = require('../ReactComponents/SVGCollection');
+var I = SVGCollection.I;
+
 
 var LegendPanel = React.createClass({
 
@@ -70,20 +74,20 @@ var LegendPanel = React.createClass({
     },
     
     getItemsBiotype: function() {
-        var biotypes = {}
+        var biotypes = {};
         _.forEach(this.props.data.elements.nodes, function(node) {
             biotypes[node.data.biotype] = true
         });
-        var color2biotypes = {}
+        var color2biotypes = {};
         _.forEach(biotypes, function(thisistrue, biotype) {
-            var clr = color.biotype2color[biotype]
+            var clr = color.biotype2color[biotype];
             if (color2biotypes[clr] === undefined) {
                 color2biotypes[clr] = []
             }
             color2biotypes[clr].push(biotype)
-        })
-        var that = this
-        var items = []
+        });
+        var that = this;
+        var items = [];
         _.forEach(color2biotypes, function(biotypes, clr) {
             items.push(that.getItem(biotypes.join(', ').replace(/_/g, ' '), clr))
         });
@@ -91,34 +95,34 @@ var LegendPanel = React.createClass({
     },
 
     getItemsChr: function() {
-        var that = this
-        var chrs = {}
+        var that = this;
+        var chrs = {};
         _.forEach(this.props.data.elements.nodes, function(node) {
             chrs[node.data.chr] = true
         });
-        var color2chrs = {}
+        var color2chrs = {};
         _.forEach(chrs, function(thisistrue, chr) {
-            var clr = color.chr2color[chr]
+            var clr = color.chr2color[chr];
             if (color2chrs[clr] === undefined) {
                 color2chrs[clr] = []
             }
             color2chrs[clr].push(chr)
-        })
-        var items = []
+        });
+        var items = [];
         _.forEach(color2chrs, function(chrs, clr) {
             items.push(that.getItem(chrs.join(', ').replace('_', ' '), clr))
-        })
+        });
         return items
     },
 
     getItemsCluster: function() {
-        var that = this
-        var i = 0
+        var that = this;
+        var i = 0;
         var items = _.map(this.props.data.elements.groups, function(group) {
             if (group.type !== 'cluster') {
                 return null
             }
-            var clr = color.cluster2color[i++] || color.colors.nodeDefault
+            var clr = color.cluster2color[i++] || color.colors.nodeDefault;
             if (i <= color.cluster2color.length) {
                 return that.getItem(group.name, clr)
             } else if (i === color.cluster2color.length + 1) {
@@ -126,48 +130,49 @@ var LegendPanel = React.createClass({
             } else {
                 return null
             }
-        })
+        });
+
         return items
     },
 
     getItemsGroup: function() {
-        var that = this
+        var that = this;
         var items = _.map(this.props.data.elements.groups, function(group, i) {
             if (group.type != 'custom') {
                 return null
             }
-            var clr = color.group2color[group.index_]
+            var clr = color.group2color[group.index_];
             return that.getItem(group.name, clr)
-        })
+        });
         return items
     },
 
     // TODO coloring from Pytrik
     getItemsScore: function() {
-        var that = this
-        var clrs = [color.colors.gnblue, color.colors.gnbluelightgray, color.colors.gnlightgray, color.colors.gnredlightgray, color.colors.gnred]
-        var labels = ['< -10', '-5', '0', '5', '> 10']
-        var items = []
-        items.push(<span key='zscore' style={{paddingRight: '10px'}}>Z-score</span>)
+        var that = this;
+        var clrs = [color.colors.gnblue, color.colors.gnbluelightgray, color.colors.gnlightgray, color.colors.gnredlightgray, color.colors.gnred];
+        var labels = ['< -10', '-5', '0', '5', '> 10'];
+        var items = [];
+        items.push(<span key='zscore' style={{paddingRight: '10px'}}>Z-score</span>);
         _.forEach(labels, function(label, i) {
             items.push(that.getItem(label, clrs[i]))
-        })
+        });
         return items
     },
 
     getItemsAnnotation: function() {
-        var that = this
-        var clrs = [color.colors.gngray, color.colors.gnred]
-        var labels = ['not annotated', 'annotated']
+        var that = this;
+        var clrs = [color.colors.gngray, color.colors.gnred];
+        var labels = ['not annotated', 'annotated'];
         var items = _.map(labels, function(label, i) {
             return that.getItem(label, clrs[i])
-        })
+        });
         return items
     },
     
     render: function() {
 
-        if (!this.state || !this.state.items) return null
+        if (!this.state || !this.state.items) return null;
         // <table className='noselect defaultcursor' style={{backgroundColor: color.colors.gnwhite}}>
         // <tbody>
         return (
@@ -176,11 +181,12 @@ var LegendPanel = React.createClass({
                 <OpenMenu options={this.props.coloringOptions} selected={this.props.coloring} onSelect={this.props.onColoring} style={{float: 'left'}} />
                 <div className='gn-network-legendpanel-legend noselect' style={{float: 'left', padding: '8px 10px 9px 10px', backgroundColor: color.colors.gnwhite}}>
                 {this.state.items}
-            </div>
-            </div>
+                <I title="This is an experimental automatic clustering."/>
+                </div>
+                </div>
         )
     }
 
-})
+});
 
-module.exports = LegendPanel
+module.exports = LegendPanel;

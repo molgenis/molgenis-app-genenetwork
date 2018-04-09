@@ -14,7 +14,11 @@ var GroupPanel = React.createClass({
         onAnalyse: React.PropTypes.func
     },
 
+    /**
+     * Start pathway analysis automatically
+     */
     componentDidMount: function() {
+        this.props.onAnalyse(this.props.activeGroup);
     },
 
     download: function() {
@@ -81,8 +85,6 @@ var GroupPanel = React.createClass({
                 </div>
         )
     }
-})
+});
 
-module.exports = GroupPanel
-
-//                 <div style={{display: 'flex', flexFlow: 'row nowrap', alignItems: 'flex-start'}}>
+module.exports = GroupPanel;

@@ -46,10 +46,6 @@ module.exports.routes = {
     '/': {
         view: 'homepage'
     },
-
-    // '/^((?![gene|term]).)*$/s': {
-    //     view: 'homepage'
-    // }
     
     '/gene*': {
         view: 'homepage'
@@ -82,5 +78,12 @@ module.exports.routes = {
     '/about*': {
         view: 'homepage'
     },
+
+    '/biosqtlbrowser': 'https://molgenis58.target.rug.nl/biosqtlbrowser/',
+
+    '/bloodeqtlbrowser': 'https://molgenis58.target.rug.nl/bloodeqtlbrowser/',
+
+    '/cd4cd8eqtlbrowser': 'https://molgenis58.target.rug.nl/cd4cd8eqtlbrowser/'
+
 
 };
