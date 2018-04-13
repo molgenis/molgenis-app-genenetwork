@@ -34,7 +34,7 @@ module.exports = {
 
     useElastic: true,
     elasticHost: 'localhost:9200',
-    elasticLogLevel: 'info',
+    elasticLogLevel: 'debug',
     
     pubmine: {
 	journalFile: '/data/pubmine/GeneticsJournalsImpactFactorAboveThree.txt',

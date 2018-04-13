@@ -263,7 +263,7 @@ h1, h2, h3, h4, h5 {
     color: #ffffff;
     padding: 8px;
     text-decoration: none;
-    /*stroke-width: 10;*/
+    stroke-width: 5px;
     display: inline-block;
 }
 
@@ -902,54 +902,44 @@ line.link {
     width: 100%;
     border-collapse: collapse;
     clear: left;
-    margin-bottom: 50px;
 }
 
 .tissues-table tbody {
-    height: 520px;
-    width: 620px;
-    overflow-y: scroll;
-    overflow-x: hidden;
     display: block;
 }
 
 .tissues-table thead {
-    width: 620px;
+    /*width: 620px;*/
     display: block;
     border-bottom: 1px solid #dcdcdc;
 }
 
 .tissues-table th {
-    min-width: 112px;
     height: 31px;
     overflow: auto;
     text-align: left;
 }
 
 .tissues-table td {
-    min-width: 112px;
     overflow: auto;
     text-align: left;
 }
 
-.tissues-table th:first-child {
-    padding-left: 9px;
-    min-width: 15px;
-    text-align: left;
-}
 
-.tissues-table td:first-child {
-    padding-left: 9px;
-    min-width: 15px;
-}
+.tissues-table td:nth-child(1) {min-width: 15px; padding-left: 10px;}
+.tissues-table td:nth-child(2) {width: 33%; min-width: 100px;}
+.tissues-table td:nth-child(3) {width: 33%; min-width: 100px; text-align: center;}
+.tissues-table td:nth-child(4) {width: 33%; min-width: 100px; text-align: center;}
 
-.tissues-table th:nth-child(2) {text-align: left;}
-.tissues-table td:nth-child(2) {text-align: left;}
-.tissues-table th:nth-child(6) {width: 140px;}
+.tissues-table th:nth-child(1) {min-width: 15px; max-width: 15px; padding-left: 10px;}
+.tissues-table th:nth-child(2) {width: 33%; min-width: 100px;}
+.tissues-table th:nth-child(3) {width: 33%; min-width: 100px; text-align: center;}
+.tissues-table th:nth-child(4) {width: 33%; min-width: 100px; text-align: center;}
+
 
 .tissues-table tr {
     text-align: left;
-    height: 25px;
+    height: 24px;
 }
 
 .tissues-table th.reactable-header-sort-desc:after {
@@ -981,6 +971,7 @@ line.link {
     border-bottom: 1px solid #dcdcdc;
 }
 
+/*
 .hpo-table th:nth-child(1){
     width:100%;
 }
@@ -1003,7 +994,7 @@ line.link {
 
 .hpo-table td:nth-child(3){
     min-width: 30px;
-}
+}*/
 
 .tooltip {
     opacity: 1 !important;

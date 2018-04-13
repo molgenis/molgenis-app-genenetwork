@@ -57,7 +57,7 @@ var EdgeLegend = React.createClass({
             // <polygon fill={this.props.hoverEdge === 'right' ? color.colors.gndarkgray : color.colors.gngray} onMouseOver={this.props.onMouseOver.bind(null, 'right')} onMouseOut={this.props.onMouseOver.bind(null, undefined)} onClick={this.props.onClick.bind(null, 0.5)} className="clickable" points="114.5,8 107.7,4 107.7,12 " />
             
         return (
-                <div title={title} style={{position: 'absolute', top: '10px', right: '90px', zIndex: 1}}>
+                <div title={title} style={{position: 'absolute', top: '-30px', right: '20px', zIndex: 1}}>
                 <svg width={(width - step/2) + 24} height={height} style={{backgroundColor: '#ffffff'}}>
                 <polygon fill={endLeft ? color.colors.gnlightgray : this.props.hoverEdge === 'left' ? color.colors.gndarkgray : color.colors.gngray} onMouseOver={this.props.onMouseOver.bind(null, 'left')} onMouseOut={this.props.onMouseOver.bind(null, undefined)} onClick={endLeft ? this.props.onClick.bind(null, 0) : this.props.onClick.bind(null, -0.5)} className={!endLeft ? "clickable" : null} points="0,8 10,0 10,16 " />
                 <polygon fill={endRight ? color.colors.gnlightgray : this.props.hoverEdge === 'right' ? color.colors.gndarkgray : color.colors.gngray} onMouseOver={this.props.onMouseOver.bind(null, 'right')} onMouseOut={this.props.onMouseOver.bind(null, undefined)} onClick={endRight ? this.props.onClick.bind(null, 0) : this.props.onClick.bind(null, 0.5)} className={!endRight ? "clickable" : null} points="119,8 109,0 109,16 " />

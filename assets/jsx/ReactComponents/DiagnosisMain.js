@@ -50,11 +50,11 @@ var TermTable = React.createClass({
             _.map(terms, function(term){
                 rows.push(
                     <Tr id={term.value}>
-                        <Td column="TERM" className='text'>
+                        <Td column="TERM" style={{width: '100%'}} className='text'>
                             {term.name}
                         </Td>
-                        <Td column="ID" style={{whiteSpace: 'nowrap', textAlign: 'center'}} >{term.value}</Td>
-                        <Th column="REMOVE"><span className='clickable' onClick={this.props.removeTerm.bind(null, term.value)}>X</span></Th>
+                        <Td column="ID" style={{whiteSpace: 'nowrap', minWidth: '110px', textAlign: 'center'}} >{term.value}</Td>
+                        <Th column="REMOVE" style={{minWidth: '80px', textAlign: 'center'}}><span className='clickable' onClick={this.props.removeTerm.bind(null, term.value)}>X</span></Th>
                     </Tr>
                     )
             }.bind(this))
@@ -62,11 +62,11 @@ var TermTable = React.createClass({
 
         return (
             <div>
-                <Table id='hpo-table' className='datatable hpo-table' style={{margin: '40px 0 40px 0'}}>
+                <Table id='hpo-table' className='datatable hpo-table' style={{margin: '0px 0 40px 0'}}>
                     <Thead>
-                    <Th column="TERM">TERM</Th>
-                    <Th column="ID" style={{width: '100px'}}>ID</Th>
-                    <Th column="REMOVE" style={{width: '30px'}}></Th>
+                    <Th column="TERM" style={{width: '100%'}}>TERM</Th>
+                    <Th column="ID" style={{minWidth: '110px', textAlign: 'center'}}>ID</Th>
+                    <Th column="REMOVE" style={{minWidth: '80px', textAlign: 'center'}}></Th>
                 </Thead>
                 {rows}
                 </Table>

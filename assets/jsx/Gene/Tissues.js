@@ -64,7 +64,7 @@ var DataTable = React.createClass({
                 //     </Td>
     	    return(
                 <Tr key={item.name} className='clickable' onClick={this.props.onClick.bind(null, item)} onMouseOut={this.props.onMouseOver.bind(null, undefined)} onMouseOver={this.props.onMouseOver.bind(null, item)} style={this.props.hoverItem === item.name || this.props.clickedItem === item.name ? {backgroundColor: 'rgb(255,225,0)'} : {}}>
-                <Td column="">{item.name === "Brain" || item.name === "Blood" ? <ListIcon w={10} h={10} /> : null}</Td>
+                <Td column="">{item.name === "Brain" || item.name === "Blood" ? <ListIcon w={10} h={10} n={3}/> : null}</Td>
                 <Td column="tissue">{item.name}</Td>
                 <Td column="samples">{item.numSamples}</Td>
                 <Td column="average">{avg[indices[item.name]]}</Td> 
@@ -93,7 +93,7 @@ var DataTable = React.createClass({
             	<Th>{""}</Th>
             	<Th column="tissue"><span>{"TISSUE"}</span></Th>
             	<Th column="samples"><span>{"SAMPLES"}</span> <I title="Number of samples"/></Th>
-            	<Th column="average"><span>{"AVERAGE"}</span> <I title="Average"/></Th>
+            	<Th column="average"><span>{"AVERAGE"}</span> <I title="For each gene the expression values for <br /> all samples were standard normalized and <br />the average of each tissue-specific set of<br />  samples was subsequently calculated."/></Th>
             </Thead>
             {rows}
             </Table>
@@ -201,7 +201,7 @@ var Tissues = React.createClass({
     	return (
             <div>
         		<div className="hflex">
-            		<div className="flex11" style={{height: '550px'}}>
+            		<div className="flex11" style={{width: '35%', minWidth: '332px'}}>
                     	<DataTable
                             values={this.state.transcript ? this.state.transcript : this.props.celltypes.values}
                             transcripts={this.state.currentTranscripts ? this.state.currentTranscripts : this.props.data.gene.transcripts}
@@ -219,7 +219,7 @@ var Tissues = React.createClass({
                             onTranscriptBarClick={this.handleTranscriptBarClick} />
 
                 	</div>
-                	<div className="flex11" style={{minWidth: '50px', width: '60%', position: 'relative'}}> 
+                	<div className="flex11" style={{minWidth: '400px', width: '65%', position: 'relative'}}> 
                    		<HomoSapiens
                             values={this.state.transcript ? this.state.transcript : this.props.celltypes.values}
                             fixed={this.props.celltypes.fixed}
