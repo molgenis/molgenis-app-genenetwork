@@ -5848,7 +5848,7 @@ var GeneTable = React.createClass({displayName: "GeneTable",
                     React.createElement(Tr, {key: i, className: rowtype, onMouseOver: this.props.onMouseOver.bind(null, subTable[i].predicted)}, 
                     React.createElement(Td, {column: "BIOTYPE", style: {textAlign: 'center'}}, square), 
                     React.createElement(Td, {column: "RANK", style: {textAlign: 'center'}}, i + 1), 
-                    React.createElement(Td, {column: "GENE", style: {textAlign: 'center'}}, React.createElement("a", {className: "nodecoration black", href: geneLink, target: "_blank"}, subTable[i].gene.name)), 
+                    React.createElement(Td, {column: "GENE", style: {textAlign: 'left'}}, React.createElement("a", {className: "nodecoration black", href: geneLink, target: "_blank"}, subTable[i].gene.name)), 
                     React.createElement(Td, {column: "P-VALUE", style: {textAlign: 'center'}}, unsafe(htmlutil.pValueToReadable(prob.zToP(subTable[i].weightedZScore)))), 
                     React.createElement(Td, {column: "DIRECTION", style: {textAlign: 'center'}}, subTable[i].weightedZScore > 0 ? React.createElement(SVGCollection.TriangleUp, {className: "directiontriangleup"}) : React.createElement(SVGCollection.TriangleDown, {className: "directiontriangledown"})), 
                     React.createElement(Td, {column: "ANNOTATION", style: {textAlign: 'center'}}, React.createElement("div", {title: subTable[i].annotated.length == 0 ? "Not annotated to any of the phenotypes." : subTable[i].annotated}, subTable[i].annotated.length)), 
@@ -5887,7 +5887,7 @@ var GeneTable = React.createClass({displayName: "GeneTable",
                     React.createElement(Tr, {key: i, onMouseOver: this.props.onMouseOver.bind(null, this.props.prio.results[i].predicted)}, 
                     React.createElement(Td, {column: "", style: {textAlign: 'center'}}, square), 
                     React.createElement(Td, {column: "RANK", style: {textAlign: 'center'}}, i + 1), 
-                    React.createElement(Td, {column: "GENE", style: {textAlign: 'center'}}, React.createElement("a", {className: "nodecoration black", href: geneLink, target: "_blank"}, this.props.prio.results[i].gene.name)), 
+                    React.createElement(Td, {column: "GENE", style: {textAlign: 'left'}}, React.createElement("a", {className: "nodecoration black", href: geneLink, target: "_blank"}, this.props.prio.results[i].gene.name)), 
                     React.createElement(Td, {column: "P-VALUE", style: {textAlign: 'center'}}, unsafe(htmlutil.pValueToReadable(prob.zToP(this.props.prio.results[i].weightedZScore)))), 
                     React.createElement(Td, {column: "DIRECTION", style: {textAlign: 'center'}}, this.props.prio.results[i].weightedZScore > 0 ? React.createElement(SVGCollection.TriangleUp, {className: "directiontriangleup"}) : React.createElement(SVGCollection.TriangleDown, {className: "directiontriangledown"})), 
                     React.createElement(Td, {column: "ANNOTATION", style: {textAlign: 'center'}}, React.createElement("div", {title: this.props.prio.results[i].annotated.length == 0 ? "Not annotated to any of the phenotypes." : this.props.prio.results[i].annotated}, this.props.prio.results[i].annotated.length)), 
@@ -6007,10 +6007,10 @@ var GeneTable = React.createClass({displayName: "GeneTable",
                 React.createElement(Th, null, ""), 
                 React.createElement(Th, {column: "RANK"}, " "), 
                 React.createElement(Th, {column: "GENE"}, "GENE"), 
-                React.createElement(Th, {column: "P-VALUE"}, React.createElement("span", {title: "Please ignore this for now"}, "P-VALUE"), React.createElement(I, {title: "Please ignore this for now"})), 
-                React.createElement(Th, {column: "DIRECTION"}, React.createElement("span", {title: "???"}, "DIRECTION"), React.createElement(I, {title: "???"})), 
-                React.createElement(Th, {column: "ANNOTATION"}, React.createElement("span", {title: "The number of inputted phenotypes the gene is annotated to"}, "ANNOTATION"), React.createElement(I, {title: "The number of inputted phenotypes the gene is annotated to"})), 
-                React.createElement(Th, {column: "NETWORK"}, "NETWORK")
+                React.createElement(Th, {style: {textAlign: 'center'}, column: "P-VALUE"}, React.createElement("span", {title: "Please ignore this for now"}, "P-VALUE"), React.createElement(I, {title: "Please ignore this for now"})), 
+                React.createElement(Th, {style: {textAlign: 'center'}, column: "DIRECTION"}, React.createElement("span", {title: "???"}, "DIRECTION"), React.createElement(I, {title: "???"})), 
+                React.createElement(Th, {style: {textAlign: 'center'}, column: "ANNOTATION"}, React.createElement("span", {title: "The number of inputted phenotypes the gene is annotated to"}, "ANNOTATION"), React.createElement(I, {title: "The number of inputted phenotypes the gene is annotated to"})), 
+                React.createElement(Th, {style: {textAlign: 'center'}, column: "NETWORK"}, "NETWORK")
             ), 
             newRows
             ))
@@ -6234,7 +6234,7 @@ var Diagnosis = React.createClass({displayName: "Diagnosis",
 
         return (
           React.createElement(DocumentTitle, {title: 'Diagnosis' + GN.pageTitleSuffix}, 
-          React.createElement("div", {className: "hflex diagflex-container", style: {backgroundColor: '#ffffff'}}, 
+          React.createElement("div", {className: "flex10", style: {backgroundColor: '#ffffff'}}, 
              React.createElement("div", {className: "prio-tables"}, 
 
           React.createElement("div", {style: {paddingTop: '20px'}}, this.state.data ? React.createElement(ShowPhenotypes3, {prio: this.state.data, hoverItem: this.state.hoverItem}) : 'loading'), 
@@ -6252,7 +6252,7 @@ var Diagnosis = React.createClass({displayName: "Diagnosis",
             )
 
           ), 
-          React.createElement("div", {style: {height: "450px", overflow: "auto"}}, 
+          React.createElement("div", {style: {height: "300px", overflow: "auto"}}, 
           React.createElement(GeneTable, {prio: this.state.data, prioFiltered: this.state.newTable, onMouseOver: this.handleMouseOver})
           )
 

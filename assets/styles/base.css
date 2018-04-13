@@ -1005,7 +1005,6 @@ line.link {
     width: 100%;
     border-collapse: collapse;
     clear: left;
-    margin-bottom: 50px;
 }
 
 .diagnosis-table tr:nth-child(even){
@@ -1312,7 +1311,7 @@ label > input + img {
     -ms-user-select: none;
     user-select: none;
     cursor: pointer;
-    text-align: left!important;
+    /*text-align: left!important;*/
 }
 
 .reactable-th-network:focus {
@@ -1340,7 +1339,7 @@ label > input + img {
 
 .prio-tables {
     min-width: 600px;
-    max-width: 750px;
+    max-width: 1280px;
     flex: 1 1 auto;
     padding: 15px;
 }

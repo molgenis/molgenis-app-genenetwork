@@ -194,7 +194,7 @@ var GeneTable = React.createClass({
                     <Tr key={i} className = {rowtype} onMouseOver={this.props.onMouseOver.bind(null, subTable[i].predicted)}>
                     <Td column="BIOTYPE" style={{textAlign: 'center'}}>{square}</Td>
                     <Td column="RANK" style={{textAlign: 'center'}}>{i + 1}</Td>
-                    <Td column="GENE" style={{textAlign: 'center'}}><a className='nodecoration black' href={geneLink} target="_blank">{subTable[i].gene.name}</a></Td>
+                    <Td column="GENE" style={{textAlign: 'left'}}><a className='nodecoration black' href={geneLink} target="_blank">{subTable[i].gene.name}</a></Td>
                     <Td column="P-VALUE" style={{textAlign: 'center'}}>{unsafe(htmlutil.pValueToReadable(prob.zToP(subTable[i].weightedZScore)))}</Td>
                     <Td column="DIRECTION" style={{textAlign: 'center'}}>{subTable[i].weightedZScore > 0 ? <SVGCollection.TriangleUp className='directiontriangleup' /> : <SVGCollection.TriangleDown className='directiontriangledown' />}</Td>
                     <Td column="ANNOTATION" style={{textAlign: 'center'}}><div title={subTable[i].annotated.length == 0 ? "Not annotated to any of the phenotypes." : subTable[i].annotated}>{subTable[i].annotated.length}</div></Td>
@@ -233,7 +233,7 @@ var GeneTable = React.createClass({
                     <Tr key={i} onMouseOver={this.props.onMouseOver.bind(null, this.props.prio.results[i].predicted)}>
                     <Td column="" style={{textAlign: 'center'}}>{square}</Td>
                     <Td column="RANK" style={{textAlign: 'center'}}>{i + 1}</Td>
-                    <Td column="GENE" style={{textAlign: 'center'}}><a className='nodecoration black' href={geneLink} target="_blank">{this.props.prio.results[i].gene.name}</a></Td>
+                    <Td column="GENE" style={{textAlign: 'left'}}><a className='nodecoration black' href={geneLink} target="_blank">{this.props.prio.results[i].gene.name}</a></Td>
                     <Td column="P-VALUE" style={{textAlign: 'center'}}>{unsafe(htmlutil.pValueToReadable(prob.zToP(this.props.prio.results[i].weightedZScore)))}</Td>
                     <Td column="DIRECTION" style={{textAlign: 'center'}}>{this.props.prio.results[i].weightedZScore > 0 ? <SVGCollection.TriangleUp className='directiontriangleup' /> : <SVGCollection.TriangleDown className='directiontriangledown' />}</Td>
                     <Td column="ANNOTATION" style={{textAlign: 'center'}}><div title={this.props.prio.results[i].annotated.length == 0 ? "Not annotated to any of the phenotypes." : this.props.prio.results[i].annotated}>{this.props.prio.results[i].annotated.length}</div></Td>
@@ -353,10 +353,10 @@ var GeneTable = React.createClass({
                 <Th>{""}</Th>
                 <Th column="RANK">{" "}</Th>
                 <Th column="GENE">{"GENE"}</Th>
-                <Th column="P-VALUE"><span title="Please ignore this for now">{"P-VALUE"}</span><I title="Please ignore this for now"/></Th>
-                <Th column="DIRECTION"><span title="???">{"DIRECTION"}</span><I title="???"/></Th>
-                <Th column="ANNOTATION"><span title="The number of inputted phenotypes the gene is annotated to">{"ANNOTATION"}</span><I title="The number of inputted phenotypes the gene is annotated to"/></Th>
-                <Th column="NETWORK">{"NETWORK"}</Th>
+                <Th style={{textAlign: 'center'}} column="P-VALUE"><span title="Please ignore this for now">{"P-VALUE"}</span><I title="Please ignore this for now"/></Th>
+                <Th style={{textAlign: 'center'}} column="DIRECTION"><span title="???">{"DIRECTION"}</span><I title="???"/></Th>
+                <Th style={{textAlign: 'center'}} column="ANNOTATION"><span title="The number of inputted phenotypes the gene is annotated to">{"ANNOTATION"}</span><I title="The number of inputted phenotypes the gene is annotated to"/></Th>
+                <Th style={{textAlign: 'center'}} column="NETWORK">{"NETWORK"}</Th>
             </Thead> 
             {newRows}
             </Table>)
@@ -580,7 +580,7 @@ var Diagnosis = React.createClass({
 
         return (
           <DocumentTitle title={'Diagnosis' + GN.pageTitleSuffix}>
-          <div className="hflex diagflex-container" style={{backgroundColor: '#ffffff'}}>
+          <div className="flex10" style={{backgroundColor: '#ffffff'}}>
              <div className="prio-tables">
 
           <div style={{paddingTop: '20px'}}>{this.state.data ? <ShowPhenotypes3 prio={this.state.data} hoverItem={this.state.hoverItem} /> : 'loading'}</div>
@@ -598,7 +598,7 @@ var Diagnosis = React.createClass({
             </div>
 
           </div>
-          <div style={{height: "450px", overflow: "auto"}}>
+          <div style={{height: "300px", overflow: "auto"}}>
           <GeneTable prio={this.state.data} prioFiltered={this.state.newTable} onMouseOver={this.handleMouseOver} />
           </div>
 
