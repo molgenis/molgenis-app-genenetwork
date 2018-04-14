@@ -109,7 +109,7 @@ var ShowPhenotypes3 = React.createClass({
 
             /* Coloured squares: */
             var square =
-                <div style={this.props.style}>
+                <div style={{height: '20px'}}>
                 <svg viewBox='0 0 10 10' width={20} height={this.props.h}>
                 <rect x1='0' y1='0' width='10' height='10' style={{fill: backgroundColour}} />
                 </svg>
@@ -118,34 +118,34 @@ var ShowPhenotypes3 = React.createClass({
 
             /* The actual phenotype information: */
             rows.push(
-                <tr key={this.props.prio.terms[i].term.name} >
-                <td>{square}</td>
-                <td style={{textAlign: 'left'}}>{this.props.prio.terms[i].term.name}</td>
-                <td style={{textAlign: 'left'}}>{this.props.prio.terms[i].term.numAnnotatedGenes}</td>
-                <td style={{textAlign: 'left'}}><a className='nodecoration black' href={this.props.prio.terms[i].term.url} 
-                    target="_blank">{this.props.prio.terms[i].term.id}</a></td>
-                <td style={{textAlign: 'left'}}>{hoverZScores ? hoverZScores[i] : ""}</td>
-                </tr>
+                <Tr key={this.props.prio.terms[i].term.name}>
+                    <Td column="COLOR">{square}</Td>
+                    <Td column="PHENOTYPE">{this.props.prio.terms[i].term.name}</Td>
+                    <Td column="ANNOTATED" style={{textAlign: 'center'}}>{this.props.prio.terms[i].term.numAnnotatedGenes}</Td>
+                    <Td column="HPOTERM" style={{textAlign: 'center'}}><a className='nodecoration black' href={this.props.prio.terms[i].term.url} target="_blank">{this.props.prio.terms[i].term.id}</a></Td>
+                    <Td column="ZSCORE" style={{textAlign: 'center'}}>{hoverZScores ? hoverZScores[i] : ""}</Td>
+                </Tr>
                 )
         }
 
+
         /* The table itself & headers: */
         return (
-            <table id="phenTab" className='gn-gene-table datatable' style={{width: '100%'}}>
-            <tbody>
-            <tr>
-            <th></th>
-            <th style={{textAlign: 'left'}}>PHENOTYPE</th>
-            <th style={{textAlign: 'left'}}>ANNOTATED GENES</th>
-            <th style={{textAlign: 'left'}}>HPO-TERM</th>
-            <th style={{textAlign: 'left'}}>Z-SCORE</th>
-            </tr>
+            <Table id="phenTab" className='sortable rowcolors table pheno-table' style={{width: '100%'}}>
+            <Thead>
+                <Th column="COLOR">{""}</Th>
+                <Th column="PHENOTYPE" style={{textAlign: 'left'}}>{"PHENOTYPE"}</Th>
+                <Th column="ANNOTATED" style={{textAlign: 'center'}}>{"ANNOTATED GENES"}</Th>
+                <Th column="HPOTERM" style={{textAlign: 'center'}}>{"HPO-TERM"}</Th>
+                <Th column="ZSCORE" style={{textAlign: 'center'}}>{"Z-SCORE"}</Th>
+            </Thead>
             {rows}
-            </tbody>
-            </table>
+            </Table>
         )
     }
 })
+
+
 
 /* Shows a table of all of the prioritized genes: */
 
@@ -176,7 +176,7 @@ var GeneTable = React.createClass({
                 /* biotype squares: */
                 var square =
                     <div style={this.props.style} title={subTable[i].gene.biotype}>
-                    <svg viewBox='0 0 10 10' width={20} height={this.props.h}>
+                    <svg viewBox='0 0 10 10' width={10} height={10}>
                     <rect x1='0' y1='0' width='10' height='10' style={{fill: color.biotype2color[subTable[i].gene.biotype] || color.colors.default}} />
                     </svg>
                     </div>
@@ -223,7 +223,7 @@ var GeneTable = React.createClass({
                 /* biotype squares: */
                 var square =
                     <div style={this.props.style} title={this.props.prio.results[i].gene.biotype}>
-                    <svg viewBox='0 0 10 10' width={20} height={this.props.h}>
+                    <svg viewBox='0 0 10 10' width={12} height={12}>
                     <rect x1='0' y1='0' width='10' height='10' style={{fill: color.biotype2color[this.props.prio.results[i].gene.biotype] || color.colors.default}} />
                     </svg>
                     </div>
@@ -584,7 +584,10 @@ var Diagnosis = React.createClass({
           <div className="flex10" style={{backgroundColor: '#ffffff'}}>
              <div className="prio-tables">
 
-          <div style={{paddingTop: '20px'}}>{this.state.data ? <ShowPhenotypes3 prio={this.state.data} hoverItem={this.state.hoverItem} /> : 'loading'}</div>
+          <div style={{paddingTop: '20px', width: ''}}>
+            <ShowPhenotypes3 prio={this.state.data} hoverItem={this.state.hoverItem} />
+            </div>
+          
           <p>{this.state.data ? 'The ' + this.state.data.results.length + ' highest prioritized genes for the combination of ' + thisThese 
           + this.state.data.terms.length + phenotypePhenotypes : 'loading'}</p>
           <div style={{paddingBottom: '20px'}}>
@@ -599,7 +602,7 @@ var Diagnosis = React.createClass({
             </div>
 
           </div>
-          <div style={{height: "350px", overflow: "auto"}}>
+          <div style={{height: "400px", overflow: "auto"}}>
           <GeneTable prio={this.state.data} prioFiltered={this.state.newTable} onMouseOver={this.handleMouseOver} />
           </div>
 

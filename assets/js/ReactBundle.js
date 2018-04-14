@@ -5763,7 +5763,7 @@ var ShowPhenotypes3 = React.createClass({displayName: "ShowPhenotypes3",
 
             /* Coloured squares: */
             var square =
-                React.createElement("div", {style: this.props.style}, 
+                React.createElement("div", {style: {height: '20px'}}, 
                 React.createElement("svg", {viewBox: "0 0 10 10", width: 20, height: this.props.h}, 
                 React.createElement("rect", {x1: "0", y1: "0", width: "10", height: "10", style: {fill: backgroundColour}})
                 )
@@ -5772,34 +5772,34 @@ var ShowPhenotypes3 = React.createClass({displayName: "ShowPhenotypes3",
 
             /* The actual phenotype information: */
             rows.push(
-                React.createElement("tr", {key: this.props.prio.terms[i].term.name}, 
-                React.createElement("td", null, square), 
-                React.createElement("td", {style: {textAlign: 'left'}}, this.props.prio.terms[i].term.name), 
-                React.createElement("td", {style: {textAlign: 'left'}}, this.props.prio.terms[i].term.numAnnotatedGenes), 
-                React.createElement("td", {style: {textAlign: 'left'}}, React.createElement("a", {className: "nodecoration black", href: this.props.prio.terms[i].term.url, 
-                    target: "_blank"}, this.props.prio.terms[i].term.id)), 
-                React.createElement("td", {style: {textAlign: 'left'}}, hoverZScores ? hoverZScores[i] : "")
+                React.createElement(Tr, {key: this.props.prio.terms[i].term.name}, 
+                    React.createElement(Td, {column: "COLOR"}, square), 
+                    React.createElement(Td, {column: "PHENOTYPE"}, this.props.prio.terms[i].term.name), 
+                    React.createElement(Td, {column: "ANNOTATED", style: {textAlign: 'center'}}, this.props.prio.terms[i].term.numAnnotatedGenes), 
+                    React.createElement(Td, {column: "HPOTERM", style: {textAlign: 'center'}}, React.createElement("a", {className: "nodecoration black", href: this.props.prio.terms[i].term.url, target: "_blank"}, this.props.prio.terms[i].term.id)), 
+                    React.createElement(Td, {column: "ZSCORE", style: {textAlign: 'center'}}, hoverZScores ? hoverZScores[i] : "")
                 )
                 )
         }
 
+
         /* The table itself & headers: */
         return (
-            React.createElement("table", {id: "phenTab", className: "gn-gene-table datatable", style: {width: '100%'}}, 
-            React.createElement("tbody", null, 
-            React.createElement("tr", null, 
-            React.createElement("th", null), 
-            React.createElement("th", {style: {textAlign: 'left'}}, "PHENOTYPE"), 
-            React.createElement("th", {style: {textAlign: 'left'}}, "ANNOTATED GENES"), 
-            React.createElement("th", {style: {textAlign: 'left'}}, "HPO-TERM"), 
-            React.createElement("th", {style: {textAlign: 'left'}}, "Z-SCORE")
+            React.createElement(Table, {id: "phenTab", className: "sortable rowcolors table pheno-table", style: {width: '100%'}}, 
+            React.createElement(Thead, null, 
+                React.createElement(Th, {column: "COLOR"}, ""), 
+                React.createElement(Th, {column: "PHENOTYPE", style: {textAlign: 'left'}}, "PHENOTYPE"), 
+                React.createElement(Th, {column: "ANNOTATED", style: {textAlign: 'center'}}, "ANNOTATED GENES"), 
+                React.createElement(Th, {column: "HPOTERM", style: {textAlign: 'center'}}, "HPO-TERM"), 
+                React.createElement(Th, {column: "ZSCORE", style: {textAlign: 'center'}}, "Z-SCORE")
             ), 
             rows
-            )
             )
         )
     }
 })
+
+
 
 /* Shows a table of all of the prioritized genes: */
 
@@ -5830,7 +5830,7 @@ var GeneTable = React.createClass({displayName: "GeneTable",
                 /* biotype squares: */
                 var square =
                     React.createElement("div", {style: this.props.style, title: subTable[i].gene.biotype}, 
-                    React.createElement("svg", {viewBox: "0 0 10 10", width: 20, height: this.props.h}, 
+                    React.createElement("svg", {viewBox: "0 0 10 10", width: 10, height: 10}, 
                     React.createElement("rect", {x1: "0", y1: "0", width: "10", height: "10", style: {fill: color.biotype2color[subTable[i].gene.biotype] || color.colors.default}})
                     )
                     )
@@ -5877,7 +5877,7 @@ var GeneTable = React.createClass({displayName: "GeneTable",
                 /* biotype squares: */
                 var square =
                     React.createElement("div", {style: this.props.style, title: this.props.prio.results[i].gene.biotype}, 
-                    React.createElement("svg", {viewBox: "0 0 10 10", width: 20, height: this.props.h}, 
+                    React.createElement("svg", {viewBox: "0 0 10 10", width: 12, height: 12}, 
                     React.createElement("rect", {x1: "0", y1: "0", width: "10", height: "10", style: {fill: color.biotype2color[this.props.prio.results[i].gene.biotype] || color.colors.default}})
                     )
                     )
@@ -6238,7 +6238,10 @@ var Diagnosis = React.createClass({displayName: "Diagnosis",
           React.createElement("div", {className: "flex10", style: {backgroundColor: '#ffffff'}}, 
              React.createElement("div", {className: "prio-tables"}, 
 
-          React.createElement("div", {style: {paddingTop: '20px'}}, this.state.data ? React.createElement(ShowPhenotypes3, {prio: this.state.data, hoverItem: this.state.hoverItem}) : 'loading'), 
+          React.createElement("div", {style: {paddingTop: '20px', width: ''}}, 
+            React.createElement(ShowPhenotypes3, {prio: this.state.data, hoverItem: this.state.hoverItem})
+            ), 
+          
           React.createElement("p", null, this.state.data ? 'The ' + this.state.data.results.length + ' highest prioritized genes for the combination of ' + thisThese 
           + this.state.data.terms.length + phenotypePhenotypes : 'loading'), 
           React.createElement("div", {style: {paddingBottom: '20px'}}, 
@@ -6253,7 +6256,7 @@ var Diagnosis = React.createClass({displayName: "Diagnosis",
             )
 
           ), 
-          React.createElement("div", {style: {height: "350px", overflow: "auto"}}, 
+          React.createElement("div", {style: {height: "400px", overflow: "auto"}}, 
           React.createElement(GeneTable, {prio: this.state.data, prioFiltered: this.state.newTable, onMouseOver: this.handleMouseOver})
           )
 
@@ -7817,7 +7820,7 @@ exp.I = React.createClass({displayName: "I",
                         React.createElement("text", {fill: color.colors.gndarkgray, transform: "matrix(1 0 0 1 7.761 14.583)"}, "i")
                     )
                 ), 
-                React.createElement(ReactTooltip, {multiline: "true", place: "bottom", effect: "solid", class: "tooltip"})
+                React.createElement(ReactTooltip, {multiline: true, place: "bottom", effect: "solid", class: "tooltip"})
             )
         )
     }

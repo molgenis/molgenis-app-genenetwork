@@ -381,7 +381,7 @@ exp.I = React.createClass({
                         <text fill={color.colors.gndarkgray} transform="matrix(1 0 0 1 7.761 14.583)">i</text>
                     </g>
                 </svg>
-                <ReactTooltip multiline='true' place="bottom" effect="solid" class='tooltip'/>
+                <ReactTooltip multiline={true} place="bottom" effect="solid" class='tooltip'/>
             </div>
         )
     }
