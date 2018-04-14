@@ -20,6 +20,7 @@ var Tr = reactable.Tr
 var Td = reactable.Td
 var Th = reactable.Th
 var Thead = reactable.Thead
+var Tbody = reactable.Tbody
 var Table = reactable.Table
 var unsafe = reactable.unsafe
 
@@ -258,7 +259,7 @@ var GeneTable = React.createClass({
         }
 
         /* The actual table, with custom sorting: */
-        return (<Table id="gentab" className='gn-gene-table datatable sortable diagnosis-table' style={{width: '100%'}} 
+        return (<Table id="gentab" className='sortable rowcolors table diag-table' style={{width: '100%'}} 
 
 
             // Attempt at not showing the first two headers, doesn't work???
@@ -351,12 +352,12 @@ var GeneTable = React.createClass({
             >
             <Thead>
                 <Th>{""}</Th>
-                <Th column="RANK">{" "}</Th>
+                <Th column="RANK" style={{textAlign: 'center'}}>{"RANK"}</Th>
                 <Th column="GENE">{"GENE"}</Th>
-                <Th style={{textAlign: 'center'}} column="P-VALUE"><span title="Please ignore this for now">{"P-VALUE"}</span><I title="Please ignore this for now"/></Th>
-                <Th style={{textAlign: 'center'}} column="DIRECTION"><span title="???">{"DIRECTION"}</span><I title="???"/></Th>
-                <Th style={{textAlign: 'center'}} column="ANNOTATION"><span title="The number of inputted phenotypes the gene is annotated to">{"ANNOTATION"}</span><I title="The number of inputted phenotypes the gene is annotated to"/></Th>
-                <Th style={{textAlign: 'center'}} column="NETWORK">{"NETWORK"}</Th>
+                <Th column="P-VALUE" style={{textAlign: 'center'}}><span title="Please ignore this for now">{"P-VALUE"}</span> <I title="Please ignore this for now"/></Th>
+                <Th column="DIRECTION" style={{textAlign: 'center'}}><span title="???">{"DIRECTION"}</span> <I title="???"/></Th>
+                <Th column="ANNOTATION" style={{textAlign: 'center'}}> <span title="The number of inputted phenotypes the gene is annotated to">{"ANNOTATION"}</span> <I title="The number of inputted phenotypes the gene is annotated to"/></Th>
+                <Th column="NETWORK" style={{textAlign: 'center'}}>{"NETWORK"}</Th>
             </Thead> 
             {newRows}
             </Table>)
@@ -598,7 +599,7 @@ var Diagnosis = React.createClass({
             </div>
 
           </div>
-          <div style={{height: "300px", overflow: "auto"}}>
+          <div style={{height: "350px", overflow: "auto"}}>
           <GeneTable prio={this.state.data} prioFiltered={this.state.newTable} onMouseOver={this.handleMouseOver} />
           </div>
 

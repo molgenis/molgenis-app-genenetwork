@@ -2476,7 +2476,7 @@ var DataTable = React.createClass({displayName: "DataTable",
     	}.bind(this))
 
         return (
-            React.createElement(Table, {className: "sortable tissues-table rowcolors", sortable: ['tissue',
+            React.createElement(Table, {className: "sortable table tissues-table rowcolors", sortable: ['tissue',
                 {
                 	column: 'samples',
                 	sortFunction: function(a, b) {return b - a}
@@ -5674,6 +5674,7 @@ var Tr = reactable.Tr
 var Td = reactable.Td
 var Th = reactable.Th
 var Thead = reactable.Thead
+var Tbody = reactable.Tbody
 var Table = reactable.Table
 var unsafe = reactable.unsafe
 
@@ -5912,7 +5913,7 @@ var GeneTable = React.createClass({displayName: "GeneTable",
         }
 
         /* The actual table, with custom sorting: */
-        return (React.createElement(Table, {id: "gentab", className: "gn-gene-table datatable sortable diagnosis-table", style: {width: '100%'}, 
+        return (React.createElement(Table, {id: "gentab", className: "sortable rowcolors table diag-table", style: {width: '100%'}, 
 
 
             // Attempt at not showing the first two headers, doesn't work???
@@ -6005,12 +6006,12 @@ var GeneTable = React.createClass({displayName: "GeneTable",
             }, 
             React.createElement(Thead, null, 
                 React.createElement(Th, null, ""), 
-                React.createElement(Th, {column: "RANK"}, " "), 
+                React.createElement(Th, {column: "RANK", style: {textAlign: 'center'}}, "RANK"), 
                 React.createElement(Th, {column: "GENE"}, "GENE"), 
-                React.createElement(Th, {style: {textAlign: 'center'}, column: "P-VALUE"}, React.createElement("span", {title: "Please ignore this for now"}, "P-VALUE"), React.createElement(I, {title: "Please ignore this for now"})), 
-                React.createElement(Th, {style: {textAlign: 'center'}, column: "DIRECTION"}, React.createElement("span", {title: "???"}, "DIRECTION"), React.createElement(I, {title: "???"})), 
-                React.createElement(Th, {style: {textAlign: 'center'}, column: "ANNOTATION"}, React.createElement("span", {title: "The number of inputted phenotypes the gene is annotated to"}, "ANNOTATION"), React.createElement(I, {title: "The number of inputted phenotypes the gene is annotated to"})), 
-                React.createElement(Th, {style: {textAlign: 'center'}, column: "NETWORK"}, "NETWORK")
+                React.createElement(Th, {column: "P-VALUE", style: {textAlign: 'center'}}, React.createElement("span", {title: "Please ignore this for now"}, "P-VALUE"), " ", React.createElement(I, {title: "Please ignore this for now"})), 
+                React.createElement(Th, {column: "DIRECTION", style: {textAlign: 'center'}}, React.createElement("span", {title: "???"}, "DIRECTION"), " ", React.createElement(I, {title: "???"})), 
+                React.createElement(Th, {column: "ANNOTATION", style: {textAlign: 'center'}}, " ", React.createElement("span", {title: "The number of inputted phenotypes the gene is annotated to"}, "ANNOTATION"), " ", React.createElement(I, {title: "The number of inputted phenotypes the gene is annotated to"})), 
+                React.createElement(Th, {column: "NETWORK", style: {textAlign: 'center'}}, "NETWORK")
             ), 
             newRows
             ))
@@ -6252,7 +6253,7 @@ var Diagnosis = React.createClass({displayName: "Diagnosis",
             )
 
           ), 
-          React.createElement("div", {style: {height: "300px", overflow: "auto"}}, 
+          React.createElement("div", {style: {height: "350px", overflow: "auto"}}, 
           React.createElement(GeneTable, {prio: this.state.data, prioFiltered: this.state.newTable, onMouseOver: this.handleMouseOver})
           )
 

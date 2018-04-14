@@ -650,10 +650,6 @@ line.link {
     background-color: #f8f8f8;
 }*/
 
-.rowcolors tr:nth-child(even){
-    background-color: #f8f8f8;
-}
-
 /*.rowcolors tr:first-child{
     background-color: #fff;
 }*/
@@ -898,44 +894,85 @@ line.link {
     opacity: 1;
 }
 
-.tissues-table {
+/*class table = table layout. add class scrollable to make table body scrollable.*/
+
+.table {
     width: 100%;
     border-collapse: collapse;
     clear: left;
 }
 
-.tissues-table tbody {
+.table tbody {
     display: block;
 }
 
-.tissues-table thead {
+.table thead {
     /*width: 620px;*/
     display: block;
     border-bottom: 1px solid #dcdcdc;
 }
 
-.tissues-table th {
+.table th {
     height: 31px;
     overflow: auto;
     text-align: left;
 }
 
-.tissues-table td {
+.table td {
     overflow: auto;
     text-align: left;
 }
 
+.table tr {
+    text-align: left;
+    height: 24px;
+}
 
-.tissues-table td:nth-child(1) {min-width: 15px; padding-left: 10px;}
-.tissues-table td:nth-child(2) {width: 33%; min-width: 100px;}
-.tissues-table td:nth-child(3) {width: 33%; min-width: 100px; text-align: center;}
-.tissues-table td:nth-child(4) {width: 33%; min-width: 100px; text-align: center;}
+.table th.reactable-header-sort-desc:after {
+    padding-top: 10px;
+    content: '\25B2';
+    zoom: 80%;
+    color: #999999;
+    position: relative;
+}
 
-.tissues-table th:nth-child(1) {min-width: 15px; max-width: 15px; padding-left: 10px;}
-.tissues-table th:nth-child(2) {width: 33%; min-width: 100px;}
-.tissues-table th:nth-child(3) {width: 33%; min-width: 100px; text-align: center;}
-.tissues-table th:nth-child(4) {width: 33%; min-width: 100px; text-align: center;}
+.table th.reactable-header-sort-asc:after {
+    padding-top: 10px;
+    content: '\25BC';
+    zoom: 80%;
+    color: #999999;
+    position: relative;
+}
 
+.rowcolors thead tr:nth-child(1){
+    background-color: #fff;
+}
+
+.rowcolors tr:nth-child(even){
+    background-color: #fff;
+}
+
+.rowcolors tr:nth-child(odd){
+    background-color: #f8f8f8;
+}
+
+.diag-table tbody {
+    overflow: auto;
+    height: 350px;
+}
+
+.diag-table td:nth-child(1), .diag-table th:nth-child(1) {min-width: 40px; padding-left: 10px;}
+.diag-table td:nth-child(2), .diag-table th:nth-child(2) {min-width: 100px;}
+.diag-table td:nth-child(3), .diag-table th:nth-child(3) {width: 20%; min-width: 100px;}
+.diag-table td:nth-child(4), .diag-table th:nth-child(4) {width: 20%; min-width: 100px;}
+.diag-table td:nth-child(5), .diag-table th:nth-child(5) {width: 20%; min-width: 100px;}
+.diag-table td:nth-child(6), .diag-table th:nth-child(6) {width: 20%; min-width: 100px;}
+.diag-table td:nth-child(7), .diag-table th:nth-child(7) {width: 20%; min-width: 100px;}
+
+.tissues-table td:nth-child(1), .tissues-table th:nth-child(1) {min-width: 15px; padding-left: 10px;}
+.tissues-table td:nth-child(2), .tissues-table th:nth-child(2) {width: 33%; min-width: 100px;}
+.tissues-table td:nth-child(3), .tissues-table th:nth-child(3) {width: 33%; min-width: 100px; text-align: center;}
+.tissues-table td:nth-child(4), .tissues-table th:nth-child(4) {width: 33%; min-width: 100px; text-align: center;}
 
 .tissues-table tr {
     text-align: left;
@@ -1001,17 +1038,29 @@ line.link {
     background-color: #4d4d4d !important;
 }
 
-.diagnosis-table {
+/*.diagnosis-table {
     width: 100%;
     border-collapse: collapse;
     clear: left;
 }
+*/
+/*.diagnosis-table tbody {
+    display: block;
+    height: 200px;
+    overflow: auto;
+}*/
+
+
+/*
+.diagnosis-table: thead {
+    display: block;
+}
 
 .diagnosis-table tr:nth-child(even){
     background-color: #f8f8f8;
-}
+}*/
 
-.diagnosis-table th.reactable-header-sort-desc:after {
+/*.diagnosis-table th.reactable-header-sort-desc:after {
     padding-top: 10px;
     content: '\25B2';
     zoom: 80%;
@@ -1025,7 +1074,7 @@ line.link {
     zoom: 80%;
     color: #999999;
     position: relative;
-}
+}*/
 
 .gn-network-panelcontainer {
     position: absolute;

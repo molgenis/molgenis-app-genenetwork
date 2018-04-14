@@ -74,7 +74,7 @@ var DataTable = React.createClass({
     	}.bind(this))
 
         return (
-            <Table className='sortable tissues-table rowcolors' sortable={['tissue',
+            <Table className='sortable table tissues-table rowcolors' sortable={['tissue',
                 {
                 	column: 'samples',
                 	sortFunction: function(a, b) {return b - a}
