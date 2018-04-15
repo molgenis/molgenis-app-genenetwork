@@ -4911,6 +4911,7 @@ var PWAPanel = React.createClass({displayName: "PWAPanel",
         if (!this.isMounted()) {
             console.warn('PWAPanel.setSocketListeners: pathwayanalysis.queueEvent received but component not mounted')
         }
+
         if (msg.queueLength || msg.queueLength === 0) {
             var str = htmlutil.intToStr(msg.queueLength) + ' analyses'
             if (msg.queueLength === 0) str = 'Analysis started'
@@ -4918,7 +4919,7 @@ var PWAPanel = React.createClass({displayName: "PWAPanel",
             else if (msg.queueLength < 8) str = 'Your analysis will start in less than a minute, please be patient.'
                 + 'I\'m ' + htmlutil.intToOrdinalStr(msg.queueLength) + ' in the queue.'
             else str = 'This will take some time as our servers are busy right now, please be patient.'
-                + 'I\'m ' + htmlutil.intToOrdinalStr(msg.queueLength) + ' in the queue.'
+                + 'I\'m ' + htmlutil.intToOrdinalStr(msg.queueLength) + ' in the queue. test'
             this.setState({
                 pwaMessage: str,
                 currentDatabase: msg.db || this.state.currentDatabase
@@ -7188,9 +7189,9 @@ var PredictedGenesPanel = React.createClass({displayName: "PredictedGenesPanel",
             var str = htmlutil.intToStr(msg.queueLength) + ' analyses'
             if (msg.queueLength === 0) str = 'Starting analysis...'
             else if (msg.queueLength < 2) str = 'Your analysis will start in a few seconds...'
-            else if (msg.queueLength < 10) str = 'Your analysis will start in less than a minute, please be patient.<br/>'
+            else if (msg.queueLength < 10) str = 'Your analysis will start in less than a minute, please be patient.'
                 + 'I\'m ' + htmlutil.intToOrdinalStr(msg.queueLength) + ' in the queue.'
-            else str = 'This will take some time as our servers are busy right now, please be patient.<br/>'
+            else str = 'This will take some time as our servers are busy right now, please be patient. '
                 + 'I\'m ' + htmlutil.intToOrdinalStr(msg.queueLength) + ' in the queue.'
             this.setState({
                 gpMessage: str
