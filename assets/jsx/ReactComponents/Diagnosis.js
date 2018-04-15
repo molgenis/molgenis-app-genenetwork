@@ -234,7 +234,7 @@ var GeneTable = React.createClass({
                     <Tr key={i} onMouseOver={this.props.onMouseOver.bind(null, this.props.prio.results[i].predicted)}>
                     <Td column="" style={{textAlign: 'center'}}>{square}</Td>
                     <Td column="RANK" style={{textAlign: 'center'}}>{i + 1}</Td>
-                    <Td column="GENE" style={{textAlign: 'left'}}><a className='nodecoration black' href={geneLink} target="_blank">{this.props.prio.results[i].gene.name}</a></Td>
+                    <Td column="GENE" style={{textAlign: 'left'}}><a className='nodecoration black' href={geneLink} target="_blank" title={this.props.prio.results[i].gene.description}>{this.props.prio.results[i].gene.name}</a></Td>
                     <Td column="P-VALUE" style={{textAlign: 'center'}}>{unsafe(htmlutil.pValueToReadable(prob.zToP(this.props.prio.results[i].weightedZScore)))}</Td>
                     <Td column="DIRECTION" style={{textAlign: 'center'}}>{this.props.prio.results[i].weightedZScore > 0 ? <SVGCollection.TriangleUp className='directiontriangleup' /> : <SVGCollection.TriangleDown className='directiontriangledown' />}</Td>
                     <Td column="ANNOTATION" style={{textAlign: 'center'}}><div title={this.props.prio.results[i].annotated.length == 0 ? "Not annotated to any of the phenotypes." : this.props.prio.results[i].annotated}>{this.props.prio.results[i].annotated.length}</div></Td>
@@ -584,7 +584,7 @@ var Diagnosis = React.createClass({
           <div className="flex10" style={{backgroundColor: '#ffffff'}}>
              <div className="prio-tables">
 
-          <div style={{paddingTop: '20px', width: ''}}>
+            <div style={{paddingTop: '20px', width: ''}}>
             <ShowPhenotypes3 prio={this.state.data} hoverItem={this.state.hoverItem} />
             </div>
           

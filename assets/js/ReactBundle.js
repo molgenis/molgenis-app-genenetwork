@@ -4915,9 +4915,9 @@ var PWAPanel = React.createClass({displayName: "PWAPanel",
             var str = htmlutil.intToStr(msg.queueLength) + ' analyses'
             if (msg.queueLength === 0) str = 'Analysis started'
             else if (msg.queueLength < 2) str = 'Your analysis will start in a few seconds...'
-            else if (msg.queueLength < 8) str = 'Your analysis will start in less than a minute, please be patient.<br/>'
+            else if (msg.queueLength < 8) str = 'Your analysis will start in less than a minute, please be patient.'
                 + 'I\'m ' + htmlutil.intToOrdinalStr(msg.queueLength) + ' in the queue.'
-            else str = 'This will take some time as our servers are busy right now, please be patient.<br/>'
+            else str = 'This will take some time as our servers are busy right now, please be patient.'
                 + 'I\'m ' + htmlutil.intToOrdinalStr(msg.queueLength) + ' in the queue.'
             this.setState({
                 pwaMessage: str,
@@ -5890,7 +5890,7 @@ var GeneTable = React.createClass({displayName: "GeneTable",
                     React.createElement(Tr, {key: i, onMouseOver: this.props.onMouseOver.bind(null, this.props.prio.results[i].predicted)}, 
                     React.createElement(Td, {column: "", style: {textAlign: 'center'}}, square), 
                     React.createElement(Td, {column: "RANK", style: {textAlign: 'center'}}, i + 1), 
-                    React.createElement(Td, {column: "GENE", style: {textAlign: 'left'}}, React.createElement("a", {className: "nodecoration black", href: geneLink, target: "_blank"}, this.props.prio.results[i].gene.name)), 
+                    React.createElement(Td, {column: "GENE", style: {textAlign: 'left'}}, React.createElement("a", {className: "nodecoration black", href: geneLink, target: "_blank", title: this.props.prio.results[i].gene.description}, this.props.prio.results[i].gene.name)), 
                     React.createElement(Td, {column: "P-VALUE", style: {textAlign: 'center'}}, unsafe(htmlutil.pValueToReadable(prob.zToP(this.props.prio.results[i].weightedZScore)))), 
                     React.createElement(Td, {column: "DIRECTION", style: {textAlign: 'center'}}, this.props.prio.results[i].weightedZScore > 0 ? React.createElement(SVGCollection.TriangleUp, {className: "directiontriangleup"}) : React.createElement(SVGCollection.TriangleDown, {className: "directiontriangledown"})), 
                     React.createElement(Td, {column: "ANNOTATION", style: {textAlign: 'center'}}, React.createElement("div", {title: this.props.prio.results[i].annotated.length == 0 ? "Not annotated to any of the phenotypes." : this.props.prio.results[i].annotated}, this.props.prio.results[i].annotated.length)), 
@@ -6240,7 +6240,7 @@ var Diagnosis = React.createClass({displayName: "Diagnosis",
           React.createElement("div", {className: "flex10", style: {backgroundColor: '#ffffff'}}, 
              React.createElement("div", {className: "prio-tables"}, 
 
-          React.createElement("div", {style: {paddingTop: '20px', width: ''}}, 
+            React.createElement("div", {style: {paddingTop: '20px', width: ''}}, 
             React.createElement(ShowPhenotypes3, {prio: this.state.data, hoverItem: this.state.hoverItem})
             ), 
           

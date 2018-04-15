@@ -156,9 +156,9 @@ var PWAPanel = React.createClass({
             var str = htmlutil.intToStr(msg.queueLength) + ' analyses'
             if (msg.queueLength === 0) str = 'Analysis started'
             else if (msg.queueLength < 2) str = 'Your analysis will start in a few seconds...'
-            else if (msg.queueLength < 8) str = 'Your analysis will start in less than a minute, please be patient.<br/>'
+            else if (msg.queueLength < 8) str = 'Your analysis will start in less than a minute, please be patient.'
                 + 'I\'m ' + htmlutil.intToOrdinalStr(msg.queueLength) + ' in the queue.'
-            else str = 'This will take some time as our servers are busy right now, please be patient.<br/>'
+            else str = 'This will take some time as our servers are busy right now, please be patient.'
                 + 'I\'m ' + htmlutil.intToOrdinalStr(msg.queueLength) + ' in the queue.'
             this.setState({
                 pwaMessage: str,
