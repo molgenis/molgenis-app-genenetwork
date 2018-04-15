@@ -101,9 +101,11 @@ var DataTable = React.createClass({
                 )
         } else {
             var annotatedClass = this.state.annotationsOnly ? 'clickable underline' : 'clickable';
+            // <Table className='gn-gene-table datatable'
+
             return (
 
-            <Table className='gn-gene-table datatable'
+            <Table className='rowcolors table gene-term-table'
 
             sortable={[
 

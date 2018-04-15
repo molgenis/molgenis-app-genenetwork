@@ -894,7 +894,6 @@ line.link {
     opacity: 1;
 }
 
-/*class table = table layout. add class scrollable to make table body scrollable.*/
 
 .table {
     width: 100%;
@@ -923,9 +922,11 @@ line.link {
     text-align: left;
 }
 
+.table td:nth-child(1), .table th:nth-child(1) {padding-left: 6px;}
+
 .table tr {
     text-align: left;
-    height: 24px;
+    height: 31px;
 }
 
 .table th.reactable-header-sort-desc:after {
@@ -943,6 +944,7 @@ line.link {
     color: #999999;
     position: relative;
 }
+
 
 .rowcolors thead tr:nth-child(1){
     background-color: #fff;
@@ -968,18 +970,24 @@ line.link {
 .diag-table td:nth-child(5), .diag-table th:nth-child(5) {width: 20%; min-width: 100px;}
 .diag-table td:nth-child(6), .diag-table th:nth-child(6) {width: 20%; min-width: 110px;}
 .diag-table td:nth-child(7), .diag-table th:nth-child(7) {width: 20%; min-width: 100px;}
+.diag-table tr {height: 24px;}
 
 .pheno-table td:nth-child(1), .pheno-table th:nth-child(1) {min-width: 40px; padding-left: 10px;}
 .pheno-table td:nth-child(2), .pheno-table th:nth-child(2) {min-width: 300px;}
 .pheno-table td:nth-child(3), .pheno-table th:nth-child(3) {width: 33%; min-width: 150px;}
 .pheno-table td:nth-child(4), .pheno-table th:nth-child(4) {width: 33%; min-width: 80px;}
 .pheno-table td:nth-child(5), .pheno-table th:nth-child(5) {width: 33%; min-width: 80px;}
-.pheno-table tr {height: 30px;}
+
+.gene-term-table td, .gene-term-table th { min-width: 80px; width: 100%; text-align: center;}
+.gene-term-table td:nth-child(1), .gene-term-table th:nth-child(1) { padding-left: 6px; text-align: left;}
+
+.gene-coreg-table td:nth-child(2), .gene-coreg-table th:nth-child(2) {width: 100%;}
+.gene-coreg-table td, .gene-coreg-table th {min-width: 150px;}
 
 .tissues-table td:nth-child(1), .tissues-table th:nth-child(1) {min-width: 15px; padding-left: 10px;}
-.tissues-table td:nth-child(2), .tissues-table th:nth-child(2) {width: 33%; min-width: 100px;}
-.tissues-table td:nth-child(3), .tissues-table th:nth-child(3) {width: 33%; min-width: 100px; text-align: center;}
-.tissues-table td:nth-child(4), .tissues-table th:nth-child(4) {width: 33%; min-width: 100px; text-align: center;}
+.tissues-table td:nth-child(2), .tissues-table th:nth-child(2) {min-width: 110px;}
+.tissues-table td:nth-child(3), .tissues-table th:nth-child(3) {width: 50%; min-width: 80px; text-align: center;}
+.tissues-table td:nth-child(4), .tissues-table th:nth-child(4) {width: 50%; min-width: 80px; text-align: center;}
 
 .tissues-table tr {
     text-align: left;

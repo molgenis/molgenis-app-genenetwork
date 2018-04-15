@@ -2311,7 +2311,7 @@ var SimilarGenesTable = React.createClass({displayName: "SimilarGenesTable",
         });
         
         return (
-                React.createElement(Table, {className: "gn-gene-table datatable", 
+                React.createElement(Table, {className: "rowcolors table gene-coreg-table", 
 
                 sortable: [
                     {
@@ -5524,9 +5524,11 @@ var DataTable = React.createClass({displayName: "DataTable",
                 )
         } else {
             var annotatedClass = this.state.annotationsOnly ? 'clickable underline' : 'clickable';
+            // <Table className='gn-gene-table datatable'
+
             return (
 
-            React.createElement(Table, {className: "gn-gene-table datatable", 
+            React.createElement(Table, {className: "rowcolors table gene-term-table", 
 
             sortable: [
 

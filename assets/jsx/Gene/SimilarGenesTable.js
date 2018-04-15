@@ -39,7 +39,7 @@ var SimilarGenesTable = React.createClass({
         });
         
         return (
-                <Table className='gn-gene-table datatable'
+                <Table className='rowcolors table gene-coreg-table'
 
                 sortable={[
                     {
