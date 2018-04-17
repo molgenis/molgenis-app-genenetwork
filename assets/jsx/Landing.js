@@ -61,13 +61,14 @@ var Landing = React.createClass({
             this.setState({geneList: input,pasteGeneList: true});
             return callback(null, {});
         }
-
+        console.log(input)
         io.socket.get(GN.urls.suggest,
             {
                 q: input
             },
             function(res, jwres) {
                 if (jwres.statusCode === 200) {
+                    console.log(res)
                     var options = _.compact(_.map(res, function(result) {
                         if (result._type === 'gene') {
                             return {
@@ -75,9 +76,10 @@ var Landing = React.createClass({
                                 label: result._source.name + ' - ' + result._source.description + ' (' + result._source.id + ')'
                             }
                         } else if (result._type === 'term') {
+                            var id = result._source.database === "HPO" ? '(' + result._source.id + ')' : ''
                             return {
                                 value: 'network!' + result._source.id,
-                                label: result._source.name + ' - ' + result._source.database + ' ' + result._source.type
+                                label: result._source.name + ' - ' + result._source.database + ' ' + result._source.type + ' ' + id
                             }
                         } else if (result._type === 'trait_mapped') {
                             return {
@@ -88,11 +90,11 @@ var Landing = React.createClass({
                             return null
                         }
                     }));
-                    var sorted = _.chain(options)
-                        .sortBy(function(item){return item.label.split(' - ')[0]}) //sorts on name of gene/term/network
-                        .sortBy(function(item){return item.value.split('!')[0]}) //sorts on type of entry (first gene, then term, then network)
-                        .value();
-                    return callback(null, {options: sorted, complete: false})
+                    // var sorted = _.chain(options)
+                    //     .sortBy(function(item){return item.label.split(' - ')[0]}) //sorts on name of gene/term/network
+                    //     .sortBy(function(item){return item.value.split('!')[0]}) //sorts on type of entry (first gene, then term, then network)
+                    //     .value();
+                    return callback(null, {options: options, complete: false})
                 } else {
                     return callback(null, {})
                 }
