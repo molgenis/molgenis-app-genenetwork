@@ -27,8 +27,9 @@ module.exports = function(req, res) {
             query: {
                 query_string : {
                     fields : ["name", "id"],
-                    query: query.replace(/\:/g, '\\:') + '*',
-                    analyze_wildcard: true
+                    query: query.replace(/\:/g, '\\\:') + '*',
+                    analyze_wildcard: true,
+                    default_operator: 'AND'
                 }
             }
         }
