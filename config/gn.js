@@ -49,6 +49,7 @@ module.exports.urls = {
     svg2pdf: DOMAIN + '/api/v1/svg2pdf',
     // diagnosisResults: domain + '/api/v1/diagnosisResults',
     tabdelim: DOMAIN + '/api/v1/tabdelim',
+    fileupload: DOMAIN + '/api/v1/fileupload',
 
     diagnosisVCF: DOMAIN + '/api/v1/vcf',
 };

@@ -11,6 +11,7 @@ var handleSVG2PDF = require('./requestHandlers/handleSVG2PDF')
 var handleTabdelim = require('./requestHandlers/handleTabdelim')
 var handleEigentest = require('./requestHandlers/handleEigentest')
 var handleVCF = require('./requestHandlers/handleVCF')
+var handleFileUpload = require('./requestHandlers/handleFileUpload')
 
 var handleTemp = require('./requestHandlers/handleTemp')
 
@@ -143,6 +144,15 @@ module.exports = {
 
     temp: function(req, res) {
         handleTemp(req, res)
+    },
+
+    fileupload: function(req, res) {
+        try {
+            handleFileUpload(req, res)
+        } catch (e) {
+            sails.log.error(e)
+            res.serverError()
+        }
     }
 
 //    pc: function(req, res) {

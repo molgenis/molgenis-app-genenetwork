@@ -1437,3 +1437,30 @@ label > input + img {
 	 -moz-box-sizing:border-box;
 
 }
+
+.buttondarkbg {
+    font-family: 'GG';
+    text-decoration: none;
+    color: #ffe100;
+    background-color: #4d4d4d;
+    display: inline-block;
+    padding: 8px;
+    border: 1px solid #ffe100;
+}
+/*
+.buttondarkbg {
+    font-family: 'GG';
+    text-decoration: none;
+    color: #4d4d4d;
+    background-color: #ffe100;
+    display: inline-block;
+    padding: 8px;
+    border: 1px solid #4d4d4d;
+}*/
+
+.buttondarkbg:hover {
+    background-color: #ffe100;
+    color: #4d4d4d;
+    border: 1px solid #ffe100;
+    cursor: pointer;
+}

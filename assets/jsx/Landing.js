@@ -25,7 +25,8 @@ var Landing = React.createClass({
         return {
             pasteGeneList: false,
             onlyGeneList: false,
-            geneList: ''
+            geneList: '',
+            filename: 'upload'
         }
     },
 
@@ -58,17 +59,15 @@ var Landing = React.createClass({
 
         // If a list of genes is passed cancel suggestion search and change state to update components
         if (this.isGeneList(input)) {
-            this.setState({geneList: input,pasteGeneList: true});
+            this.setState({geneList: input, pasteGeneList: true});
             return callback(null, {});
         }
-        console.log(input)
         io.socket.get(GN.urls.suggest,
             {
                 q: input
             },
             function(res, jwres) {
                 if (jwres.statusCode === 200) {
-                    console.log(res)
                     var options = _.compact(_.map(res, function(result) {
                         if (result._type === 'gene') {
                             return {
@@ -90,11 +89,11 @@ var Landing = React.createClass({
                             return null
                         }
                     }));
-                    // var sorted = _.chain(options)
-                    //     .sortBy(function(item){return item.label.split(' - ')[0]}) //sorts on name of gene/term/network
-                    //     .sortBy(function(item){return item.value.split('!')[0]}) //sorts on type of entry (first gene, then term, then network)
-                    //     .value();
-                    return callback(null, {options: options, complete: false})
+                    var sorted = _.chain(options)
+                        .sortBy(function(item){return item.label.split(' - ')[0]}) //sorts on name of gene/term/network
+                        .sortBy(function(item){return item.value.split('!')[0]}) //sorts on type of entry (first gene, then term, then network)
+                        .value();
+                    return callback(null, {options: sorted, complete: false})
                 } else {
                     return callback(null, {})
                 }
@@ -149,10 +148,42 @@ var Landing = React.createClass({
         })
     },
 
-
     onGeneListSubmit: function () {
-        this.setState({ pasteGeneList: false });
-        this.history.pushState({ geneList: this.state.geneList }, '/gene-list/')
+
+        var file = document.getElementById('file-genelist').files[0]
+        var that = this
+        if (!file){
+            //handle search bar gene list
+            this.setState({ pasteGeneList: false });
+            this.history.pushState({ geneList: this.state.geneList }, '/gene-list/')
+
+        } else {
+            //handle file upload
+            var fd = new FormData()
+            fd.append('genelist', file)
+
+            $.ajax({
+                url: GN.urls.fileupload,
+                data: fd,
+                processData: false,
+                contentType: false,
+                type: 'POST',
+                success: function(data){
+                    this.setState({ pasteGeneList: false})
+                    this.history.pushState({ geneList: data }, '/gene-list/')
+                }.bind(that)
+            })
+        }
+    },
+
+    onFileUploadClick: function() {
+        document.getElementById('file-genelist').onchange = function(){
+            var filename = document.getElementById('file-genelist').files[0].name
+            filename = filename.length > 30 ? (filename.slice(0, 30) + '...') : filename
+            this.setState({
+                filename: filename
+            })
+        }.bind(this)
     },
 
     /**
@@ -225,12 +256,26 @@ var Landing = React.createClass({
                         {this.renderSearchBar()}
                     </div>
                     { this.state.pasteGeneList ?
-                        <span
-                            style={{margin: '10px 20px'}}
-                            className='button clickable noselect selectedbutton'
-                            onClick={this.onGeneListSubmit}>
-                            SUBMIT
-                        </span> :
+                        <div>
+                            <form encType="multipart/form-data" >
+
+                                <span
+                                    style={{margin: '10px 10px 20px 20px'}}
+                                    className='buttondarkbg'
+                                    onClick={this.onGeneListSubmit}>
+                                    SUBMIT
+                                </span> 
+                                
+                                <input id="file-genelist" type="file" style={{display: 'none'}}/>
+                                <label htmlFor="file-genelist" className="buttondarkbg" onClick={this.onFileUploadClick}>CHOOSE A FILE...</label>
+                                
+                                <span style={{color: color.colors.gngray}}>
+                                    {this.state.filename === 'upload' ? null : this.state.filename}
+                                </span>
+                           </form>                
+
+                        </div>
+                        :
                         null
                     }
                     <div className='examples noselect defaultcursor'>For example:&nbsp;

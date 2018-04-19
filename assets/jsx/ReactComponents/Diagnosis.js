@@ -584,8 +584,15 @@ var Diagnosis = React.createClass({
           <div className="flex10" style={{backgroundColor: '#ffffff'}}>
              <div className="prio-tables">
 
-            <div style={{paddingTop: '20px', width: ''}}>
-            <ShowPhenotypes3 prio={this.state.data} hoverItem={this.state.hoverItem} />
+            
+
+            <div className='hflex'>
+                <div className='flex11' style={{width: '70%', minWidth: '630px'}}>
+                    <ShowPhenotypes3 prio={this.state.data} hoverItem={this.state.hoverItem} />
+                </div>
+                <div className='flex11' style={{width: '30%'}}>
+                    Heatmap
+                </div>
             </div>
           
           <p>{this.state.data ? 'The ' + this.state.data.results.length + ' highest prioritized genes for the combination of ' + thisThese 
