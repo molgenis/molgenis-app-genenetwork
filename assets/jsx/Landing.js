@@ -182,8 +182,27 @@ var Landing = React.createClass({
             var filename = document.getElementById('file-genelist').files[0].name
             filename = filename.length > 30 ? (filename.slice(0, 30) + '...') : filename
             this.setState({
-                filename: filename
+                filename: ''
             })
+
+            var that = this
+            var file = document.getElementById('file-genelist').files[0]
+            var fd = new FormData()
+            fd.append('genelist', file)
+
+            $.ajax({
+                url: GN.urls.fileupload,
+                data: fd,
+                processData: false,
+                contentType: false,
+                type: 'POST',
+                success: function(data){
+                    this.setState({ pasteGeneList: false})
+                    this.history.pushState({ geneList: data }, '/gene-list/')
+                }.bind(that)
+            })
+
+
         }.bind(this)
     },
 

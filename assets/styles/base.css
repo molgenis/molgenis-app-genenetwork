@@ -992,11 +992,11 @@ line.link {
 /*.diag-table td:nth-child(7), .diag-table th:nth-child(7) {width: 20%; min-width: 100px;}*/
 .diag-table tr {height: 24px;}
 
-.pheno-table td:nth-child(1), .pheno-table th:nth-child(1) {min-width: 40px; padding-left: 10px;}
-.pheno-table td:nth-child(2), .pheno-table th:nth-child(2) {min-width: 250px; width: 100%;}
-.pheno-table td:nth-child(3), .pheno-table th:nth-child(3) {min-width: 150px;}
-.pheno-table td:nth-child(4), .pheno-table th:nth-child(4) {min-width: 80px;}
-.pheno-table td:nth-child(5), .pheno-table th:nth-child(5) {min-width: 80px;}
+/*.pheno-table td:nth-child(1), .pheno-table th:nth-child(1) {min-width: 40px; padding-left: 10px;}*/
+.pheno-table td:nth-child(1), .pheno-table th:nth-child(2) {min-width: 250px; width: 100%; padding-left: 10px;}
+.pheno-table td:nth-child(2), .pheno-table th:nth-child(3) {min-width: 150px;}
+.pheno-table td:nth-child(3), .pheno-table th:nth-child(4) {min-width: 100px;}
+/*.pheno-table td:nth-child(5), .pheno-table th:nth-child(5) {min-width: 80px;}*/
 
 .gene-term-table td, .gene-term-table th { min-width: 80px; width: 100%; text-align: center;}
 .gene-term-table td:nth-child(1), .gene-term-table th:nth-child(1) { padding-left: 6px; text-align: left;}

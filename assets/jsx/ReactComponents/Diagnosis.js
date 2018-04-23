@@ -117,29 +117,29 @@ var ShowPhenotypes3 = React.createClass({
                 </svg>
                 </div>
 
+                // <Td column="COLOR">{square}</Td>
+            // <Td column="ZSCORE" style={{textAlign: 'center'}}>{hoverZScores ? hoverZScores[i] : ""}</Td>
 
             /* The actual phenotype information: */
             rows.push(
                 <Tr key={this.props.prio.terms[i].term.name}>
-                    <Td column="COLOR">{square}</Td>
+                    
                     <Td column="PHENOTYPE">{this.props.prio.terms[i].term.name}</Td>
                     <Td column="ANNOTATED" style={{textAlign: 'center'}}>{this.props.prio.terms[i].term.numAnnotatedGenes}</Td>
                     <Td column="HPOTERM" style={{textAlign: 'center'}}><a className='nodecoration black' href={this.props.prio.terms[i].term.url} target="_blank">{this.props.prio.terms[i].term.id}</a></Td>
-                    <Td column="ZSCORE" style={{textAlign: 'center'}}>{hoverZScores ? hoverZScores[i] : ""}</Td>
                 </Tr>
                 )
         }
 
-
+        // <Th column="ZSCORE" style={{textAlign: 'center'}}>{"Z-SCORE"}</Th>
         /* The table itself & headers: */
+        // <Th column="COLOR">{""}</Th>
         return (
             <Table id="phenTab" className='sortable rowcolors table pheno-table' style={{width: '100%'}}>
             <Thead>
-                <Th column="COLOR">{""}</Th>
                 <Th column="PHENOTYPE" style={{textAlign: 'left'}}>{"PHENOTYPE"}</Th>
                 <Th column="ANNOTATED" style={{textAlign: 'center'}}>{"ANNOTATED GENES"}</Th>
                 <Th column="HPOTERM" style={{textAlign: 'center'}}>{"HPO-TERM"}</Th>
-                <Th column="ZSCORE" style={{textAlign: 'center'}}>{"Z-SCORE"}</Th>
             </Thead>
             {rows}
             </Table>
@@ -524,8 +524,8 @@ var Diagnosis = React.createClass({
     
     componentDidMount: function() {
        async.waterfall([
-            this.loadData,
-            this.createHeatmap
+            this.loadData
+            // this.createHeatmap
         ], function(err){
             if (err) console.log(err)
         })
@@ -673,6 +673,18 @@ var Diagnosis = React.createClass({
     var phenotypePhenotypes = this.state.data.terms.length == 1 ? ' phenotype:' : ' phenotypes:'
     var genesNotFound = this.state.useCustomGeneSet && this.props.location.state.genes.length != 0 ? this.state.data.genesNotFound.join(', ') : undefined
 
+
+            // <div className='hflex'>
+            //     <div className='flex11' style={{maxWidth: '730px'}}>
+            //         <ShowPhenotypes3 prio={this.state.data} hoverItem={this.state.hoverItem} />
+            //     </div>
+            //     <div className='vflex' style={{paddingLeft: '20px', width: '100%'}}>
+            //         <div id='heatmap-title' style={{paddingTop: '7px', paddingBottom: '7px', fontWeight: 'bold'}}>PHENOTYPE CORRELATION</div>
+            //         <div id='heatmap' className='flex11' style={{width: '100%', minWidth: '300px'}}></div>
+            //     </div>
+            // </div>
+
+
         return (
           <DocumentTitle title={'Diagnosis' + GN.pageTitleSuffix}>
           <div style={{backgroundColor: '#ffffff'}}>
@@ -683,8 +695,6 @@ var Diagnosis = React.createClass({
                     <ShowPhenotypes3 prio={this.state.data} hoverItem={this.state.hoverItem} />
                 </div>
                 <div className='vflex' style={{paddingLeft: '20px', width: '100%'}}>
-                    <div id='heatmap-title' style={{paddingTop: '7px', paddingBottom: '7px', fontWeight: 'bold'}}>PHENOTYPE CORRELATION</div>
-                    <div id='heatmap' className='flex11' style={{width: '100%', minWidth: '300px'}}></div>
                 </div>
             </div>
 

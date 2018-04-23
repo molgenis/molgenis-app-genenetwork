@@ -3083,8 +3083,27 @@ var Landing = React.createClass({displayName: "Landing",
             var filename = document.getElementById('file-genelist').files[0].name
             filename = filename.length > 30 ? (filename.slice(0, 30) + '...') : filename
             this.setState({
-                filename: filename
+                filename: ''
             })
+
+            var that = this
+            var file = document.getElementById('file-genelist').files[0]
+            var fd = new FormData()
+            fd.append('genelist', file)
+
+            $.ajax({
+                url: GN.urls.fileupload,
+                data: fd,
+                processData: false,
+                contentType: false,
+                type: 'POST',
+                success: function(data){
+                    this.setState({ pasteGeneList: false})
+                    this.history.pushState({ geneList: data }, '/gene-list/')
+                }.bind(that)
+            })
+
+
         }.bind(this)
     },
 
@@ -5899,29 +5918,29 @@ var ShowPhenotypes3 = React.createClass({displayName: "ShowPhenotypes3",
                 )
                 )
 
+                // <Td column="COLOR">{square}</Td>
+            // <Td column="ZSCORE" style={{textAlign: 'center'}}>{hoverZScores ? hoverZScores[i] : ""}</Td>
 
             /* The actual phenotype information: */
             rows.push(
                 React.createElement(Tr, {key: this.props.prio.terms[i].term.name}, 
-                    React.createElement(Td, {column: "COLOR"}, square), 
+                    
                     React.createElement(Td, {column: "PHENOTYPE"}, this.props.prio.terms[i].term.name), 
                     React.createElement(Td, {column: "ANNOTATED", style: {textAlign: 'center'}}, this.props.prio.terms[i].term.numAnnotatedGenes), 
-                    React.createElement(Td, {column: "HPOTERM", style: {textAlign: 'center'}}, React.createElement("a", {className: "nodecoration black", href: this.props.prio.terms[i].term.url, target: "_blank"}, this.props.prio.terms[i].term.id)), 
-                    React.createElement(Td, {column: "ZSCORE", style: {textAlign: 'center'}}, hoverZScores ? hoverZScores[i] : "")
+                    React.createElement(Td, {column: "HPOTERM", style: {textAlign: 'center'}}, React.createElement("a", {className: "nodecoration black", href: this.props.prio.terms[i].term.url, target: "_blank"}, this.props.prio.terms[i].term.id))
                 )
                 )
         }
 
-
+        // <Th column="ZSCORE" style={{textAlign: 'center'}}>{"Z-SCORE"}</Th>
         /* The table itself & headers: */
+        // <Th column="COLOR">{""}</Th>
         return (
             React.createElement(Table, {id: "phenTab", className: "sortable rowcolors table pheno-table", style: {width: '100%'}}, 
             React.createElement(Thead, null, 
-                React.createElement(Th, {column: "COLOR"}, ""), 
                 React.createElement(Th, {column: "PHENOTYPE", style: {textAlign: 'left'}}, "PHENOTYPE"), 
                 React.createElement(Th, {column: "ANNOTATED", style: {textAlign: 'center'}}, "ANNOTATED GENES"), 
-                React.createElement(Th, {column: "HPOTERM", style: {textAlign: 'center'}}, "HPO-TERM"), 
-                React.createElement(Th, {column: "ZSCORE", style: {textAlign: 'center'}}, "Z-SCORE")
+                React.createElement(Th, {column: "HPOTERM", style: {textAlign: 'center'}}, "HPO-TERM")
             ), 
             rows
             )
@@ -6306,8 +6325,8 @@ var Diagnosis = React.createClass({displayName: "Diagnosis",
     
     componentDidMount: function() {
        async.waterfall([
-            this.loadData,
-            this.createHeatmap
+            this.loadData
+            // this.createHeatmap
         ], function(err){
             if (err) console.log(err)
         })
@@ -6455,6 +6474,18 @@ var Diagnosis = React.createClass({displayName: "Diagnosis",
     var phenotypePhenotypes = this.state.data.terms.length == 1 ? ' phenotype:' : ' phenotypes:'
     var genesNotFound = this.state.useCustomGeneSet && this.props.location.state.genes.length != 0 ? this.state.data.genesNotFound.join(', ') : undefined
 
+
+            // <div className='hflex'>
+            //     <div className='flex11' style={{maxWidth: '730px'}}>
+            //         <ShowPhenotypes3 prio={this.state.data} hoverItem={this.state.hoverItem} />
+            //     </div>
+            //     <div className='vflex' style={{paddingLeft: '20px', width: '100%'}}>
+            //         <div id='heatmap-title' style={{paddingTop: '7px', paddingBottom: '7px', fontWeight: 'bold'}}>PHENOTYPE CORRELATION</div>
+            //         <div id='heatmap' className='flex11' style={{width: '100%', minWidth: '300px'}}></div>
+            //     </div>
+            // </div>
+
+
         return (
           React.createElement(DocumentTitle, {title: 'Diagnosis' + GN.pageTitleSuffix}, 
           React.createElement("div", {style: {backgroundColor: '#ffffff'}}, 
@@ -6464,9 +6495,7 @@ var Diagnosis = React.createClass({displayName: "Diagnosis",
                 React.createElement("div", {className: "flex11", style: {maxWidth: '730px'}}, 
                     React.createElement(ShowPhenotypes3, {prio: this.state.data, hoverItem: this.state.hoverItem})
                 ), 
-                React.createElement("div", {className: "vflex", style: {paddingLeft: '20px', width: '100%'}}, 
-                    React.createElement("div", {id: "heatmap-title", style: {paddingTop: '7px', paddingBottom: '7px', fontWeight: 'bold'}}, "PHENOTYPE CORRELATION"), 
-                    React.createElement("div", {id: "heatmap", className: "flex11", style: {width: '100%', minWidth: '300px'}})
+                React.createElement("div", {className: "vflex", style: {paddingLeft: '20px', width: '100%'}}
                 )
             ), 
 
@@ -6823,7 +6852,7 @@ var DiagnosisMain = React.createClass({displayName: "DiagnosisMain",
 
                                     React.createElement("div", {style: style}, 
                                   React.createElement("div", null, 
-                                  React.createElement("textarea", {id: "textarea-genelist", placeholder: "Paste a list of genes here...", onChange: this.onTextAreaChange, cols: "40", rows: "5", style: {width: '100%', height: '65px', border: '1px solid ' + textcolor, color: textcolor, outline: 'none', marginTop: '20px'}})
+                                  React.createElement("textarea", {id: "textarea-genelist", placeholder: "Paste a list of genes here...", onChange: this.onTextAreaChange, cols: "40", rows: "5", className: "textarea-genes", style: {width: 'calc(100% - 20px)', height: '65px', border: '1px solid ' + color.colors.gngray, color: textcolor, outline: 'none', marginTop: '20px'}})
                                 ), 
 
                                 React.createElement("div", {style: {paddingBottom: '20px', paddingTop: '5px'}}, 

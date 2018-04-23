@@ -261,7 +261,7 @@ var DiagnosisMain = React.createClass({
 
                                     <div style={style}>
                                   <div>
-                                  <textarea id="textarea-genelist" placeholder='Paste a list of genes here...' onChange={this.onTextAreaChange} cols="40" rows="5" style={{width: '100%', height: '65px', border: '1px solid ' + textcolor, color: textcolor, outline: 'none', marginTop: '20px'}}></textarea>
+                                  <textarea id="textarea-genelist" placeholder='Paste a list of genes here...' onChange={this.onTextAreaChange} cols="40" rows="5" className='textarea-genes' style={{width: 'calc(100% - 20px)', height: '65px', border: '1px solid ' + color.colors.gngray, color: textcolor, outline: 'none', marginTop: '20px'}}></textarea>
                                 </div>
 
                                 <div style={{paddingBottom: '20px', paddingTop: '5px'}} >
