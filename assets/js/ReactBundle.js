@@ -5999,7 +5999,8 @@ var GeneTable = React.createClass({displayName: "GeneTable",
                     React.createElement(Td, {column: "BIOTYPE", style: {textAlign: 'center'}}, square), 
                     React.createElement(Td, {column: "RANK", style: {textAlign: 'center'}}, i + 1), 
                     React.createElement(Td, {column: "GENE", style: {textAlign: 'left'}}, React.createElement("a", {className: "nodecoration black", href: geneLink, target: "_blank"}, subTable[i].gene.name)), 
-                    React.createElement(Td, {column: "P-VALUE", style: {textAlign: 'center'}}, unsafe(htmlutil.pValueToReadable(prob.zToP(subTable[i].weightedZScore)))), 
+                    /*<Td column="P-VALUE" style={{textAlign: 'center'}}>{unsafe(htmlutil.pValueToReadable(prob.zToP(subTable[i].weightedZScore)))}</Td>*/
+                    React.createElement(Td, {column: "P-VALUE", style: {textAlign: 'center'}}, unsafe(subTable[i].weightedZScore)), 
                     React.createElement(Td, {column: "DIRECTION", style: {textAlign: 'center'}}, subTable[i].weightedZScore > 0 ? React.createElement(SVGCollection.TriangleUp, {className: "directiontriangleup"}) : React.createElement(SVGCollection.TriangleDown, {className: "directiontriangledown"})), 
                     React.createElement(Td, {column: "ANNOTATION", style: {textAlign: 'center'}}, React.createElement("div", {title: subTable[i].annotated.length == 0 ? "Not annotated to any of the phenotypes." : subTable[i].annotated}, subTable[i].annotated.length)), 
                     React.createElement(Td, {column: "NETWORK", style: {textAlign: 'center'}}, React.createElement("a", {href: networkLink, target: "_blank"}, React.createElement(SVGCollection.NetworkIcon, null))), 
@@ -6049,7 +6050,8 @@ var GeneTable = React.createClass({displayName: "GeneTable",
                     React.createElement(Td, {column: "", style: {textAlign: 'center'}}, square), 
                     React.createElement(Td, {column: "RANK", style: {textAlign: 'center'}}, i + 1), 
                     React.createElement(Td, {column: "GENE", style: {textAlign: 'left'}}, React.createElement("a", {className: "nodecoration black", href: geneLink, target: "_blank", title: this.props.prio.results[i].gene.description}, this.props.prio.results[i].gene.name)), 
-                    React.createElement(Td, {column: "P-VALUE", style: {textAlign: 'center'}}, unsafe(htmlutil.pValueToReadable(prob.zToP(this.props.prio.results[i].weightedZScore)))), 
+                        React.createElement(Td, {column: "P-VALUE", style: {textAlign: 'center'}}, unsafe(this.props.prio.results[i].weightedZScore)), 
+                        /*<Td column="P-VALUE" style={{textAlign: 'center'}}>{unsafe(htmlutil.pValueToReadable(prob.zToP(this.props.prio.results[i].weightedZScore)))}</Td>*/
                     React.createElement(Td, {column: "NETWORK", style: {textAlign: 'center'}}, React.createElement("a", {href: networkLink, target: "_blank"}, React.createElement(SVGCollection.NetworkIcon, null))), 
                     hpoZscores
                     )
@@ -6180,7 +6182,9 @@ var GeneTable = React.createClass({displayName: "GeneTable",
                 React.createElement(Th, null, ""), 
                 React.createElement(Th, {column: "RANK", style: {textAlign: 'center'}}, "RANK"), 
                 React.createElement(Th, {column: "GENE"}, "GENE"), 
-                React.createElement(Th, {column: "P-VALUE", style: {textAlign: 'center'}}, React.createElement("span", {title: "Please ignore this for now"}, "P-VALUE"), " ", React.createElement(I, {title: "Please ignore this for now"})), 
+                React.createElement(Th, {column: "P-VALUE", style: {textAlign: 'center'}}, 
+                    "Z-SCORE"
+                ), 
                 React.createElement(Th, {column: "NETWORK", style: {textAlign: 'center'}}, "NETWORK"), 
                 hpoIds
             ), 
