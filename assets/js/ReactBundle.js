@@ -3201,7 +3201,7 @@ var Landing = React.createClass({displayName: "Landing",
                     
                     React.createElement("div", {className: "examples noselect defaultcursor"}, "For example: ", 
                         React.createElement(Link, {className: "clickable", title: "SMIM1", to: "/gene/SMIM1"}, "SMIM1"), ", ", 
-                        React.createElement(Link, {className: "clickable", title: "Interferon signaling", to: "/network/REACTOME:INTERFERON_SIGNALING"}, "Interferon signaling"), ", ", 
+                        React.createElement(Link, {className: "clickable", title: "Interferon signaling", to: "/network/REACTOME:R-HSA-913531"}, "Interferon signaling"), ", ", 
                         React.createElement(Link, {className: "clickable", title: "Migraine", to: "/network/3ZLYoS", params: {ids: 'Migraine'}}, "Migraine"), ", ", 
                         React.createElement(Link, {className: "clickable", title: "Autism", to: "/network/2iGTR8", params: {ids: 'Autism'}}, "Autism")
                     )
