@@ -144,7 +144,8 @@ var Landing = React.createClass({
     onFunctionEnrichmentCancelClick: function () {
         this.setState({
             onlyGeneList: false,
-            pasteGeneList: false
+            pasteGeneList: false,
+            filename: 'upload'
         })
     },
 
@@ -260,7 +261,7 @@ var Landing = React.createClass({
                             <form encType="multipart/form-data" >
 
                                 <span
-                                    style={{margin: '10px 10px 20px 20px'}}
+                                    style={{margin: '10px 10px 0px 20px'}}
                                     className='buttondarkbg'
                                     onClick={this.onGeneListSubmit}>
                                     SUBMIT

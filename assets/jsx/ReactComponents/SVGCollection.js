@@ -214,6 +214,22 @@ exp.Annotated = React.createClass({
     }
 })
 
+exp.CheckBox = React.createClass({
+    render: function() {
+        return (
+                <svg viewBox='0 0 25 25' width='25' height='25' style={{position: 'absolute'}}>
+                    <rect style={{strokeWidth: '1.5px', stroke: color.colors.gngray, fill: 'none'}} width='20px' height='20px' y="2px" x="2px"/>
+                    
+                    {this.props.selected ? 
+                        <polyline points='1,11 6,15 15,6' style={{strokeWidth: '2.5px', stroke: color.colors.gngreen, fill: 'none'}} transform="translate(4,2)"/>
+                    :
+                        null
+                    }                    
+                </svg>
+        )
+    }
+})
+
 exp.NotAnnotated = React.createClass({
     render: function() {
         return (
