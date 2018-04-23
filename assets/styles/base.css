@@ -902,12 +902,12 @@ line.link {
 }
 
 .table tbody {
-    display: block;
+    /*display: block;*/
 }
 
 .table thead {
     /*width: 620px;*/
-    display: block;
+    /*display: block;*/
     border-bottom: 1px solid #dcdcdc;
 }
 
@@ -958,17 +958,36 @@ line.link {
     background-color: #f8f8f8;
 }
 
+.diag-table {max-width: calc(100% - 30px);}
+
 .diag-table tbody {
     overflow: auto;
     max-height: 350px;
 }
+.diag-table th {
+    outline: 0;
+}
+
+/*.diag-table td, .diag-table th {width: 60px;}*/
+
+/*.diag-table td:nth-last-child(n+6), .diag-table th:nth-last-child(n+6) {width: 20%;}*/
+/*.diag-table td:nth-child(1), .diag-table th:nth-child(1) {width: 40px;}*/
+/*.diag-table td:nth-child(2), .diag-table th:nth-child(2) {width: 60px;}*/
+
+/*.diag-table td:nth-child(n+3), .diag-table th:nth-child(n+3) {width: 50px; max-width: 50px;}*/
+
+
+/*.diag-table td:nth-child(1), .diag-table th:nth-child(1) {width: 40px;}*/
+/*.diag-table td:nth-child(2), .diag-table th:nth-child(2) {width: 50px;}*/
+
 
 /*.diag-table td, .diag-table th {width: 20%;}*/
-.diag-table td:nth-child(1), .diag-table th:nth-child(1) {min-width: 40px; padding-left: 10px;}
-.diag-table td:nth-child(2), .diag-table th:nth-child(2) {min-width: 100px;}
-.diag-table td:nth-child(3), .diag-table th:nth-child(3) {width: 33%; min-width: 100px;}
-.diag-table td:nth-child(4), .diag-table th:nth-child(4) {width: 33%; min-width: 100px;}
-.diag-table td:nth-child(5), .diag-table th:nth-child(5) {width: 33%; min-width: 100px;}
+/*.diag-table td:nth-child(1), .diag-table th:nth-child(1) {min-width: 40px; padding-left: 10px;}*/
+/*.diag-table td:nth-child(2), .diag-table th:nth-child(2) {min-width: 100px;}*/
+/*.diag-table td:nth-child(3), .diag-table th:nth-child(3) {width: 33%; min-width: 100px;}*/
+/*.diag-table td:nth-child(4), .diag-table th:nth-child(4) {width: 33%; min-width: 100px;}*/
+/*.diag-table td:nth-child(5), .diag-table th:nth-child(5) {width: 33%; min-width: 100px;}*/
+
 /*.diag-table td:nth-child(6), .diag-table th:nth-child(6) {width: 20%; min-width: 110px;}*/
 /*.diag-table td:nth-child(7), .diag-table th:nth-child(7) {width: 20%; min-width: 100px;}*/
 .diag-table tr {height: 24px;}

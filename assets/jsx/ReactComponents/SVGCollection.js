@@ -256,6 +256,16 @@ exp.NetworkIcon = React.createClass({
     }
 })
 
+exp.DiagonalText = React.createClass({
+    render: function(){
+        return (
+            <svg width='90' height='90' style={{position: 'absolute', transform: 'translate(0, -75px)'}}>
+                <text y='70' x='-50' style={{transform: 'rotate(-45deg)'}}>{this.props.text}</text>
+            </svg>
+        )
+    }
+})
+
 exp.ListIcon = React.createClass({
 
     propTypes: {

@@ -6019,13 +6019,20 @@ var GeneTable = React.createClass({displayName: "GeneTable",
                 // <Td column="DIRECTION" style={{textAlign: 'center'}}>{this.props.prio.results[i].weightedZScore > 0 ? <SVGCollection.TriangleUp className='directiontriangleup' /> : <SVGCollection.TriangleDown className='directiontriangledown' />}</Td>
                 // <Td column="ANNOTATION" style={{textAlign: 'center'}}><div title={this.props.prio.results[i].annotated.length == 0 ? "Not annotated to any of the phenotypes." : this.props.prio.results[i].annotated}>{this.props.prio.results[i].annotated.length}</div></Td>
 
+
+                var hpoZscores = []
+                for (var e = 0; e < this.props.prio.results[i].predicted.length; e++){
+                    hpoZscores.push(React.createElement(Td, {column: this.props.prio.terms[e].term.id}, Math.round(this.props.prio.results[i].predicted[e] * 10)/10))
+                }
+
                 newRows.push(
                     React.createElement(Tr, {key: i, onMouseOver: this.props.onMouseOver.bind(null, this.props.prio.results[i])}, 
                     React.createElement(Td, {column: "", style: {textAlign: 'center'}}, square), 
                     React.createElement(Td, {column: "RANK", style: {textAlign: 'center'}}, i + 1), 
                     React.createElement(Td, {column: "GENE", style: {textAlign: 'left'}}, React.createElement("a", {className: "nodecoration black", href: geneLink, target: "_blank", title: this.props.prio.results[i].gene.description}, this.props.prio.results[i].gene.name)), 
                     React.createElement(Td, {column: "P-VALUE", style: {textAlign: 'center'}}, unsafe(htmlutil.pValueToReadable(prob.zToP(this.props.prio.results[i].weightedZScore)))), 
-                    React.createElement(Td, {column: "NETWORK", style: {textAlign: 'center'}}, React.createElement("a", {href: networkLink, target: "_blank"}, React.createElement(SVGCollection.NetworkIcon, null)))
+                    React.createElement(Td, {column: "NETWORK", style: {textAlign: 'center'}}, React.createElement("a", {href: networkLink, target: "_blank"}, React.createElement(SVGCollection.NetworkIcon, null))), 
+                    hpoZscores
                     )
                 )
             }
@@ -6044,6 +6051,15 @@ var GeneTable = React.createClass({displayName: "GeneTable",
         if (subTable && subTable.length == 0) {
             newRows.push(React.createElement(Tr, {key: "1"}, React.createElement(Td, {column: ""}, "Your list of genes did not match any of the results.")))
         }
+
+        var hpoIds = []
+        for (var n = 0; n < this.props.prio.terms.length; n++){
+            hpoIds.push(React.createElement(Th, {column: this.props.prio.terms[n].term.id}, React.createElement(SVGCollection.DiagonalText, {text: this.props.prio.terms[n].term.id})))
+        }
+
+        // var hpoIds = _.map(this.props.prio.terms, function(item){
+        //     return (<Th column={item.term.id}>{"x"}</Th>)
+        // })
 
         /* The actual table, with custom sorting: */
         return (React.createElement(Table, {id: "gentab", className: "sortable rowcolors table diag-table", style: {width: '100%'}, 
@@ -6146,7 +6162,8 @@ var GeneTable = React.createClass({displayName: "GeneTable",
                 React.createElement(Th, {column: "RANK", style: {textAlign: 'center'}}, "RANK"), 
                 React.createElement(Th, {column: "GENE"}, "GENE"), 
                 React.createElement(Th, {column: "P-VALUE", style: {textAlign: 'center'}}, React.createElement("span", {title: "Please ignore this for now"}, "P-VALUE"), " ", React.createElement(I, {title: "Please ignore this for now"})), 
-                React.createElement(Th, {column: "NETWORK", style: {textAlign: 'center'}}, "NETWORK")
+                React.createElement(Th, {column: "NETWORK", style: {textAlign: 'center'}}, "NETWORK"), 
+                hpoIds
             ), 
             newRows
             ))
@@ -6436,7 +6453,7 @@ var Diagnosis = React.createClass({displayName: "Diagnosis",
 
     var thisThese = this.state.data.terms.length == 1 ? 'this ' : 'these '
     var phenotypePhenotypes = this.state.data.terms.length == 1 ? ' phenotype:' : ' phenotypes:'
-    var genesNotFound = this.state.useCustomGeneSet ? this.state.data.genesNotFound.join(', ') : undefined
+    var genesNotFound = this.state.useCustomGeneSet && this.props.location.state.genes.length != 0 ? this.state.data.genesNotFound.join(', ') : undefined
 
         return (
           React.createElement(DocumentTitle, {title: 'Diagnosis' + GN.pageTitleSuffix}, 
@@ -6455,18 +6472,18 @@ var Diagnosis = React.createClass({displayName: "Diagnosis",
 
             this.state.useCustomGeneSet ? 
                 React.createElement("div", null, 
-                    React.createElement("div", {style: {padding: '20px 0px 10px 0px'}}, 
+                    React.createElement("div", {style: {padding: '20px 0px 10px 0px', marginTop: '20px'}}, 
                     React.createElement("h3", null, "Genes not found"), 
                     genesNotFound
                     ), 
-                    React.createElement("div", {style: {padding: '10px 0px 10px 0px'}}, 
+                    React.createElement("div", {style: {padding: '10px 0px 10px 0px', marginBottom: '40px'}}, 
                     React.createElement("h3", null, "Genes found"), 
                          this.state.data ? 'The ' + this.state.data.results.length + ' prioritized selected genes for the combination of ' + thisThese 
                         + this.state.data.terms.length + phenotypePhenotypes : 'loading'
                     )
                 )
                 :
-                React.createElement("div", {style: {padding: '20px 0px 10px 0px'}}, 
+                React.createElement("div", {style: {padding: '20px 0px 10px 0px', marginTop: '20px', marginBottom: '40px'}}, 
                     this.state.data ? 'The ' + this.state.data.results.length + ' highest prioritized genes for the combination of ' + thisThese 
                  + this.state.data.terms.length + phenotypePhenotypes : 'loading'
                 ), 
@@ -6745,7 +6762,7 @@ var DiagnosisMain = React.createClass({displayName: "DiagnosisMain",
 
     render: function() {
         var textcolor = this.state.checkbox ? '#000' : color.colors.gngray
-
+        var style = this.state.checkbox ? {transition: 'all .5s ease-in-out', height: '150px', overflow: 'hidden'} : {transition: 'all .5s ease-in-out', overflow: 'hidden', height: '0px'}
         return (
                 React.createElement(DocumentTitle, {title: 'Diagnosis' + GN.pageTitleSuffix}, 
                 React.createElement("div", {className: "flex10", style: {backgroundColor: color.colors.gnwhite, marginTop: '10px', padding: '40px'}}, 
@@ -6800,22 +6817,24 @@ var DiagnosisMain = React.createClass({displayName: "DiagnosisMain",
                                     React.createElement(SVGCollection.CheckBox, {selected: this.state.checkbox})
                                   ), 
                                   
-                                  React.createElement("div", {style: {width: '310px', float: 'left'}}, React.createElement("h3", {style: {paddingLeft: '30px', color: textcolor}}, "OPTIONAL: select genes to prioritize")), 
-                                  
-                                  React.createElement("div", {style: {float: 'right', paddingBottom: '20px'}}, 
+                                  React.createElement("div", null, React.createElement("h3", {style: {paddingLeft: '30px', color: textcolor, cursor: 'pointer'}, onClick: this.onCheckboxClick}, "OPTIONAL: filter output on candidate genes")), 
+
+                                    React.createElement("input", {type: "checkbox", id: "checkbox", style: {display: 'none'}}), 
+
+                                    React.createElement("div", {style: style}, 
+                                  React.createElement("div", null, 
+                                  React.createElement("textarea", {id: "textarea-genelist", placeholder: "Paste a list of genes here...", onChange: this.onTextAreaChange, cols: "40", rows: "5", style: {width: '100%', height: '65px', border: '1px solid ' + textcolor, color: textcolor, outline: 'none', marginTop: '20px'}})
+                                ), 
+
+                                React.createElement("div", {style: {paddingBottom: '20px', paddingTop: '5px'}}, 
                                         React.createElement("form", {encType: "multipart/form-data"}, 
                                           React.createElement("input", {id: "file-genelist", type: "file", style: {display: 'none'}}), 
                                           React.createElement("label", {htmlFor: "file-genelist", onClick: this.onFileUploadClick}, 
                                             React.createElement(UploadPanel, {text: this.state.filename})
                                           )
                                         )
-                                    ), 
-                                    React.createElement("input", {type: "checkbox", id: "checkbox", style: {display: 'none'}}), 
-
-                                  React.createElement("div", null, 
-                                  React.createElement("textarea", {id: "textarea-genelist", placeholder: "Paste a list of genes here...", onChange: this.onTextAreaChange, cols: "40", rows: "5", style: {width: '100%', height: '65px', border: '1px solid ' + textcolor, color: textcolor, outline: 'none', marginTop: '20px'}})
-                                )
-
+                                    )
+                                    )
                               )
                               ), 
                                 React.createElement("span", {onClick: this.onSubmit, className: "button noselect clickable", style: {marginTop: '20px'}}, "Prioritize genes for given HPO terms")
@@ -8016,6 +8035,16 @@ exp.NetworkIcon = React.createClass({displayName: "NetworkIcon",
                 React.createElement("circle", {cx: "14", cy: "14", r: "1.5", style: {fill: color.colors.gndarkgray}}), 
                 React.createElement("circle", {cx: "7", cy: "14", r: "1.5", style: {fill: color.colors.gndarkgray}})
                 )
+        )
+    }
+})
+
+exp.DiagonalText = React.createClass({displayName: "DiagonalText",
+    render: function(){
+        return (
+            React.createElement("svg", {width: "90", height: "90", style: {position: 'absolute', transform: 'translate(0, -75px)'}}, 
+                React.createElement("text", {y: "70", x: "-50", style: {transform: 'rotate(-45deg)'}}, this.props.text)
+            )
         )
     }
 })

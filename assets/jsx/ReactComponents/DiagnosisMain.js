@@ -200,7 +200,7 @@ var DiagnosisMain = React.createClass({
 
     render: function() {
         var textcolor = this.state.checkbox ? '#000' : color.colors.gngray
-
+        var style = this.state.checkbox ? {transition: 'all .5s ease-in-out', height: '150px', overflow: 'hidden'} : {transition: 'all .5s ease-in-out', overflow: 'hidden', height: '0px'}
         return (
                 <DocumentTitle title={'Diagnosis' + GN.pageTitleSuffix}>
                 <div className='flex10' style={{backgroundColor: color.colors.gnwhite, marginTop: '10px', padding: '40px'}}>
@@ -255,9 +255,16 @@ var DiagnosisMain = React.createClass({
                                     <SVGCollection.CheckBox selected={this.state.checkbox}/>
                                   </label>
                                   
-                                  <div style={{width: '310px', float: 'left'}}><h3 style={{paddingLeft: '30px', color: textcolor}}>OPTIONAL: select genes to prioritize</h3></div>
-                                  
-                                  <div style={{float: 'right', paddingBottom: '20px'}} >
+                                  <div><h3 style={{paddingLeft: '30px', color: textcolor, cursor: 'pointer'}} onClick={this.onCheckboxClick}>OPTIONAL: filter output on candidate genes</h3></div>
+
+                                    <input type="checkbox" id="checkbox" style={{display: 'none'}}/>
+
+                                    <div style={style}>
+                                  <div>
+                                  <textarea id="textarea-genelist" placeholder='Paste a list of genes here...' onChange={this.onTextAreaChange} cols="40" rows="5" style={{width: '100%', height: '65px', border: '1px solid ' + textcolor, color: textcolor, outline: 'none', marginTop: '20px'}}></textarea>
+                                </div>
+
+                                <div style={{paddingBottom: '20px', paddingTop: '5px'}} >
                                         <form encType='multipart/form-data'>
                                           <input id="file-genelist" type="file" style={{display: 'none'}}/>
                                           <label htmlFor='file-genelist' onClick={this.onFileUploadClick}>
@@ -265,12 +272,7 @@ var DiagnosisMain = React.createClass({
                                           </label>
                                         </form>
                                     </div>
-                                    <input type="checkbox" id="checkbox" style={{display: 'none'}}/>
-
-                                  <div>
-                                  <textarea id="textarea-genelist" placeholder='Paste a list of genes here...' onChange={this.onTextAreaChange} cols="40" rows="5" style={{width: '100%', height: '65px', border: '1px solid ' + textcolor, color: textcolor, outline: 'none', marginTop: '20px'}}></textarea>
-                                </div>
-
+                                    </div>
                               </div>
                               </div>
                                 <span onClick={this.onSubmit} className='button noselect clickable' style={{marginTop: '20px'}}>Prioritize genes for given HPO terms</span>

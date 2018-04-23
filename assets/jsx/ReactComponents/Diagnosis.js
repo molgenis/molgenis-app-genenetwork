@@ -237,6 +237,12 @@ var GeneTable = React.createClass({
                 // <Td column="DIRECTION" style={{textAlign: 'center'}}>{this.props.prio.results[i].weightedZScore > 0 ? <SVGCollection.TriangleUp className='directiontriangleup' /> : <SVGCollection.TriangleDown className='directiontriangledown' />}</Td>
                 // <Td column="ANNOTATION" style={{textAlign: 'center'}}><div title={this.props.prio.results[i].annotated.length == 0 ? "Not annotated to any of the phenotypes." : this.props.prio.results[i].annotated}>{this.props.prio.results[i].annotated.length}</div></Td>
 
+
+                var hpoZscores = []
+                for (var e = 0; e < this.props.prio.results[i].predicted.length; e++){
+                    hpoZscores.push(<Td column={this.props.prio.terms[e].term.id}>{Math.round(this.props.prio.results[i].predicted[e] * 10)/10}</Td>)
+                }
+
                 newRows.push(
                     <Tr key={i} onMouseOver={this.props.onMouseOver.bind(null, this.props.prio.results[i])}>
                     <Td column="" style={{textAlign: 'center'}}>{square}</Td>
@@ -244,6 +250,7 @@ var GeneTable = React.createClass({
                     <Td column="GENE" style={{textAlign: 'left'}}><a className='nodecoration black' href={geneLink} target="_blank" title={this.props.prio.results[i].gene.description}>{this.props.prio.results[i].gene.name}</a></Td>
                     <Td column="P-VALUE" style={{textAlign: 'center'}}>{unsafe(htmlutil.pValueToReadable(prob.zToP(this.props.prio.results[i].weightedZScore)))}</Td>
                     <Td column="NETWORK" style={{textAlign: 'center'}}><a href={networkLink} target="_blank"><SVGCollection.NetworkIcon /></a></Td>
+                    {hpoZscores}
                     </Tr>
                 )
             }
@@ -262,6 +269,15 @@ var GeneTable = React.createClass({
         if (subTable && subTable.length == 0) {
             newRows.push(<Tr key="1"><Td column="">Your list of genes did not match any of the results.</Td></Tr>)
         }
+
+        var hpoIds = []
+        for (var n = 0; n < this.props.prio.terms.length; n++){
+            hpoIds.push(<Th column={this.props.prio.terms[n].term.id}><SVGCollection.DiagonalText text={this.props.prio.terms[n].term.id} /></Th>)
+        }
+
+        // var hpoIds = _.map(this.props.prio.terms, function(item){
+        //     return (<Th column={item.term.id}>{"x"}</Th>)
+        // })
 
         /* The actual table, with custom sorting: */
         return (<Table id="gentab" className='sortable rowcolors table diag-table' style={{width: '100%'}} 
@@ -365,6 +381,7 @@ var GeneTable = React.createClass({
                 <Th column="GENE">{"GENE"}</Th>
                 <Th column="P-VALUE" style={{textAlign: 'center'}}><span title="Please ignore this for now">{"P-VALUE"}</span> <I title="Please ignore this for now"/></Th>
                 <Th column="NETWORK" style={{textAlign: 'center'}}>{"NETWORK"}</Th>
+                {hpoIds}
             </Thead> 
             {newRows}
             </Table>)
@@ -654,7 +671,7 @@ var Diagnosis = React.createClass({
 
     var thisThese = this.state.data.terms.length == 1 ? 'this ' : 'these '
     var phenotypePhenotypes = this.state.data.terms.length == 1 ? ' phenotype:' : ' phenotypes:'
-    var genesNotFound = this.state.useCustomGeneSet ? this.state.data.genesNotFound.join(', ') : undefined
+    var genesNotFound = this.state.useCustomGeneSet && this.props.location.state.genes.length != 0 ? this.state.data.genesNotFound.join(', ') : undefined
 
         return (
           <DocumentTitle title={'Diagnosis' + GN.pageTitleSuffix}>
@@ -673,18 +690,18 @@ var Diagnosis = React.createClass({
 
             {this.state.useCustomGeneSet ? 
                 <div>
-                    <div style={{padding: '20px 0px 10px 0px'}}>
+                    <div style={{padding: '20px 0px 10px 0px', marginTop: '20px'}}>
                     <h3>Genes not found</h3> 
                     {genesNotFound}
                     </div>
-                    <div style={{padding: '10px 0px 10px 0px'}}>
+                    <div style={{padding: '10px 0px 10px 0px', marginBottom: '40px'}}>
                     <h3>Genes found</h3>
                          {this.state.data ? 'The ' + this.state.data.results.length + ' prioritized selected genes for the combination of ' + thisThese 
                         + this.state.data.terms.length + phenotypePhenotypes : 'loading'}
                     </div>
                 </div>
                 :
-                <div style={{padding: '20px 0px 10px 0px'}}>
+                <div style={{padding: '20px 0px 10px 0px', marginTop: '20px', marginBottom: '40px'}}>
                     {this.state.data ? 'The ' + this.state.data.results.length + ' highest prioritized genes for the combination of ' + thisThese 
                  + this.state.data.terms.length + phenotypePhenotypes : 'loading'}
                 </div>
