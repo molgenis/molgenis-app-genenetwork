@@ -4,7 +4,7 @@ var async = require('async')
 
 module.exports = function(req, res) {
 
-    req.file('genelist').upload({maxBytes: 10000000, dirname: sails.config.genelistUploadDir}, function(err, files){
+    req.file('genelist').upload({maxBytes: 10000000}, function(err, files){
         if (err) {
             return res.serverError
         }
