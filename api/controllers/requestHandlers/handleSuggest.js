@@ -27,7 +27,9 @@ module.exports = function(req, res) {
             query: {
                 query_string : {
                     fields : ["name", "id"],
-                    query : query.replace(/\:/g, '\:') + '*'
+                    query: query.replace(/\:/g, '\\\:') + '*',
+                    analyze_wildcard: true,
+                    default_operator: 'AND'
                 }
             }
         }
@@ -36,6 +38,7 @@ module.exports = function(req, res) {
             sails.log.warn(err);
             return res.serverError()
         } else {
+            console.log(result[0])
             sails.log.debug('Suggest options for %s: %d', query, result.hits.total);
             if (result.hits.total > 0) {
                 return res.json(result.hits.hits)

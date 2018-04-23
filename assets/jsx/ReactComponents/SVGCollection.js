@@ -214,6 +214,22 @@ exp.Annotated = React.createClass({
     }
 })
 
+exp.CheckBox = React.createClass({
+    render: function() {
+        return (
+                <svg viewBox='0 0 25 25' width='25' height='25' style={{position: 'absolute'}}>
+                    <rect style={{strokeWidth: '1.5px', stroke: color.colors.gngray, fill: 'none'}} width='20px' height='20px' y="2px" x="2px"/>
+                    
+                    {this.props.selected ? 
+                        <polyline points='1,11 6,15 15,6' style={{strokeWidth: '2.5px', stroke: color.colors.gngreen, fill: 'none'}} transform="translate(4,2)"/>
+                    :
+                        null
+                    }                    
+                </svg>
+        )
+    }
+})
+
 exp.NotAnnotated = React.createClass({
     render: function() {
         return (
@@ -240,6 +256,16 @@ exp.NetworkIcon = React.createClass({
     }
 })
 
+exp.DiagonalText = React.createClass({
+    render: function(){
+        return (
+            <svg width='90' height='90' style={{position: 'absolute', transform: 'translate(0, -75px)'}}>
+                <text y='70' x='-50' style={{transform: 'rotate(-45deg)'}}>{this.props.text}</text>
+            </svg>
+        )
+    }
+})
+
 exp.ListIcon = React.createClass({
 
     propTypes: {
@@ -257,12 +283,12 @@ exp.ListIcon = React.createClass({
         let viewBox = '0 0 ' + size + ' ' + size;
 
         for (var i = 0; i < this.props.n; i++) {
-            lines.push(<line key={i} x1='0' y1={2 + n *i} x2={size} y2={2 + n * i} />);
+            lines.push(<line key={i} x1='0' y1={2 + n * i * 1.5} x2={size} y2={2 + n * i * 1.5} />);
         }
 
         return (
             <div style={{display: 'inline-block'}}>
-                <svg viewBox={viewBox} width={this.props.w} height={this.props.h} style={{shapeRendering: 'crispEdges', strokeWidth: 1, stroke: this.props.color || color.colors.gngray}}>
+                <svg viewBox={viewBox} width={this.props.w} height={this.props.h} style={{shapeRendering: 'crispEdges', strokeWidth: 1.5, stroke: this.props.color || color.colors.gngray}}>
                     {lines}
                 </svg>
             </div>
@@ -381,7 +407,7 @@ exp.I = React.createClass({
                         <text fill={color.colors.gndarkgray} transform="matrix(1 0 0 1 7.761 14.583)">i</text>
                     </g>
                 </svg>
-                <ReactTooltip place="bottom" type="dark" effect="solid" class='tooltip'/>
+                <ReactTooltip multiline={true} place="bottom" effect="solid" class='tooltip'/>
             </div>
         )
     }

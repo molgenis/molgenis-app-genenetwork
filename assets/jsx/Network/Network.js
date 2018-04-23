@@ -221,7 +221,7 @@ var Network = React.createClass({
             addedGenes: [],
             selectedTissue: 'data',
             selectedTerm: 'Pathway',
-            showGenes: true,
+            showGenes: true, //set to false to see old network page
             tab: 'network',
             genes: genes,
             gpMessage: null
@@ -770,7 +770,6 @@ var Network = React.createClass({
 
     render: function() {
         var pageTitle = this.state.error ? this.state.errorTitle : 'Loading' + GN.pageTitleSuffix;
-
         if (!this.state.progressDone || !this.state.data) {
             return (
                     <DocumentTitle title={pageTitle}>
@@ -809,6 +808,7 @@ var Network = React.createClass({
             )
 
         } else {
+            console.log(this.state.data)
             pageTitle = this.state.data.elements.nodes.length + ' genes' + GN.pageTitleSuffix;
             var title = this.state.data.pathway != null ? (this.state.data.pathway.database + ': ' + this.state.data.pathway.name) : null;
             var predictedgenes = (
@@ -933,7 +933,7 @@ var Network = React.createClass({
 
                                 <div className='flex11' />
                                 <div className='gn-term-description-stats' style={{textAlign: 'right'}}>
-
+                                    {this.state.data.pathway ? "Prediction accuracy " + Math.round(this.state.data.pathway.auc * 100)/100 : null}
                                 </div>
                             </div>
                         </div>

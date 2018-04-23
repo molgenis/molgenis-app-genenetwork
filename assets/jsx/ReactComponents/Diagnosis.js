@@ -1,6 +1,7 @@
 'use strict'
 
 var _ = require('lodash')
+var async = require('async');
 var color = require('../../js/color')
 var htmlutil = require('../../js/htmlutil')
 var genstats = require('genstats')
@@ -14,12 +15,14 @@ var SVGCollection = require('./SVGCollection')
 var I = SVGCollection.I
 var htmlutil = require('../../js/htmlutil')
 var color = require('../../js/color')
+var D3Heatmap = require('../../js/D3Heatmap')
 
 var reactable = require('reactable')
 var Tr = reactable.Tr
 var Td = reactable.Td
 var Th = reactable.Th
 var Thead = reactable.Thead
+var Tbody = reactable.Tbody
 var Table = reactable.Table
 var unsafe = reactable.unsafe
 
@@ -108,43 +111,43 @@ var ShowPhenotypes3 = React.createClass({
 
             /* Coloured squares: */
             var square =
-                <div style={this.props.style}>
+                <div style={{height: '20px'}}>
                 <svg viewBox='0 0 10 10' width={20} height={this.props.h}>
                 <rect x1='0' y1='0' width='10' height='10' style={{fill: backgroundColour}} />
                 </svg>
                 </div>
 
+                // <Td column="COLOR">{square}</Td>
+            // <Td column="ZSCORE" style={{textAlign: 'center'}}>{hoverZScores ? hoverZScores[i] : ""}</Td>
 
             /* The actual phenotype information: */
             rows.push(
-                <tr key={this.props.prio.terms[i].term.name} >
-                <td>{square}</td>
-                <td style={{textAlign: 'left'}}>{this.props.prio.terms[i].term.name}</td>
-                <td style={{textAlign: 'left'}}>{this.props.prio.terms[i].term.numAnnotatedGenes}</td>
-                <td style={{textAlign: 'left'}}><a className='nodecoration black' href={this.props.prio.terms[i].term.url} 
-                    target="_blank">{this.props.prio.terms[i].term.id}</a></td>
-                <td style={{textAlign: 'left'}}>{hoverZScores ? hoverZScores[i] : ""}</td>
-                </tr>
+                <Tr key={this.props.prio.terms[i].term.name}>
+                    
+                    <Td column="PHENOTYPE">{this.props.prio.terms[i].term.name}</Td>
+                    <Td column="ANNOTATED" style={{textAlign: 'center'}}>{this.props.prio.terms[i].term.numAnnotatedGenes}</Td>
+                    <Td column="HPOTERM" style={{textAlign: 'center'}}><a className='nodecoration black' href={this.props.prio.terms[i].term.url} target="_blank">{this.props.prio.terms[i].term.id}</a></Td>
+                </Tr>
                 )
         }
 
+        // <Th column="ZSCORE" style={{textAlign: 'center'}}>{"Z-SCORE"}</Th>
         /* The table itself & headers: */
+        // <Th column="COLOR">{""}</Th>
         return (
-            <table id="phenTab" className='gn-gene-table datatable' style={{width: '100%'}}>
-            <tbody>
-            <tr>
-            <th></th>
-            <th style={{textAlign: 'left'}}>PHENOTYPE</th>
-            <th style={{textAlign: 'left'}}>ANNOTATED GENES</th>
-            <th style={{textAlign: 'left'}}>HPO-TERM</th>
-            <th style={{textAlign: 'left'}}>Z-SCORE</th>
-            </tr>
+            <Table id="phenTab" className='sortable rowcolors table pheno-table' style={{width: '100%'}}>
+            <Thead>
+                <Th column="PHENOTYPE" style={{textAlign: 'left'}}>{"PHENOTYPE"}</Th>
+                <Th column="ANNOTATED" style={{textAlign: 'center'}}>{"ANNOTATED GENES"}</Th>
+                <Th column="HPOTERM" style={{textAlign: 'center'}}>{"HPO-TERM"}</Th>
+            </Thead>
             {rows}
-            </tbody>
-            </table>
+            </Table>
         )
     }
 })
+
+
 
 /* Shows a table of all of the prioritized genes: */
 
@@ -175,7 +178,7 @@ var GeneTable = React.createClass({
                 /* biotype squares: */
                 var square =
                     <div style={this.props.style} title={subTable[i].gene.biotype}>
-                    <svg viewBox='0 0 10 10' width={20} height={this.props.h}>
+                    <svg viewBox='0 0 10 10' width={10} height={10}>
                     <rect x1='0' y1='0' width='10' height='10' style={{fill: color.biotype2color[subTable[i].gene.biotype] || color.colors.default}} />
                     </svg>
                     </div>
@@ -194,7 +197,7 @@ var GeneTable = React.createClass({
                     <Tr key={i} className = {rowtype} onMouseOver={this.props.onMouseOver.bind(null, subTable[i].predicted)}>
                     <Td column="BIOTYPE" style={{textAlign: 'center'}}>{square}</Td>
                     <Td column="RANK" style={{textAlign: 'center'}}>{i + 1}</Td>
-                    <Td column="GENE" style={{textAlign: 'center'}}><a className='nodecoration black' href={geneLink} target="_blank">{subTable[i].gene.name}</a></Td>
+                    <Td column="GENE" style={{textAlign: 'left'}}><a className='nodecoration black' href={geneLink} target="_blank">{subTable[i].gene.name}</a></Td>
                     <Td column="P-VALUE" style={{textAlign: 'center'}}>{unsafe(htmlutil.pValueToReadable(prob.zToP(subTable[i].weightedZScore)))}</Td>
                     <Td column="DIRECTION" style={{textAlign: 'center'}}>{subTable[i].weightedZScore > 0 ? <SVGCollection.TriangleUp className='directiontriangleup' /> : <SVGCollection.TriangleDown className='directiontriangledown' />}</Td>
                     <Td column="ANNOTATION" style={{textAlign: 'center'}}><div title={subTable[i].annotated.length == 0 ? "Not annotated to any of the phenotypes." : subTable[i].annotated}>{subTable[i].annotated.length}</div></Td>
@@ -222,22 +225,32 @@ var GeneTable = React.createClass({
                 /* biotype squares: */
                 var square =
                     <div style={this.props.style} title={this.props.prio.results[i].gene.biotype}>
-                    <svg viewBox='0 0 10 10' width={20} height={this.props.h}>
+                    <svg viewBox='0 0 10 10' width={12} height={12}>
                     <rect x1='0' y1='0' width='10' height='10' style={{fill: color.biotype2color[this.props.prio.results[i].gene.biotype] || color.colors.default}} />
                     </svg>
                     </div>
 
                 var geneLink = GN.urls.genePage + this.props.prio.results[i].gene.name
 
+                // console.log(style)
+
+                // <Td column="DIRECTION" style={{textAlign: 'center'}}>{this.props.prio.results[i].weightedZScore > 0 ? <SVGCollection.TriangleUp className='directiontriangleup' /> : <SVGCollection.TriangleDown className='directiontriangledown' />}</Td>
+                // <Td column="ANNOTATION" style={{textAlign: 'center'}}><div title={this.props.prio.results[i].annotated.length == 0 ? "Not annotated to any of the phenotypes." : this.props.prio.results[i].annotated}>{this.props.prio.results[i].annotated.length}</div></Td>
+
+
+                var hpoZscores = []
+                for (var e = 0; e < this.props.prio.results[i].predicted.length; e++){
+                    hpoZscores.push(<Td column={this.props.prio.terms[e].term.id}>{Math.round(this.props.prio.results[i].predicted[e] * 10)/10}</Td>)
+                }
+
                 newRows.push(
-                    <Tr key={i} onMouseOver={this.props.onMouseOver.bind(null, this.props.prio.results[i].predicted)}>
+                    <Tr key={i} onMouseOver={this.props.onMouseOver.bind(null, this.props.prio.results[i])}>
                     <Td column="" style={{textAlign: 'center'}}>{square}</Td>
                     <Td column="RANK" style={{textAlign: 'center'}}>{i + 1}</Td>
-                    <Td column="GENE" style={{textAlign: 'center'}}><a className='nodecoration black' href={geneLink} target="_blank">{this.props.prio.results[i].gene.name}</a></Td>
+                    <Td column="GENE" style={{textAlign: 'left'}}><a className='nodecoration black' href={geneLink} target="_blank" title={this.props.prio.results[i].gene.description}>{this.props.prio.results[i].gene.name}</a></Td>
                     <Td column="P-VALUE" style={{textAlign: 'center'}}>{unsafe(htmlutil.pValueToReadable(prob.zToP(this.props.prio.results[i].weightedZScore)))}</Td>
-                    <Td column="DIRECTION" style={{textAlign: 'center'}}>{this.props.prio.results[i].weightedZScore > 0 ? <SVGCollection.TriangleUp className='directiontriangleup' /> : <SVGCollection.TriangleDown className='directiontriangledown' />}</Td>
-                    <Td column="ANNOTATION" style={{textAlign: 'center'}}><div title={this.props.prio.results[i].annotated.length == 0 ? "Not annotated to any of the phenotypes." : this.props.prio.results[i].annotated}>{this.props.prio.results[i].annotated.length}</div></Td>
                     <Td column="NETWORK" style={{textAlign: 'center'}}><a href={networkLink} target="_blank"><SVGCollection.NetworkIcon /></a></Td>
+                    {hpoZscores}
                     </Tr>
                 )
             }
@@ -257,12 +270,39 @@ var GeneTable = React.createClass({
             newRows.push(<Tr key="1"><Td column="">Your list of genes did not match any of the results.</Td></Tr>)
         }
 
+        var hpoIds = []
+        for (var n = 0; n < this.props.prio.terms.length; n++){
+            hpoIds.push(<Th column={this.props.prio.terms[n].term.id}><SVGCollection.DiagonalText text={this.props.prio.terms[n].term.id} /></Th>)
+        }
+
+        // var hpoIds = _.map(this.props.prio.terms, function(item){
+        //     return (<Th column={item.term.id}>{"x"}</Th>)
+        // })
+
         /* The actual table, with custom sorting: */
-        return (<Table id="gentab" className='gn-gene-table datatable sortable diagnosis-table' style={{width: '100%'}} 
+        return (<Table id="gentab" className='sortable rowcolors table diag-table' style={{width: '100%'}} 
 
 
             // Attempt at not showing the first two headers, doesn't work???
             // column={[{key: " ", label: 'BIOTYPE'}, {key: " ", label: 'RANK'}, {key: "P-VALUE", label: 'PVALUE'}, {key: "DIRECTION", label: 'DIRECTION'}, {key: "ANNOTATION", label: 'ANNOTATION'}, {key: "NETWORK", label: 'NETWORK'}]}
+
+
+             // {
+             //        column: 'DIRECTION',
+             //        sortFunction: function(a, b) {
+             //            return a.props.className.localeCompare(b.props.className)        // Strange: when sorting: 2nd row changes (2 -> 100 -> 51), but all are 'directiontriangleup'
+             //        }
+             //    },
+
+             //    {
+             //        column: 'ANNOTATION',
+             //        sortFunction: function(a,b) {
+             //            return b.props.children - a.props.children
+             //        }
+             //    },
+
+             // <Th column="DIRECTION" style={{textAlign: 'center'}}><span title="???">{"DIRECTION"}</span> <I title="???"/></Th>
+            // <Th column="ANNOTATION" style={{textAlign: 'center'}}> <span title="The number of inputted phenotypes the gene is annotated to">{"ANNOTATION"}</span> <I title="The number of inputted phenotypes the gene is annotated to"/></Th>
 
             sortable={[
                 {
@@ -272,20 +312,6 @@ var GeneTable = React.createClass({
                     }
                 }
                     ,
-
-                {
-                    column: 'DIRECTION',
-                    sortFunction: function(a, b) {
-                        return a.props.className.localeCompare(b.props.className)        // Strange: when sorting: 2nd row changes (2 -> 100 -> 51), but all are 'directiontriangleup'
-                    }
-                },
-
-                {
-                    column: 'ANNOTATION',
-                    sortFunction: function(a,b) {
-                        return b.props.children - a.props.children
-                    }
-                },
 
                 {
                 //P-val: not really necessary (can simply sort using 'rank'), but the user doesn't know that..
@@ -351,12 +377,11 @@ var GeneTable = React.createClass({
             >
             <Thead>
                 <Th>{""}</Th>
-                <Th column="RANK">{" "}</Th>
+                <Th column="RANK" style={{textAlign: 'center'}}>{"RANK"}</Th>
                 <Th column="GENE">{"GENE"}</Th>
-                <Th column="P-VALUE"><span title="Please ignore this for now">{"P-VALUE"}</span><I title="Please ignore this for now"/></Th>
-                <Th column="DIRECTION"><span title="???">{"DIRECTION"}</span><I title="???"/></Th>
-                <Th column="ANNOTATION"><span title="The number of inputted phenotypes the gene is annotated to">{"ANNOTATION"}</span><I title="The number of inputted phenotypes the gene is annotated to"/></Th>
-                <Th column="NETWORK">{"NETWORK"}</Th>
+                <Th column="P-VALUE" style={{textAlign: 'center'}}><span title="Please ignore this for now">{"P-VALUE"}</span> <I title="Please ignore this for now"/></Th>
+                <Th column="NETWORK" style={{textAlign: 'center'}}>{"NETWORK"}</Th>
+                {hpoIds}
             </Thead> 
             {newRows}
             </Table>)
@@ -454,7 +479,6 @@ var PasteBox = React.createClass({
     render: function() {
         var value = this.state.value 
 
-
         var phens = ""
         for (var j = 0; j < this.props.prio.terms.length; j++) {
             phens = phens.concat(this.props.prio.terms[j].term.id + ',')
@@ -484,19 +508,27 @@ var PasteBox = React.createClass({
 var Diagnosis = React.createClass({
 
     getInitialState: function() {
+        var useCustomGeneSet = this.props.location.state === null ? false : this.props.location.state.useCustomGeneSet
         return {
+            useCustomGeneSet: useCustomGeneSet,
             message: ''
         }
     },
 
-    handleMouseOver: function(hoverGene) {
+    handleMouseOver: function(item) {
+        var predicted = item.predicted
         this.setState({
-            hoverItem: hoverGene
+            hoverItem: predicted,
         })
     },
     
     componentDidMount: function() {
-        this.loadData()
+       async.waterfall([
+            this.loadData
+            // this.createHeatmap
+        ], function(err){
+            if (err) console.log(err)
+        })
     },
 
     componentWillReceiveProps: function(nextProps) {
@@ -508,15 +540,77 @@ var Diagnosis = React.createClass({
         })
     },
 
-    loadData: function() {
+    parseGeneList: function(geneList) {
+        geneList = geneList.trim().replace(/(\r\n|\n|\r|\t|\s)/g, ',');
+        var genes = geneList.split(',').filter(function(e){return e}).join(',');
+        return(genes);
+    },
+
+    createHeatmap: function(data, callback){
+        console.log('create heatmap')
+        var div = document.getElementById('heatmap')
+        console.log(div.clientWidth, div.clientHeight)
+
+        var testdata = []
+
+        for (var i = 0; i < data.termsFound.length; i++){
+            testdata[i] = [1]
+            for (var e = i+1; e < data.termsFound.length; e++){
+                var cor = Math.random()
+                if (Math.random() > 0.5) {cor = -cor}
+                testdata[i].push(cor/1.5)
+            }
+        }
+
+        var newdata = []
+
+        for (var i = 0; i < testdata.length; i++){
+            var x = []
+            for (var e = 0; e < i; e++){
+                var n = i - e
+                x.push(testdata[e][n])
+            }
+            newdata.push(x.concat(testdata[i]))
+        }
+
+        var heatmapData = [] 
+
+        for (var i = 0; i < newdata.length; i++){
+            for (var e = 0; e < newdata.length; e++){
+                heatmapData.push({
+                    row: i,
+                    col: e,
+                    value: newdata[i][e]
+                })
+            }
+        }
+
+        var size = div.clientWidth > div.clientHeight ? div.clientHeight : div.clientWidth
+        var heatmap = new D3Heatmap(div, {
+            width: div.clientWidth,
+            height: div.clientHeight,
+            numTerms: data.termsFound.length,
+            data: heatmapData,
+            size: size
+        })
+    },
+
+    loadData: function(callback) {
         
+        var genes = this.state.useCustomGeneSet ? this.parseGeneList(this.props.location.state.genes) : undefined
+        
+        // var genes = this.props.location.state.useCustomGeneSet ? this.props.location.state.genes : undefined
         $.ajax({
             url: GN.urls.prioritization + '/' + this.props.params.id + '?verbose',
             dataType: 'json',
+            data: genes,
+            // processData: 
             success: function(data) {
                 this.setState({
                     data: data
                 })
+                console.log(data)
+                callback(null, data)
             }.bind(this),
             error: function(xhr, status, err) {
                 console.log(xhr)
@@ -559,7 +653,7 @@ var Diagnosis = React.createClass({
                 <div style={{paddingTop: '250px', paddingLeft: '40%'}}>
                     <span style={{fontWeight: 'bold', fontFamily: 'GG', fontSize: '1.5em'}}>Loading</span>
                 </div>
-                )
+            )
         }
 
 
@@ -577,19 +671,60 @@ var Diagnosis = React.createClass({
 
     var thisThese = this.state.data.terms.length == 1 ? 'this ' : 'these '
     var phenotypePhenotypes = this.state.data.terms.length == 1 ? ' phenotype:' : ' phenotypes:'
+    var genesNotFound = this.state.useCustomGeneSet && this.props.location.state.genes.length != 0 ? this.state.data.genesNotFound.join(', ') : undefined
+
+
+            // <div className='hflex'>
+            //     <div className='flex11' style={{maxWidth: '730px'}}>
+            //         <ShowPhenotypes3 prio={this.state.data} hoverItem={this.state.hoverItem} />
+            //     </div>
+            //     <div className='vflex' style={{paddingLeft: '20px', width: '100%'}}>
+            //         <div id='heatmap-title' style={{paddingTop: '7px', paddingBottom: '7px', fontWeight: 'bold'}}>PHENOTYPE CORRELATION</div>
+            //         <div id='heatmap' className='flex11' style={{width: '100%', minWidth: '300px'}}></div>
+            //     </div>
+            // </div>
+
 
         return (
           <DocumentTitle title={'Diagnosis' + GN.pageTitleSuffix}>
-          <div className="hflex diagflex-container" style={{backgroundColor: '#ffffff'}}>
+          <div style={{backgroundColor: '#ffffff'}}>
              <div className="prio-tables">
 
-          <div style={{paddingTop: '20px'}}>{this.state.data ? <ShowPhenotypes3 prio={this.state.data} hoverItem={this.state.hoverItem} /> : 'loading'}</div>
-          <p>{this.state.data ? 'The ' + this.state.data.results.length + ' highest prioritized genes for the combination of ' + thisThese 
-          + this.state.data.terms.length + phenotypePhenotypes : 'loading'}</p>
-          <div style={{paddingBottom: '20px'}}>
-          <NetworkButton prio={this.state.data} prioFiltered={this.state.newTable} />
-          <div className='button clickable noselect' onClick={this.download}>DOWNLOAD COMPLETE RESULTS</div>
-    
+            <div className='hflex'>
+                <div className='flex11' style={{maxWidth: '730px'}}>
+                    <ShowPhenotypes3 prio={this.state.data} hoverItem={this.state.hoverItem} />
+                </div>
+                <div className='vflex' style={{paddingLeft: '20px', width: '100%'}}>
+                </div>
+            </div>
+
+            {this.state.useCustomGeneSet ? 
+                <div>
+                    <div style={{padding: '20px 0px 10px 0px', marginTop: '20px'}}>
+                    <h3>Genes not found</h3> 
+                    {genesNotFound}
+                    </div>
+                    <div style={{padding: '10px 0px 10px 0px', marginBottom: '40px'}}>
+                    <h3>Genes found</h3>
+                         {this.state.data ? 'The ' + this.state.data.results.length + ' prioritized selected genes for the combination of ' + thisThese 
+                        + this.state.data.terms.length + phenotypePhenotypes : 'loading'}
+                    </div>
+                </div>
+                :
+                <div style={{padding: '20px 0px 10px 0px', marginTop: '20px', marginBottom: '40px'}}>
+                    {this.state.data ? 'The ' + this.state.data.results.length + ' highest prioritized genes for the combination of ' + thisThese 
+                 + this.state.data.terms.length + phenotypePhenotypes : 'loading'}
+                </div>
+            }
+            
+          <div style={{overflow: "auto", display: 'inline'}}>
+          <GeneTable prio={this.state.data} prioFiltered={this.state.newTable} onMouseOver={this.handleMouseOver} hoverRow={this.state.hoverRow}/>
+          </div>
+
+        <div style={{padding: '10px 0px', marginTop: '10px'}}>
+          <div className='button clickable noselect' style={{marginRight: '10px'}} onClick={this.download}>DOWNLOAD COMPLETE RESULTS</div>
+            <NetworkButton prio={this.state.data} prioFiltered={this.state.newTable} />
+
           <div>
                <form id='gn-diagnosis-downloadform' method='post' encType='multipart/form-data' action={GN.urls.tabdelim}> 
                 <input type='hidden' id='what' name='what' value='diagnosis' />
@@ -597,9 +732,6 @@ var Diagnosis = React.createClass({
                 </form>
             </div>
 
-          </div>
-          <div style={{height: "450px", overflow: "auto"}}>
-          <GeneTable prio={this.state.data} prioFiltered={this.state.newTable} onMouseOver={this.handleMouseOver} />
           </div>
 
         </div>

@@ -38,23 +38,21 @@ var TermTable = React.createClass({
 
         if (terms.length < 1){
             rows.push(
-                <Tr id='no-term-selected'>
+                <Tr id='no-term-selected' key='no-term-selected'>
                     <Td column="TERM" className='text'>
                         <span style={{color: color.colors.gngray, fontStyle: 'italic'}}>No terms selected</span>
                     </Td>
-                    <Td column="ID" style={{whiteSpace: 'nowrap', textAlign: 'center'}} ></Td>
-                    <Th column="REMOVE"></Th>
+                    <Td column="ID" style={{whiteSpace: 'nowrap', textAlign: 'center'}} data=''></Td>
+                    <Td column="REMOVE" data=''></Td>
                 </Tr>
                 )
         } else {
             _.map(terms, function(term){
                 rows.push(
-                    <Tr id={term.value}>
-                        <Td column="TERM" className='text'>
-                            {term.name}
-                        </Td>
-                        <Td column="ID" style={{whiteSpace: 'nowrap', textAlign: 'center'}} >{term.value}</Td>
-                        <Th column="REMOVE"><span className='clickable' onClick={this.props.removeTerm.bind(null, term.value)}>X</span></Th>
+                    <Tr id={term.value} key={term.value}>
+                        <Td column="TERM" style={{width: '100%'}} className='text' data={term.name}></Td>
+                        <Td column="ID" style={{whiteSpace: 'nowrap', minWidth: '110px', textAlign: 'center'}} data={term.value}></Td>
+                        <Td column="REMOVE" style={{minWidth: '80px', textAlign: 'center'}}><span className='clickable' onClick={this.props.removeTerm.bind(null, term.value)}>X</span></Td>
                     </Tr>
                     )
             }.bind(this))
@@ -62,13 +60,13 @@ var TermTable = React.createClass({
 
         return (
             <div>
-                <Table id='hpo-table' className='datatable hpo-table' style={{margin: '40px 0 40px 0'}}>
+                <Table id='hpo-table' className='datatable hpo-table' style={{margin: '0px 0 30px 0'}}>
                     <Thead>
-                    <Th column="TERM">TERM</Th>
-                    <Th column="ID" style={{width: '100px'}}>ID</Th>
-                    <Th column="REMOVE" style={{width: '30px'}}></Th>
-                </Thead>
-                {rows}
+                      <Th column="TERM" style={{width: '100%'}}>TERM</Th>
+                      <Th column="ID" style={{minWidth: '110px', textAlign: 'center'}}>ID</Th>
+                      <Th column="REMOVE" style={{minWidth: '80px', textAlign: 'center'}}></Th>
+                    </Thead>
+                  {rows}
                 </Table>
 
             </div>
@@ -81,6 +79,8 @@ var DiagnosisMain = React.createClass({
     getInitialState: function() {
         return {
             selectedTerms: Array(),
+            checkbox: false,
+            filename: 'CHOOSE A FILE...'
         }
     },
 
@@ -138,55 +138,153 @@ var DiagnosisMain = React.createClass({
       })
     },
 
+    onCheckboxClick: function(){
+      var checkbox = this.state.checkbox ? false : true
+      this.setState({
+        checkbox: checkbox
+      })
+    },
+
+    onTextAreaChange: function(){
+      var textlen = document.getElementById('textarea-genelist').value.length
+      var checkbox = textlen > 0 ? true : false
+       this.setState({
+          checkbox: checkbox
+       })
+    },
+
+    onFileUploadClick: function() {
+
+        document.getElementById('file-genelist').onchange = function(){
+            var filename = document.getElementById('file-genelist').files[0].name
+            filename = filename.length > 30 ? (filename.slice(0, 15) + '...') : filename
+            this.setState({
+                filename: filename,
+                checkbox: true
+            })
+        }.bind(this)
+    },
+
+    onSubmit: function(){
+      var genes = document.getElementById('textarea-genelist').value
+      var terms = _.map(this.state.selectedTerms, function(term){ return term.value }).join(',')
+      var useCustomGeneSet = this.state.checkbox ? true : false
+      var file = document.getElementById('file-genelist').files[0]
+
+      if (!file){
+        this.props.history.pushState({
+          genes: genes,
+          useCustomGeneSet: useCustomGeneSet
+        }, GN.urls.diagnosisPage + '/' + terms)
+      } else {
+          var fd = new FormData()
+          fd.append('genelist', file)
+
+          $.ajax({
+              url: GN.urls.fileupload,
+              data: fd,
+              processData: false,
+              contentType: false,
+              type: 'POST',
+              success: function(data){
+                  this.props.history.pushState({
+                    genes: data,
+                    useCustomGeneSet: useCustomGeneSet
+                  }, GN.urls.diagnosisPage + '/' + terms)
+              }.bind(this)
+          })
+      }
+
+
+    },
+
     render: function() {
-        var terms = _.map(this.state.selectedTerms, function(term){ return term.value }).join(',')
-        
+        var textcolor = this.state.checkbox ? '#000' : color.colors.gngray
+        var style = this.state.checkbox ? {transition: 'all .5s ease-in-out', height: '150px', overflow: 'hidden'} : {transition: 'all .5s ease-in-out', overflow: 'hidden', height: '0px'}
         return (
                 <DocumentTitle title={'Diagnosis' + GN.pageTitleSuffix}>
                 <div className='flex10' style={{backgroundColor: color.colors.gnwhite, marginTop: '10px', padding: '40px'}}>
                 <div style={{width: '100%'}}>
-                    <h2 style={{display: 'inline'}}>DIAGNOSIS</h2> <Back url={GN.urls.main} />
-                    <p>Search for HPO terms below to add, or upload a file with HPO term ID's.</p>
+                    <h2 style={{display: 'inline'}}>HPO GENE PRIORITIZATION</h2> <Back url={GN.urls.main} />
 
                 </div>
                     <div className='hflex' style={{marginTop: '40px'}}>
-                        <div className='' style={{width: '60%', minWidth: '300px', paddingRight: '40px'}}>
+                        <div className='' style={{width: '60%', minWidth: '600px', paddingRight: '40px'}}>
 
-                            <div style={{float: 'right', paddingBottom: '20px'}} >
-                                <UploadPanel text={'UPLOAD FILE'} />
+                          <div id='step1' className='hflex'>
+                            <div style={{width: '40px'}}><h2>1.</h2></div>
+                          
+                            <div id='step1content' style={{width: '100%',  paddingTop: '4px'}}>
+                            <div style={{paddingBottom: '20px'}}>
+                              <h3>Select HPO terms</h3>
                             </div>
 
-                            <div style={{float: 'left', width: 'calc(100% - 160px)', paddingBottom: '20px'}}>
+                              <div>
 
-                                <Async
-                                 // ref='select'
-                                 name='diagnosis-search'
-                                 // options={options}
-                                 // multi={true}
-                                 // value={'Search here'}
-                                 // matchPos='any'
-                                 // matchProp='label'
-                                 // placeholder=''
-                                 autoload={false}
-                                 cacheAsyncResults={false}
-                                 loadOptions={this.getSuggestions}
-                                 onChange={this.onSelectChange}
-                                 />
+                                  <div style={{float: 'left', width: '100%', paddingBottom: '20px'}}>
 
-                            </div>     
+                                  <Async
+                                   // ref='select'
+                                   name='diagnosis-search'
+                                   // options={options}
+                                   // multi={true}
+                                   // value={'Search here'}
+                                   // matchPos='any'
+                                   // matchProp='label'
+                                   // placeholder=''
+                                   autoload={false}
+                                   cacheAsyncResults={false}
+                                   loadOptions={this.getSuggestions}
+                                   onChange={this.onSelectChange}
+                                   />
 
-                            <TermTable terms={this.state.selectedTerms} removeTerm={this.removeTerm}/>
+                                  </div>     
 
-                            <Link onMouseOver={this.onMouseOver} onMouseOut={this.onMouseOut} className='nodecoration black clickable' to={GN.urls.diagnosisPage + '/' + terms}>
-                              <span className='button noselect clickable'>Prioritize genes for given HPO terms</span>
-                            </Link>
+                                  <TermTable terms={this.state.selectedTerms} removeTerm={this.removeTerm}/>
+                                </div>
+                              </div>
+                              </div>
+                              
+                              <div id='step2' className='hflex'>
+                                <div style={{width: '40px'}}><h2 style={{color: textcolor}}>2.</h2></div>
+
+                              <div id='step2content' style={{paddingTop: '4px', paddingBottom: '20px', width: '100%'}}>
+                                  
+
+                                <label htmlFor="checkbox" onClick={this.onCheckboxClick} style={{position: 'absolute'}}>
+                                    <SVGCollection.CheckBox selected={this.state.checkbox}/>
+                                  </label>
+                                  
+                                  <div><h3 style={{paddingLeft: '30px', color: textcolor, cursor: 'pointer'}} onClick={this.onCheckboxClick}>OPTIONAL: filter output on candidate genes</h3></div>
+
+                                    <input type="checkbox" id="checkbox" style={{display: 'none'}}/>
+
+                                    <div style={style}>
+                                  <div>
+                                  <textarea id="textarea-genelist" placeholder='Paste a list of genes here...' onChange={this.onTextAreaChange} cols="40" rows="5" className='textarea-genes' style={{width: 'calc(100% - 20px)', height: '65px', border: '1px solid ' + color.colors.gngray, color: textcolor, outline: 'none', marginTop: '20px'}}></textarea>
+                                </div>
+
+                                <div style={{paddingBottom: '20px', paddingTop: '5px'}} >
+                                        <form encType='multipart/form-data'>
+                                          <input id="file-genelist" type="file" style={{display: 'none'}}/>
+                                          <label htmlFor='file-genelist' onClick={this.onFileUploadClick}>
+                                            <UploadPanel text={this.state.filename} />
+                                          </label>
+                                        </form>
+                                    </div>
+                                    </div>
+                              </div>
+                              </div>
+                                <span onClick={this.onSubmit} className='button noselect clickable' style={{marginTop: '20px'}}>Prioritize genes for given HPO terms</span>
+                            </div>
+
+                            <div className='text-right' style={{width: '40%', minWidth: '300px', paddingLeft: '40px'}}>
+                          
                         </div>
 
-                        <div className='' style={{width: '40%', minWidth: '300px', paddingLeft: '40px'}}>
-                        <p>Predict genes for HPO terms. </p>
                         </div>
                     </div>
-                </div>
+
                 </DocumentTitle>
         )
     }

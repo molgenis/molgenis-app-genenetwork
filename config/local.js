@@ -29,19 +29,21 @@ module.exports = {
     networkShortURLDBPath: '/data/genenetwork/level/new/dbnetworkurls',
 
     svgUploadDir: '/data/genenetwork/uploads/svg/',
+    genelistUploadDir: '/data/genenetwork/uploads/genelist',
+
     networkFontFamily: 'Geogrotesque Lg',
     networkFontFile: 'assets/fonts/Geogtq-Lg.svg',
 
     useElastic: true,
     elasticHost: 'localhost:9200',
-    elasticLogLevel: 'info',
+    elasticLogLevel: 'debug',
     
     pubmine: {
-	journalFile: '/data/pubmine/GeneticsJournalsImpactFactorAboveThree.txt',
+        journalFile: '/data/pubmine/GeneticsJournalsImpactFactorAboveThree.txt',
         startYear: 2000,
         stopYear: 2014,
-	impactFactorBins: [3, 5, 10],
-	numTopJournals: 5
+        impactFactorBins: [3, 5, 10],
+        numTopJournals: 5
     },
 
   /***************************************************************************

@@ -100,6 +100,7 @@ var LegendPanel = React.createClass({
         _.forEach(this.props.data.elements.nodes, function(node) {
             chrs[node.data.chr] = true
         });
+
         var color2chrs = {};
         _.forEach(chrs, function(thisistrue, chr) {
             var clr = color.chr2color[chr];
@@ -108,10 +109,18 @@ var LegendPanel = React.createClass({
             }
             color2chrs[clr].push(chr)
         });
+
         var items = [];
+
         _.forEach(color2chrs, function(chrs, clr) {
-            items.push(that.getItem(chrs.join(', ').replace('_', ' '), clr))
+            if (chrs[0].toLowerCase() == 'x' || chrs[0].toLowerCase() == 'y'){
+                chrs = chrs.join(', ').replace('_', ' ')
+            } else {
+                chrs = "Autosomal"
+            }
+            items.push(that.getItem(chrs, clr))
         });
+
         return items
     },
 
@@ -171,6 +180,9 @@ var LegendPanel = React.createClass({
     },
     
     render: function() {
+
+        console.log('ITEMS')
+        console.log(this.state.items)
 
         if (!this.state || !this.state.items) return null;
         // <table className='noselect defaultcursor' style={{backgroundColor: color.colors.gnwhite}}>
