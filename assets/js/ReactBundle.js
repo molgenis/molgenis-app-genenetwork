@@ -2740,7 +2740,7 @@ var GeneList = React.createClass({displayName: "GeneList",
     },
 
     parseGeneList: function(geneList) {
-        geneList = geneList.trim().replace(/(\r\n|\n|\r|\t|\s)/g, ',');
+        geneList = geneList.trim().replace(/(\r\n|\n|\r|\t|\s|;)/g, ',');
         let genes = geneList.split(',').filter(function(e){return e});
         return(genes);
     },
@@ -8688,7 +8688,7 @@ module.exports = Tools;
 
 },{"../../config/gn":51,"../js/color":4,"./Box":8,"./BoxFunctionEnrichment":9,"react":320}],50:[function(require,module,exports){
 module.exports = {
-    domain: 'http://localhost:1337'
+    domain: 'http://www.genenetwork.nl'
 };
 
 },{}],51:[function(require,module,exports){
