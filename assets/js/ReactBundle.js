@@ -6964,29 +6964,36 @@ var Footer = React.createClass({displayName: "Footer",
     // TODO images proper size, optimization, transparency
     render: function() {
         return (
-                React.createElement("div", {className: "gn-footer hflex flexcenter flexwrap flexspacebetween"}, 
+            React.createElement("div", {className: "gn-footer hflex flexcenter flexwrap flexspacebetween"}, 
+
                 React.createElement("div", null, "© 2017 ", React.createElement("a", {title: "Department of Genetics", href: "http://www.rug.nl/research/genetics/?lang=en", target: "_blank"}, 
-                "Department of Genetics"), ", ", React.createElement("a", {title: "University Medical Center Groningen", href: "https://www.umcg.nl/EN", target: "_blank"}, 
-                "University Medical Center Groningen")
+                    "Department of Genetics"), ", ", React.createElement("a", {title: "University Medical Center Groningen", href: "https://www.umcg.nl/EN", target: "_blank"}, 
+                    "University Medical Center Groningen")
                 ), 
+
                 React.createElement("div", {className: "flex01 hflex flexcenter flexwrap"}, 
-                React.createElement("div", {style: {padding: '0 5px 0 5px'}}, 
-                React.createElement("a", {href: "http://www.cleverfranke.com/cf/en/index.php", target: "_blank"}, 
-                React.createElement("img", {className: "cleverfranke", title: "CLEVER°FRANKE", src: GN.urls.main + '/images/cleverfranke_small.png', style: {height: '25px'}})
+                    React.createElement("div", {style: {padding: '0 5px 0 5px'}}, 
+                        React.createElement("a", {href: "http://www.cleverfranke.com/cf/en/index.php", target: "_blank"}, 
+                            React.createElement("img", {className: "cleverfranke", title: "CLEVER°FRANKE", src: GN.urls.main + '/images/cleverfranke_small.png', style: {height: '25px'}})
+                        )
+                    ), 
+                    React.createElement("div", {style: {padding: '0 5px 0 5px'}}, 
+                        React.createElement("a", {href: "https://www.rug.nl", target: "_blank"}, 
+                            React.createElement("img", {className: "rug", title: "Rijksuniversiteit Groningen", src: GN.urls.main + '/images/rug_black.png'})
+                        )
+                    ), 
+                    React.createElement("div", {style: {padding: '0 5px 0 5px'}}, 
+                        React.createElement("a", {href: "https://www.umcg.nl/EN", target: "_blank"}, 
+                            React.createElement("img", {className: "umcg", title: "University Medical Center Groningen", src: GN.urls.main + '/images/umcg_black.png'})
+                        )
+                    ), 
+                    React.createElement("div", {style: {padding: '0 5px 0 5px'}}, 
+                        React.createElement("a", {href: "http://www.bbmri-eric.eu/services/standardisation/", target: "_blank"}, 
+                            React.createElement("img", {className: "bbmri", title: "BBMRI", src: GN.urls.main + '/images/bbmri.jpg'})
+                        )
+                    )
                 )
-                ), 
-                React.createElement("div", {style: {padding: '0 5px 0 5px'}}, 
-                React.createElement("a", {href: "https://www.rug.nl", target: "_blank"}, 
-                React.createElement("img", {className: "rug", title: "Rijksuniversiteit Groningen", src: GN.urls.main + '/images/rug_black.png'})
-                )
-                ), 
-                React.createElement("div", {style: {padding: '0 5px 0 5px'}}, 
-                React.createElement("a", {href: "https://www.umcg.nl/EN", target: "_blank"}, 
-                React.createElement("img", {className: "umcg", title: "University Medical Center Groningen", src: GN.urls.main + '/images/umcg_black.png'})
-                )
-                )
-                )
-                )
+            )
         )
     }
 })
