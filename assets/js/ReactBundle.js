@@ -8699,7 +8699,7 @@ module.exports = Tools;
 
 },{"../../config/gn":51,"../js/color":4,"./Box":8,"./BoxFunctionEnrichment":9,"react":321}],50:[function(require,module,exports){
 module.exports = {
-    domain: 'https://molgenis58.target.rug.nl'
+    domain: 'https://molgenis58.gcc.rug.nl'
 };
 
 },{}],51:[function(require,module,exports){
