@@ -198,7 +198,8 @@ var GeneTable = React.createClass({
                     <Td column="BIOTYPE" style={{textAlign: 'center'}}>{square}</Td>
                     <Td column="RANK" style={{textAlign: 'center'}}>{i + 1}</Td>
                     <Td column="GENE" style={{textAlign: 'left'}}><a className='nodecoration black' href={geneLink} target="_blank">{subTable[i].gene.name}</a></Td>
-                    <Td column="P-VALUE" style={{textAlign: 'center'}}>{unsafe(htmlutil.pValueToReadable(prob.zToP(subTable[i].weightedZScore)))}</Td>
+                    {/*<Td column="P-VALUE" style={{textAlign: 'center'}}>{unsafe(htmlutil.pValueToReadable(prob.zToP(subTable[i].weightedZScore)))}</Td>*/}
+                    <Td column="P-VALUE" style={{textAlign: 'center'}}>{unsafe(subTable[i].weightedZScore)}</Td>
                     <Td column="DIRECTION" style={{textAlign: 'center'}}>{subTable[i].weightedZScore > 0 ? <SVGCollection.TriangleUp className='directiontriangleup' /> : <SVGCollection.TriangleDown className='directiontriangledown' />}</Td>
                     <Td column="ANNOTATION" style={{textAlign: 'center'}}><div title={subTable[i].annotated.length == 0 ? "Not annotated to any of the phenotypes." : subTable[i].annotated}>{subTable[i].annotated.length}</div></Td>
                     <Td column="NETWORK" style={{textAlign: 'center'}}><a href={networkLink} target="_blank"><SVGCollection.NetworkIcon /></a></Td>
@@ -248,7 +249,8 @@ var GeneTable = React.createClass({
                     <Td column="" style={{textAlign: 'center'}}>{square}</Td>
                     <Td column="RANK" style={{textAlign: 'center'}}>{i + 1}</Td>
                     <Td column="GENE" style={{textAlign: 'left'}}><a className='nodecoration black' href={geneLink} target="_blank" title={this.props.prio.results[i].gene.description}>{this.props.prio.results[i].gene.name}</a></Td>
-                    <Td column="P-VALUE" style={{textAlign: 'center'}}>{unsafe(htmlutil.pValueToReadable(prob.zToP(this.props.prio.results[i].weightedZScore)))}</Td>
+                        <Td column="P-VALUE" style={{textAlign: 'center'}}>{unsafe(this.props.prio.results[i].weightedZScore)}</Td>
+                        {/*<Td column="P-VALUE" style={{textAlign: 'center'}}>{unsafe(htmlutil.pValueToReadable(prob.zToP(this.props.prio.results[i].weightedZScore)))}</Td>*/}
                     <Td column="NETWORK" style={{textAlign: 'center'}}><a href={networkLink} target="_blank"><SVGCollection.NetworkIcon /></a></Td>
                     {hpoZscores}
                     </Tr>
@@ -379,7 +381,9 @@ var GeneTable = React.createClass({
                 <Th>{""}</Th>
                 <Th column="RANK" style={{textAlign: 'center'}}>{"RANK"}</Th>
                 <Th column="GENE">{"GENE"}</Th>
-                <Th column="P-VALUE" style={{textAlign: 'center'}}><span title="Please ignore this for now">{"P-VALUE"}</span> <I title="Please ignore this for now"/></Th>
+                <Th column="P-VALUE" style={{textAlign: 'center'}}>
+                    {"Z-SCORE"}
+                </Th>
                 <Th column="NETWORK" style={{textAlign: 'center'}}>{"NETWORK"}</Th>
                 {hpoIds}
             </Thead> 
