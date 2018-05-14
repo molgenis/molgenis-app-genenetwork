@@ -1,3 +1,3 @@
 module.exports = {
-    domain: 'https://www.genenetwork.nl'
+    domain: 'https://molgenis58.gcc.rug.nl'
 };
