@@ -102,8 +102,24 @@ var ShowPhenotypes3 = React.createClass({
         var hoverZScores = this.props.hoverItem
         var rows = []
 
+        var terms = this.props.prio.terms
+        var termslist = _.map(terms, 'term.id')
+        var orderedTerms = this.props.prio.orderedTerms
+
+        if (orderedTerms){
+            // console.log(this.props.prio)
+            // if heatmap clustering is done, replace terms array by ordered terms array (based on clustering)
+            var newTerms = []
+            for (var i = 0; i < orderedTerms.length; i++){
+                var index = termslist.indexOf(orderedTerms[i])
+                newTerms.push(terms[index])
+            }
+            terms = newTerms
+        }
+
+
         /* Getting the colour: */
-        for (var i = 0; i < this.props.prio.terms.length; i++) {
+        for (var i = 0; i < terms.length; i++) {
             var zToCol = hoverZScores ? Math.ceil(hoverZScores[i] * 60) : ''
             var hoverColour =  hoverZScores ? 'rgb(' + zToCol + ',255,255)' : ''
             // var rowtype = i % 2 === 0 ? 'datarow evenrow' : 'datarow oddrow'
@@ -122,11 +138,10 @@ var ShowPhenotypes3 = React.createClass({
 
             /* The actual phenotype information: */
             rows.push(
-                <Tr key={this.props.prio.terms[i].term.name}>
-                    
-                    <Td column="PHENOTYPE">{this.props.prio.terms[i].term.name}</Td>
-                    <Td column="ANNOTATED" style={{textAlign: 'center'}}>{this.props.prio.terms[i].term.numAnnotatedGenes}</Td>
-                    <Td column="HPOTERM" style={{textAlign: 'center'}}><a className='nodecoration black' href={this.props.prio.terms[i].term.url} target="_blank">{this.props.prio.terms[i].term.id}</a></Td>
+                <Tr key={terms[i].term.name}>
+                    <Td column="PHENOTYPE">{terms[i].term.name}</Td>
+                    <Td column="ANNOTATED" style={{textAlign: 'center'}}>{terms[i].term.numAnnotatedGenes}</Td>
+                    <Td column="HPOTERM" style={{textAlign: 'center'}}><a className='nodecoration black' href={terms[i].term.url} target="_blank">{terms[i].term.id}</a></Td>
                 </Tr>
                 )
         }
@@ -214,7 +229,6 @@ var GeneTable = React.createClass({
 
             for (var i = 0; i < this.props.prio.results.length; i++) {
 
-                
                 /* network urls: */
                 var phens = ""
                 for (var j = 0; j < this.props.prio.terms.length; j++) {
@@ -238,6 +252,8 @@ var GeneTable = React.createClass({
                 // <Td column="DIRECTION" style={{textAlign: 'center'}}>{this.props.prio.results[i].weightedZScore > 0 ? <SVGCollection.TriangleUp className='directiontriangleup' /> : <SVGCollection.TriangleDown className='directiontriangledown' />}</Td>
                 // <Td column="ANNOTATION" style={{textAlign: 'center'}}><div title={this.props.prio.results[i].annotated.length == 0 ? "Not annotated to any of the phenotypes." : this.props.prio.results[i].annotated}>{this.props.prio.results[i].annotated.length}</div></Td>
 
+                // console.log('HEATMAP TERMS')
+                // console.log(this.props.prio)
 
                 var hpoZscores = []
                 for (var e = 0; e < this.props.prio.results[i].predicted.length; e++){
@@ -249,7 +265,7 @@ var GeneTable = React.createClass({
                     <Td column="" style={{textAlign: 'center'}}>{square}</Td>
                     <Td column="RANK" style={{textAlign: 'center'}}>{i + 1}</Td>
                     <Td column="GENE" style={{textAlign: 'left'}}><a className='nodecoration black' href={geneLink} target="_blank" title={this.props.prio.results[i].gene.description}>{this.props.prio.results[i].gene.name}</a></Td>
-                        <Td column="P-VALUE" style={{textAlign: 'center'}}>{unsafe(this.props.prio.results[i].weightedZScore)}</Td>
+                    <Td column="Z-SCORE" style={{textAlign: 'center'}}>{Math.round(unsafe(this.props.prio.results[i].weightedZScore)*10)/10}</Td>
                         {/*<Td column="P-VALUE" style={{textAlign: 'center'}}>{unsafe(htmlutil.pValueToReadable(prob.zToP(this.props.prio.results[i].weightedZScore)))}</Td>*/}
                     <Td column="NETWORK" style={{textAlign: 'center'}}><a href={networkLink} target="_blank"><SVGCollection.NetworkIcon /></a></Td>
                     {hpoZscores}
@@ -273,21 +289,23 @@ var GeneTable = React.createClass({
         }
 
         var hpoIds = []
+
         for (var n = 0; n < this.props.prio.terms.length; n++){
             hpoIds.push(<Th column={this.props.prio.terms[n].term.id}><SVGCollection.DiagonalText text={this.props.prio.terms[n].term.id} /></Th>)
         }
+
+        // console.log(hpoIds)
 
         // var hpoIds = _.map(this.props.prio.terms, function(item){
         //     return (<Th column={item.term.id}>{"x"}</Th>)
         // })
 
         /* The actual table, with custom sorting: */
-        return (<Table id="gentab" className='sortable rowcolors table diag-table' style={{width: '100%'}} 
+        return (<Table id="gentab" className='sortable rowcolors table diag-table' 
 
 
             // Attempt at not showing the first two headers, doesn't work???
             // column={[{key: " ", label: 'BIOTYPE'}, {key: " ", label: 'RANK'}, {key: "P-VALUE", label: 'PVALUE'}, {key: "DIRECTION", label: 'DIRECTION'}, {key: "ANNOTATION", label: 'ANNOTATION'}, {key: "NETWORK", label: 'NETWORK'}]}
-
 
              // {
              //        column: 'DIRECTION',
@@ -317,59 +335,59 @@ var GeneTable = React.createClass({
 
                 {
                 //P-val: not really necessary (can simply sort using 'rank'), but the user doesn't know that..
-                    column: 'P-VALUE',
+                    column: 'Z-SCORE',
 
                     sortFunction: function(a, b) {
 
-                        if (a.length < 5) {
-                            if (b.length < 5) {             {/* a ?? b */}
-                                return a - b
-                            } else if (b[0] != '<') {    {/* a > b */}
-                                return 1
-                            } else {                        {/* a > b */}
-                                return 1
-                            }
-                        } else if (a[0] != '<') {
-                            if (b.length < 5) {             {/* a < b */}
-                                return -1
-                            } else if (b[0] != '<') {    {/* a ?? b */}
+                        // if (a.length < 5) {
+                        //     if (b.length < 5) {             {/* a ?? b */}
+                        //         return a - b
+                        //     } else if (b[0] != '<') {    {/* a > b */}
+                        //         return 1
+                        //     } else {                        {/* a > b */}
+                        //         return 1
+                        //     }
+                        // } else if (a[0] != '<') {
+                        //     if (b.length < 5) {             {/* a < b */}
+                        //         return -1
+                        //     } else if (b[0] != '<') {    {/* a ?? b */}
 
-                                a = a.toString()
-                                var aExponent = a.slice(53)
-                                var aExp = aExponent.slice(0, aExponent.indexOf("<"))
-                                var aNumber = a.slice(0,3)
+                        //         a = a.toString()
+                        //         var aExponent = a.slice(53)
+                        //         var aExp = aExponent.slice(0, aExponent.indexOf("<"))
+                        //         var aNumber = a.slice(0,3)
 
-                                b = b.toString()
-                                var bExponent = b.slice(53)
-                                var bExp = bExponent.slice(0, bExponent.indexOf("<"))
-                                var bNumber = b.slice(0,3)
+                        //         b = b.toString()
+                        //         var bExponent = b.slice(53)
+                        //         var bExp = bExponent.slice(0, bExponent.indexOf("<"))
+                        //         var bNumber = b.slice(0,3)
 
-                                return aExp - bExp || aNumber - bNumber
+                        //         return aExp - bExp || aNumber - bNumber
 
-                            } else {                        {/* a > b */}
-                                return 1
-                            }
-                        } else {
-                            if (b.length < 5) {             {/* a < b */}
-                                return -1
-                            } else if (b[0] != '<') {    {/* a <b */}
-                                return -1
-                            } else {
+                        //     } else {                        {/* a > b */}
+                        //         return 1
+                        //     }
+                        // } else {
+                        //     if (b.length < 5) {             {/* a < b */}
+                        //         return -1
+                        //     } else if (b[0] != '<') {    {/* a <b */}
+                        //         return -1
+                        //     } else {
 
-                                a = a.toString()
-                                var aExponent = a.slice(55)
-                                var aExp = aExponent.slice(0, aExponent.indexOf("<"))
-                                var aNumber = a.slice(2,5)
+                        //         a = a.toString()
+                        //         var aExponent = a.slice(55)
+                        //         var aExp = aExponent.slice(0, aExponent.indexOf("<"))
+                        //         var aNumber = a.slice(2,5)
 
-                                b = b.toString()
-                                var bExponent = b.slice(55)
-                                var bExp = bExponent.slice(0, bExponent.indexOf("<"))
-                                var bNumber = b.slice(2,5)
+                        //         b = b.toString()
+                        //         var bExponent = b.slice(55)
+                        //         var bExp = bExponent.slice(0, bExponent.indexOf("<"))
+                        //         var bNumber = b.slice(2,5)
 
-                                return aExp - bExp || aNumber - bNumber
+                        //         return aExp - bExp || aNumber - bNumber
 
-                            }
-                        }
+                        //     }
+                        // }
 
                         return b - a
                     }
@@ -381,7 +399,7 @@ var GeneTable = React.createClass({
                 <Th>{""}</Th>
                 <Th column="RANK" style={{textAlign: 'center'}}>{"RANK"}</Th>
                 <Th column="GENE">{"GENE"}</Th>
-                <Th column="P-VALUE" style={{textAlign: 'center'}}>
+                <Th column="Z-SCORE" style={{textAlign: 'center'}}>
                     {"Z-SCORE"}
                 </Th>
                 <Th column="NETWORK" style={{textAlign: 'center'}}>{"NETWORK"}</Th>
@@ -528,8 +546,8 @@ var Diagnosis = React.createClass({
     
     componentDidMount: function() {
        async.waterfall([
-            this.loadData
-            // this.createHeatmap
+            this.loadData,
+            this.createHeatmap
         ], function(err){
             if (err) console.log(err)
         })
@@ -550,53 +568,37 @@ var Diagnosis = React.createClass({
         return(genes);
     },
 
-    createHeatmap: function(data, callback){
-        console.log('create heatmap')
-        var div = document.getElementById('heatmap')
-        console.log(div.clientWidth, div.clientHeight)
-
-        var testdata = []
-
-        for (var i = 0; i < data.termsFound.length; i++){
-            testdata[i] = [1]
-            for (var e = i+1; e < data.termsFound.length; e++){
-                var cor = Math.random()
-                if (Math.random() > 0.5) {cor = -cor}
-                testdata[i].push(cor/1.5)
-            }
-        }
-
-        var newdata = []
-
-        for (var i = 0; i < testdata.length; i++){
-            var x = []
-            for (var e = 0; e < i; e++){
-                var n = i - e
-                x.push(testdata[e][n])
-            }
-            newdata.push(x.concat(testdata[i]))
-        }
-
-        var heatmapData = [] 
-
-        for (var i = 0; i < newdata.length; i++){
-            for (var e = 0; e < newdata.length; e++){
-                heatmapData.push({
-                    row: i,
-                    col: e,
-                    value: newdata[i][e]
-                })
-            }
-        }
-
-        var size = div.clientWidth > div.clientHeight ? div.clientHeight : div.clientWidth
-        var heatmap = new D3Heatmap(div, {
-            width: div.clientWidth,
-            height: div.clientHeight,
-            numTerms: data.termsFound.length,
-            data: heatmapData,
-            size: size
+    handleHover: function(row, col){
+        var data = this.state.data 
+        data['hoverRow'] = row
+        data['hoverCol'] = col 
+        this.setState({
+            data: data
         })
+    },
+
+    createHeatmap: function(data, callback){
+        if (data.hpoCorrelation.termsFound.length > 1){
+            console.log('create heatmap')
+            var div = document.getElementById('heatmap')
+            
+            var heatmap = new D3Heatmap(div, {
+                cormat: data.hpoCorrelation.hpoCorrelationMatrix,
+                terms: data.hpoCorrelation.termsFound,
+                handleHover: this.handleHover
+            })
+
+            var data = this.state.data
+            data['orderedTerms'] = heatmap._props.orderedTerms
+            data['heatmap'] = heatmap
+            this.setState({
+                data: data
+            })
+
+            // console.log('ordered terms')
+            // console.log(this.state)
+            // // console.log(this.state.heatmap._props.orderedTerms)
+        }        
     },
 
     loadData: function(callback) {
@@ -613,6 +615,7 @@ var Diagnosis = React.createClass({
                 this.setState({
                     data: data
                 })
+                console.log('DATA')
                 console.log(data)
                 callback(null, data)
             }.bind(this),
@@ -678,6 +681,7 @@ var Diagnosis = React.createClass({
     var genesNotFound = this.state.useCustomGeneSet && this.props.location.state.genes.length != 0 ? this.state.data.genesNotFound.join(', ') : undefined
 
 
+
             // <div className='hflex'>
             //     <div className='flex11' style={{maxWidth: '730px'}}>
             //         <ShowPhenotypes3 prio={this.state.data} hoverItem={this.state.hoverItem} />
@@ -689,6 +693,14 @@ var Diagnosis = React.createClass({
             // </div>
 
 
+
+
+                // <div style={{padding: '20px 0px 10px 0px', marginTop: '20px', marginBottom: '40px'}}>
+                    // {this.state.data ? 'The ' + this.state.data.results.length + ' highest prioritized genes for the combination of ' + thisThese 
+                 // + this.state.data.terms.length + phenotypePhenotypes : 'loading'}
+                // </div>
+
+
         return (
           <DocumentTitle title={'Diagnosis' + GN.pageTitleSuffix}>
           <div style={{backgroundColor: '#ffffff'}}>
@@ -696,10 +708,21 @@ var Diagnosis = React.createClass({
 
             <div className='hflex'>
                 <div className='flex11' style={{maxWidth: '730px'}}>
+                    
                     <ShowPhenotypes3 prio={this.state.data} hoverItem={this.state.hoverItem} />
+                
                 </div>
-                <div className='vflex' style={{paddingLeft: '20px', width: '100%'}}>
-                </div>
+
+                {this.state.data.hpoCorrelation.termsFound.length > 1 ?
+                    <div className='vflex' style={{paddingLeft: '20px', width: '100%', maxWidth: '400px'}}>
+                        <div id='heatmap-title' style={{paddingTop: '7px', paddingBottom: '7px', fontWeight: 'bold'}}>PHENOTYPE CORRELATION</div>
+                        <div id='heatmap' className='flex11' style={{width: '100%', minWidth: '300px'}}></div>
+                    </div>
+                    :
+                    null
+                }
+                
+
             </div>
 
             {this.state.useCustomGeneSet ? 
@@ -708,17 +731,17 @@ var Diagnosis = React.createClass({
                     <h3>Genes not found</h3> 
                     {genesNotFound}
                     </div>
-                    <div style={{padding: '10px 0px 10px 0px', marginBottom: '40px'}}>
-                    <h3>Genes found</h3>
-                         {this.state.data ? 'The ' + this.state.data.results.length + ' prioritized selected genes for the combination of ' + thisThese 
-                        + this.state.data.terms.length + phenotypePhenotypes : 'loading'}
+                    <div style={{padding: '10px 0px 10px 0px'}}>
+                    <h3>Gene prioritization</h3>
+                         
                     </div>
                 </div>
                 :
-                <div style={{padding: '20px 0px 10px 0px', marginTop: '20px', marginBottom: '40px'}}>
-                    {this.state.data ? 'The ' + this.state.data.results.length + ' highest prioritized genes for the combination of ' + thisThese 
-                 + this.state.data.terms.length + phenotypePhenotypes : 'loading'}
+
+                <div style={{padding: '20px 0px 10px 0px', marginTop: '20px'}}>
+                    <h3>Gene prioritization</h3>
                 </div>
+
             }
             
           <div style={{overflow: "auto", display: 'inline'}}>

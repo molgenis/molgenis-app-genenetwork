@@ -28,7 +28,6 @@ module.exports = function(terms, verbose, callback) {
 
     for (var i = 0; i < termsQ.length; i++) {
         var pathwayObj = dbutil.pathwayObject(termsQ[i])
-        console.log(pathwayObj)
         if (pathwayObj) {
             terms.push(pathwayObj)
             termsFound.push({id: pathwayObj.id, name: pathwayObj.name})
