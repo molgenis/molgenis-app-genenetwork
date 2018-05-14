@@ -6440,11 +6440,48 @@ var GeneTable = React.createClass({displayName: "GeneTable",
             newRows.push(React.createElement(Tr, {key: "1"}, React.createElement(Td, {column: ""}, "Your list of genes did not match any of the results.")))
         }
 
-        var hpoIds = []
+        var terms = this.props.prio.terms
+        var orderedTerms = this.props.prio.orderedTerms
+        var termslist = _.map(terms, 'term.id')
 
-        for (var n = 0; n < this.props.prio.terms.length; n++){
-            hpoIds.push(React.createElement(Th, {column: this.props.prio.terms[n].term.id}, React.createElement(SVGCollection.DiagonalText, {text: this.props.prio.terms[n].term.id})))
+        var newTerms = []
+        for (var i = 0; i < orderedTerms.length; i++){
+            var index = termslist.indexOf(orderedTerms[i])
+            newTerms.push(terms[index])
         }
+
+        var hpoIds = []
+        for (var n = 0; n < newTerms.length; n++){
+            hpoIds.push(React.createElement(Th, {column: newTerms[n].term.id}, React.createElement(SVGCollection.DiagonalText, {text: newTerms[n].term.id})))
+        }
+
+        // var hpoIds = []
+        // for (var n = 0; n < terms.length; n++){
+        //     hpoIds.push(<Th column={terms[n].term.id}><SVGCollection.DiagonalText text={terms[n].term.id} /></Th>)
+        // }
+
+        // console.log('ordered terms')
+        // console.log()
+        // console.log(hpoIds)
+
+
+
+        // var terms = this.props.prio.terms
+        // var termslist = _.map(terms, 'term.id')
+        // var orderedTerms = this.props.prio.orderedTerms
+
+        // if (orderedTerms){
+        //     // console.log(this.props.prio)
+        //     // if heatmap clustering is done, replace terms array by ordered terms array (based on clustering)
+        //     var newTerms = []
+        //     for (var i = 0; i < orderedTerms.length; i++){
+        //         var index = termslist.indexOf(orderedTerms[i])
+        //         newTerms.push(terms[index])
+        //     }
+        //     terms = newTerms
+        // }
+
+
 
         // console.log(hpoIds)
 
@@ -6897,7 +6934,13 @@ var Diagnosis = React.createClass({displayName: "Diagnosis",
             
             
           React.createElement("div", {style: {overflow: "auto", display: 'inline'}}, 
-          React.createElement(GeneTable, {prio: this.state.data, prioFiltered: this.state.newTable, onMouseOver: this.handleMouseOver, hoverRow: this.state.hoverRow})
+          
+
+            this.state.data.orderedTerms ? 
+                React.createElement(GeneTable, {prio: this.state.data, prioFiltered: this.state.newTable, onMouseOver: this.handleMouseOver, hoverRow: this.state.hoverRow})
+                :
+                null
+            
           ), 
 
         React.createElement("div", {style: {padding: '10px 0px', marginTop: '10px'}}, 
