@@ -278,8 +278,28 @@ var DiagnosisMain = React.createClass({
                                 <span onClick={this.onSubmit} className='button noselect clickable' style={{marginTop: '20px'}}>Prioritize genes for given HPO terms</span>
                             </div>
 
-                            <div className='text-right' style={{width: '40%', minWidth: '300px', paddingLeft: '40px'}}>
-                          
+                        <div className='text-right' style={{width: '40%', minWidth: '300px', paddingLeft: '40px', fontSize: '10pt'}}>
+                            <p>
+                              Using the HPO gene prioritization it possible to rank genes based on a patient’s phenotypes.
+                            </p>
+                            
+                            <p>
+                              <ol>
+                                <li>Fill in the phenotypes of a patient as HPO terms (compbio.charite.de/hpoweb/showterm?id=HP:0000118). Try to be as specific as possible, if a term could not be found then a more general term should be used. If the exact phenotype of a patient is unclear it is better to use a more general term, as a wrongly assigned specific term might hinder accurate ranking. For example, there are many subclasses of seizures (http://compbio.charite.de/hpoweb/showterm?id=HP:0001250), if it clear that a patient shows a specific subclass then the HPO term for this subclass should be used, if this is not clear then it is best to use the general seizures term. It is also best to only use distinct HPO terms to describe a patient’s phenotypes. If two close related terms are used to describe the same phenotype, then these will result in some bias towards this phenotype in the prioritization. Please use the HPO number or the primary name, synonyms are not supported at the moment.</li>
+                                <li>Optional list of genes to be ranked using the HPO terms. This could for instance be the genes in which a patient has candidate disease causing mutations that require classification or follow-up analysis. The genes that prioritize on top are the most likely candidates based on our HPO term predictions. If no gene list is provided we will simply rank all genes based on the provided HPO terms.</li>
+                              </ol>
+                            </p>
+                            
+                            <p>
+                            <b>FAQ</b>
+                            <ul>
+                          <li><i>Why is my term not found? </i><br />
+                          We do not have significant predictions for all HPO terms. Either because very few genes are known for a term of because our current dataset is unable to reliable predict back the known genes for a term. At the moment the best course of action is to manually select a more generic term. We are currently working on an extension to automatically suggest more general terms if one of these terms is entered. At the moment we don’t support searching using the synonym names of HPO terms, this will be resolved in a future version.</li>
+                          <li><i>My favorite candidate gene for patient is found back in the top of the results?</i> <br />
+                          Gene expression patterns are not informative for all genes. If an expected gene is not found back this is the most likely explanation.</li>
+                              </ul>
+
+                            </p>
                         </div>
 
                         </div>
