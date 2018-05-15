@@ -108,7 +108,7 @@ D3Heatmap.prototype._drawHeatmap = function(){
     this._vis = d3.select(this.elem).append('svg:svg')
         .attr('id', 'heatmapsvg')
         .attr('width', this._props.size + 80)
-        .attr('height', this._props.size)
+        .attr('height', this._props.size + 30)
 
     this._vis.call(tip)
 

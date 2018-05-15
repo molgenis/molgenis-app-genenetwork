@@ -109,7 +109,7 @@ D3Heatmap.prototype._drawHeatmap = function(){
     this._vis = d3.select(this.elem).append('svg:svg')
         .attr('id', 'heatmapsvg')
         .attr('width', this._props.size + 80)
-        .attr('height', this._props.size)
+        .attr('height', this._props.size + 30)
 
     this._vis.call(tip)
 
@@ -2306,7 +2306,7 @@ module.exports = React.createClass({displayName: "exports",
 						React.createElement("g", {id: "right_lung", onclick: "click_label('lung')", onmouseover: "show_label('lung')", onmouseout: "hide_label()"}, 
 							React.createElement("path", {id: "right_lung_color", fill: getRGB(this.props.values.avg[this.props.fixed.indices.Lung]), d: "M301.1,219.1c-5.1,0.5-14.4-0.8-31.6,23.1c-14.9,21.1-23.4,45.1-29.8,70c-2.6,11.9-9.2,42.5,0.4,84c0.1,0.4,1.6,9.7,10,10.3c0.9,0.1,38.6-22.5,54.7-18.6c4.5,2.2,14,0.3,20-7.7l0.4-17.9c0,0,5.9-47.7,2.5-56.7c0,0-8.1-34.6-9.3-39.2c-4.7-17.3,2.2-29.9,0.9-35.8C319.3,230.7,314.2,220.2,301.1,219.1L301.1,219.1z"}), 
 							React.createElement("path", {id: "right_lung_strokes", fill: "none", stroke: "#000000", strokeWidth: "0.5", d: "M242.7,301.1c0,0,14.3,59.8,42.6,76 M242.9,402.7c-2.8-2.2,33.4-23,42.6-25.4M285.3,377.2c0.1,0.1,21.2-2.5,32.9-14.8l7.4-7.8"}), 
-							React.createElement("path", {id: "right_lung_hover", style: {transition: 'stroke .25s ease-in-out, stroke-width .25s ease-in-out'}, id: "right_lung_color", fill: "rgba(0,0,0,0)", stroke: hoverName === 'Lung' || clickedItem === 'Lung' ? "rgb(255,225,0)" : "rgba(0,0,0,0.5", strokeWidth: hoverName === "Lung" || clickedItem === 'Lung' ? "5" : "2", d: "M301.1,219.1c-5.1,0.5-14.4-0.8-31.6,23.1c-14.9,21.1-23.4,45.1-29.8,70c-2.6,11.9-9.2,42.5,0.4,84c0.1,0.4,1.6,9.7,10,10.3c0.9,0.1,38.6-22.5,54.7-18.6c4.5,2.2,14,0.3,20-7.7l0.4-17.9c0,0,5.9-47.7,2.5-56.7c0,0-8.1-34.6-9.3-39.2c-4.7-17.3,2.2-29.9,0.9-35.8C319.3,230.7,314.2,220.2,301.1,219.1L301.1,219.1z"})
+							React.createElement("path", {id: "right_lung_hover", style: {transition: 'stroke .25s ease-in-out, stroke-width .25s ease-in-out'}, fill: "rgba(0,0,0,0)", stroke: hoverName === 'Lung' || clickedItem === 'Lung' ? "rgb(255,225,0)" : "rgba(0,0,0,0.5", strokeWidth: hoverName === "Lung" || clickedItem === 'Lung' ? "5" : "2", d: "M301.1,219.1c-5.1,0.5-14.4-0.8-31.6,23.1c-14.9,21.1-23.4,45.1-29.8,70c-2.6,11.9-9.2,42.5,0.4,84c0.1,0.4,1.6,9.7,10,10.3c0.9,0.1,38.6-22.5,54.7-18.6c4.5,2.2,14,0.3,20-7.7l0.4-17.9c0,0,5.9-47.7,2.5-56.7c0,0-8.1-34.6-9.3-39.2c-4.7-17.3,2.2-29.9,0.9-35.8C319.3,230.7,314.2,220.2,301.1,219.1L301.1,219.1z"})
 						), 
 						React.createElement("g", {id: "left_lung", onclick: "click_label('lung')", onmouseover: "show_label('lung')", onmouseout: "hide_label()"}, 
 							React.createElement("path", {fill: getRGB(this.props.values.avg[this.props.fixed.indices.Lung]), d: "M375.6,220.9c5.1,0.5,14.4-0.8,31.6,23.1c14.9,21.1,23.4,45.1,29.8,70c2.5,11.9,9.2,42.5-0.4,84c-0.1,0.4-1.6,9.7-10,10.3c-0.9,0.1-38.6-22.5-54.7-18.6c-4.5,2.2-14,0.3-20-7.7l-0.4-17.9c0,0-5.9-47.7-2.5-56.7c0,0,8.1-34.6,9.3-39.2c4.7-17.3-2.2-29.9-0.8-35.8C357.4,232.4,362.5,222,375.6,220.9L375.6,220.9z"}), 
@@ -39274,12 +39274,10 @@ function shim (obj) {
 },{}],129:[function(require,module,exports){
 (function (process){
 /**
- * Copyright 2013-2015, Facebook, Inc.
- * All rights reserved.
+ * Copyright (c) 2013-present, Facebook, Inc.
  *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 'use strict';
@@ -63218,19 +63216,12 @@ exports.default = trim;
 },{}],183:[function(require,module,exports){
 'use strict';
 
-var _react = require('react');
+function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
-var _react2 = _interopRequireDefault(_react);
-
-var _exenv = require('exenv');
-
-var _exenv2 = _interopRequireDefault(_exenv);
-
-var _shallowequal = require('shallowequal');
-
-var _shallowequal2 = _interopRequireDefault(_shallowequal);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+var React = require('react');
+var React__default = _interopDefault(React);
+var ExecutionEnvironment = _interopDefault(require('exenv'));
+var shallowEqual = _interopDefault(require('shallowequal'));
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -63238,7 +63229,7 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-module.exports = function withSideEffect(reducePropsToState, handleStateChangeOnClient, mapStateOnServer) {
+function withSideEffect(reducePropsToState, handleStateChangeOnClient, mapStateOnServer) {
   if (typeof reducePropsToState !== 'function') {
     throw new Error('Expected reducePropsToState to be a function.');
   }
@@ -63302,7 +63293,7 @@ module.exports = function withSideEffect(reducePropsToState, handleStateChangeOn
       };
 
       SideEffect.prototype.shouldComponentUpdate = function shouldComponentUpdate(nextProps) {
-        return !(0, _shallowequal2.default)(nextProps, this.props);
+        return !shallowEqual(nextProps, this.props);
       };
 
       SideEffect.prototype.componentWillMount = function componentWillMount() {
@@ -63321,19 +63312,22 @@ module.exports = function withSideEffect(reducePropsToState, handleStateChangeOn
       };
 
       SideEffect.prototype.render = function render() {
-        return _react2.default.createElement(WrappedComponent, this.props);
+        return React__default.createElement(WrappedComponent, this.props);
       };
 
       return SideEffect;
-    }(_react.Component);
+    }(React.Component);
 
     SideEffect.displayName = 'SideEffect(' + getDisplayName(WrappedComponent) + ')';
-    SideEffect.canUseDOM = _exenv2.default.canUseDOM;
+    SideEffect.canUseDOM = ExecutionEnvironment.canUseDOM;
 
 
     return SideEffect;
   };
-};
+}
+
+module.exports = withSideEffect;
+
 },{"exenv":68,"react":333,"shallowequal":350}],184:[function(require,module,exports){
 'use strict';
 
