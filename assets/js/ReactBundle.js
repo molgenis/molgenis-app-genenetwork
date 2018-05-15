@@ -14,6 +14,14 @@ function D3Heatmap(elem, props) {
     this._props.numTerms = props.terms.length
     this._props.hoverRow = null
     this._props.hoverCol = null
+    this._props.colorscale = this._props.colorscale ? this._props.colorscale : [color.colors.gnblue, color.colors.gnlightgray, color.colors.gnred]
+    this._props.distance = this._props.distance ? this._props.distance : 
+    this._props.linkage = this._props.linkage ? this._props.linkage : 'avg'
+    this._props.cellsize = this._props.cellsize ? this._props.cellsize : 30
+    
+    this._props.labelsizeBottom = 60
+    this._props.labelsizeRight = 75
+
     this._clusterData()
     this._initScales()
     this._calculateProperties()
@@ -26,6 +34,7 @@ D3Heatmap.prototype._clusterData = function(){
     var terms = this._props.terms
     var cormat = this._props.cormat
 
+    //transform data to right format
     var data = []
     for (var i = 0; i < terms.length; i++){
         data.push({
@@ -34,14 +43,17 @@ D3Heatmap.prototype._clusterData = function(){
         })
     }
 
+    //cluster data
     var cluster = hcluster()
-        .distance('euclidean')
-        .linkage('avg')
+        .distance(this._props.distance)
+        .linkage(this._props.linkage)
         .posKey('values')
         .data(data)
 
+    //get node ordening
     var indices = _.flatMap(cluster.orderedNodes(), 'indexes')
     
+    //order the data according to clustering
     var orderedData = []
     var orderedTerms = []
     for (var i = 0; i < indices.length; i++){
@@ -63,30 +75,22 @@ D3Heatmap.prototype._clusterData = function(){
 D3Heatmap.prototype._initScales = function(){
     this._colorscale = d3.scale.linear()
         .domain([-1, 0, 1])
-        .range(['#000080', '#FFFFFF', '#CD2626'])
+        .range(this._props.colorscale)
         .clamp(true)
-    // this._colorscale = d3.scale.linear()
-    //     .domain([-1, 0, 1])
-    //     .range([color.colors.gnblue, color.colors.gnlightgray, color.colors.gnred])
-    //     .clamp(true)
-
-    // this._colorscale = d3.scale.linear()
-    //     .domain([-1, -0.5, 0, 0.5, 1])
-    //     .range(['#0056a6', '#0085ff', '#b3b3b3', '#ff3c00', '#a62700'])
-    //     .clamp(true)
-
 }
 
 D3Heatmap.prototype._calculateProperties = function(){
-    this._props.size = this.elem.clientWidth > this.elem.clientHeight ? this.elem.clientHeight : this.elem.clientWidth
-    var maxCellsize = 20
-    var maxWidth = maxCellsize * this._props.numTerms
-    this._props.cellsize = (this._props.size) / this._props.numTerms 
-    
-    if (maxWidth < this._props.size) {
-        this._props.cellsize = 20
-        this._props.width = maxWidth
+    console.log('width, height')
+    console.log(this.elem.clientWidth + ', ' + this.elem.clientHeight)
+    this._props.size = this.elem.clientWidth > this.elem.clientHeight ? this.elem.clientHeight : this.elem.clientWidth - this._props.labelsizeRight 
+    var totalwidth = this._props.cellsize * this._props.numTerms
+    if (this._props.size < totalwidth){
+        //if the size of the div is smaller than the total width of the heatmap, make cellsize smaller so heatmap will fit in div 
+        this._props.cellsize = this._props.size / this._props.numTerms
+        
     }
+    console.log('size')
+    console.log(this._props.size)
 }
 
 D3Heatmap.prototype._drawHeatmap = function(){
@@ -103,13 +107,10 @@ D3Heatmap.prototype._drawHeatmap = function(){
             return d.value
           })
 
-    console.log('SIZE')
-    console.log(this._props.size)
-
     this._vis = d3.select(this.elem).append('svg:svg')
         .attr('id', 'heatmapsvg')
-        .attr('width', this._props.size + 80)
-        .attr('height', this._props.size + 30)
+        .attr('width', this._props.size + this._props.labelsizeRight)
+        .attr('height', this._props.size + this._props.labelsizeBottom)
 
     this._vis.call(tip)
 
@@ -151,6 +152,7 @@ D3Heatmap.prototype._drawHeatmap = function(){
         //     div.style('visibility', 'hidden')
         //     that._props.handleHover(null, null)
         // })
+        
 }
 
 D3Heatmap.prototype._addLabels = function(){
@@ -6542,12 +6544,14 @@ var Diagnosis = React.createClass({displayName: "Diagnosis",
     },
 
     handleHover: function(row, col){
-        var data = this.state.data 
-        data['hoverRow'] = row
-        data['hoverCol'] = col 
-        this.setState({
-            data: data
-        })
+    	console.log('handle hover')
+    	console.log(row, col)
+        // var data = this.state.data 
+        // data['hoverRow'] = row
+        // data['hoverCol'] = col 
+        // this.setState({
+        //     data: data
+        // })
     },
 
     createHeatmap: function(data, callback){
@@ -6558,6 +6562,10 @@ var Diagnosis = React.createClass({displayName: "Diagnosis",
             var heatmap = new D3Heatmap(div, {
                 cormat: data.hpoCorrelation.hpoCorrelationMatrix,
                 terms: data.hpoCorrelation.termsFound,
+                distance: 'euclidean',
+                linkage: 'avg',
+                colorscale: ['#000080', '#FFFFFF', '#CD2626'],
+                cellsize: 20,
                 handleHover: this.handleHover
             })
 
@@ -39274,10 +39282,12 @@ function shim (obj) {
 },{}],129:[function(require,module,exports){
 (function (process){
 /**
- * Copyright (c) 2013-present, Facebook, Inc.
+ * Copyright 2013-2015, Facebook, Inc.
+ * All rights reserved.
  *
- * This source code is licensed under the MIT license found in the
- * LICENSE file in the root directory of this source tree.
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree. An additional grant
+ * of patent rights can be found in the PATENTS file in the same directory.
  */
 
 'use strict';
@@ -63216,12 +63226,19 @@ exports.default = trim;
 },{}],183:[function(require,module,exports){
 'use strict';
 
-function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
+var _react = require('react');
 
-var React = require('react');
-var React__default = _interopDefault(React);
-var ExecutionEnvironment = _interopDefault(require('exenv'));
-var shallowEqual = _interopDefault(require('shallowequal'));
+var _react2 = _interopRequireDefault(_react);
+
+var _exenv = require('exenv');
+
+var _exenv2 = _interopRequireDefault(_exenv);
+
+var _shallowequal = require('shallowequal');
+
+var _shallowequal2 = _interopRequireDefault(_shallowequal);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -63229,7 +63246,7 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-function withSideEffect(reducePropsToState, handleStateChangeOnClient, mapStateOnServer) {
+module.exports = function withSideEffect(reducePropsToState, handleStateChangeOnClient, mapStateOnServer) {
   if (typeof reducePropsToState !== 'function') {
     throw new Error('Expected reducePropsToState to be a function.');
   }
@@ -63293,7 +63310,7 @@ function withSideEffect(reducePropsToState, handleStateChangeOnClient, mapStateO
       };
 
       SideEffect.prototype.shouldComponentUpdate = function shouldComponentUpdate(nextProps) {
-        return !shallowEqual(nextProps, this.props);
+        return !(0, _shallowequal2.default)(nextProps, this.props);
       };
 
       SideEffect.prototype.componentWillMount = function componentWillMount() {
@@ -63312,22 +63329,19 @@ function withSideEffect(reducePropsToState, handleStateChangeOnClient, mapStateO
       };
 
       SideEffect.prototype.render = function render() {
-        return React__default.createElement(WrappedComponent, this.props);
+        return _react2.default.createElement(WrappedComponent, this.props);
       };
 
       return SideEffect;
-    }(React.Component);
+    }(_react.Component);
 
     SideEffect.displayName = 'SideEffect(' + getDisplayName(WrappedComponent) + ')';
-    SideEffect.canUseDOM = ExecutionEnvironment.canUseDOM;
+    SideEffect.canUseDOM = _exenv2.default.canUseDOM;
 
 
     return SideEffect;
   };
-}
-
-module.exports = withSideEffect;
-
+};
 },{"exenv":68,"react":333,"shallowequal":350}],184:[function(require,module,exports){
 'use strict';
 

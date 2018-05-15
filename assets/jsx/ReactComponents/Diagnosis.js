@@ -606,12 +606,14 @@ var Diagnosis = React.createClass({
     },
 
     handleHover: function(row, col){
-        var data = this.state.data 
-        data['hoverRow'] = row
-        data['hoverCol'] = col 
-        this.setState({
-            data: data
-        })
+    	console.log('handle hover')
+    	console.log(row, col)
+        // var data = this.state.data 
+        // data['hoverRow'] = row
+        // data['hoverCol'] = col 
+        // this.setState({
+        //     data: data
+        // })
     },
 
     createHeatmap: function(data, callback){
@@ -622,6 +624,10 @@ var Diagnosis = React.createClass({
             var heatmap = new D3Heatmap(div, {
                 cormat: data.hpoCorrelation.hpoCorrelationMatrix,
                 terms: data.hpoCorrelation.termsFound,
+                distance: 'euclidean',
+                linkage: 'avg',
+                colorscale: ['#000080', '#FFFFFF', '#CD2626'],
+                cellsize: 20,
                 handleHover: this.handleHover
             })
 
