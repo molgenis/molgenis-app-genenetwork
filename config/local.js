@@ -24,6 +24,7 @@ module.exports = {
 
     celltypeDBPath: '/data/genenetwork/level/new/celltypedb',
     correlationDBPath: '/data/genenetwork/level/new/dbpccorrelationzscores_uint16be_genescompsstdnorm',
+    hpocorrelationDB: '/data/genenetwork/level/new/hpocorrelationdb',
     //correlationDBPath: '/srv/molgenis/dbpccorrelationzscores_uint16be',
     requestDBPath: '/data/genenetwork/level/new/dbreq',
     networkShortURLDBPath: '/data/genenetwork/level/new/dbnetworkurls',

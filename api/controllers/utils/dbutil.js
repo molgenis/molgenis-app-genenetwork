@@ -46,6 +46,10 @@ var transcriptdb = level(sails.config.transcriptDBpath, {
     valueEncoding: 'binary'
 });
 
+var hpocorrelationdb = level(sails.config.hpocorrelationDB, {
+    valueEncoding: 'binary'
+});
+
 //TODO this data to the database
 var getPathwayDatabasesFromDB = function(db, callback) {
     var databases = [
@@ -1215,6 +1219,47 @@ exp.getCoregulationJSON = function(genes, threshold, options, callback) {
         }
     })
 };
+
+exp.getHpoCorrelationMatrix = function(terms, callback){
+
+    hpocorrelationdb.get('RNASEQ!HPOCORRELATIONS!HEADER', {valueEncoding: 'json'}, function(err, data){
+        if (err){
+            handleDBError(err, callback)
+        } else {
+
+            var indices = []
+            var termsFound = []
+            for (var i = 0; i < terms.length; i++){
+                if (data.indexOf(terms[i]) !== -1){
+                    indices.push(data.indexOf(terms[i]))
+                    termsFound.push(terms[i])
+                }
+            } 
+
+            async.map(termsFound, function(term, cb){
+                var cormat = []
+                hpocorrelationdb.get('RNASEQ!HPOCORRELATIONS!' + term, function(err, buffer){
+                    if (err) {
+                        handleDBError(err, cb)
+                    } else {
+                        for (var e = 0; e < indices.length; e++){
+                            // correlation values are stored in the databased scaled between 0 and 50.000 (-1=0, 0=25.000, 1=50.000)
+                            cormat.push((buffer.readUInt16BE(indices[e]*2) - 25000)/25000)
+                        }
+                        cb(null, cormat)
+                    }
+                })
+            }, function(err, cormat){
+                if (err) {
+                    handleDBError(err, callback)
+                } else {
+                    var results = {hpoCorrelationMatrix: cormat, termsFound: termsFound}
+                    callback(null, results)
+                }
+            })
+        }
+    })
+}
 
 exp.getTermCorrelationMatrix = function(terms, options, callback) {
 

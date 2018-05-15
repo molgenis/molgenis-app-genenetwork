@@ -1,25 +1,74 @@
-(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+(function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 'use strict'
 
 var _ = require('lodash')
 var d3 = require('d3')
 var color = require('./color.js')
-
+var hcluster = require('hclusterjs')
+var d3tip = require('d3-tip')
 
 function D3Heatmap(elem, props) {
 
     this.elem = elem
     this._props = props || {}
+    this._props.numTerms = props.terms.length
+    this._props.hoverRow = null
+    this._props.hoverCol = null
+    this._clusterData()
     this._initScales()
-    this._addDOMElements()
+    this._calculateProperties()
+    this._drawHeatmap()
+    this._addLabels()
+
+}
+
+D3Heatmap.prototype._clusterData = function(){
+    var terms = this._props.terms
+    var cormat = this._props.cormat
+
+    var data = []
+    for (var i = 0; i < terms.length; i++){
+        data.push({
+            term: terms[i],
+            values: cormat[i]
+        })
+    }
+
+    var cluster = hcluster()
+        .distance('euclidean')
+        .linkage('avg')
+        .posKey('values')
+        .data(data)
+
+    var indices = _.flatMap(cluster.orderedNodes(), 'indexes')
+    
+    var orderedData = []
+    var orderedTerms = []
+    for (var i = 0; i < indices.length; i++){
+        for (var e = 0; e < indices.length; e++){
+            orderedData.push({
+                row: i,
+                col: e,
+                value: cormat[indices[i]][indices[e]]
+            })
+        }
+        orderedTerms.push(terms[indices[i]])
+    }
+
+    this._props.orderedData = orderedData
+    this._props.orderedTerms = orderedTerms
 
 }
 
 D3Heatmap.prototype._initScales = function(){
     this._colorscale = d3.scale.linear()
         .domain([-1, 0, 1])
-        .range([color.colors.gnblue, color.colors.gnlightgray, color.colors.gnred])
+        .range(['#000080', '#FFFFFF', '#CD2626'])
         .clamp(true)
+    // this._colorscale = d3.scale.linear()
+    //     .domain([-1, 0, 1])
+    //     .range([color.colors.gnblue, color.colors.gnlightgray, color.colors.gnred])
+    //     .clamp(true)
 
     // this._colorscale = d3.scale.linear()
     //     .domain([-1, -0.5, 0, 0.5, 1])
@@ -28,30 +77,48 @@ D3Heatmap.prototype._initScales = function(){
 
 }
 
-D3Heatmap.prototype._addDOMElements = function(){
-    var maxCellsize = 30
+D3Heatmap.prototype._calculateProperties = function(){
+    this._props.size = this.elem.clientWidth > this.elem.clientHeight ? this.elem.clientHeight : this.elem.clientWidth
+    var maxCellsize = 20
     var maxWidth = maxCellsize * this._props.numTerms
-    var cellsize = (this._props.size - 150) / this._props.numTerms 
-    var width = this._props.size
-
+    this._props.cellsize = (this._props.size) / this._props.numTerms 
+    
     if (maxWidth < this._props.size) {
-        cellsize = 30
-        width = maxWidth
+        this._props.cellsize = 20
+        this._props.width = maxWidth
     }
+}
+
+D3Heatmap.prototype._drawHeatmap = function(){
+    
+    var cellsize = this._props.cellsize
+    var that = this
+
+    var orderedTerms = this._props.orderedTerms
+
+    var tip = d3tip()
+          .attr('class', 'd3-tip')
+          .offset([0, 0])
+          .html(function(d) {
+            return d.value
+          })
+
+    console.log('SIZE')
+    console.log(this._props.size)
 
     this._vis = d3.select(this.elem).append('svg:svg')
         .attr('id', 'heatmapsvg')
-        .attr('width', width)
-        .attr('height', width)
+        .attr('width', this._props.size + 80)
+        .attr('height', this._props.size + 30)
 
-    console.log('maxWidth, cellsize')
-    console.log(maxWidth, cellsize)
+    this._vis.call(tip)
 
-    console.log('size, width, height')
-    console.log(this._props.size, this._props.width, this._props.height)
+    // var div = d3.select("body").append("div")   
+    //     .attr("class", "tooltip")               
+    //     .style("visibility", 0);
 
-    this._vis.selectAll('rect')
-        .data(this._props.data)
+    var rect = this._vis.selectAll('rect')
+        .data(that._props.orderedData)
         .enter()
         .append('rect')
         .attr('x', function(d){
@@ -60,16 +127,84 @@ D3Heatmap.prototype._addDOMElements = function(){
         .attr('y', function(d){
             return d.row * cellsize
         })
-        .attr('width', cellsize - 2)
-        .attr('height', cellsize - 2)
+        .attr('width', cellsize - 1)
+        .attr('height', cellsize - 1)
         .attr('fill', function(d){
-            return this._colorscale(d.value)
-        }.bind(this))
+            return that._colorscale(d.value)
+        })
+        .on('mouseover', tip.show)
+        .on('mouseout', tip.hide)
+
+
+        // .on('mouseover', function(d){
+        //     var matrix = this.getScreenCTM()
+        //         .translate(+ this.getAttribute("x"), + this.getAttribute("y"));
+        //     div.html(d.value)
+        //         .style('visibility', 'visible')
+        //         .style("left", (window.pageXOffset + matrix.e - 17) + "px")
+        //         .style("top", (window.pageYOffset + matrix.f - 30) + "px");  
+
+        //     that._props.handleHover(orderedTerms[d.row], orderedTerms[d.col])
+
+        // })
+        // .on('mouseout', function(d){
+        //     div.style('visibility', 'hidden')
+        //     that._props.handleHover(null, null)
+        // })
+}
+
+D3Heatmap.prototype._addLabels = function(){
+    var terms = this._props.orderedTerms
+    var cellsize = this._props.cellsize 
+    var numTerms = this._props.numTerms
+
+    this._vis.selectAll('text.right')
+        .data(terms)
+        .enter()
+        .append('text')
+        .text(function(d){
+            return d
+        })
+        .attr('x', function(d){
+            return cellsize * numTerms + 5
+        })
+        .attr('y', function(d){
+            return (terms.indexOf(d) * cellsize + cellsize) - cellsize / 2.5
+            // return 20
+            // terms.indexOf(d) * 20
+        })
+        // .attr('font-family', 'helvetica')
+        .attr('font-size', 12)
+
+    this._vis.selectAll('text.bottom')
+        .data(terms)
+        .enter()
+        .append('text')
+        .text(function(d){
+            return d
+        })
+        // .attr('x', function(d){
+        //     return (terms.indexOf(d) * cellsize + cellsize) - cellsize / 2.5
+        //     // return cellsize * numTerms + 5
+        // })
+        // .attr('y', function(d){
+        //     return cellsize * numTerms
+        // })
+        .attr('transform', function(d){
+            var x = (terms.indexOf(d) * cellsize + cellsize) - cellsize / 1.5
+            var y = cellsize * numTerms + 10
+            return 'translate(' + x + ',' + y + ') rotate(45)'
+        })
+        // .attr('font-family', 'helvetica')
+        .attr('font-size', 12)
+
+
+
 }
 
 module.exports = D3Heatmap
 
-},{"./color.js":4,"d3":57,"lodash":118}],2:[function(require,module,exports){
+},{"./color.js":4,"d3":60,"d3-tip":59,"hclusterjs":108,"lodash":130}],2:[function(require,module,exports){
 'use strict'
 
 var _ = require('lodash')
@@ -1212,7 +1347,7 @@ D3Network.prototype.getGeneObjectById = function(id) {
 
 module.exports = D3Network
 
-},{"./color.js":4,"d3":57,"lodash":118}],3:[function(require,module,exports){
+},{"./color.js":4,"d3":60,"lodash":130}],3:[function(require,module,exports){
 var exp = module.exports
 
 exp.assembly = 'GRCh37'
@@ -1533,7 +1668,7 @@ exp.intToOrdinalStr = function(value) {
     return value + 'th'
 }
 
-},{"lodash":118}],6:[function(require,module,exports){
+},{"lodash":130}],6:[function(require,module,exports){
 module.exports = (function() {
 
     function partition(array, left, right) {
@@ -1582,7 +1717,7 @@ var About = React.createClass({displayName: "About",
 
 module.exports = About;
 
-},{"react":320}],8:[function(require,module,exports){
+},{"react":333}],8:[function(require,module,exports){
 var React = require('react');
 var ReactRouter = require('react-router');
 var Link = ReactRouter.Link;
@@ -1631,7 +1766,7 @@ var Box = React.createClass({displayName: "Box",
 
 module.exports = Box;
 
-},{"../js/color":4,"./ReactComponents/SVGCollection":45,"react":320,"react-router":152}],9:[function(require,module,exports){
+},{"../js/color":4,"./ReactComponents/SVGCollection":45,"react":333,"react-router":164}],9:[function(require,module,exports){
 var React = require('react');
 var ReactRouter = require('react-router');
 var Link = ReactRouter.Link;
@@ -1678,7 +1813,7 @@ var BoxFunctionEnrichment = React.createClass({displayName: "BoxFunctionEnrichme
 
 module.exports = BoxFunctionEnrichment;
 
-},{"../js/color":4,"./ReactComponents/SVGCollection":45,"react":320,"react-router":152}],10:[function(require,module,exports){
+},{"../js/color":4,"./ReactComponents/SVGCollection":45,"react":333,"react-router":164}],10:[function(require,module,exports){
 'use strict';
 
 var _ = require('lodash');
@@ -1882,7 +2017,7 @@ var Gene = React.createClass({displayName: "Gene",
 
 module.exports = Gene;
 
-},{"../../js/color":4,"../ReactComponents/DataTable":32,"../ReactComponents/DownloadPanel":36,"./GeneHeader":11,"./GeneMenu":12,"./SimilarGenesTable":14,"./Tissues":15,"cookies-js":56,"lodash":118,"react":320,"react-document-title":130,"react-router":152}],11:[function(require,module,exports){
+},{"../../js/color":4,"../ReactComponents/DataTable":32,"../ReactComponents/DownloadPanel":36,"./GeneHeader":11,"./GeneMenu":12,"./SimilarGenesTable":14,"./Tissues":15,"cookies-js":56,"lodash":130,"react":333,"react-document-title":142,"react-router":164}],11:[function(require,module,exports){
 'use strict'
 
 var React = require('react')
@@ -1953,7 +2088,7 @@ var GeneHeader = React.createClass({displayName: "GeneHeader",
 
 module.exports = GeneHeader
 
-},{"../../js/color.js":4,"../ReactComponents/SVGCollection":45,"react":320}],12:[function(require,module,exports){
+},{"../../js/color.js":4,"../ReactComponents/SVGCollection":45,"react":333}],12:[function(require,module,exports){
 'use strict'
 
 var _ = require('lodash')
@@ -2039,7 +2174,7 @@ var GeneMenu = React.createClass({displayName: "GeneMenu",
 
 module.exports = GeneMenu
 
-},{"../ReactComponents/GeneOpenMenu":38,"../ReactComponents/SVGCollection":45,"lodash":118,"react":320}],13:[function(require,module,exports){
+},{"../ReactComponents/GeneOpenMenu":38,"../ReactComponents/SVGCollection":45,"lodash":130,"react":333}],13:[function(require,module,exports){
 'use strict'
 
 var React = require('react')
@@ -2171,7 +2306,7 @@ module.exports = React.createClass({displayName: "exports",
 						React.createElement("g", {id: "right_lung", onclick: "click_label('lung')", onmouseover: "show_label('lung')", onmouseout: "hide_label()"}, 
 							React.createElement("path", {id: "right_lung_color", fill: getRGB(this.props.values.avg[this.props.fixed.indices.Lung]), d: "M301.1,219.1c-5.1,0.5-14.4-0.8-31.6,23.1c-14.9,21.1-23.4,45.1-29.8,70c-2.6,11.9-9.2,42.5,0.4,84c0.1,0.4,1.6,9.7,10,10.3c0.9,0.1,38.6-22.5,54.7-18.6c4.5,2.2,14,0.3,20-7.7l0.4-17.9c0,0,5.9-47.7,2.5-56.7c0,0-8.1-34.6-9.3-39.2c-4.7-17.3,2.2-29.9,0.9-35.8C319.3,230.7,314.2,220.2,301.1,219.1L301.1,219.1z"}), 
 							React.createElement("path", {id: "right_lung_strokes", fill: "none", stroke: "#000000", strokeWidth: "0.5", d: "M242.7,301.1c0,0,14.3,59.8,42.6,76 M242.9,402.7c-2.8-2.2,33.4-23,42.6-25.4M285.3,377.2c0.1,0.1,21.2-2.5,32.9-14.8l7.4-7.8"}), 
-							React.createElement("path", {id: "right_lung_hover", style: {transition: 'stroke .25s ease-in-out, stroke-width .25s ease-in-out'}, id: "right_lung_color", fill: "rgba(0,0,0,0)", stroke: hoverName === 'Lung' || clickedItem === 'Lung' ? "rgb(255,225,0)" : "rgba(0,0,0,0.5", strokeWidth: hoverName === "Lung" || clickedItem === 'Lung' ? "5" : "2", d: "M301.1,219.1c-5.1,0.5-14.4-0.8-31.6,23.1c-14.9,21.1-23.4,45.1-29.8,70c-2.6,11.9-9.2,42.5,0.4,84c0.1,0.4,1.6,9.7,10,10.3c0.9,0.1,38.6-22.5,54.7-18.6c4.5,2.2,14,0.3,20-7.7l0.4-17.9c0,0,5.9-47.7,2.5-56.7c0,0-8.1-34.6-9.3-39.2c-4.7-17.3,2.2-29.9,0.9-35.8C319.3,230.7,314.2,220.2,301.1,219.1L301.1,219.1z"})
+							React.createElement("path", {id: "right_lung_hover", style: {transition: 'stroke .25s ease-in-out, stroke-width .25s ease-in-out'}, fill: "rgba(0,0,0,0)", stroke: hoverName === 'Lung' || clickedItem === 'Lung' ? "rgb(255,225,0)" : "rgba(0,0,0,0.5", strokeWidth: hoverName === "Lung" || clickedItem === 'Lung' ? "5" : "2", d: "M301.1,219.1c-5.1,0.5-14.4-0.8-31.6,23.1c-14.9,21.1-23.4,45.1-29.8,70c-2.6,11.9-9.2,42.5,0.4,84c0.1,0.4,1.6,9.7,10,10.3c0.9,0.1,38.6-22.5,54.7-18.6c4.5,2.2,14,0.3,20-7.7l0.4-17.9c0,0,5.9-47.7,2.5-56.7c0,0-8.1-34.6-9.3-39.2c-4.7-17.3,2.2-29.9,0.9-35.8C319.3,230.7,314.2,220.2,301.1,219.1L301.1,219.1z"})
 						), 
 						React.createElement("g", {id: "left_lung", onclick: "click_label('lung')", onmouseover: "show_label('lung')", onmouseout: "hide_label()"}, 
 							React.createElement("path", {fill: getRGB(this.props.values.avg[this.props.fixed.indices.Lung]), d: "M375.6,220.9c5.1,0.5,14.4-0.8,31.6,23.1c14.9,21.1,23.4,45.1,29.8,70c2.5,11.9,9.2,42.5-0.4,84c-0.1,0.4-1.6,9.7-10,10.3c-0.9,0.1-38.6-22.5-54.7-18.6c-4.5,2.2-14,0.3-20-7.7l-0.4-17.9c0,0-5.9-47.7-2.5-56.7c0,0,8.1-34.6,9.3-39.2c4.7-17.3-2.2-29.9-0.8-35.8C357.4,232.4,362.5,222,375.6,220.9L375.6,220.9z"}), 
@@ -2346,7 +2481,7 @@ module.exports = React.createClass({displayName: "exports",
 	}
 })
 
-},{"lodash":118,"react":320}],14:[function(require,module,exports){
+},{"lodash":130,"react":333}],14:[function(require,module,exports){
 var _ = require('lodash');
 var React = require('react');
 var Link = require('react-router').Link;
@@ -2476,7 +2611,7 @@ var SimilarGenesTable = React.createClass({displayName: "SimilarGenesTable",
 
 module.exports = SimilarGenesTable;
 
-},{"../../js/color":4,"../../js/htmlutil":5,"../ReactComponents/SVGCollection":45,"lodash":118,"react":320,"react-router":152,"reactable":321}],15:[function(require,module,exports){
+},{"../../js/color":4,"../../js/htmlutil":5,"../ReactComponents/SVGCollection":45,"lodash":130,"react":333,"react-router":164,"reactable":334}],15:[function(require,module,exports){
 'use strict'
 
 var _ = require('lodash')
@@ -2715,7 +2850,7 @@ var Tissues = React.createClass({displayName: "Tissues",
 
 module.exports = Tissues
 
-},{"../../js/htmlutil":5,"../ReactComponents/OpenMenu":42,"../ReactComponents/SVGCollection":45,"./HomoSapiens":13,"lodash":118,"react":320,"reactable":321}],16:[function(require,module,exports){
+},{"../../js/htmlutil":5,"../ReactComponents/OpenMenu":42,"../ReactComponents/SVGCollection":45,"./HomoSapiens":13,"lodash":130,"react":333,"reactable":334}],16:[function(require,module,exports){
 var _ = require('lodash');
 var React = require('react');
 var ReactTable = require('react-table').default;
@@ -2731,11 +2866,11 @@ var GeneList = React.createClass({displayName: "GeneList",
         })
     },
 
-    componentWillReceiveProps(newProps) {
+    componentWillReceiveProps: function(newProps) {
         this.handleUpdate(newProps.location.state.geneList);
     },
 
-    componentDidMount() {
+    componentDidMount: function() {
         this.handleUpdate(this.props.location.state.geneList)
     },
 
@@ -2835,7 +2970,7 @@ var GeneList = React.createClass({displayName: "GeneList",
 
 module.exports = GeneList;
 
-},{"../js/color":4,"lodash":118,"react":320,"react-document-title":130,"react-table":172}],17:[function(require,module,exports){
+},{"../js/color":4,"lodash":130,"react":333,"react-document-title":142,"react-table":185}],17:[function(require,module,exports){
 'use strict';
 
 
@@ -2883,7 +3018,7 @@ ReactDOM.render(React.createElement(Router, {history: history},
                 document.getElementById('reactcontainer')
                );
 
-},{"../../config/gn.js":51,"./About":7,"./Gene/Gene":10,"./GeneList":16,"./How":18,"./Landing":19,"./Network/Network":27,"./ReactComponents/API":30,"./ReactComponents/Diagnosis":33,"./ReactComponents/DiagnosisMain":34,"./ReactComponents/Ontology":41,"./ReactComponents/Term":47,"history/lib/createBrowserHistory":102,"react":320,"react-dom":131,"react-router":152}],18:[function(require,module,exports){
+},{"../../config/gn.js":51,"./About":7,"./Gene/Gene":10,"./GeneList":16,"./How":18,"./Landing":19,"./Network/Network":27,"./ReactComponents/API":30,"./ReactComponents/Diagnosis":33,"./ReactComponents/DiagnosisMain":34,"./ReactComponents/Ontology":41,"./ReactComponents/Term":47,"history/lib/createBrowserHistory":114,"react":333,"react-dom":143,"react-router":164}],18:[function(require,module,exports){
 var React = require('react');
 
 var How = React.createClass({displayName: "How",
@@ -2898,7 +3033,7 @@ var How = React.createClass({displayName: "How",
 
 module.exports = How;
 
-},{"react":320}],19:[function(require,module,exports){
+},{"react":333}],19:[function(require,module,exports){
 var _ = require('lodash');
 var React = require('react');
 var ReactRouter = require('react-router');
@@ -3234,7 +3369,7 @@ var Landing = React.createClass({displayName: "Landing",
 
 module.exports = Landing;
 
-},{"../../config/gn.js":51,"../js/color":4,"./MenuBar":20,"./ReactComponents/Footer":37,"./ReactComponents/Logo":40,"./Tools":49,"lodash":118,"react":320,"react-router":152,"react-select":163,"react-textarea-autosize":178}],20:[function(require,module,exports){
+},{"../../config/gn.js":51,"../js/color":4,"./MenuBar":20,"./ReactComponents/Footer":37,"./ReactComponents/Logo":40,"./Tools":49,"lodash":130,"react":333,"react-router":164,"react-select":175,"react-textarea-autosize":191}],20:[function(require,module,exports){
 var _ = require('lodash');
 var React = require('react');
 var ReactRouter = require('react-router');
@@ -3252,7 +3387,7 @@ var MenuBar = React.createClass({displayName: "MenuBar",
 
 module.exports = MenuBar;
 
-},{"lodash":118,"react":320,"react-router":152}],21:[function(require,module,exports){
+},{"lodash":130,"react":333,"react-router":164}],21:[function(require,module,exports){
 var React = require('react');
 var PredictedGenesPanel = require('../ReactComponents/PredictedGenesPanel');
 var PWAPanel = require('./PWAPanel');
@@ -3400,7 +3535,7 @@ var DownloadButton = React.createClass({displayName: "DownloadButton",
 
 module.exports = AnalysisPanel;
 
-},{"../../js/color.js":4,"../ReactComponents/DownloadPanel":36,"../ReactComponents/PredictedGenesPanel":43,"../ReactComponents/SVGCollection":45,"./PWAPanel":29,"react":320}],22:[function(require,module,exports){
+},{"../../js/color.js":4,"../ReactComponents/DownloadPanel":36,"../ReactComponents/PredictedGenesPanel":43,"../ReactComponents/SVGCollection":45,"./PWAPanel":29,"react":333}],22:[function(require,module,exports){
 var _ = require('lodash')
 var React = require('react')
 var d3 = require('d3')
@@ -3473,7 +3608,7 @@ var EdgeLegend = React.createClass({displayName: "EdgeLegend",
 
 module.exports = EdgeLegend
 
-},{"../../js/color.js":4,"d3":57,"lodash":118,"react":320}],23:[function(require,module,exports){
+},{"../../js/color.js":4,"d3":60,"lodash":130,"react":333}],23:[function(require,module,exports){
 var _ = require('lodash')
 var React = require('react')
 var GeneOpenMenu = require('../ReactComponents/GeneOpenMenu')
@@ -3507,7 +3642,7 @@ var EdgePanel = React.createClass({displayName: "EdgePanel",
 
 module.exports = EdgePanel
 
-},{"../../js/color":4,"../../js/htmlutil":5,"../ReactComponents/GeneOpenMenu":38,"../ReactComponents/SVGCollection":45,"genstats":86,"lodash":118,"react":320}],24:[function(require,module,exports){
+},{"../../js/color":4,"../../js/htmlutil":5,"../ReactComponents/GeneOpenMenu":38,"../ReactComponents/SVGCollection":45,"genstats":97,"lodash":130,"react":333}],24:[function(require,module,exports){
 var _ = require('lodash')
 var React = require('react')
 var GeneOpenMenu = require('../ReactComponents/GeneOpenMenu')
@@ -3572,7 +3707,7 @@ var GenePanel = React.createClass({displayName: "GenePanel",
 
 module.exports = GenePanel
 
-},{"../../js/color":4,"../ReactComponents/GeneOpenMenu":38,"../ReactComponents/SVGCollection":45,"lodash":118,"react":320}],25:[function(require,module,exports){
+},{"../../js/color":4,"../ReactComponents/GeneOpenMenu":38,"../ReactComponents/SVGCollection":45,"lodash":130,"react":333}],25:[function(require,module,exports){
 var _ = require('lodash')
 var React = require('react')
 var SVGCollection = require('../ReactComponents/SVGCollection')
@@ -3664,7 +3799,7 @@ var GroupPanel = React.createClass({displayName: "GroupPanel",
 
 module.exports = GroupPanel;
 
-},{"../../js/color":4,"../ReactComponents/SVGCollection":45,"lodash":118,"react":320}],26:[function(require,module,exports){
+},{"../../js/color":4,"../ReactComponents/SVGCollection":45,"lodash":130,"react":333}],26:[function(require,module,exports){
 'use strict';
 
 var _ = require('lodash');
@@ -3870,7 +4005,7 @@ var LegendPanel = React.createClass({displayName: "LegendPanel",
 
 module.exports = LegendPanel;
 
-},{"../../js/color":4,"../ReactComponents/OpenMenu":42,"../ReactComponents/SVGCollection":45,"lodash":118,"react":320,"react-tooltip":186}],27:[function(require,module,exports){
+},{"../../js/color":4,"../ReactComponents/OpenMenu":42,"../ReactComponents/SVGCollection":45,"lodash":130,"react":333,"react-tooltip":199}],27:[function(require,module,exports){
 'use strict';
 
 var _ = require('lodash');
@@ -4838,7 +4973,7 @@ var Network = React.createClass({displayName: "Network",
 
 module.exports = Network;
 
-},{"../../js/D3Network.js":2,"../../js/color":4,"../../js/htmlutil":5,"../../js/sort/quicksort":6,"../ReactComponents/Footer":37,"../ReactComponents/GeneTable":39,"./AnalysisPanel":21,"./EdgeLegend":22,"./EdgePanel":23,"./GenePanel":24,"./GroupPanel":25,"./LegendPanel":26,"./NetworkControlPanel":28,"affinity-propagation":53,"async":54,"cookies-js":56,"lodash":118,"react":320,"react-document-title":130,"react-dom":131}],28:[function(require,module,exports){
+},{"../../js/D3Network.js":2,"../../js/color":4,"../../js/htmlutil":5,"../../js/sort/quicksort":6,"../ReactComponents/Footer":37,"../ReactComponents/GeneTable":39,"./AnalysisPanel":21,"./EdgeLegend":22,"./EdgePanel":23,"./GenePanel":24,"./GroupPanel":25,"./LegendPanel":26,"./NetworkControlPanel":28,"affinity-propagation":53,"async":54,"cookies-js":56,"lodash":130,"react":333,"react-document-title":142,"react-dom":143}],28:[function(require,module,exports){
 var React = require('react')
 var SVGCollection =  require('../ReactComponents/SVGCollection')
 var color = require('../../js/color')
@@ -4900,7 +5035,7 @@ var NetworkControlPanel = React.createClass({displayName: "NetworkControlPanel",
 
 module.exports = NetworkControlPanel
 
-},{"../../js/color":4,"../ReactComponents/SVGCollection":45,"react":320}],29:[function(require,module,exports){
+},{"../../js/color":4,"../ReactComponents/SVGCollection":45,"react":333}],29:[function(require,module,exports){
 'use strict'
 
 var _ = require('lodash')
@@ -5342,7 +5477,7 @@ var Filter = React.createClass({displayName: "Filter",
 
 module.exports = PWAPanel
 
-},{"../../js/color.js":4,"../../js/htmlutil.js":5,"../ReactComponents/Disetti":35,"../ReactComponents/SVGCollection":45,"../ReactComponents/StatusBar":46,"cookies-js":56,"lodash":118,"react":320,"react-dom":131}],30:[function(require,module,exports){
+},{"../../js/color.js":4,"../../js/htmlutil.js":5,"../ReactComponents/Disetti":35,"../ReactComponents/SVGCollection":45,"../ReactComponents/StatusBar":46,"cookies-js":56,"lodash":130,"react":333,"react-dom":143}],30:[function(require,module,exports){
 'use strict'
 
 var _ = require('lodash')
@@ -5514,7 +5649,7 @@ var Api = React.createClass({displayName: "Api",
 
 module.exports = Api
 
-},{"../../js/color.js":4,"lodash":118,"react":320,"react-document-title":130}],31:[function(require,module,exports){
+},{"../../js/color.js":4,"lodash":130,"react":333,"react-document-title":142}],31:[function(require,module,exports){
 'use strict'
 
 var _ = require('lodash')
@@ -5565,7 +5700,7 @@ var Back = React.createClass({displayName: "Back",
 
 module.exports = Back
 
-},{"../../js/color.js":4,"./SVGCollection":45,"lodash":118,"react":320,"react-document-title":130,"react-router":152,"react-select":163,"reactable":321}],32:[function(require,module,exports){
+},{"../../js/color.js":4,"./SVGCollection":45,"lodash":130,"react":333,"react-document-title":142,"react-router":164,"react-select":175,"reactable":334}],32:[function(require,module,exports){
 'use strict';
 
 var _ = require('lodash');
@@ -5798,7 +5933,7 @@ var DataTable = React.createClass({displayName: "DataTable",
 
 module.exports = DataTable;
 
-},{"../../js/color":4,"../../js/htmlutil":5,"./PredictionRow":44,"./SVGCollection":45,"lodash":118,"react":320,"react-router":152,"reactable":321}],33:[function(require,module,exports){
+},{"../../js/color":4,"../../js/htmlutil":5,"./PredictionRow":44,"./SVGCollection":45,"lodash":130,"react":333,"react-router":164,"reactable":334}],33:[function(require,module,exports){
 'use strict'
 
 var _ = require('lodash')
@@ -5903,8 +6038,24 @@ var ShowPhenotypes3 = React.createClass({displayName: "ShowPhenotypes3",
         var hoverZScores = this.props.hoverItem
         var rows = []
 
+        var terms = this.props.prio.terms
+        var termslist = _.map(terms, 'term.id')
+        var orderedTerms = this.props.prio.orderedTerms
+
+        if (orderedTerms){
+            // console.log(this.props.prio)
+            // if heatmap clustering is done, replace terms array by ordered terms array (based on clustering)
+            var newTerms = []
+            for (var i = 0; i < orderedTerms.length; i++){
+                var index = termslist.indexOf(orderedTerms[i])
+                newTerms.push(terms[index])
+            }
+            terms = newTerms
+        }
+
+
         /* Getting the colour: */
-        for (var i = 0; i < this.props.prio.terms.length; i++) {
+        for (var i = 0; i < terms.length; i++) {
             var zToCol = hoverZScores ? Math.ceil(hoverZScores[i] * 60) : ''
             var hoverColour =  hoverZScores ? 'rgb(' + zToCol + ',255,255)' : ''
             // var rowtype = i % 2 === 0 ? 'datarow evenrow' : 'datarow oddrow'
@@ -5923,11 +6074,10 @@ var ShowPhenotypes3 = React.createClass({displayName: "ShowPhenotypes3",
 
             /* The actual phenotype information: */
             rows.push(
-                React.createElement(Tr, {key: this.props.prio.terms[i].term.name}, 
-                    
-                    React.createElement(Td, {column: "PHENOTYPE"}, this.props.prio.terms[i].term.name), 
-                    React.createElement(Td, {column: "ANNOTATED", style: {textAlign: 'center'}}, this.props.prio.terms[i].term.numAnnotatedGenes), 
-                    React.createElement(Td, {column: "HPOTERM", style: {textAlign: 'center'}}, React.createElement("a", {className: "nodecoration black", href: this.props.prio.terms[i].term.url, target: "_blank"}, this.props.prio.terms[i].term.id))
+                React.createElement(Tr, {key: terms[i].term.name}, 
+                    React.createElement(Td, {column: "PHENOTYPE"}, terms[i].term.name), 
+                    React.createElement(Td, {column: "ANNOTATED", style: {textAlign: 'center'}}, terms[i].term.numAnnotatedGenes), 
+                    React.createElement(Td, {column: "HPOTERM", style: {textAlign: 'center'}}, React.createElement("a", {className: "nodecoration black", href: terms[i].term.url, target: "_blank"}, terms[i].term.id))
                 )
                 )
         }
@@ -6015,7 +6165,6 @@ var GeneTable = React.createClass({displayName: "GeneTable",
 
             for (var i = 0; i < this.props.prio.results.length; i++) {
 
-                
                 /* network urls: */
                 var phens = ""
                 for (var j = 0; j < this.props.prio.terms.length; j++) {
@@ -6039,6 +6188,8 @@ var GeneTable = React.createClass({displayName: "GeneTable",
                 // <Td column="DIRECTION" style={{textAlign: 'center'}}>{this.props.prio.results[i].weightedZScore > 0 ? <SVGCollection.TriangleUp className='directiontriangleup' /> : <SVGCollection.TriangleDown className='directiontriangledown' />}</Td>
                 // <Td column="ANNOTATION" style={{textAlign: 'center'}}><div title={this.props.prio.results[i].annotated.length == 0 ? "Not annotated to any of the phenotypes." : this.props.prio.results[i].annotated}>{this.props.prio.results[i].annotated.length}</div></Td>
 
+                // console.log('HEATMAP TERMS')
+                // console.log(this.props.prio)
 
                 var hpoZscores = []
                 for (var e = 0; e < this.props.prio.results[i].predicted.length; e++){
@@ -6050,7 +6201,7 @@ var GeneTable = React.createClass({displayName: "GeneTable",
                     React.createElement(Td, {column: "", style: {textAlign: 'center'}}, square), 
                     React.createElement(Td, {column: "RANK", style: {textAlign: 'center'}}, i + 1), 
                     React.createElement(Td, {column: "GENE", style: {textAlign: 'left'}}, React.createElement("a", {className: "nodecoration black", href: geneLink, target: "_blank", title: this.props.prio.results[i].gene.description}, this.props.prio.results[i].gene.name)), 
-                        React.createElement(Td, {column: "P-VALUE", style: {textAlign: 'center'}}, unsafe(this.props.prio.results[i].weightedZScore)), 
+                    React.createElement(Td, {column: "Z-SCORE", style: {textAlign: 'center'}}, Math.round(unsafe(this.props.prio.results[i].weightedZScore)*10)/10), 
                         /*<Td column="P-VALUE" style={{textAlign: 'center'}}>{unsafe(htmlutil.pValueToReadable(prob.zToP(this.props.prio.results[i].weightedZScore)))}</Td>*/
                     React.createElement(Td, {column: "NETWORK", style: {textAlign: 'center'}}, React.createElement("a", {href: networkLink, target: "_blank"}, React.createElement(SVGCollection.NetworkIcon, null))), 
                     hpoZscores
@@ -6073,22 +6224,61 @@ var GeneTable = React.createClass({displayName: "GeneTable",
             newRows.push(React.createElement(Tr, {key: "1"}, React.createElement(Td, {column: ""}, "Your list of genes did not match any of the results.")))
         }
 
-        var hpoIds = []
-        for (var n = 0; n < this.props.prio.terms.length; n++){
-            hpoIds.push(React.createElement(Th, {column: this.props.prio.terms[n].term.id}, React.createElement(SVGCollection.DiagonalText, {text: this.props.prio.terms[n].term.id})))
+        var terms = this.props.prio.terms
+        var orderedTerms = this.props.prio.orderedTerms
+        var termslist = _.map(terms, 'term.id')
+
+        var newTerms = []
+        for (var i = 0; i < orderedTerms.length; i++){
+            var index = termslist.indexOf(orderedTerms[i])
+            newTerms.push(terms[index])
         }
+
+        var hpoIds = []
+        for (var n = 0; n < newTerms.length; n++){
+            hpoIds.push(React.createElement(Th, {column: newTerms[n].term.id}, React.createElement(SVGCollection.DiagonalText, {text: newTerms[n].term.id})))
+        }
+
+        // var hpoIds = []
+        // for (var n = 0; n < terms.length; n++){
+        //     hpoIds.push(<Th column={terms[n].term.id}><SVGCollection.DiagonalText text={terms[n].term.id} /></Th>)
+        // }
+
+        // console.log('ordered terms')
+        // console.log()
+        // console.log(hpoIds)
+
+
+
+        // var terms = this.props.prio.terms
+        // var termslist = _.map(terms, 'term.id')
+        // var orderedTerms = this.props.prio.orderedTerms
+
+        // if (orderedTerms){
+        //     // console.log(this.props.prio)
+        //     // if heatmap clustering is done, replace terms array by ordered terms array (based on clustering)
+        //     var newTerms = []
+        //     for (var i = 0; i < orderedTerms.length; i++){
+        //         var index = termslist.indexOf(orderedTerms[i])
+        //         newTerms.push(terms[index])
+        //     }
+        //     terms = newTerms
+        // }
+
+
+
+        // console.log(hpoIds)
 
         // var hpoIds = _.map(this.props.prio.terms, function(item){
         //     return (<Th column={item.term.id}>{"x"}</Th>)
         // })
 
         /* The actual table, with custom sorting: */
-        return (React.createElement(Table, {id: "gentab", className: "sortable rowcolors table diag-table", style: {width: '100%'}, 
+        return (React.createElement(Table, {id: "gentab", className: "sortable rowcolors table diag-table", 
 
 
             // Attempt at not showing the first two headers, doesn't work???
             // column={[{key: " ", label: 'BIOTYPE'}, {key: " ", label: 'RANK'}, {key: "P-VALUE", label: 'PVALUE'}, {key: "DIRECTION", label: 'DIRECTION'}, {key: "ANNOTATION", label: 'ANNOTATION'}, {key: "NETWORK", label: 'NETWORK'}]}
-
 
              // {
              //        column: 'DIRECTION',
@@ -6118,59 +6308,59 @@ var GeneTable = React.createClass({displayName: "GeneTable",
 
                 {
                 //P-val: not really necessary (can simply sort using 'rank'), but the user doesn't know that..
-                    column: 'P-VALUE',
+                    column: 'Z-SCORE',
 
                     sortFunction: function(a, b) {
 
-                        if (a.length < 5) {
-                            if (b.length < 5) {             {/* a ?? b */}
-                                return a - b
-                            } else if (b[0] != '<') {    {/* a > b */}
-                                return 1
-                            } else {                        {/* a > b */}
-                                return 1
-                            }
-                        } else if (a[0] != '<') {
-                            if (b.length < 5) {             {/* a < b */}
-                                return -1
-                            } else if (b[0] != '<') {    {/* a ?? b */}
+                        // if (a.length < 5) {
+                        //     if (b.length < 5) {             {/* a ?? b */}
+                        //         return a - b
+                        //     } else if (b[0] != '<') {    {/* a > b */}
+                        //         return 1
+                        //     } else {                        {/* a > b */}
+                        //         return 1
+                        //     }
+                        // } else if (a[0] != '<') {
+                        //     if (b.length < 5) {             {/* a < b */}
+                        //         return -1
+                        //     } else if (b[0] != '<') {    {/* a ?? b */}
 
-                                a = a.toString()
-                                var aExponent = a.slice(53)
-                                var aExp = aExponent.slice(0, aExponent.indexOf("<"))
-                                var aNumber = a.slice(0,3)
+                        //         a = a.toString()
+                        //         var aExponent = a.slice(53)
+                        //         var aExp = aExponent.slice(0, aExponent.indexOf("<"))
+                        //         var aNumber = a.slice(0,3)
 
-                                b = b.toString()
-                                var bExponent = b.slice(53)
-                                var bExp = bExponent.slice(0, bExponent.indexOf("<"))
-                                var bNumber = b.slice(0,3)
+                        //         b = b.toString()
+                        //         var bExponent = b.slice(53)
+                        //         var bExp = bExponent.slice(0, bExponent.indexOf("<"))
+                        //         var bNumber = b.slice(0,3)
 
-                                return aExp - bExp || aNumber - bNumber
+                        //         return aExp - bExp || aNumber - bNumber
 
-                            } else {                        {/* a > b */}
-                                return 1
-                            }
-                        } else {
-                            if (b.length < 5) {             {/* a < b */}
-                                return -1
-                            } else if (b[0] != '<') {    {/* a <b */}
-                                return -1
-                            } else {
+                        //     } else {                        {/* a > b */}
+                        //         return 1
+                        //     }
+                        // } else {
+                        //     if (b.length < 5) {             {/* a < b */}
+                        //         return -1
+                        //     } else if (b[0] != '<') {    {/* a <b */}
+                        //         return -1
+                        //     } else {
 
-                                a = a.toString()
-                                var aExponent = a.slice(55)
-                                var aExp = aExponent.slice(0, aExponent.indexOf("<"))
-                                var aNumber = a.slice(2,5)
+                        //         a = a.toString()
+                        //         var aExponent = a.slice(55)
+                        //         var aExp = aExponent.slice(0, aExponent.indexOf("<"))
+                        //         var aNumber = a.slice(2,5)
 
-                                b = b.toString()
-                                var bExponent = b.slice(55)
-                                var bExp = bExponent.slice(0, bExponent.indexOf("<"))
-                                var bNumber = b.slice(2,5)
+                        //         b = b.toString()
+                        //         var bExponent = b.slice(55)
+                        //         var bExp = bExponent.slice(0, bExponent.indexOf("<"))
+                        //         var bNumber = b.slice(2,5)
 
-                                return aExp - bExp || aNumber - bNumber
+                        //         return aExp - bExp || aNumber - bNumber
 
-                            }
-                        }
+                        //     }
+                        // }
 
                         return b - a
                     }
@@ -6182,7 +6372,7 @@ var GeneTable = React.createClass({displayName: "GeneTable",
                 React.createElement(Th, null, ""), 
                 React.createElement(Th, {column: "RANK", style: {textAlign: 'center'}}, "RANK"), 
                 React.createElement(Th, {column: "GENE"}, "GENE"), 
-                React.createElement(Th, {column: "P-VALUE", style: {textAlign: 'center'}}, 
+                React.createElement(Th, {column: "Z-SCORE", style: {textAlign: 'center'}}, 
                     "Z-SCORE"
                 ), 
                 React.createElement(Th, {column: "NETWORK", style: {textAlign: 'center'}}, "NETWORK"), 
@@ -6329,8 +6519,8 @@ var Diagnosis = React.createClass({displayName: "Diagnosis",
     
     componentDidMount: function() {
        async.waterfall([
-            this.loadData
-            // this.createHeatmap
+            this.loadData,
+            this.createHeatmap
         ], function(err){
             if (err) console.log(err)
         })
@@ -6351,53 +6541,37 @@ var Diagnosis = React.createClass({displayName: "Diagnosis",
         return(genes);
     },
 
-    createHeatmap: function(data, callback){
-        console.log('create heatmap')
-        var div = document.getElementById('heatmap')
-        console.log(div.clientWidth, div.clientHeight)
-
-        var testdata = []
-
-        for (var i = 0; i < data.termsFound.length; i++){
-            testdata[i] = [1]
-            for (var e = i+1; e < data.termsFound.length; e++){
-                var cor = Math.random()
-                if (Math.random() > 0.5) {cor = -cor}
-                testdata[i].push(cor/1.5)
-            }
-        }
-
-        var newdata = []
-
-        for (var i = 0; i < testdata.length; i++){
-            var x = []
-            for (var e = 0; e < i; e++){
-                var n = i - e
-                x.push(testdata[e][n])
-            }
-            newdata.push(x.concat(testdata[i]))
-        }
-
-        var heatmapData = [] 
-
-        for (var i = 0; i < newdata.length; i++){
-            for (var e = 0; e < newdata.length; e++){
-                heatmapData.push({
-                    row: i,
-                    col: e,
-                    value: newdata[i][e]
-                })
-            }
-        }
-
-        var size = div.clientWidth > div.clientHeight ? div.clientHeight : div.clientWidth
-        var heatmap = new D3Heatmap(div, {
-            width: div.clientWidth,
-            height: div.clientHeight,
-            numTerms: data.termsFound.length,
-            data: heatmapData,
-            size: size
+    handleHover: function(row, col){
+        var data = this.state.data 
+        data['hoverRow'] = row
+        data['hoverCol'] = col 
+        this.setState({
+            data: data
         })
+    },
+
+    createHeatmap: function(data, callback){
+        if (data.hpoCorrelation.termsFound.length > 1){
+            console.log('create heatmap')
+            var div = document.getElementById('heatmap')
+            
+            var heatmap = new D3Heatmap(div, {
+                cormat: data.hpoCorrelation.hpoCorrelationMatrix,
+                terms: data.hpoCorrelation.termsFound,
+                handleHover: this.handleHover
+            })
+
+            var data = this.state.data
+            data['orderedTerms'] = heatmap._props.orderedTerms
+            data['heatmap'] = heatmap
+            this.setState({
+                data: data
+            })
+
+            // console.log('ordered terms')
+            // console.log(this.state)
+            // // console.log(this.state.heatmap._props.orderedTerms)
+        }        
     },
 
     loadData: function(callback) {
@@ -6414,6 +6588,7 @@ var Diagnosis = React.createClass({displayName: "Diagnosis",
                 this.setState({
                     data: data
                 })
+                console.log('DATA')
                 console.log(data)
                 callback(null, data)
             }.bind(this),
@@ -6479,6 +6654,7 @@ var Diagnosis = React.createClass({displayName: "Diagnosis",
     var genesNotFound = this.state.useCustomGeneSet && this.props.location.state.genes.length != 0 ? this.state.data.genesNotFound.join(', ') : undefined
 
 
+
             // <div className='hflex'>
             //     <div className='flex11' style={{maxWidth: '730px'}}>
             //         <ShowPhenotypes3 prio={this.state.data} hoverItem={this.state.hoverItem} />
@@ -6490,6 +6666,14 @@ var Diagnosis = React.createClass({displayName: "Diagnosis",
             // </div>
 
 
+
+
+                // <div style={{padding: '20px 0px 10px 0px', marginTop: '20px', marginBottom: '40px'}}>
+                    // {this.state.data ? 'The ' + this.state.data.results.length + ' highest prioritized genes for the combination of ' + thisThese 
+                 // + this.state.data.terms.length + phenotypePhenotypes : 'loading'}
+                // </div>
+
+
         return (
           React.createElement(DocumentTitle, {title: 'Diagnosis' + GN.pageTitleSuffix}, 
           React.createElement("div", {style: {backgroundColor: '#ffffff'}}, 
@@ -6497,10 +6681,21 @@ var Diagnosis = React.createClass({displayName: "Diagnosis",
 
             React.createElement("div", {className: "hflex"}, 
                 React.createElement("div", {className: "flex11", style: {maxWidth: '730px'}}, 
+                    
                     React.createElement(ShowPhenotypes3, {prio: this.state.data, hoverItem: this.state.hoverItem})
+                
                 ), 
-                React.createElement("div", {className: "vflex", style: {paddingLeft: '20px', width: '100%'}}
-                )
+
+                this.state.data.hpoCorrelation.termsFound.length > 1 ?
+                    React.createElement("div", {className: "vflex", style: {paddingLeft: '20px', width: '100%', maxWidth: '400px'}}, 
+                        React.createElement("div", {id: "heatmap-title", style: {paddingTop: '7px', paddingBottom: '7px', fontWeight: 'bold'}}, "PHENOTYPE CORRELATION"), 
+                        React.createElement("div", {id: "heatmap", className: "flex11", style: {width: '100%', minWidth: '300px'}})
+                    )
+                    :
+                    null
+                
+                
+
             ), 
 
             this.state.useCustomGeneSet ? 
@@ -6509,21 +6704,27 @@ var Diagnosis = React.createClass({displayName: "Diagnosis",
                     React.createElement("h3", null, "Genes not found"), 
                     genesNotFound
                     ), 
-                    React.createElement("div", {style: {padding: '10px 0px 10px 0px', marginBottom: '40px'}}, 
-                    React.createElement("h3", null, "Genes found"), 
-                         this.state.data ? 'The ' + this.state.data.results.length + ' prioritized selected genes for the combination of ' + thisThese 
-                        + this.state.data.terms.length + phenotypePhenotypes : 'loading'
+                    React.createElement("div", {style: {padding: '10px 0px 10px 0px'}}, 
+                    React.createElement("h3", null, "Gene prioritization")
+                         
                     )
                 )
                 :
-                React.createElement("div", {style: {padding: '20px 0px 10px 0px', marginTop: '20px', marginBottom: '40px'}}, 
-                    this.state.data ? 'The ' + this.state.data.results.length + ' highest prioritized genes for the combination of ' + thisThese 
-                 + this.state.data.terms.length + phenotypePhenotypes : 'loading'
+
+                React.createElement("div", {style: {padding: '20px 0px 10px 0px', marginTop: '20px'}}, 
+                    React.createElement("h3", null, "Gene prioritization")
                 ), 
+
             
             
           React.createElement("div", {style: {overflow: "auto", display: 'inline'}}, 
-          React.createElement(GeneTable, {prio: this.state.data, prioFiltered: this.state.newTable, onMouseOver: this.handleMouseOver, hoverRow: this.state.hoverRow})
+          
+
+            this.state.data.orderedTerms ? 
+                React.createElement(GeneTable, {prio: this.state.data, prioFiltered: this.state.newTable, onMouseOver: this.handleMouseOver, hoverRow: this.state.hoverRow})
+                :
+                null
+            
           ), 
 
         React.createElement("div", {style: {padding: '10px 0px', marginTop: '10px'}}, 
@@ -6592,7 +6793,7 @@ To do:
 
 */
 
-},{"../../js/D3Heatmap":1,"../../js/color":4,"../../js/htmlutil":5,"./SVGCollection":45,"async":54,"genstats":86,"lodash":118,"react":320,"react-document-title":130,"react-router":152,"reactable":321}],34:[function(require,module,exports){
+},{"../../js/D3Heatmap":1,"../../js/color":4,"../../js/htmlutil":5,"./SVGCollection":45,"async":54,"genstats":97,"lodash":130,"react":333,"react-document-title":142,"react-router":164,"reactable":334}],34:[function(require,module,exports){
 'use strict'
 
 var _ = require('lodash')
@@ -6873,8 +7074,28 @@ var DiagnosisMain = React.createClass({displayName: "DiagnosisMain",
                                 React.createElement("span", {onClick: this.onSubmit, className: "button noselect clickable", style: {marginTop: '20px'}}, "Prioritize genes for given HPO terms")
                             ), 
 
-                            React.createElement("div", {className: "text-right", style: {width: '40%', minWidth: '300px', paddingLeft: '40px'}}
-                          
+                        React.createElement("div", {className: "text-right", style: {width: '40%', minWidth: '300px', paddingLeft: '40px', fontSize: '10pt'}}, 
+                            React.createElement("p", null, 
+                              "Using the HPO gene prioritization it possible to rank genes based on a patient’s phenotypes."
+                            ), 
+                            
+                            React.createElement("p", null, 
+                              React.createElement("ol", null, 
+                                React.createElement("li", null, "Fill in the phenotypes of a patient as HPO terms (compbio.charite.de/hpoweb/showterm?id=HP:0000118). Try to be as specific as possible, if a term could not be found then a more general term should be used. If the exact phenotype of a patient is unclear it is better to use a more general term, as a wrongly assigned specific term might hinder accurate ranking. For example, there are many subclasses of seizures (http://compbio.charite.de/hpoweb/showterm?id=HP:0001250), if it clear that a patient shows a specific subclass then the HPO term for this subclass should be used, if this is not clear then it is best to use the general seizures term. It is also best to only use distinct HPO terms to describe a patient’s phenotypes. If two close related terms are used to describe the same phenotype, then these will result in some bias towards this phenotype in the prioritization. Please use the HPO number or the primary name, synonyms are not supported at the moment."), 
+                                React.createElement("li", null, "Optional list of genes to be ranked using the HPO terms. This could for instance be the genes in which a patient has candidate disease causing mutations that require classification or follow-up analysis. The genes that prioritize on top are the most likely candidates based on our HPO term predictions. If no gene list is provided we will simply rank all genes based on the provided HPO terms.")
+                              )
+                            ), 
+                            
+                            React.createElement("p", null, 
+                            React.createElement("b", null, "FAQ"), 
+                            React.createElement("ul", null, 
+                          React.createElement("li", null, React.createElement("i", null, "Why is my term not found? "), React.createElement("br", null), 
+                          "We do not have significant predictions for all HPO terms. Either because very few genes are known for a term of because our current dataset is unable to reliable predict back the known genes for a term. At the moment the best course of action is to manually select a more generic term. We are currently working on an extension to automatically suggest more general terms if one of these terms is entered. At the moment we don’t support searching using the synonym names of HPO terms, this will be resolved in a future version."), 
+                          React.createElement("li", null, React.createElement("i", null, "My favorite candidate gene for patient is found back in the top of the results?"), " ", React.createElement("br", null), 
+                          "Gene expression patterns are not informative for all genes. If an expected gene is not found back this is the most likely explanation.")
+                              )
+
+                            )
                         )
 
                         )
@@ -6887,7 +7108,7 @@ var DiagnosisMain = React.createClass({displayName: "DiagnosisMain",
 
 module.exports = DiagnosisMain
 
-},{"../../js/color.js":4,"./Back":31,"./SVGCollection":45,"./UploadPanel":48,"lodash":118,"react":320,"react-document-title":130,"react-router":152,"react-select":163,"reactable":321}],35:[function(require,module,exports){
+},{"../../js/color.js":4,"./Back":31,"./SVGCollection":45,"./UploadPanel":48,"lodash":130,"react":333,"react-document-title":142,"react-router":164,"react-select":175,"reactable":334}],35:[function(require,module,exports){
 var _ = require('lodash')
 var htmlutil = require('../../js/htmlutil.js')
 var React = require('react')
@@ -6923,7 +7144,7 @@ var Disetti = React.createClass({displayName: "Disetti",
 
 module.exports = Disetti
 
-},{"../../js/htmlutil.js":5,"cookies-js":56,"lodash":118,"react":320}],36:[function(require,module,exports){
+},{"../../js/htmlutil.js":5,"cookies-js":56,"lodash":130,"react":333}],36:[function(require,module,exports){
 'use strict'
 
 var React = require('react')
@@ -6956,7 +7177,7 @@ var DownloadPanel = React.createClass({displayName: "DownloadPanel",
 
 module.exports = DownloadPanel
 
-},{"react":320}],37:[function(require,module,exports){
+},{"react":333}],37:[function(require,module,exports){
 var React = require('react')
 
 var Footer = React.createClass({displayName: "Footer",
@@ -7000,7 +7221,7 @@ var Footer = React.createClass({displayName: "Footer",
 
 module.exports = Footer
 
-},{"react":320}],38:[function(require,module,exports){
+},{"react":333}],38:[function(require,module,exports){
 var _ = require('lodash')
 var React = require('react')
 var TriangleDown = require('./SVGCollection').TriangleDown
@@ -7063,7 +7284,7 @@ var GeneOpenMenu = React.createClass({displayName: "GeneOpenMenu",
 
 module.exports = GeneOpenMenu
 
-},{"../../js/color":4,"./SVGCollection":45,"lodash":118,"react":320}],39:[function(require,module,exports){
+},{"../../js/color":4,"./SVGCollection":45,"lodash":130,"react":333}],39:[function(require,module,exports){
 'use strict'
 
 var _ = require('lodash')
@@ -7207,7 +7428,7 @@ var GeneTable = React.createClass({displayName: "GeneTable",
 
 module.exports = GeneTable
 
-},{"../../js/color":4,"../../js/htmlutil":5,"./SVGCollection":45,"async":54,"lodash":118,"react":320,"react-document-title":130,"react-dom":131,"react-router":152}],40:[function(require,module,exports){
+},{"../../js/color":4,"../../js/htmlutil":5,"./SVGCollection":45,"async":54,"lodash":130,"react":333,"react-document-title":142,"react-dom":143,"react-router":164}],40:[function(require,module,exports){
 var _ = require('lodash')
 var React = require('react')
 
@@ -7268,7 +7489,7 @@ var Logo = React.createClass({displayName: "Logo",
 
 module.exports = Logo
 
-},{"lodash":118,"react":320}],41:[function(require,module,exports){
+},{"lodash":130,"react":333}],41:[function(require,module,exports){
 'use strict';
 
 var _ = require('lodash')
@@ -7417,7 +7638,7 @@ var Ontology = React.createClass({displayName: "Ontology",
 
 module.exports = Ontology
 
-},{"../../js/D3Network.js":2,"../../js/color":4,"../../js/htmlutil":5,"./Footer":37,"lodash":118,"react":320,"react-document-title":130,"react-router":152}],42:[function(require,module,exports){
+},{"../../js/D3Network.js":2,"../../js/color":4,"../../js/htmlutil":5,"./Footer":37,"lodash":130,"react":333,"react-document-title":142,"react-router":164}],42:[function(require,module,exports){
 var _ = require('lodash')
 var React = require('react')
 var TriangleDown = require('./SVGCollection').TriangleDown
@@ -7486,7 +7707,7 @@ var OpenMenu = React.createClass({displayName: "OpenMenu",
 
 module.exports = OpenMenu
 
-},{"../../js/color":4,"./SVGCollection":45,"lodash":118,"react":320}],43:[function(require,module,exports){
+},{"../../js/color":4,"./SVGCollection":45,"lodash":130,"react":333}],43:[function(require,module,exports){
 'use strict'
 
 var _ = require('lodash')
@@ -7772,7 +7993,7 @@ var PredictedGenesPanel = React.createClass({displayName: "PredictedGenesPanel",
 
 module.exports = PredictedGenesPanel
 
-},{"../../js/color":4,"../../js/htmlutil.js":5,"./Disetti":35,"./SVGCollection":45,"lodash":118,"react":320}],44:[function(require,module,exports){
+},{"../../js/color":4,"../../js/htmlutil.js":5,"./Disetti":35,"./SVGCollection":45,"lodash":130,"react":333}],44:[function(require,module,exports){
 var _ = require('lodash')
 var React = require('react')
 var Router = require('react-router')
@@ -7820,7 +8041,7 @@ var PredictionRow = React.createClass({displayName: "PredictionRow",
 
 module.exports = PredictionRow
 
-},{"../../js/htmlutil":5,"./SVGCollection":45,"lodash":118,"react":320,"react-router":152,"reactable":321}],45:[function(require,module,exports){
+},{"../../js/htmlutil":5,"./SVGCollection":45,"lodash":130,"react":333,"react-router":164,"reactable":334}],45:[function(require,module,exports){
 var _ = require('lodash')
 var React = require('react')
 var ReactTooltip = require('react-tooltip')
@@ -8266,7 +8487,7 @@ exp.ArrowLeft = React.createClass({displayName: "ArrowLeft",
 
 module.exports = exp;
 
-},{"../../js/chr":3,"../../js/color.js":4,"../../js/htmlutil.js":5,"lodash":118,"react":320,"react-tooltip":186}],46:[function(require,module,exports){
+},{"../../js/chr":3,"../../js/color.js":4,"../../js/htmlutil.js":5,"lodash":130,"react":333,"react-tooltip":199}],46:[function(require,module,exports){
 "use strict;"
 
 var React = require('react')
@@ -8329,7 +8550,7 @@ var StatusBar = React.createClass({displayName: "StatusBar",
 
 module.exports = StatusBar
 
-},{"d3":57,"react":320}],47:[function(require,module,exports){
+},{"d3":60,"react":333}],47:[function(require,module,exports){
 "use strict";
 
 var _ = require('lodash');
@@ -8635,7 +8856,7 @@ var Term = React.createClass({displayName: "Term",
 
 module.exports = Term;
 
-},{"../../js/color":4,"../../js/htmlutil":5,"./DownloadPanel":36,"./SVGCollection.js":45,"cookies-js":56,"lodash":118,"react":320,"react-document-title":130,"react-dom":131,"react-router":152,"react-select":163}],48:[function(require,module,exports){
+},{"../../js/color":4,"../../js/htmlutil":5,"./DownloadPanel":36,"./SVGCollection.js":45,"cookies-js":56,"lodash":130,"react":333,"react-document-title":142,"react-dom":143,"react-router":164,"react-select":175}],48:[function(require,module,exports){
 'use strict'
 
 var React = require('react')
@@ -8668,7 +8889,7 @@ var UploadPanel = React.createClass({displayName: "UploadPanel",
 
 module.exports = UploadPanel
 
-},{"react":320}],49:[function(require,module,exports){
+},{"react":333}],49:[function(require,module,exports){
 var React = require('react');
 var Box = require('./Box');
 var BoxFunctionEnrichment = require('./BoxFunctionEnrichment');
@@ -8697,7 +8918,7 @@ var Tools = React.createClass({displayName: "Tools",
 
 module.exports = Tools;
 
-},{"../../config/gn":51,"../js/color":4,"./Box":8,"./BoxFunctionEnrichment":9,"react":320}],50:[function(require,module,exports){
+},{"../../config/gn":51,"../js/color":4,"./Box":8,"./BoxFunctionEnrichment":9,"react":333}],50:[function(require,module,exports){
 module.exports = {
     domain: 'https://molgenis58.gcc.rug.nl'
 };
@@ -21480,7 +21701,7 @@ module.exports = {
 }
 
 }).call(this,require('_process'))
-},{"_process":120,"lodash":52}],54:[function(require,module,exports){
+},{"_process":132,"lodash":52}],54:[function(require,module,exports){
 (function (process,global){
 /*!
  * async
@@ -22749,7 +22970,7 @@ module.exports = {
 }());
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"_process":120}],55:[function(require,module,exports){
+},{"_process":132}],55:[function(require,module,exports){
 /*!
   Copyright (c) 2016 Jed Watson.
   Licensed under the MIT License (MIT), see
@@ -22973,6 +23194,1562 @@ module.exports = {
     }
 })(typeof window === 'undefined' ? this : window);
 },{}],57:[function(require,module,exports){
+// https://d3js.org/d3-collection/ Version 1.0.4. Copyright 2017 Mike Bostock.
+(function (global, factory) {
+	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
+	typeof define === 'function' && define.amd ? define(['exports'], factory) :
+	(factory((global.d3 = global.d3 || {})));
+}(this, (function (exports) { 'use strict';
+
+var prefix = "$";
+
+function Map() {}
+
+Map.prototype = map.prototype = {
+  constructor: Map,
+  has: function(key) {
+    return (prefix + key) in this;
+  },
+  get: function(key) {
+    return this[prefix + key];
+  },
+  set: function(key, value) {
+    this[prefix + key] = value;
+    return this;
+  },
+  remove: function(key) {
+    var property = prefix + key;
+    return property in this && delete this[property];
+  },
+  clear: function() {
+    for (var property in this) if (property[0] === prefix) delete this[property];
+  },
+  keys: function() {
+    var keys = [];
+    for (var property in this) if (property[0] === prefix) keys.push(property.slice(1));
+    return keys;
+  },
+  values: function() {
+    var values = [];
+    for (var property in this) if (property[0] === prefix) values.push(this[property]);
+    return values;
+  },
+  entries: function() {
+    var entries = [];
+    for (var property in this) if (property[0] === prefix) entries.push({key: property.slice(1), value: this[property]});
+    return entries;
+  },
+  size: function() {
+    var size = 0;
+    for (var property in this) if (property[0] === prefix) ++size;
+    return size;
+  },
+  empty: function() {
+    for (var property in this) if (property[0] === prefix) return false;
+    return true;
+  },
+  each: function(f) {
+    for (var property in this) if (property[0] === prefix) f(this[property], property.slice(1), this);
+  }
+};
+
+function map(object, f) {
+  var map = new Map;
+
+  // Copy constructor.
+  if (object instanceof Map) object.each(function(value, key) { map.set(key, value); });
+
+  // Index array by numeric index or specified key function.
+  else if (Array.isArray(object)) {
+    var i = -1,
+        n = object.length,
+        o;
+
+    if (f == null) while (++i < n) map.set(i, object[i]);
+    else while (++i < n) map.set(f(o = object[i], i, object), o);
+  }
+
+  // Convert object to map.
+  else if (object) for (var key in object) map.set(key, object[key]);
+
+  return map;
+}
+
+var nest = function() {
+  var keys = [],
+      sortKeys = [],
+      sortValues,
+      rollup,
+      nest;
+
+  function apply(array, depth, createResult, setResult) {
+    if (depth >= keys.length) {
+      if (sortValues != null) array.sort(sortValues);
+      return rollup != null ? rollup(array) : array;
+    }
+
+    var i = -1,
+        n = array.length,
+        key = keys[depth++],
+        keyValue,
+        value,
+        valuesByKey = map(),
+        values,
+        result = createResult();
+
+    while (++i < n) {
+      if (values = valuesByKey.get(keyValue = key(value = array[i]) + "")) {
+        values.push(value);
+      } else {
+        valuesByKey.set(keyValue, [value]);
+      }
+    }
+
+    valuesByKey.each(function(values, key) {
+      setResult(result, key, apply(values, depth, createResult, setResult));
+    });
+
+    return result;
+  }
+
+  function entries(map$$1, depth) {
+    if (++depth > keys.length) return map$$1;
+    var array, sortKey = sortKeys[depth - 1];
+    if (rollup != null && depth >= keys.length) array = map$$1.entries();
+    else array = [], map$$1.each(function(v, k) { array.push({key: k, values: entries(v, depth)}); });
+    return sortKey != null ? array.sort(function(a, b) { return sortKey(a.key, b.key); }) : array;
+  }
+
+  return nest = {
+    object: function(array) { return apply(array, 0, createObject, setObject); },
+    map: function(array) { return apply(array, 0, createMap, setMap); },
+    entries: function(array) { return entries(apply(array, 0, createMap, setMap), 0); },
+    key: function(d) { keys.push(d); return nest; },
+    sortKeys: function(order) { sortKeys[keys.length - 1] = order; return nest; },
+    sortValues: function(order) { sortValues = order; return nest; },
+    rollup: function(f) { rollup = f; return nest; }
+  };
+};
+
+function createObject() {
+  return {};
+}
+
+function setObject(object, key, value) {
+  object[key] = value;
+}
+
+function createMap() {
+  return map();
+}
+
+function setMap(map$$1, key, value) {
+  map$$1.set(key, value);
+}
+
+function Set() {}
+
+var proto = map.prototype;
+
+Set.prototype = set.prototype = {
+  constructor: Set,
+  has: proto.has,
+  add: function(value) {
+    value += "";
+    this[prefix + value] = value;
+    return this;
+  },
+  remove: proto.remove,
+  clear: proto.clear,
+  values: proto.keys,
+  size: proto.size,
+  empty: proto.empty,
+  each: proto.each
+};
+
+function set(object, f) {
+  var set = new Set;
+
+  // Copy constructor.
+  if (object instanceof Set) object.each(function(value) { set.add(value); });
+
+  // Otherwise, assume it’s an array.
+  else if (object) {
+    var i = -1, n = object.length;
+    if (f == null) while (++i < n) set.add(object[i]);
+    else while (++i < n) set.add(f(object[i], i, object));
+  }
+
+  return set;
+}
+
+var keys = function(map) {
+  var keys = [];
+  for (var key in map) keys.push(key);
+  return keys;
+};
+
+var values = function(map) {
+  var values = [];
+  for (var key in map) values.push(map[key]);
+  return values;
+};
+
+var entries = function(map) {
+  var entries = [];
+  for (var key in map) entries.push({key: key, value: map[key]});
+  return entries;
+};
+
+exports.nest = nest;
+exports.set = set;
+exports.map = map;
+exports.keys = keys;
+exports.values = values;
+exports.entries = entries;
+
+Object.defineProperty(exports, '__esModule', { value: true });
+
+})));
+
+},{}],58:[function(require,module,exports){
+// https://d3js.org/d3-selection/ Version 1.3.0. Copyright 2018 Mike Bostock.
+(function (global, factory) {
+	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
+	typeof define === 'function' && define.amd ? define(['exports'], factory) :
+	(factory((global.d3 = global.d3 || {})));
+}(this, (function (exports) { 'use strict';
+
+var xhtml = "http://www.w3.org/1999/xhtml";
+
+var namespaces = {
+  svg: "http://www.w3.org/2000/svg",
+  xhtml: xhtml,
+  xlink: "http://www.w3.org/1999/xlink",
+  xml: "http://www.w3.org/XML/1998/namespace",
+  xmlns: "http://www.w3.org/2000/xmlns/"
+};
+
+function namespace(name) {
+  var prefix = name += "", i = prefix.indexOf(":");
+  if (i >= 0 && (prefix = name.slice(0, i)) !== "xmlns") name = name.slice(i + 1);
+  return namespaces.hasOwnProperty(prefix) ? {space: namespaces[prefix], local: name} : name;
+}
+
+function creatorInherit(name) {
+  return function() {
+    var document = this.ownerDocument,
+        uri = this.namespaceURI;
+    return uri === xhtml && document.documentElement.namespaceURI === xhtml
+        ? document.createElement(name)
+        : document.createElementNS(uri, name);
+  };
+}
+
+function creatorFixed(fullname) {
+  return function() {
+    return this.ownerDocument.createElementNS(fullname.space, fullname.local);
+  };
+}
+
+function creator(name) {
+  var fullname = namespace(name);
+  return (fullname.local
+      ? creatorFixed
+      : creatorInherit)(fullname);
+}
+
+function none() {}
+
+function selector(selector) {
+  return selector == null ? none : function() {
+    return this.querySelector(selector);
+  };
+}
+
+function selection_select(select) {
+  if (typeof select !== "function") select = selector(select);
+
+  for (var groups = this._groups, m = groups.length, subgroups = new Array(m), j = 0; j < m; ++j) {
+    for (var group = groups[j], n = group.length, subgroup = subgroups[j] = new Array(n), node, subnode, i = 0; i < n; ++i) {
+      if ((node = group[i]) && (subnode = select.call(node, node.__data__, i, group))) {
+        if ("__data__" in node) subnode.__data__ = node.__data__;
+        subgroup[i] = subnode;
+      }
+    }
+  }
+
+  return new Selection(subgroups, this._parents);
+}
+
+function empty() {
+  return [];
+}
+
+function selectorAll(selector) {
+  return selector == null ? empty : function() {
+    return this.querySelectorAll(selector);
+  };
+}
+
+function selection_selectAll(select) {
+  if (typeof select !== "function") select = selectorAll(select);
+
+  for (var groups = this._groups, m = groups.length, subgroups = [], parents = [], j = 0; j < m; ++j) {
+    for (var group = groups[j], n = group.length, node, i = 0; i < n; ++i) {
+      if (node = group[i]) {
+        subgroups.push(select.call(node, node.__data__, i, group));
+        parents.push(node);
+      }
+    }
+  }
+
+  return new Selection(subgroups, parents);
+}
+
+var matcher = function(selector) {
+  return function() {
+    return this.matches(selector);
+  };
+};
+
+if (typeof document !== "undefined") {
+  var element = document.documentElement;
+  if (!element.matches) {
+    var vendorMatches = element.webkitMatchesSelector
+        || element.msMatchesSelector
+        || element.mozMatchesSelector
+        || element.oMatchesSelector;
+    matcher = function(selector) {
+      return function() {
+        return vendorMatches.call(this, selector);
+      };
+    };
+  }
+}
+
+var matcher$1 = matcher;
+
+function selection_filter(match) {
+  if (typeof match !== "function") match = matcher$1(match);
+
+  for (var groups = this._groups, m = groups.length, subgroups = new Array(m), j = 0; j < m; ++j) {
+    for (var group = groups[j], n = group.length, subgroup = subgroups[j] = [], node, i = 0; i < n; ++i) {
+      if ((node = group[i]) && match.call(node, node.__data__, i, group)) {
+        subgroup.push(node);
+      }
+    }
+  }
+
+  return new Selection(subgroups, this._parents);
+}
+
+function sparse(update) {
+  return new Array(update.length);
+}
+
+function selection_enter() {
+  return new Selection(this._enter || this._groups.map(sparse), this._parents);
+}
+
+function EnterNode(parent, datum) {
+  this.ownerDocument = parent.ownerDocument;
+  this.namespaceURI = parent.namespaceURI;
+  this._next = null;
+  this._parent = parent;
+  this.__data__ = datum;
+}
+
+EnterNode.prototype = {
+  constructor: EnterNode,
+  appendChild: function(child) { return this._parent.insertBefore(child, this._next); },
+  insertBefore: function(child, next) { return this._parent.insertBefore(child, next); },
+  querySelector: function(selector) { return this._parent.querySelector(selector); },
+  querySelectorAll: function(selector) { return this._parent.querySelectorAll(selector); }
+};
+
+function constant(x) {
+  return function() {
+    return x;
+  };
+}
+
+var keyPrefix = "$"; // Protect against keys like “__proto__”.
+
+function bindIndex(parent, group, enter, update, exit, data) {
+  var i = 0,
+      node,
+      groupLength = group.length,
+      dataLength = data.length;
+
+  // Put any non-null nodes that fit into update.
+  // Put any null nodes into enter.
+  // Put any remaining data into enter.
+  for (; i < dataLength; ++i) {
+    if (node = group[i]) {
+      node.__data__ = data[i];
+      update[i] = node;
+    } else {
+      enter[i] = new EnterNode(parent, data[i]);
+    }
+  }
+
+  // Put any non-null nodes that don’t fit into exit.
+  for (; i < groupLength; ++i) {
+    if (node = group[i]) {
+      exit[i] = node;
+    }
+  }
+}
+
+function bindKey(parent, group, enter, update, exit, data, key) {
+  var i,
+      node,
+      nodeByKeyValue = {},
+      groupLength = group.length,
+      dataLength = data.length,
+      keyValues = new Array(groupLength),
+      keyValue;
+
+  // Compute the key for each node.
+  // If multiple nodes have the same key, the duplicates are added to exit.
+  for (i = 0; i < groupLength; ++i) {
+    if (node = group[i]) {
+      keyValues[i] = keyValue = keyPrefix + key.call(node, node.__data__, i, group);
+      if (keyValue in nodeByKeyValue) {
+        exit[i] = node;
+      } else {
+        nodeByKeyValue[keyValue] = node;
+      }
+    }
+  }
+
+  // Compute the key for each datum.
+  // If there a node associated with this key, join and add it to update.
+  // If there is not (or the key is a duplicate), add it to enter.
+  for (i = 0; i < dataLength; ++i) {
+    keyValue = keyPrefix + key.call(parent, data[i], i, data);
+    if (node = nodeByKeyValue[keyValue]) {
+      update[i] = node;
+      node.__data__ = data[i];
+      nodeByKeyValue[keyValue] = null;
+    } else {
+      enter[i] = new EnterNode(parent, data[i]);
+    }
+  }
+
+  // Add any remaining nodes that were not bound to data to exit.
+  for (i = 0; i < groupLength; ++i) {
+    if ((node = group[i]) && (nodeByKeyValue[keyValues[i]] === node)) {
+      exit[i] = node;
+    }
+  }
+}
+
+function selection_data(value, key) {
+  if (!value) {
+    data = new Array(this.size()), j = -1;
+    this.each(function(d) { data[++j] = d; });
+    return data;
+  }
+
+  var bind = key ? bindKey : bindIndex,
+      parents = this._parents,
+      groups = this._groups;
+
+  if (typeof value !== "function") value = constant(value);
+
+  for (var m = groups.length, update = new Array(m), enter = new Array(m), exit = new Array(m), j = 0; j < m; ++j) {
+    var parent = parents[j],
+        group = groups[j],
+        groupLength = group.length,
+        data = value.call(parent, parent && parent.__data__, j, parents),
+        dataLength = data.length,
+        enterGroup = enter[j] = new Array(dataLength),
+        updateGroup = update[j] = new Array(dataLength),
+        exitGroup = exit[j] = new Array(groupLength);
+
+    bind(parent, group, enterGroup, updateGroup, exitGroup, data, key);
+
+    // Now connect the enter nodes to their following update node, such that
+    // appendChild can insert the materialized enter node before this node,
+    // rather than at the end of the parent node.
+    for (var i0 = 0, i1 = 0, previous, next; i0 < dataLength; ++i0) {
+      if (previous = enterGroup[i0]) {
+        if (i0 >= i1) i1 = i0 + 1;
+        while (!(next = updateGroup[i1]) && ++i1 < dataLength);
+        previous._next = next || null;
+      }
+    }
+  }
+
+  update = new Selection(update, parents);
+  update._enter = enter;
+  update._exit = exit;
+  return update;
+}
+
+function selection_exit() {
+  return new Selection(this._exit || this._groups.map(sparse), this._parents);
+}
+
+function selection_merge(selection$$1) {
+
+  for (var groups0 = this._groups, groups1 = selection$$1._groups, m0 = groups0.length, m1 = groups1.length, m = Math.min(m0, m1), merges = new Array(m0), j = 0; j < m; ++j) {
+    for (var group0 = groups0[j], group1 = groups1[j], n = group0.length, merge = merges[j] = new Array(n), node, i = 0; i < n; ++i) {
+      if (node = group0[i] || group1[i]) {
+        merge[i] = node;
+      }
+    }
+  }
+
+  for (; j < m0; ++j) {
+    merges[j] = groups0[j];
+  }
+
+  return new Selection(merges, this._parents);
+}
+
+function selection_order() {
+
+  for (var groups = this._groups, j = -1, m = groups.length; ++j < m;) {
+    for (var group = groups[j], i = group.length - 1, next = group[i], node; --i >= 0;) {
+      if (node = group[i]) {
+        if (next && next !== node.nextSibling) next.parentNode.insertBefore(node, next);
+        next = node;
+      }
+    }
+  }
+
+  return this;
+}
+
+function selection_sort(compare) {
+  if (!compare) compare = ascending;
+
+  function compareNode(a, b) {
+    return a && b ? compare(a.__data__, b.__data__) : !a - !b;
+  }
+
+  for (var groups = this._groups, m = groups.length, sortgroups = new Array(m), j = 0; j < m; ++j) {
+    for (var group = groups[j], n = group.length, sortgroup = sortgroups[j] = new Array(n), node, i = 0; i < n; ++i) {
+      if (node = group[i]) {
+        sortgroup[i] = node;
+      }
+    }
+    sortgroup.sort(compareNode);
+  }
+
+  return new Selection(sortgroups, this._parents).order();
+}
+
+function ascending(a, b) {
+  return a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
+}
+
+function selection_call() {
+  var callback = arguments[0];
+  arguments[0] = this;
+  callback.apply(null, arguments);
+  return this;
+}
+
+function selection_nodes() {
+  var nodes = new Array(this.size()), i = -1;
+  this.each(function() { nodes[++i] = this; });
+  return nodes;
+}
+
+function selection_node() {
+
+  for (var groups = this._groups, j = 0, m = groups.length; j < m; ++j) {
+    for (var group = groups[j], i = 0, n = group.length; i < n; ++i) {
+      var node = group[i];
+      if (node) return node;
+    }
+  }
+
+  return null;
+}
+
+function selection_size() {
+  var size = 0;
+  this.each(function() { ++size; });
+  return size;
+}
+
+function selection_empty() {
+  return !this.node();
+}
+
+function selection_each(callback) {
+
+  for (var groups = this._groups, j = 0, m = groups.length; j < m; ++j) {
+    for (var group = groups[j], i = 0, n = group.length, node; i < n; ++i) {
+      if (node = group[i]) callback.call(node, node.__data__, i, group);
+    }
+  }
+
+  return this;
+}
+
+function attrRemove(name) {
+  return function() {
+    this.removeAttribute(name);
+  };
+}
+
+function attrRemoveNS(fullname) {
+  return function() {
+    this.removeAttributeNS(fullname.space, fullname.local);
+  };
+}
+
+function attrConstant(name, value) {
+  return function() {
+    this.setAttribute(name, value);
+  };
+}
+
+function attrConstantNS(fullname, value) {
+  return function() {
+    this.setAttributeNS(fullname.space, fullname.local, value);
+  };
+}
+
+function attrFunction(name, value) {
+  return function() {
+    var v = value.apply(this, arguments);
+    if (v == null) this.removeAttribute(name);
+    else this.setAttribute(name, v);
+  };
+}
+
+function attrFunctionNS(fullname, value) {
+  return function() {
+    var v = value.apply(this, arguments);
+    if (v == null) this.removeAttributeNS(fullname.space, fullname.local);
+    else this.setAttributeNS(fullname.space, fullname.local, v);
+  };
+}
+
+function selection_attr(name, value) {
+  var fullname = namespace(name);
+
+  if (arguments.length < 2) {
+    var node = this.node();
+    return fullname.local
+        ? node.getAttributeNS(fullname.space, fullname.local)
+        : node.getAttribute(fullname);
+  }
+
+  return this.each((value == null
+      ? (fullname.local ? attrRemoveNS : attrRemove) : (typeof value === "function"
+      ? (fullname.local ? attrFunctionNS : attrFunction)
+      : (fullname.local ? attrConstantNS : attrConstant)))(fullname, value));
+}
+
+function defaultView(node) {
+  return (node.ownerDocument && node.ownerDocument.defaultView) // node is a Node
+      || (node.document && node) // node is a Window
+      || node.defaultView; // node is a Document
+}
+
+function styleRemove(name) {
+  return function() {
+    this.style.removeProperty(name);
+  };
+}
+
+function styleConstant(name, value, priority) {
+  return function() {
+    this.style.setProperty(name, value, priority);
+  };
+}
+
+function styleFunction(name, value, priority) {
+  return function() {
+    var v = value.apply(this, arguments);
+    if (v == null) this.style.removeProperty(name);
+    else this.style.setProperty(name, v, priority);
+  };
+}
+
+function selection_style(name, value, priority) {
+  return arguments.length > 1
+      ? this.each((value == null
+            ? styleRemove : typeof value === "function"
+            ? styleFunction
+            : styleConstant)(name, value, priority == null ? "" : priority))
+      : styleValue(this.node(), name);
+}
+
+function styleValue(node, name) {
+  return node.style.getPropertyValue(name)
+      || defaultView(node).getComputedStyle(node, null).getPropertyValue(name);
+}
+
+function propertyRemove(name) {
+  return function() {
+    delete this[name];
+  };
+}
+
+function propertyConstant(name, value) {
+  return function() {
+    this[name] = value;
+  };
+}
+
+function propertyFunction(name, value) {
+  return function() {
+    var v = value.apply(this, arguments);
+    if (v == null) delete this[name];
+    else this[name] = v;
+  };
+}
+
+function selection_property(name, value) {
+  return arguments.length > 1
+      ? this.each((value == null
+          ? propertyRemove : typeof value === "function"
+          ? propertyFunction
+          : propertyConstant)(name, value))
+      : this.node()[name];
+}
+
+function classArray(string) {
+  return string.trim().split(/^|\s+/);
+}
+
+function classList(node) {
+  return node.classList || new ClassList(node);
+}
+
+function ClassList(node) {
+  this._node = node;
+  this._names = classArray(node.getAttribute("class") || "");
+}
+
+ClassList.prototype = {
+  add: function(name) {
+    var i = this._names.indexOf(name);
+    if (i < 0) {
+      this._names.push(name);
+      this._node.setAttribute("class", this._names.join(" "));
+    }
+  },
+  remove: function(name) {
+    var i = this._names.indexOf(name);
+    if (i >= 0) {
+      this._names.splice(i, 1);
+      this._node.setAttribute("class", this._names.join(" "));
+    }
+  },
+  contains: function(name) {
+    return this._names.indexOf(name) >= 0;
+  }
+};
+
+function classedAdd(node, names) {
+  var list = classList(node), i = -1, n = names.length;
+  while (++i < n) list.add(names[i]);
+}
+
+function classedRemove(node, names) {
+  var list = classList(node), i = -1, n = names.length;
+  while (++i < n) list.remove(names[i]);
+}
+
+function classedTrue(names) {
+  return function() {
+    classedAdd(this, names);
+  };
+}
+
+function classedFalse(names) {
+  return function() {
+    classedRemove(this, names);
+  };
+}
+
+function classedFunction(names, value) {
+  return function() {
+    (value.apply(this, arguments) ? classedAdd : classedRemove)(this, names);
+  };
+}
+
+function selection_classed(name, value) {
+  var names = classArray(name + "");
+
+  if (arguments.length < 2) {
+    var list = classList(this.node()), i = -1, n = names.length;
+    while (++i < n) if (!list.contains(names[i])) return false;
+    return true;
+  }
+
+  return this.each((typeof value === "function"
+      ? classedFunction : value
+      ? classedTrue
+      : classedFalse)(names, value));
+}
+
+function textRemove() {
+  this.textContent = "";
+}
+
+function textConstant(value) {
+  return function() {
+    this.textContent = value;
+  };
+}
+
+function textFunction(value) {
+  return function() {
+    var v = value.apply(this, arguments);
+    this.textContent = v == null ? "" : v;
+  };
+}
+
+function selection_text(value) {
+  return arguments.length
+      ? this.each(value == null
+          ? textRemove : (typeof value === "function"
+          ? textFunction
+          : textConstant)(value))
+      : this.node().textContent;
+}
+
+function htmlRemove() {
+  this.innerHTML = "";
+}
+
+function htmlConstant(value) {
+  return function() {
+    this.innerHTML = value;
+  };
+}
+
+function htmlFunction(value) {
+  return function() {
+    var v = value.apply(this, arguments);
+    this.innerHTML = v == null ? "" : v;
+  };
+}
+
+function selection_html(value) {
+  return arguments.length
+      ? this.each(value == null
+          ? htmlRemove : (typeof value === "function"
+          ? htmlFunction
+          : htmlConstant)(value))
+      : this.node().innerHTML;
+}
+
+function raise() {
+  if (this.nextSibling) this.parentNode.appendChild(this);
+}
+
+function selection_raise() {
+  return this.each(raise);
+}
+
+function lower() {
+  if (this.previousSibling) this.parentNode.insertBefore(this, this.parentNode.firstChild);
+}
+
+function selection_lower() {
+  return this.each(lower);
+}
+
+function selection_append(name) {
+  var create = typeof name === "function" ? name : creator(name);
+  return this.select(function() {
+    return this.appendChild(create.apply(this, arguments));
+  });
+}
+
+function constantNull() {
+  return null;
+}
+
+function selection_insert(name, before) {
+  var create = typeof name === "function" ? name : creator(name),
+      select = before == null ? constantNull : typeof before === "function" ? before : selector(before);
+  return this.select(function() {
+    return this.insertBefore(create.apply(this, arguments), select.apply(this, arguments) || null);
+  });
+}
+
+function remove() {
+  var parent = this.parentNode;
+  if (parent) parent.removeChild(this);
+}
+
+function selection_remove() {
+  return this.each(remove);
+}
+
+function selection_cloneShallow() {
+  return this.parentNode.insertBefore(this.cloneNode(false), this.nextSibling);
+}
+
+function selection_cloneDeep() {
+  return this.parentNode.insertBefore(this.cloneNode(true), this.nextSibling);
+}
+
+function selection_clone(deep) {
+  return this.select(deep ? selection_cloneDeep : selection_cloneShallow);
+}
+
+function selection_datum(value) {
+  return arguments.length
+      ? this.property("__data__", value)
+      : this.node().__data__;
+}
+
+var filterEvents = {};
+
+exports.event = null;
+
+if (typeof document !== "undefined") {
+  var element$1 = document.documentElement;
+  if (!("onmouseenter" in element$1)) {
+    filterEvents = {mouseenter: "mouseover", mouseleave: "mouseout"};
+  }
+}
+
+function filterContextListener(listener, index, group) {
+  listener = contextListener(listener, index, group);
+  return function(event) {
+    var related = event.relatedTarget;
+    if (!related || (related !== this && !(related.compareDocumentPosition(this) & 8))) {
+      listener.call(this, event);
+    }
+  };
+}
+
+function contextListener(listener, index, group) {
+  return function(event1) {
+    var event0 = exports.event; // Events can be reentrant (e.g., focus).
+    exports.event = event1;
+    try {
+      listener.call(this, this.__data__, index, group);
+    } finally {
+      exports.event = event0;
+    }
+  };
+}
+
+function parseTypenames(typenames) {
+  return typenames.trim().split(/^|\s+/).map(function(t) {
+    var name = "", i = t.indexOf(".");
+    if (i >= 0) name = t.slice(i + 1), t = t.slice(0, i);
+    return {type: t, name: name};
+  });
+}
+
+function onRemove(typename) {
+  return function() {
+    var on = this.__on;
+    if (!on) return;
+    for (var j = 0, i = -1, m = on.length, o; j < m; ++j) {
+      if (o = on[j], (!typename.type || o.type === typename.type) && o.name === typename.name) {
+        this.removeEventListener(o.type, o.listener, o.capture);
+      } else {
+        on[++i] = o;
+      }
+    }
+    if (++i) on.length = i;
+    else delete this.__on;
+  };
+}
+
+function onAdd(typename, value, capture) {
+  var wrap = filterEvents.hasOwnProperty(typename.type) ? filterContextListener : contextListener;
+  return function(d, i, group) {
+    var on = this.__on, o, listener = wrap(value, i, group);
+    if (on) for (var j = 0, m = on.length; j < m; ++j) {
+      if ((o = on[j]).type === typename.type && o.name === typename.name) {
+        this.removeEventListener(o.type, o.listener, o.capture);
+        this.addEventListener(o.type, o.listener = listener, o.capture = capture);
+        o.value = value;
+        return;
+      }
+    }
+    this.addEventListener(typename.type, listener, capture);
+    o = {type: typename.type, name: typename.name, value: value, listener: listener, capture: capture};
+    if (!on) this.__on = [o];
+    else on.push(o);
+  };
+}
+
+function selection_on(typename, value, capture) {
+  var typenames = parseTypenames(typename + ""), i, n = typenames.length, t;
+
+  if (arguments.length < 2) {
+    var on = this.node().__on;
+    if (on) for (var j = 0, m = on.length, o; j < m; ++j) {
+      for (i = 0, o = on[j]; i < n; ++i) {
+        if ((t = typenames[i]).type === o.type && t.name === o.name) {
+          return o.value;
+        }
+      }
+    }
+    return;
+  }
+
+  on = value ? onAdd : onRemove;
+  if (capture == null) capture = false;
+  for (i = 0; i < n; ++i) this.each(on(typenames[i], value, capture));
+  return this;
+}
+
+function customEvent(event1, listener, that, args) {
+  var event0 = exports.event;
+  event1.sourceEvent = exports.event;
+  exports.event = event1;
+  try {
+    return listener.apply(that, args);
+  } finally {
+    exports.event = event0;
+  }
+}
+
+function dispatchEvent(node, type, params) {
+  var window = defaultView(node),
+      event = window.CustomEvent;
+
+  if (typeof event === "function") {
+    event = new event(type, params);
+  } else {
+    event = window.document.createEvent("Event");
+    if (params) event.initEvent(type, params.bubbles, params.cancelable), event.detail = params.detail;
+    else event.initEvent(type, false, false);
+  }
+
+  node.dispatchEvent(event);
+}
+
+function dispatchConstant(type, params) {
+  return function() {
+    return dispatchEvent(this, type, params);
+  };
+}
+
+function dispatchFunction(type, params) {
+  return function() {
+    return dispatchEvent(this, type, params.apply(this, arguments));
+  };
+}
+
+function selection_dispatch(type, params) {
+  return this.each((typeof params === "function"
+      ? dispatchFunction
+      : dispatchConstant)(type, params));
+}
+
+var root = [null];
+
+function Selection(groups, parents) {
+  this._groups = groups;
+  this._parents = parents;
+}
+
+function selection() {
+  return new Selection([[document.documentElement]], root);
+}
+
+Selection.prototype = selection.prototype = {
+  constructor: Selection,
+  select: selection_select,
+  selectAll: selection_selectAll,
+  filter: selection_filter,
+  data: selection_data,
+  enter: selection_enter,
+  exit: selection_exit,
+  merge: selection_merge,
+  order: selection_order,
+  sort: selection_sort,
+  call: selection_call,
+  nodes: selection_nodes,
+  node: selection_node,
+  size: selection_size,
+  empty: selection_empty,
+  each: selection_each,
+  attr: selection_attr,
+  style: selection_style,
+  property: selection_property,
+  classed: selection_classed,
+  text: selection_text,
+  html: selection_html,
+  raise: selection_raise,
+  lower: selection_lower,
+  append: selection_append,
+  insert: selection_insert,
+  remove: selection_remove,
+  clone: selection_clone,
+  datum: selection_datum,
+  on: selection_on,
+  dispatch: selection_dispatch
+};
+
+function select(selector) {
+  return typeof selector === "string"
+      ? new Selection([[document.querySelector(selector)]], [document.documentElement])
+      : new Selection([[selector]], root);
+}
+
+function create(name) {
+  return select(creator(name).call(document.documentElement));
+}
+
+var nextId = 0;
+
+function local() {
+  return new Local;
+}
+
+function Local() {
+  this._ = "@" + (++nextId).toString(36);
+}
+
+Local.prototype = local.prototype = {
+  constructor: Local,
+  get: function(node) {
+    var id = this._;
+    while (!(id in node)) if (!(node = node.parentNode)) return;
+    return node[id];
+  },
+  set: function(node, value) {
+    return node[this._] = value;
+  },
+  remove: function(node) {
+    return this._ in node && delete node[this._];
+  },
+  toString: function() {
+    return this._;
+  }
+};
+
+function sourceEvent() {
+  var current = exports.event, source;
+  while (source = current.sourceEvent) current = source;
+  return current;
+}
+
+function point(node, event) {
+  var svg = node.ownerSVGElement || node;
+
+  if (svg.createSVGPoint) {
+    var point = svg.createSVGPoint();
+    point.x = event.clientX, point.y = event.clientY;
+    point = point.matrixTransform(node.getScreenCTM().inverse());
+    return [point.x, point.y];
+  }
+
+  var rect = node.getBoundingClientRect();
+  return [event.clientX - rect.left - node.clientLeft, event.clientY - rect.top - node.clientTop];
+}
+
+function mouse(node) {
+  var event = sourceEvent();
+  if (event.changedTouches) event = event.changedTouches[0];
+  return point(node, event);
+}
+
+function selectAll(selector) {
+  return typeof selector === "string"
+      ? new Selection([document.querySelectorAll(selector)], [document.documentElement])
+      : new Selection([selector == null ? [] : selector], root);
+}
+
+function touch(node, touches, identifier) {
+  if (arguments.length < 3) identifier = touches, touches = sourceEvent().changedTouches;
+
+  for (var i = 0, n = touches ? touches.length : 0, touch; i < n; ++i) {
+    if ((touch = touches[i]).identifier === identifier) {
+      return point(node, touch);
+    }
+  }
+
+  return null;
+}
+
+function touches(node, touches) {
+  if (touches == null) touches = sourceEvent().touches;
+
+  for (var i = 0, n = touches ? touches.length : 0, points = new Array(n); i < n; ++i) {
+    points[i] = point(node, touches[i]);
+  }
+
+  return points;
+}
+
+exports.create = create;
+exports.creator = creator;
+exports.local = local;
+exports.matcher = matcher$1;
+exports.mouse = mouse;
+exports.namespace = namespace;
+exports.namespaces = namespaces;
+exports.clientPoint = point;
+exports.select = select;
+exports.selectAll = selectAll;
+exports.selection = selection;
+exports.selector = selector;
+exports.selectorAll = selectorAll;
+exports.style = styleValue;
+exports.touch = touch;
+exports.touches = touches;
+exports.window = defaultView;
+exports.customEvent = customEvent;
+
+Object.defineProperty(exports, '__esModule', { value: true });
+
+})));
+
+},{}],59:[function(require,module,exports){
+(function (global, factory) {
+  typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('d3-collection'), require('d3-selection')) :
+  typeof define === 'function' && define.amd ? define(['d3-collection', 'd3-selection'], factory) :
+  (global.d3 = global.d3 || {}, global.d3.tip = factory(global.d3,global.d3));
+}(this, (function (d3Collection,d3Selection) { 'use strict';
+
+  /**
+   * d3.tip
+   * Copyright (c) 2013-2017 Justin Palmer
+   *
+   * Tooltips for d3.js SVG visualizations
+   */
+  // Public - constructs a new tooltip
+  //
+  // Returns a tip
+  function index() {
+    var direction   = d3TipDirection,
+        offset      = d3TipOffset,
+        html        = d3TipHTML,
+        rootElement = document.body,
+        node        = initNode(),
+        svg         = null,
+        point       = null,
+        target      = null;
+
+    function tip(vis) {
+      svg = getSVGNode(vis);
+      if (!svg) return
+      point = svg.createSVGPoint();
+      rootElement.appendChild(node);
+    }
+
+    // Public - show the tooltip on the screen
+    //
+    // Returns a tip
+    tip.show = function() {
+      var args = Array.prototype.slice.call(arguments);
+      if (args[args.length - 1] instanceof SVGElement) target = args.pop();
+
+      var content = html.apply(this, args),
+          poffset = offset.apply(this, args),
+          dir     = direction.apply(this, args),
+          nodel   = getNodeEl(),
+          i       = directions.length,
+          coords,
+          scrollTop  = document.documentElement.scrollTop ||
+        rootElement.scrollTop,
+          scrollLeft = document.documentElement.scrollLeft ||
+        rootElement.scrollLeft;
+
+      nodel.html(content)
+        .style('opacity', 1).style('pointer-events', 'all');
+
+      while (i--) nodel.classed(directions[i], false);
+      coords = directionCallbacks.get(dir).apply(this);
+      nodel.classed(dir, true)
+        .style('top', (coords.top + poffset[0]) + scrollTop + 'px')
+        .style('left', (coords.left + poffset[1]) + scrollLeft + 'px');
+
+      return tip
+    };
+
+    // Public - hide the tooltip
+    //
+    // Returns a tip
+    tip.hide = function() {
+      var nodel = getNodeEl();
+      nodel.style('opacity', 0).style('pointer-events', 'none');
+      return tip
+    };
+
+    // Public: Proxy attr calls to the d3 tip container.
+    // Sets or gets attribute value.
+    //
+    // n - name of the attribute
+    // v - value of the attribute
+    //
+    // Returns tip or attribute value
+    // eslint-disable-next-line no-unused-vars
+    tip.attr = function(n, v) {
+      if (arguments.length < 2 && typeof n === 'string') {
+        return getNodeEl().attr(n)
+      }
+
+      var args =  Array.prototype.slice.call(arguments);
+      d3Selection.selection.prototype.attr.apply(getNodeEl(), args);
+      return tip
+    };
+
+    // Public: Proxy style calls to the d3 tip container.
+    // Sets or gets a style value.
+    //
+    // n - name of the property
+    // v - value of the property
+    //
+    // Returns tip or style property value
+    // eslint-disable-next-line no-unused-vars
+    tip.style = function(n, v) {
+      if (arguments.length < 2 && typeof n === 'string') {
+        return getNodeEl().style(n)
+      }
+
+      var args = Array.prototype.slice.call(arguments);
+      d3Selection.selection.prototype.style.apply(getNodeEl(), args);
+      return tip
+    };
+
+    // Public: Set or get the direction of the tooltip
+    //
+    // v - One of n(north), s(south), e(east), or w(west), nw(northwest),
+    //     sw(southwest), ne(northeast) or se(southeast)
+    //
+    // Returns tip or direction
+    tip.direction = function(v) {
+      if (!arguments.length) return direction
+      direction = v == null ? v : functor(v);
+
+      return tip
+    };
+
+    // Public: Sets or gets the offset of the tip
+    //
+    // v - Array of [x, y] offset
+    //
+    // Returns offset or
+    tip.offset = function(v) {
+      if (!arguments.length) return offset
+      offset = v == null ? v : functor(v);
+
+      return tip
+    };
+
+    // Public: sets or gets the html value of the tooltip
+    //
+    // v - String value of the tip
+    //
+    // Returns html value or tip
+    tip.html = function(v) {
+      if (!arguments.length) return html
+      html = v == null ? v : functor(v);
+
+      return tip
+    };
+
+    // Public: sets or gets the root element anchor of the tooltip
+    //
+    // v - root element of the tooltip
+    //
+    // Returns root node of tip
+    tip.rootElement = function(v) {
+      if (!arguments.length) return rootElement
+      rootElement = v == null ? v : functor(v);
+
+      return tip
+    };
+
+    // Public: destroys the tooltip and removes it from the DOM
+    //
+    // Returns a tip
+    tip.destroy = function() {
+      if (node) {
+        getNodeEl().remove();
+        node = null;
+      }
+      return tip
+    };
+
+    function d3TipDirection() { return 'n' }
+    function d3TipOffset() { return [0, 0] }
+    function d3TipHTML() { return ' ' }
+
+    var directionCallbacks = d3Collection.map({
+          n:  directionNorth,
+          s:  directionSouth,
+          e:  directionEast,
+          w:  directionWest,
+          nw: directionNorthWest,
+          ne: directionNorthEast,
+          sw: directionSouthWest,
+          se: directionSouthEast
+        }),
+        directions = directionCallbacks.keys();
+
+    function directionNorth() {
+      var bbox = getScreenBBox(this);
+      return {
+        top:  bbox.n.y - node.offsetHeight,
+        left: bbox.n.x - node.offsetWidth / 2
+      }
+    }
+
+    function directionSouth() {
+      var bbox = getScreenBBox(this);
+      return {
+        top:  bbox.s.y,
+        left: bbox.s.x - node.offsetWidth / 2
+      }
+    }
+
+    function directionEast() {
+      var bbox = getScreenBBox(this);
+      return {
+        top:  bbox.e.y - node.offsetHeight / 2,
+        left: bbox.e.x
+      }
+    }
+
+    function directionWest() {
+      var bbox = getScreenBBox(this);
+      return {
+        top:  bbox.w.y - node.offsetHeight / 2,
+        left: bbox.w.x - node.offsetWidth
+      }
+    }
+
+    function directionNorthWest() {
+      var bbox = getScreenBBox(this);
+      return {
+        top:  bbox.nw.y - node.offsetHeight,
+        left: bbox.nw.x - node.offsetWidth
+      }
+    }
+
+    function directionNorthEast() {
+      var bbox = getScreenBBox(this);
+      return {
+        top:  bbox.ne.y - node.offsetHeight,
+        left: bbox.ne.x
+      }
+    }
+
+    function directionSouthWest() {
+      var bbox = getScreenBBox(this);
+      return {
+        top:  bbox.sw.y,
+        left: bbox.sw.x - node.offsetWidth
+      }
+    }
+
+    function directionSouthEast() {
+      var bbox = getScreenBBox(this);
+      return {
+        top:  bbox.se.y,
+        left: bbox.se.x
+      }
+    }
+
+    function initNode() {
+      var div = d3Selection.select(document.createElement('div'));
+      div
+        .style('position', 'absolute')
+        .style('top', 0)
+        .style('opacity', 0)
+        .style('pointer-events', 'none')
+        .style('box-sizing', 'border-box');
+
+      return div.node()
+    }
+
+    function getSVGNode(element) {
+      var svgNode = element.node();
+      if (!svgNode) return null
+      if (svgNode.tagName.toLowerCase() === 'svg') return svgNode
+      return svgNode.ownerSVGElement
+    }
+
+    function getNodeEl() {
+      if (node == null) {
+        node = initNode();
+        // re-add node to DOM
+        rootElement.appendChild(node);
+      }
+      return d3Selection.select(node)
+    }
+
+    // Private - gets the screen coordinates of a shape
+    //
+    // Given a shape on the screen, will return an SVGPoint for the directions
+    // n(north), s(south), e(east), w(west), ne(northeast), se(southeast),
+    // nw(northwest), sw(southwest).
+    //
+    //    +-+-+
+    //    |   |
+    //    +   +
+    //    |   |
+    //    +-+-+
+    //
+    // Returns an Object {n, s, e, w, nw, sw, ne, se}
+    function getScreenBBox(targetShape) {
+      var targetel   = target || targetShape;
+
+      while (targetel.getScreenCTM == null && targetel.parentNode != null) {
+        targetel = targetel.parentNode;
+      }
+
+      var bbox       = {},
+          matrix     = targetel.getScreenCTM(),
+          tbbox      = targetel.getBBox(),
+          width      = tbbox.width,
+          height     = tbbox.height,
+          x          = tbbox.x,
+          y          = tbbox.y;
+
+      point.x = x;
+      point.y = y;
+      bbox.nw = point.matrixTransform(matrix);
+      point.x += width;
+      bbox.ne = point.matrixTransform(matrix);
+      point.y += height;
+      bbox.se = point.matrixTransform(matrix);
+      point.x -= width;
+      bbox.sw = point.matrixTransform(matrix);
+      point.y -= height / 2;
+      bbox.w = point.matrixTransform(matrix);
+      point.x += width;
+      bbox.e = point.matrixTransform(matrix);
+      point.x -= width / 2;
+      point.y -= height / 2;
+      bbox.n = point.matrixTransform(matrix);
+      point.y += height;
+      bbox.s = point.matrixTransform(matrix);
+
+      return bbox
+    }
+
+    // Private - replace D3JS 3.X d3.functor() function
+    function functor(v) {
+      return typeof v === 'function' ? v : function() {
+        return v
+      }
+    }
+
+    return tip
+  }
+
+  return index;
+
+})));
+
+},{"d3-collection":57,"d3-selection":58}],60:[function(require,module,exports){
 !function() {
   var d3 = {
     version: "3.5.17"
@@ -32527,7 +34304,114 @@ module.exports = {
   });
   if (typeof define === "function" && define.amd) this.d3 = d3, define(d3); else if (typeof module === "object" && module.exports) module.exports = d3; else this.d3 = d3;
 }();
-},{}],58:[function(require,module,exports){
+},{}],61:[function(require,module,exports){
+//
+//
+//
+
+module.exports = {
+  euclidean: require('./src/euclidean'),
+  manhattan: require('./src/manhattan'),
+  chebyshev: require('./src/chebyshev'),
+  angular: require('./src/angular'),
+  cosineSimilarity: require('./src/cosine-similarity'),
+  angularSimilarity: require('./src/angular-similarity')
+};
+
+},{"./src/angular":63,"./src/angular-similarity":62,"./src/chebyshev":64,"./src/cosine-similarity":65,"./src/euclidean":66,"./src/manhattan":67}],62:[function(require,module,exports){
+//
+//
+//
+var cosineSimilarity = require('./cosine-similarity');
+
+//
+module.exports = function(a, b, accessor) {
+  var cosSimValue = cosineSimilarity.apply(null, arguments);
+  return 1 - ( (2 * Math.acos(cosSimValue)) / Math.PI);
+};
+
+},{"./cosine-similarity":65}],63:[function(require,module,exports){
+//
+//
+//
+var cosineSimilarity = require('./cosine-similarity');
+
+//
+module.exports = function(a, b, accessor) {
+  var cosSimValue = cosineSimilarity.apply(null, arguments);
+  return (2 * Math.acos(cosSimValue)) / Math.PI;
+};
+
+},{"./cosine-similarity":65}],64:[function(require,module,exports){
+//
+//
+//
+
+//
+module.exports = function(a, b, accessor) {
+  var x = accessor ? a.map(accessor) : a,
+      y = accessor ? b.map(accessor) : b,
+      distance = Math.abs(x[0] - y[0]);
+  for(var ndx = 1; ndx < x.length; ndx++) {
+    distance = Math.max(distance, Math.abs(x[ndx] - y[ndx]));
+  }
+  return distance;
+};
+
+},{}],65:[function(require,module,exports){
+//
+//
+//
+
+//
+module.exports = function(a, b, accessor) {
+  var x = accessor ? a.map(accessor) : a,
+      y = accessor ? b.map(accessor) : b,
+      dotProduct = 0,
+      xMagnitude = 0,
+      yMagnitude = 0;
+
+  for(var ndx = 0; ndx < x.length; ndx++) {
+    xMagnitude += x[ndx] * x[ndx];
+    yMagnitude += y[ndx] * y[ndx];
+    dotProduct += x[ndx] * y[ndx];
+  }
+  return dotProduct / ( Math.sqrt(xMagnitude) * Math.sqrt(yMagnitude) );
+};
+
+},{}],66:[function(require,module,exports){
+//
+//
+//
+
+//
+module.exports = function(a, b, accessor) {
+  var x = accessor ? a.map(accessor) : a,
+      y = accessor ? b.map(accessor) : b,
+      distance = 0;
+  for(var ndx = 0; ndx < x.length; ndx++) {
+    distance += (x[ndx] - y[ndx]) * (x[ndx] - y[ndx]);
+  }
+  return Math.sqrt(distance);
+};
+
+},{}],67:[function(require,module,exports){
+//
+//
+//
+
+//
+module.exports = function(a, b, accessor) {
+  var x = accessor ? a.map(accessor) : a,
+      y = accessor ? b.map(accessor) : b,
+      distance = 0;
+  for(var ndx = 0; ndx < x.length; ndx++) {
+    distance += Math.abs(x[ndx] - y[ndx]);
+  }
+  return distance;
+};
+
+},{}],68:[function(require,module,exports){
 /*!
   Copyright (c) 2015 Jed Watson.
   Based on code that is Copyright 2013-2015, Facebook, Inc.
@@ -32569,7 +34453,95 @@ module.exports = {
 
 }());
 
-},{}],59:[function(require,module,exports){
+},{}],69:[function(require,module,exports){
+'use strict';
+
+var hasOwn = Object.prototype.hasOwnProperty;
+var toStr = Object.prototype.toString;
+
+var isArray = function isArray(arr) {
+	if (typeof Array.isArray === 'function') {
+		return Array.isArray(arr);
+	}
+
+	return toStr.call(arr) === '[object Array]';
+};
+
+var isPlainObject = function isPlainObject(obj) {
+	if (!obj || toStr.call(obj) !== '[object Object]') {
+		return false;
+	}
+
+	var hasOwnConstructor = hasOwn.call(obj, 'constructor');
+	var hasIsPrototypeOf = obj.constructor && obj.constructor.prototype && hasOwn.call(obj.constructor.prototype, 'isPrototypeOf');
+	// Not own constructor property must be Object
+	if (obj.constructor && !hasOwnConstructor && !hasIsPrototypeOf) {
+		return false;
+	}
+
+	// Own properties are enumerated firstly, so to speed up,
+	// if last one is own, then all properties are own.
+	var key;
+	for (key in obj) { /**/ }
+
+	return typeof key === 'undefined' || hasOwn.call(obj, key);
+};
+
+module.exports = function extend() {
+	var options, name, src, copy, copyIsArray, clone;
+	var target = arguments[0];
+	var i = 1;
+	var length = arguments.length;
+	var deep = false;
+
+	// Handle a deep copy situation
+	if (typeof target === 'boolean') {
+		deep = target;
+		target = arguments[1] || {};
+		// skip the boolean and the target
+		i = 2;
+	}
+	if (target == null || (typeof target !== 'object' && typeof target !== 'function')) {
+		target = {};
+	}
+
+	for (; i < length; ++i) {
+		options = arguments[i];
+		// Only deal with non-null/undefined values
+		if (options != null) {
+			// Extend the base object
+			for (name in options) {
+				src = target[name];
+				copy = options[name];
+
+				// Prevent never-ending loop
+				if (target !== copy) {
+					// Recurse if we're merging plain objects or arrays
+					if (deep && copy && (isPlainObject(copy) || (copyIsArray = isArray(copy)))) {
+						if (copyIsArray) {
+							copyIsArray = false;
+							clone = src && isArray(src) ? src : [];
+						} else {
+							clone = src && isPlainObject(src) ? src : {};
+						}
+
+						// Never move original objects, clone them
+						target[name] = extend(deep, clone, copy);
+
+					// Don't bring in undefined values
+					} else if (typeof copy !== 'undefined') {
+						target[name] = copy;
+					}
+				}
+			}
+		}
+	}
+
+	// Return the modified object
+	return target;
+};
+
+},{}],70:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -32656,7 +34628,7 @@ var EventListener = {
 
 module.exports = EventListener;
 }).call(this,require('_process'))
-},{"./emptyFunction":66,"_process":120}],60:[function(require,module,exports){
+},{"./emptyFunction":77,"_process":132}],71:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -32693,7 +34665,7 @@ var ExecutionEnvironment = {
 };
 
 module.exports = ExecutionEnvironment;
-},{}],61:[function(require,module,exports){
+},{}],72:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -32726,7 +34698,7 @@ function camelize(string) {
 }
 
 module.exports = camelize;
-},{}],62:[function(require,module,exports){
+},{}],73:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -32767,7 +34739,7 @@ function camelizeStyleName(string) {
 }
 
 module.exports = camelizeStyleName;
-},{"./camelize":61}],63:[function(require,module,exports){
+},{"./camelize":72}],74:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -32823,7 +34795,7 @@ function containsNode(_x, _x2) {
 }
 
 module.exports = containsNode;
-},{"./isTextNode":76}],64:[function(require,module,exports){
+},{"./isTextNode":87}],75:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -32909,7 +34881,7 @@ function createArrayFromMixed(obj) {
 }
 
 module.exports = createArrayFromMixed;
-},{"./toArray":84}],65:[function(require,module,exports){
+},{"./toArray":95}],76:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -32996,7 +34968,7 @@ function createNodesFromMarkup(markup, handleScript) {
 
 module.exports = createNodesFromMarkup;
 }).call(this,require('_process'))
-},{"./ExecutionEnvironment":60,"./createArrayFromMixed":64,"./getMarkupWrap":70,"./invariant":74,"_process":120}],66:[function(require,module,exports){
+},{"./ExecutionEnvironment":71,"./createArrayFromMixed":75,"./getMarkupWrap":81,"./invariant":85,"_process":132}],77:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -33035,7 +35007,7 @@ emptyFunction.thatReturnsArgument = function (arg) {
 };
 
 module.exports = emptyFunction;
-},{}],67:[function(require,module,exports){
+},{}],78:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -33058,7 +35030,7 @@ if (process.env.NODE_ENV !== 'production') {
 
 module.exports = emptyObject;
 }).call(this,require('_process'))
-},{"_process":120}],68:[function(require,module,exports){
+},{"_process":132}],79:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -33085,7 +35057,7 @@ function focusNode(node) {
 }
 
 module.exports = focusNode;
-},{}],69:[function(require,module,exports){
+},{}],80:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -33121,7 +35093,7 @@ function getActiveElement() /*?DOMElement*/{
 }
 
 module.exports = getActiveElement;
-},{}],70:[function(require,module,exports){
+},{}],81:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -33219,7 +35191,7 @@ function getMarkupWrap(nodeName) {
 
 module.exports = getMarkupWrap;
 }).call(this,require('_process'))
-},{"./ExecutionEnvironment":60,"./invariant":74,"_process":120}],71:[function(require,module,exports){
+},{"./ExecutionEnvironment":71,"./invariant":85,"_process":132}],82:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -33258,7 +35230,7 @@ function getUnboundedScrollPosition(scrollable) {
 }
 
 module.exports = getUnboundedScrollPosition;
-},{}],72:[function(require,module,exports){
+},{}],83:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -33292,7 +35264,7 @@ function hyphenate(string) {
 }
 
 module.exports = hyphenate;
-},{}],73:[function(require,module,exports){
+},{}],84:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -33332,7 +35304,7 @@ function hyphenateStyleName(string) {
 }
 
 module.exports = hyphenateStyleName;
-},{"./hyphenate":72}],74:[function(require,module,exports){
+},{"./hyphenate":83}],85:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -33385,7 +35357,7 @@ function invariant(condition, format, a, b, c, d, e, f) {
 
 module.exports = invariant;
 }).call(this,require('_process'))
-},{"_process":120}],75:[function(require,module,exports){
+},{"_process":132}],86:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -33409,7 +35381,7 @@ function isNode(object) {
 }
 
 module.exports = isNode;
-},{}],76:[function(require,module,exports){
+},{}],87:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -33435,7 +35407,7 @@ function isTextNode(object) {
 }
 
 module.exports = isTextNode;
-},{"./isNode":75}],77:[function(require,module,exports){
+},{"./isNode":86}],88:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -33486,7 +35458,7 @@ var keyMirror = function (obj) {
 
 module.exports = keyMirror;
 }).call(this,require('_process'))
-},{"./invariant":74,"_process":120}],78:[function(require,module,exports){
+},{"./invariant":85,"_process":132}],89:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -33522,7 +35494,7 @@ var keyOf = function (oneKeyObj) {
 };
 
 module.exports = keyOf;
-},{}],79:[function(require,module,exports){
+},{}],90:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -33574,7 +35546,7 @@ function mapObject(object, callback, context) {
 }
 
 module.exports = mapObject;
-},{}],80:[function(require,module,exports){
+},{}],91:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -33606,7 +35578,7 @@ function memoizeStringOnly(callback) {
 }
 
 module.exports = memoizeStringOnly;
-},{}],81:[function(require,module,exports){
+},{}],92:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -33630,7 +35602,7 @@ if (ExecutionEnvironment.canUseDOM) {
 }
 
 module.exports = performance || {};
-},{"./ExecutionEnvironment":60}],82:[function(require,module,exports){
+},{"./ExecutionEnvironment":71}],93:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -33665,7 +35637,7 @@ if (performance.now) {
 }
 
 module.exports = performanceNow;
-},{"./performance":81}],83:[function(require,module,exports){
+},{"./performance":92}],94:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -33716,7 +35688,7 @@ function shallowEqual(objA, objB) {
 }
 
 module.exports = shallowEqual;
-},{}],84:[function(require,module,exports){
+},{}],95:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -33776,7 +35748,7 @@ function toArray(obj) {
 
 module.exports = toArray;
 }).call(this,require('_process'))
-},{"./invariant":74,"_process":120}],85:[function(require,module,exports){
+},{"./invariant":85,"_process":132}],96:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2014-2015, Facebook, Inc.
@@ -33836,7 +35808,7 @@ if (process.env.NODE_ENV !== 'production') {
 
 module.exports = warning;
 }).call(this,require('_process'))
-},{"./emptyFunction":66,"_process":120}],86:[function(require,module,exports){
+},{"./emptyFunction":77,"_process":132}],97:[function(require,module,exports){
 'use strict'
 
 var descriptives = require('./src/descriptives')
@@ -33865,7 +35837,7 @@ module.exports = {
     
 }
 
-},{"./src/descriptives":87,"./src/probability":90,"./src/ttest":95,"./src/wilcoxon":96}],87:[function(require,module,exports){
+},{"./src/descriptives":98,"./src/probability":101,"./src/ttest":106,"./src/wilcoxon":107}],98:[function(require,module,exports){
 // descriptives.js
 
 var exp = module.exports
@@ -33947,7 +35919,7 @@ exp.standardNormalize = function(a) {
     }
 }
 
-},{}],88:[function(require,module,exports){
+},{}],99:[function(require,module,exports){
 // gamma.js
 //
 // Code adapted from the Colt Java library cern.jet.stat http://dst.lbl.gov/ACSSoftware/colt/
@@ -34531,7 +36503,7 @@ exp.stirlingFormula = function(x) {
 }
 
 
-},{"./polynomial":89}],89:[function(require,module,exports){
+},{"./polynomial":100}],100:[function(require,module,exports){
 // polynomial.js
 //
 // Code adapted from the Colt Java library cern.jet.stat http://dst.lbl.gov/ACSSoftware/colt/
@@ -34559,7 +36531,7 @@ exp.polevl = function(x, coef, N) {
 }
 
 
-},{}],90:[function(require,module,exports){
+},{}],101:[function(require,module,exports){
 'use strict'
 
 // probability.js
@@ -34982,7 +36954,7 @@ exp.complementaryError = function(x) {
     return retval
 }
 
-},{"./gamma":88,"./polynomial":89}],91:[function(require,module,exports){
+},{"./gamma":99,"./polynomial":100}],102:[function(require,module,exports){
 module.exports = (function() {
     function heapify(array, index, heapSize) {
         var left = 2 * index + 1,
@@ -35024,7 +36996,7 @@ module.exports = (function() {
         return array;
     };
 }());
-},{}],92:[function(require,module,exports){
+},{}],103:[function(require,module,exports){
 module.exports = function(array) {
     var current, j;
     for (var i = 1; i < array.length; i += 1) {
@@ -35038,7 +37010,7 @@ module.exports = function(array) {
     }
     return array;
 }
-},{}],93:[function(require,module,exports){
+},{}],104:[function(require,module,exports){
 module.exports = (function() {
     function merger(array, start, end) {
         if (Math.abs(end - start) <= 1) {
@@ -35091,7 +37063,7 @@ module.exports = (function() {
     }
 
 }());
-},{}],94:[function(require,module,exports){
+},{}],105:[function(require,module,exports){
 module.exports = (function() {
 
     function partition(array, left, right) {
@@ -35128,7 +37100,7 @@ module.exports = (function() {
         return quickSort(array, 0, array.length);
     };
 }());
-},{}],95:[function(require,module,exports){
+},{}],106:[function(require,module,exports){
 var descriptives = require('./descriptives')
 var probability = require('./probability')
 
@@ -35171,7 +37143,7 @@ exp.welch = function(a1, a2) {
     return {t: t, p: p, df: df}
 }
 
-},{"./descriptives":87,"./probability":90}],96:[function(require,module,exports){
+},{"./descriptives":98,"./probability":101}],107:[function(require,module,exports){
 var quicksort = require('./sort/quicksort')
 var heapsort = require('./sort/heapsort')
 var mergesort = require('./sort/mergesort')
@@ -35337,7 +37309,223 @@ exp.wilcoxonRanked = function(a1, a2) {
     return {p: -1, auc: -1}
 }
 
-},{"./sort/heapsort":91,"./sort/insertionsort":92,"./sort/mergesort":93,"./sort/quicksort":94}],97:[function(require,module,exports){
+},{"./sort/heapsort":102,"./sort/insertionsort":103,"./sort/mergesort":104,"./sort/quicksort":105}],108:[function(require,module,exports){
+//
+//
+//
+var distance = require('distancejs'),
+    extend = require('extend');
+
+//
+var hcluster = function() {
+  var data,
+      clusters,
+      clustersGivenK,
+      treeRoot,
+      posKey = 'position',
+      distanceName = 'angular',
+      distanceFn = distance.angular,
+      linkage = 'avg',
+      verbose = false;
+
+  //
+  // simple constructor
+  function clust() { }
+
+  //
+  // getters, setters a la D3
+
+  // return data or set data and build tree
+  clust.data = function(value) {
+    if(!arguments.length) return data;
+
+    // dataset will be mutated
+    data = value;
+    clust._buildTree();
+    return clust;
+  };
+  clust.posKey = function(value) {
+    if(!arguments.length) return posKey;
+    posKey = value;
+    return clust;
+  };
+  clust.linkage = function(value) {
+    if(!arguments.length) return linkage;
+    linkage = value;
+    return clust;
+  };
+  clust.verbose = function(value) {
+    if(!arguments.length) return verbose;
+    verbose = value;
+    return clust;
+  };
+  clust.distance = function(value) {
+    if(!arguments.length) return distanceName;
+    distanceName = value;
+    distanceFn = {
+      angular: distance.angular,
+      euclidean: distance.euclidean
+    }[value] || distance.angular;
+    return clust;
+  }
+
+  //
+  // get tree properties
+
+  clust.orderedNodes = function() {
+    if(!treeRoot) throw new Error('Need to passin data and build tree first.');
+
+    return treeRoot.indexes.map(function(ndx) {
+      return data[ndx];
+    });
+  };
+  clust.tree = function() {
+    if(!treeRoot) throw new Error('Need to passin data and build tree first.');
+    return treeRoot;
+  };
+  clust.getClusters = function(n) {
+    if(!treeRoot) throw new Error('Need to passin data and build tree first.');
+    if(n > data.length) throw new Error('n must be less than the size of the dataset');
+    return clustersGivenK[data.length - n]
+             .map(function(indexes) {
+               return indexes.map(function(ndx) { return data[ndx]; });
+             });
+  };
+
+  //
+  // math, matrix utility fn's
+
+  // return unique pairs of indexes on n x n matrix above the diagonal
+  clust._squareMatrixPairs = function(n) {
+    var pairs = [];
+    for(var row = 0; row < n; row++) {
+      for(var col = row + 1; col < n; col++) {
+        pairs.push([row, col]);
+      }
+    }
+    return pairs;
+  };
+
+  // average distance between set of cluster indexes
+  clust._avgDistance = function(setA, setB) {
+    var distance = 0;
+    for(var ndxA = 0; ndxA < setA.length; ndxA++) {
+      for(var ndxB = 0; ndxB < setB.length; ndxB++) {
+        distance += data[setA[ndxA]]._distances[setB[ndxB]];
+      }
+    }
+    return distance / setA.length / setB.length;
+  };
+
+  // min distance between set of cluster indexes
+  clust._minDistance = function(setA, setB) {
+    var distances = [];
+    for(var ndxA = 0; ndxA < setA.length; ndxA++) {
+      for(var ndxB = 0; ndxB < setB.length; ndxB++) {
+        distances.push(data[setA[ndxA]]._distances[setB[ndxB]]);
+      }
+    }
+    return distances.sort()[0];
+  };
+
+  // max distance between set of cluster indexes
+  clust._maxDistance = function(setA, setB) {
+    var distances = [];
+    for(var ndxA = 0; ndxA < setA.length; ndxA++) {
+      for(var ndxB = 0; ndxB < setB.length; ndxB++) {
+        distances.push(data[setA[ndxA]]._distances[setB[ndxB]]);
+      }
+    }
+    return distances.sort()[distances.length-1];
+  };
+
+  //
+  // tree construction
+
+  //
+  clust._buildTree = function() {
+    if(!data || !data.length) throw new Error('Need `data` to build tree');
+
+    //
+    var node, clusterPairs, nearestPair, newCluster;
+    clusters = [];
+    clustersGivenK = [];
+    tree = {};
+
+    // calculate distances and build single datum clusters
+    data.forEach(function(d, ndx) {
+      d._distances = data.map(function(compareTo) {
+        return distanceFn(d[posKey], compareTo[posKey]);
+      });
+      clusters.push(extend(d, {
+        height: 0,
+        indexes: [ndx]
+      }));
+    });
+
+    // for tree of n leafs, n-1 linkages
+    for(var iter = 0; iter < data.length - 1; iter++) {
+      verbose && console.log(iter + ': ' +
+          clusters.map(function(c) { return c.indexes; }).join('|'));
+
+      // find closest pair of clusters, pair[2] is distance
+      clusterPairs = clust._squareMatrixPairs(clusters.length);
+      clusterPairs.forEach(function(pair) {
+        pair[2] = clust['_'+linkage+'Distance'](
+                  clusters[pair[0]].indexes,
+                  clusters[pair[1]].indexes ); });
+      nearestPair = clusterPairs
+        .reduce(function(pairA, pairB) { return pairA[2] <= pairB[2] ? pairA : pairB; },
+                [0, 0, Infinity]);
+      newCluster = {
+        name: 'Node ' + iter,
+        height: nearestPair[2],
+        indexes: clusters[nearestPair[0]].indexes.concat(clusters[nearestPair[1]].indexes),
+        children: [ clusters[nearestPair[0]], clusters[nearestPair[1]] ],
+      };
+      verbose && console.log(newCluster);
+      clustersGivenK.push(clusters.map(function(c) { return c.indexes; }));
+
+      // remove merged nodes and push new node
+      clusters.splice(Math.max(nearestPair[0], nearestPair[1]),1);
+      clusters.splice(Math.min(nearestPair[0], nearestPair[1]),1);
+      clusters.push(newCluster);
+    }
+
+    treeRoot = clusters[0];
+    // clust._rebalanceTree(treeRoot);
+  };
+
+  // TODO: better rebalancing algo? ... this is just for presentation
+  // rebalance after tree is built (b/c it is top down operation)
+  // clust._rebalanceTree = function(node) {
+  //   if(node.parent && node.parent.children && node.parent.children.length &&
+  //      node.children && node.children.length) {
+  //     var rightDistance = clust['_'+linkage+'Distance'](
+  //       node.parent.children[1].indexes,
+  //       node.children[0].indexes);
+  //     var leftDistance = clust['_'+linkage+'Distance'](
+  //       node.parent.children[1].indexes,
+  //       node.children[1].indexes);
+
+  //     // switch order of node.children
+  //     if(leftDistance > rightDistance) {
+  //       node.children = [ node.children[1], node.children[0] ];
+  //       node.indexes = node.children[0].indexes.concat(node.children[1].indexes);
+  //     }
+  //   }
+  //   if(node.children) {
+  //     clust._rebalanceTree(node.children[0]);
+  //     clust._rebalanceTree(node.children[1]);
+  //   }
+  // };
+
+  return clust;
+};
+
+module.exports = hcluster;
+
+},{"distancejs":61,"extend":69}],109:[function(require,module,exports){
 /**
  * Indicates that navigation was caused by a call to history.push.
  */
@@ -35369,7 +37557,7 @@ exports['default'] = {
   REPLACE: REPLACE,
   POP: POP
 };
-},{}],98:[function(require,module,exports){
+},{}],110:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -35396,7 +37584,7 @@ function loopAsync(turns, work, callback) {
 
   next();
 }
-},{}],99:[function(require,module,exports){
+},{}],111:[function(require,module,exports){
 (function (process){
 /*eslint-disable no-empty */
 'use strict';
@@ -35467,7 +37655,7 @@ function readState(key) {
   return null;
 }
 }).call(this,require('_process'))
-},{"_process":120,"warning":339}],100:[function(require,module,exports){
+},{"_process":132,"warning":352}],112:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -35548,13 +37736,13 @@ function supportsGoWithoutReloadUsingHash() {
   var ua = navigator.userAgent;
   return ua.indexOf('Firefox') === -1;
 }
-},{}],101:[function(require,module,exports){
+},{}],113:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
 var canUseDOM = !!(typeof window !== 'undefined' && window.document && window.document.createElement);
 exports.canUseDOM = canUseDOM;
-},{}],102:[function(require,module,exports){
+},{}],114:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -35735,7 +37923,7 @@ function createBrowserHistory() {
 exports['default'] = createBrowserHistory;
 module.exports = exports['default'];
 }).call(this,require('_process'))
-},{"./Actions":97,"./DOMStateStorage":99,"./DOMUtils":100,"./ExecutionEnvironment":101,"./createDOMHistory":103,"./parsePath":110,"_process":120,"invariant":117}],103:[function(require,module,exports){
+},{"./Actions":109,"./DOMStateStorage":111,"./DOMUtils":112,"./ExecutionEnvironment":113,"./createDOMHistory":115,"./parsePath":122,"_process":132,"invariant":129}],115:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -35778,7 +37966,7 @@ function createDOMHistory(options) {
 exports['default'] = createDOMHistory;
 module.exports = exports['default'];
 }).call(this,require('_process'))
-},{"./DOMUtils":100,"./ExecutionEnvironment":101,"./createHistory":105,"_process":120,"invariant":117}],104:[function(require,module,exports){
+},{"./DOMUtils":112,"./ExecutionEnvironment":113,"./createHistory":117,"_process":132,"invariant":129}],116:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -36029,7 +38217,7 @@ function createHashHistory() {
 exports['default'] = createHashHistory;
 module.exports = exports['default'];
 }).call(this,require('_process'))
-},{"./Actions":97,"./DOMStateStorage":99,"./DOMUtils":100,"./ExecutionEnvironment":101,"./createDOMHistory":103,"./parsePath":110,"_process":120,"invariant":117,"warning":339}],105:[function(require,module,exports){
+},{"./Actions":109,"./DOMStateStorage":111,"./DOMUtils":112,"./ExecutionEnvironment":113,"./createDOMHistory":115,"./parsePath":122,"_process":132,"invariant":129,"warning":352}],117:[function(require,module,exports){
 //import warning from 'warning'
 'use strict';
 
@@ -36321,7 +38509,7 @@ function createHistory() {
 
 exports['default'] = createHistory;
 module.exports = exports['default'];
-},{"./Actions":97,"./AsyncUtils":98,"./createLocation":106,"./deprecate":108,"./parsePath":110,"./runTransitionHook":111,"deep-equal":114}],106:[function(require,module,exports){
+},{"./Actions":109,"./AsyncUtils":110,"./createLocation":118,"./deprecate":120,"./parsePath":122,"./runTransitionHook":123,"deep-equal":126}],118:[function(require,module,exports){
 //import warning from 'warning'
 'use strict';
 
@@ -36376,7 +38564,7 @@ function createLocation() {
 
 exports['default'] = createLocation;
 module.exports = exports['default'];
-},{"./Actions":97,"./parsePath":110}],107:[function(require,module,exports){
+},{"./Actions":109,"./parsePath":122}],119:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -36534,7 +38722,7 @@ function createMemoryHistory() {
 exports['default'] = createMemoryHistory;
 module.exports = exports['default'];
 }).call(this,require('_process'))
-},{"./Actions":97,"./createHistory":105,"./parsePath":110,"_process":120,"invariant":117,"warning":339}],108:[function(require,module,exports){
+},{"./Actions":109,"./createHistory":117,"./parsePath":122,"_process":132,"invariant":129,"warning":352}],120:[function(require,module,exports){
 //import warning from 'warning'
 
 "use strict";
@@ -36550,7 +38738,7 @@ function deprecate(fn) {
 
 exports["default"] = deprecate;
 module.exports = exports["default"];
-},{}],109:[function(require,module,exports){
+},{}],121:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -36564,7 +38752,7 @@ function extractPath(string) {
 
 exports["default"] = extractPath;
 module.exports = exports["default"];
-},{}],110:[function(require,module,exports){
+},{}],122:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -36611,7 +38799,7 @@ function parsePath(path) {
 exports['default'] = parsePath;
 module.exports = exports['default'];
 }).call(this,require('_process'))
-},{"./extractPath":109,"_process":120,"warning":339}],111:[function(require,module,exports){
+},{"./extractPath":121,"_process":132,"warning":352}],123:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -36638,7 +38826,7 @@ function runTransitionHook(hook, location, callback) {
 exports['default'] = runTransitionHook;
 module.exports = exports['default'];
 }).call(this,require('_process'))
-},{"_process":120,"warning":339}],112:[function(require,module,exports){
+},{"_process":132,"warning":352}],124:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -36779,7 +38967,7 @@ function useBasename(createHistory) {
 
 exports['default'] = useBasename;
 module.exports = exports['default'];
-},{"./ExecutionEnvironment":101,"./deprecate":108,"./extractPath":109,"./parsePath":110,"./runTransitionHook":111}],113:[function(require,module,exports){
+},{"./ExecutionEnvironment":113,"./deprecate":120,"./extractPath":121,"./parsePath":122,"./runTransitionHook":123}],125:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -36954,7 +39142,7 @@ function useQueries(createHistory) {
 exports['default'] = useQueries;
 module.exports = exports['default'];
 }).call(this,require('_process'))
-},{"./deprecate":108,"./parsePath":110,"./runTransitionHook":111,"_process":120,"query-string":129,"warning":339}],114:[function(require,module,exports){
+},{"./deprecate":120,"./parsePath":122,"./runTransitionHook":123,"_process":132,"query-string":141,"warning":352}],126:[function(require,module,exports){
 var pSlice = Array.prototype.slice;
 var objectKeys = require('./lib/keys.js');
 var isArguments = require('./lib/is_arguments.js');
@@ -37050,7 +39238,7 @@ function objEquiv(a, b, opts) {
   return typeof a === typeof b;
 }
 
-},{"./lib/is_arguments.js":115,"./lib/keys.js":116}],115:[function(require,module,exports){
+},{"./lib/is_arguments.js":127,"./lib/keys.js":128}],127:[function(require,module,exports){
 var supportsArgumentsClass = (function(){
   return Object.prototype.toString.call(arguments)
 })() == '[object Arguments]';
@@ -37072,7 +39260,7 @@ function unsupported(object){
     false;
 };
 
-},{}],116:[function(require,module,exports){
+},{}],128:[function(require,module,exports){
 exports = module.exports = typeof Object.keys === 'function'
   ? Object.keys : shim;
 
@@ -37083,15 +39271,13 @@ function shim (obj) {
   return keys;
 }
 
-},{}],117:[function(require,module,exports){
+},{}],129:[function(require,module,exports){
 (function (process){
 /**
- * Copyright 2013-2015, Facebook, Inc.
- * All rights reserved.
+ * Copyright (c) 2013-present, Facebook, Inc.
  *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 'use strict';
@@ -37138,7 +39324,7 @@ var invariant = function(condition, format, a, b, c, d, e, f) {
 module.exports = invariant;
 
 }).call(this,require('_process'))
-},{"_process":120}],118:[function(require,module,exports){
+},{"_process":132}],130:[function(require,module,exports){
 (function (global){
 /**
  * @license
@@ -37154,7 +39340,7 @@ module.exports = invariant;
   var undefined;
 
   /** Used as the semantic version number. */
-  var VERSION = '4.17.4';
+  var VERSION = '4.17.10';
 
   /** Used as the size to enable large array optimizations. */
   var LARGE_ARRAY_SIZE = 200;
@@ -37285,7 +39471,6 @@ module.exports = invariant;
   /** Used to match property names within property paths. */
   var reIsDeepProp = /\.|\[(?:[^[\]]*|(["'])(?:(?!\1)[^\\]|\\.)*?\1)\]/,
       reIsPlainProp = /^\w*$/,
-      reLeadingDot = /^\./,
       rePropName = /[^.[\]]+|\[(?:(-?\d+(?:\.\d+)?)|(["'])((?:(?!\2)[^\\]|\\.)*?)\2)\]|(?=(?:\.|\[\])(?:\.|\[\]|$))/g;
 
   /**
@@ -37385,8 +39570,8 @@ module.exports = invariant;
       reOptMod = rsModifier + '?',
       rsOptVar = '[' + rsVarRange + ']?',
       rsOptJoin = '(?:' + rsZWJ + '(?:' + [rsNonAstral, rsRegional, rsSurrPair].join('|') + ')' + rsOptVar + reOptMod + ')*',
-      rsOrdLower = '\\d*(?:(?:1st|2nd|3rd|(?![123])\\dth)\\b)',
-      rsOrdUpper = '\\d*(?:(?:1ST|2ND|3RD|(?![123])\\dTH)\\b)',
+      rsOrdLower = '\\d*(?:1st|2nd|3rd|(?![123])\\dth)(?=\\b|[A-Z_])',
+      rsOrdUpper = '\\d*(?:1ST|2ND|3RD|(?![123])\\dTH)(?=\\b|[a-z_])',
       rsSeq = rsOptVar + reOptMod + rsOptJoin,
       rsEmoji = '(?:' + [rsDingbat, rsRegional, rsSurrPair].join('|') + ')' + rsSeq,
       rsSymbol = '(?:' + [rsNonAstral + rsCombo + '?', rsCombo, rsRegional, rsSurrPair, rsAstral].join('|') + ')';
@@ -37579,6 +39764,14 @@ module.exports = invariant;
   /** Used to access faster Node.js helpers. */
   var nodeUtil = (function() {
     try {
+      // Use `util.types` for Node.js 10+.
+      var types = freeModule && freeModule.require && freeModule.require('util').types;
+
+      if (types) {
+        return types;
+      }
+
+      // Legacy `process.binding('util')` for Node.js < 10.
       return freeProcess && freeProcess.binding && freeProcess.binding('util');
     } catch (e) {}
   }());
@@ -37592,34 +39785,6 @@ module.exports = invariant;
       nodeIsTypedArray = nodeUtil && nodeUtil.isTypedArray;
 
   /*--------------------------------------------------------------------------*/
-
-  /**
-   * Adds the key-value `pair` to `map`.
-   *
-   * @private
-   * @param {Object} map The map to modify.
-   * @param {Array} pair The key-value pair to add.
-   * @returns {Object} Returns `map`.
-   */
-  function addMapEntry(map, pair) {
-    // Don't return `map.set` because it's not chainable in IE 11.
-    map.set(pair[0], pair[1]);
-    return map;
-  }
-
-  /**
-   * Adds `value` to `set`.
-   *
-   * @private
-   * @param {Object} set The set to modify.
-   * @param {*} value The value to add.
-   * @returns {Object} Returns `set`.
-   */
-  function addSetEntry(set, value) {
-    // Don't return `set.add` because it's not chainable in IE 11.
-    set.add(value);
-    return set;
-  }
 
   /**
    * A faster alternative to `Function#apply`, this function invokes `func`
@@ -38385,6 +40550,20 @@ module.exports = invariant;
       }
     }
     return result;
+  }
+
+  /**
+   * Gets the value at `key`, unless `key` is "__proto__".
+   *
+   * @private
+   * @param {Object} object The object to query.
+   * @param {string} key The key of the property to get.
+   * @returns {*} Returns the property value.
+   */
+  function safeGet(object, key) {
+    return key == '__proto__'
+      ? undefined
+      : object[key];
   }
 
   /**
@@ -39819,7 +41998,7 @@ module.exports = invariant;
           if (!cloneableTags[tag]) {
             return object ? value : {};
           }
-          result = initCloneByTag(value, tag, baseClone, isDeep);
+          result = initCloneByTag(value, tag, isDeep);
         }
       }
       // Check for circular references and return its corresponding clone.
@@ -39829,6 +42008,22 @@ module.exports = invariant;
         return stacked;
       }
       stack.set(value, result);
+
+      if (isSet(value)) {
+        value.forEach(function(subValue) {
+          result.add(baseClone(subValue, bitmask, customizer, subValue, value, stack));
+        });
+
+        return result;
+      }
+
+      if (isMap(value)) {
+        value.forEach(function(subValue, key) {
+          result.set(key, baseClone(subValue, bitmask, customizer, key, value, stack));
+        });
+
+        return result;
+      }
 
       var keysFunc = isFull
         ? (isFlat ? getAllKeysIn : getAllKeys)
@@ -40757,7 +42952,7 @@ module.exports = invariant;
         }
         else {
           var newValue = customizer
-            ? customizer(object[key], srcValue, (key + ''), object, source, stack)
+            ? customizer(safeGet(object, key), srcValue, (key + ''), object, source, stack)
             : undefined;
 
           if (newValue === undefined) {
@@ -40784,8 +42979,8 @@ module.exports = invariant;
      *  counterparts.
      */
     function baseMergeDeep(object, source, key, srcIndex, mergeFunc, customizer, stack) {
-      var objValue = object[key],
-          srcValue = source[key],
+      var objValue = safeGet(object, key),
+          srcValue = safeGet(source, key),
           stacked = stack.get(srcValue);
 
       if (stacked) {
@@ -41694,20 +43889,6 @@ module.exports = invariant;
     }
 
     /**
-     * Creates a clone of `map`.
-     *
-     * @private
-     * @param {Object} map The map to clone.
-     * @param {Function} cloneFunc The function to clone values.
-     * @param {boolean} [isDeep] Specify a deep clone.
-     * @returns {Object} Returns the cloned map.
-     */
-    function cloneMap(map, isDeep, cloneFunc) {
-      var array = isDeep ? cloneFunc(mapToArray(map), CLONE_DEEP_FLAG) : mapToArray(map);
-      return arrayReduce(array, addMapEntry, new map.constructor);
-    }
-
-    /**
      * Creates a clone of `regexp`.
      *
      * @private
@@ -41718,20 +43899,6 @@ module.exports = invariant;
       var result = new regexp.constructor(regexp.source, reFlags.exec(regexp));
       result.lastIndex = regexp.lastIndex;
       return result;
-    }
-
-    /**
-     * Creates a clone of `set`.
-     *
-     * @private
-     * @param {Object} set The set to clone.
-     * @param {Function} cloneFunc The function to clone values.
-     * @param {boolean} [isDeep] Specify a deep clone.
-     * @returns {Object} Returns the cloned set.
-     */
-    function cloneSet(set, isDeep, cloneFunc) {
-      var array = isDeep ? cloneFunc(setToArray(set), CLONE_DEEP_FLAG) : setToArray(set);
-      return arrayReduce(array, addSetEntry, new set.constructor);
     }
 
     /**
@@ -43328,7 +45495,7 @@ module.exports = invariant;
      */
     function initCloneArray(array) {
       var length = array.length,
-          result = array.constructor(length);
+          result = new array.constructor(length);
 
       // Add properties assigned by `RegExp#exec`.
       if (length && typeof array[0] == 'string' && hasOwnProperty.call(array, 'index')) {
@@ -43355,16 +45522,15 @@ module.exports = invariant;
      * Initializes an object clone based on its `toStringTag`.
      *
      * **Note:** This function only supports cloning values with tags of
-     * `Boolean`, `Date`, `Error`, `Number`, `RegExp`, or `String`.
+     * `Boolean`, `Date`, `Error`, `Map`, `Number`, `RegExp`, `Set`, or `String`.
      *
      * @private
      * @param {Object} object The object to clone.
      * @param {string} tag The `toStringTag` of the object to clone.
-     * @param {Function} cloneFunc The function to clone values.
      * @param {boolean} [isDeep] Specify a deep clone.
      * @returns {Object} Returns the initialized clone.
      */
-    function initCloneByTag(object, tag, cloneFunc, isDeep) {
+    function initCloneByTag(object, tag, isDeep) {
       var Ctor = object.constructor;
       switch (tag) {
         case arrayBufferTag:
@@ -43383,7 +45549,7 @@ module.exports = invariant;
           return cloneTypedArray(object, isDeep);
 
         case mapTag:
-          return cloneMap(object, isDeep, cloneFunc);
+          return new Ctor;
 
         case numberTag:
         case stringTag:
@@ -43393,7 +45559,7 @@ module.exports = invariant;
           return cloneRegExp(object);
 
         case setTag:
-          return cloneSet(object, isDeep, cloneFunc);
+          return new Ctor;
 
         case symbolTag:
           return cloneSymbol(object);
@@ -43440,10 +45606,13 @@ module.exports = invariant;
      * @returns {boolean} Returns `true` if `value` is a valid index, else `false`.
      */
     function isIndex(value, length) {
+      var type = typeof value;
       length = length == null ? MAX_SAFE_INTEGER : length;
+
       return !!length &&
-        (typeof value == 'number' || reIsUint.test(value)) &&
-        (value > -1 && value % 1 == 0 && value < length);
+        (type == 'number' ||
+          (type != 'symbol' && reIsUint.test(value))) &&
+            (value > -1 && value % 1 == 0 && value < length);
     }
 
     /**
@@ -43893,11 +46062,11 @@ module.exports = invariant;
      */
     var stringToPath = memoizeCapped(function(string) {
       var result = [];
-      if (reLeadingDot.test(string)) {
+      if (string.charCodeAt(0) === 46 /* . */) {
         result.push('');
       }
-      string.replace(rePropName, function(match, number, quote, string) {
-        result.push(quote ? string.replace(reEscapeChar, '$1') : (number || match));
+      string.replace(rePropName, function(match, number, quote, subString) {
+        result.push(quote ? subString.replace(reEscapeChar, '$1') : (number || match));
       });
       return result;
     });
@@ -47505,9 +49674,11 @@ module.exports = invariant;
       function remainingWait(time) {
         var timeSinceLastCall = time - lastCallTime,
             timeSinceLastInvoke = time - lastInvokeTime,
-            result = wait - timeSinceLastCall;
+            timeWaiting = wait - timeSinceLastCall;
 
-        return maxing ? nativeMin(result, maxWait - timeSinceLastInvoke) : result;
+        return maxing
+          ? nativeMin(timeWaiting, maxWait - timeSinceLastInvoke)
+          : timeWaiting;
       }
 
       function shouldInvoke(time) {
@@ -49939,9 +52110,35 @@ module.exports = invariant;
      * _.defaults({ 'a': 1 }, { 'b': 2 }, { 'a': 3 });
      * // => { 'a': 1, 'b': 2 }
      */
-    var defaults = baseRest(function(args) {
-      args.push(undefined, customDefaultsAssignIn);
-      return apply(assignInWith, undefined, args);
+    var defaults = baseRest(function(object, sources) {
+      object = Object(object);
+
+      var index = -1;
+      var length = sources.length;
+      var guard = length > 2 ? sources[2] : undefined;
+
+      if (guard && isIterateeCall(sources[0], sources[1], guard)) {
+        length = 1;
+      }
+
+      while (++index < length) {
+        var source = sources[index];
+        var props = keysIn(source);
+        var propsIndex = -1;
+        var propsLength = props.length;
+
+        while (++propsIndex < propsLength) {
+          var key = props[propsIndex];
+          var value = object[key];
+
+          if (value === undefined ||
+              (eq(value, objectProto[key]) && !hasOwnProperty.call(object, key))) {
+            object[key] = source[key];
+          }
+        }
+      }
+
+      return object;
     });
 
     /**
@@ -50338,6 +52535,11 @@ module.exports = invariant;
      * // => { '1': 'c', '2': 'b' }
      */
     var invert = createInverter(function(result, value, key) {
+      if (value != null &&
+          typeof value.toString != 'function') {
+        value = nativeObjectToString.call(value);
+      }
+
       result[value] = key;
     }, constant(identity));
 
@@ -50368,6 +52570,11 @@ module.exports = invariant;
      * // => { 'group1': ['a', 'c'], 'group2': ['b'] }
      */
     var invertBy = createInverter(function(result, value, key) {
+      if (value != null &&
+          typeof value.toString != 'function') {
+        value = nativeObjectToString.call(value);
+      }
+
       if (hasOwnProperty.call(result, value)) {
         result[value].push(key);
       } else {
@@ -54226,7 +56433,7 @@ module.exports = invariant;
 }.call(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],119:[function(require,module,exports){
+},{}],131:[function(require,module,exports){
 /*
 object-assign
 (c) Sindre Sorhus
@@ -54318,7 +56525,7 @@ module.exports = shouldUseNative() ? Object.assign : function (target, source) {
 	return to;
 };
 
-},{}],120:[function(require,module,exports){
+},{}],132:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -54504,7 +56711,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],121:[function(require,module,exports){
+},{}],133:[function(require,module,exports){
 (function (process){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
@@ -54567,7 +56774,7 @@ function checkPropTypes(typeSpecs, values, location, componentName, getStack) {
 module.exports = checkPropTypes;
 
 }).call(this,require('_process'))
-},{"./lib/ReactPropTypesSecret":125,"_process":120,"fbjs/lib/invariant":127,"fbjs/lib/warning":128}],122:[function(require,module,exports){
+},{"./lib/ReactPropTypesSecret":137,"_process":132,"fbjs/lib/invariant":139,"fbjs/lib/warning":140}],134:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  *
@@ -54627,7 +56834,7 @@ module.exports = function() {
   return ReactPropTypes;
 };
 
-},{"./lib/ReactPropTypesSecret":125,"fbjs/lib/emptyFunction":126,"fbjs/lib/invariant":127}],123:[function(require,module,exports){
+},{"./lib/ReactPropTypesSecret":137,"fbjs/lib/emptyFunction":138,"fbjs/lib/invariant":139}],135:[function(require,module,exports){
 (function (process){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
@@ -55173,7 +57380,7 @@ module.exports = function(isValidElement, throwOnDirectAccess) {
 };
 
 }).call(this,require('_process'))
-},{"./checkPropTypes":121,"./lib/ReactPropTypesSecret":125,"_process":120,"fbjs/lib/emptyFunction":126,"fbjs/lib/invariant":127,"fbjs/lib/warning":128,"object-assign":119}],124:[function(require,module,exports){
+},{"./checkPropTypes":133,"./lib/ReactPropTypesSecret":137,"_process":132,"fbjs/lib/emptyFunction":138,"fbjs/lib/invariant":139,"fbjs/lib/warning":140,"object-assign":131}],136:[function(require,module,exports){
 (function (process){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
@@ -55205,7 +57412,7 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 }).call(this,require('_process'))
-},{"./factoryWithThrowingShims":122,"./factoryWithTypeCheckers":123,"_process":120}],125:[function(require,module,exports){
+},{"./factoryWithThrowingShims":134,"./factoryWithTypeCheckers":135,"_process":132}],137:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  *
@@ -55219,7 +57426,7 @@ var ReactPropTypesSecret = 'SECRET_DO_NOT_PASS_THIS_OR_YOU_WILL_BE_FIRED';
 
 module.exports = ReactPropTypesSecret;
 
-},{}],126:[function(require,module,exports){
+},{}],138:[function(require,module,exports){
 "use strict";
 
 /**
@@ -55256,7 +57463,7 @@ emptyFunction.thatReturnsArgument = function (arg) {
 };
 
 module.exports = emptyFunction;
-},{}],127:[function(require,module,exports){
+},{}],139:[function(require,module,exports){
 (function (process){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
@@ -55312,7 +57519,7 @@ function invariant(condition, format, a, b, c, d, e, f) {
 
 module.exports = invariant;
 }).call(this,require('_process'))
-},{"_process":120}],128:[function(require,module,exports){
+},{"_process":132}],140:[function(require,module,exports){
 (function (process){
 /**
  * Copyright (c) 2014-present, Facebook, Inc.
@@ -55377,7 +57584,7 @@ if (process.env.NODE_ENV !== 'production') {
 
 module.exports = warning;
 }).call(this,require('_process'))
-},{"./emptyFunction":126,"_process":120}],129:[function(require,module,exports){
+},{"./emptyFunction":138,"_process":132}],141:[function(require,module,exports){
 'use strict';
 var strictUriEncode = require('strict-uri-encode');
 
@@ -55445,7 +57652,7 @@ exports.stringify = function (obj) {
 	}).join('&') : '';
 };
 
-},{"strict-uri-encode":338}],130:[function(require,module,exports){
+},{"strict-uri-encode":351}],142:[function(require,module,exports){
 'use strict';
 
 var React = require('react'),
@@ -55487,12 +57694,12 @@ module.exports = withSideEffect(
   handleStateChangeOnClient
 )(DocumentTitle);
 
-},{"prop-types":124,"react":320,"react-side-effect":170}],131:[function(require,module,exports){
+},{"prop-types":136,"react":333,"react-side-effect":183}],143:[function(require,module,exports){
 'use strict';
 
 module.exports = require('react/lib/ReactDOM');
 
-},{"react/lib/ReactDOM":226}],132:[function(require,module,exports){
+},{"react/lib/ReactDOM":239}],144:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -55531,7 +57738,7 @@ var sizerStyle = {
 	whiteSpace: 'pre'
 };
 
-var INPUT_PROPS_BLACKLIST = ['injectStyles', 'inputClassName', 'inputRef', 'inputStyle', 'minWidth', 'onAutosize', 'placeholderIsMinWidth'];
+var INPUT_PROPS_BLACKLIST = ['extraWidth', 'injectStyles', 'inputClassName', 'inputRef', 'inputStyle', 'minWidth', 'onAutosize', 'placeholderIsMinWidth'];
 
 var cleanInputProps = function cleanInputProps(inputProps) {
 	INPUT_PROPS_BLACKLIST.forEach(function (field) {
@@ -55549,7 +57756,7 @@ var copyStyles = function copyStyles(styles, node) {
 	node.style.textTransform = styles.textTransform;
 };
 
-var isIE = typeof window === 'undefined' ? false : /MSIE |Trident\/|Edge\//.test(window.navigator.userAgent);
+var isIE = typeof window !== 'undefined' && window.navigator ? /MSIE |Trident\/|Edge\//.test(window.navigator.userAgent) : false;
 
 var generateId = function generateId() {
 	// we only need an auto-generated ID for stylesheet injection, which is only
@@ -55645,10 +57852,9 @@ var AutosizeInput = function (_Component) {
 			} else {
 				newInputWidth = this.sizer.scrollWidth + 2;
 			}
-			// allow for stepper UI on number types
-			if (this.props.type === 'number') {
-				newInputWidth += 16;
-			}
+			// add extraWidth to the detected width. for number types, this defaults to 16 to allow for the stepper UI
+			var extraWidth = this.props.type === 'number' && this.props.extraWidth === undefined ? 16 : parseInt(this.props.extraWidth) || 0;
+			newInputWidth += extraWidth;
 			if (newInputWidth < this.props.minWidth) {
 				newInputWidth = this.props.minWidth;
 			}
@@ -55737,11 +57943,11 @@ var AutosizeInput = function (_Component) {
 	return AutosizeInput;
 }(_react.Component);
 
-;
-
 AutosizeInput.propTypes = {
 	className: _propTypes2.default.string, // className for the outer element
 	defaultValue: _propTypes2.default.any, // default field value
+	extraWidth: _propTypes2.default.oneOfType([// additional width for input element
+	_propTypes2.default.number, _propTypes2.default.string]),
 	id: _propTypes2.default.string, // id to use for the input, can be set for consistent snapshots
 	injectStyles: _propTypes2.default.bool, // inject the custom stylesheet to hide clear UI, defaults to true
 	inputClassName: _propTypes2.default.string, // className for the input element
@@ -55750,7 +57956,7 @@ AutosizeInput.propTypes = {
 	minWidth: _propTypes2.default.oneOfType([// minimum width for input element
 	_propTypes2.default.number, _propTypes2.default.string]),
 	onAutosize: _propTypes2.default.func, // onAutosize handler: function(newWidth) {}
-	onChange: _propTypes2.default.func, // onChange handler: function(newValue) {}
+	onChange: _propTypes2.default.func, // onChange handler: function(event) {}
 	placeholder: _propTypes2.default.string, // placeholder text
 	placeholderIsMinWidth: _propTypes2.default.bool, // don't collapse size to less than the placeholder
 	style: _propTypes2.default.object, // css styles for the outer element
@@ -55762,7 +57968,7 @@ AutosizeInput.defaultProps = {
 };
 
 exports.default = AutosizeInput;
-},{"prop-types":124,"react":320}],133:[function(require,module,exports){
+},{"prop-types":136,"react":333}],145:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -55821,7 +58027,7 @@ function mapAsync(array, work, callback) {
     });
   });
 }
-},{}],134:[function(require,module,exports){
+},{}],146:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -55845,7 +58051,7 @@ var History = {
 
 exports['default'] = History;
 module.exports = exports['default'];
-},{"./PropTypes":141}],135:[function(require,module,exports){
+},{"./PropTypes":153}],147:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -55888,7 +58094,7 @@ var IndexLink = (function (_Component) {
 
 exports['default'] = IndexLink;
 module.exports = exports['default'];
-},{"./Link":139,"react":320}],136:[function(require,module,exports){
+},{"./Link":151,"react":333}],148:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -55964,7 +58170,7 @@ IndexRedirect.createRouteFromReactElement = function (element, parentRoute) {
 exports['default'] = IndexRedirect;
 module.exports = exports['default'];
 }).call(this,require('_process'))
-},{"./PropTypes":141,"./Redirect":142,"_process":120,"invariant":117,"react":320,"warning":339}],137:[function(require,module,exports){
+},{"./PropTypes":153,"./Redirect":154,"_process":132,"invariant":129,"react":333,"warning":352}],149:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -56037,7 +58243,7 @@ IndexRoute.createRouteFromReactElement = function (element, parentRoute) {
 exports['default'] = IndexRoute;
 module.exports = exports['default'];
 }).call(this,require('_process'))
-},{"./PropTypes":141,"./RouteUtils":145,"_process":120,"invariant":117,"react":320,"warning":339}],138:[function(require,module,exports){
+},{"./PropTypes":153,"./RouteUtils":157,"_process":132,"invariant":129,"react":333,"warning":352}],150:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -56104,7 +58310,7 @@ var Lifecycle = {
 exports['default'] = Lifecycle;
 module.exports = exports['default'];
 }).call(this,require('_process'))
-},{"_process":120,"invariant":117,"react":320}],139:[function(require,module,exports){
+},{"_process":132,"invariant":129,"react":333}],151:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -56268,7 +58474,7 @@ Link.defaultProps = {
 
 exports['default'] = Link;
 module.exports = exports['default'];
-},{"react":320}],140:[function(require,module,exports){
+},{"react":333}],152:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -56498,7 +58704,7 @@ function formatPattern(pattern, params) {
   return pathname.replace(/\/+/g, '/');
 }
 }).call(this,require('_process'))
-},{"_process":120,"invariant":117}],141:[function(require,module,exports){
+},{"_process":132,"invariant":129}],153:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -56552,7 +58758,7 @@ exports['default'] = {
   components: components,
   route: route
 };
-},{"react":320}],142:[function(require,module,exports){
+},{"react":333}],154:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -56662,7 +58868,7 @@ Redirect.propTypes = {
 exports['default'] = Redirect;
 module.exports = exports['default'];
 }).call(this,require('_process'))
-},{"./PatternUtils":140,"./PropTypes":141,"./RouteUtils":145,"_process":120,"invariant":117,"react":320}],143:[function(require,module,exports){
+},{"./PatternUtils":152,"./PropTypes":153,"./RouteUtils":157,"_process":132,"invariant":129,"react":333}],155:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -56732,7 +58938,7 @@ Route.propTypes = {
 exports['default'] = Route;
 module.exports = exports['default'];
 }).call(this,require('_process'))
-},{"./PropTypes":141,"./RouteUtils":145,"_process":120,"invariant":117,"react":320}],144:[function(require,module,exports){
+},{"./PropTypes":153,"./RouteUtils":157,"_process":132,"invariant":129,"react":333}],156:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -56771,7 +58977,7 @@ var RouteContext = {
 
 exports['default'] = RouteContext;
 module.exports = exports['default'];
-},{"react":320}],145:[function(require,module,exports){
+},{"react":333}],157:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -56888,7 +59094,7 @@ function createRoutes(routes) {
   return routes;
 }
 }).call(this,require('_process'))
-},{"_process":120,"react":320,"warning":339}],146:[function(require,module,exports){
+},{"_process":132,"react":333,"warning":352}],158:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -57056,7 +59262,7 @@ Router.defaultProps = {
 exports['default'] = Router;
 module.exports = exports['default'];
 }).call(this,require('_process'))
-},{"./PropTypes":141,"./RouteUtils":145,"./RoutingContext":147,"./useRoutes":156,"_process":120,"history/lib/createHashHistory":104,"react":320,"warning":339}],147:[function(require,module,exports){
+},{"./PropTypes":153,"./RouteUtils":157,"./RoutingContext":159,"./useRoutes":168,"_process":132,"history/lib/createHashHistory":116,"react":333,"warning":352}],159:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -57199,7 +59405,7 @@ RoutingContext.childContextTypes = {
 exports['default'] = RoutingContext;
 module.exports = exports['default'];
 }).call(this,require('_process'))
-},{"./RouteUtils":145,"./getRouteParams":151,"_process":120,"invariant":117,"react":320}],148:[function(require,module,exports){
+},{"./RouteUtils":157,"./getRouteParams":163,"_process":132,"invariant":129,"react":333}],160:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -57272,7 +59478,7 @@ function runLeaveHooks(routes) {
     if (routes[i].onLeave) routes[i].onLeave.call(routes[i]);
   }
 }
-},{"./AsyncUtils":133}],149:[function(require,module,exports){
+},{"./AsyncUtils":145}],161:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -57329,7 +59535,7 @@ function computeChangedRoutes(prevState, nextState) {
 
 exports['default'] = computeChangedRoutes;
 module.exports = exports['default'];
-},{"./PatternUtils":140}],150:[function(require,module,exports){
+},{"./PatternUtils":152}],162:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -57363,7 +59569,7 @@ function getComponents(nextState, callback) {
 
 exports['default'] = getComponents;
 module.exports = exports['default'];
-},{"./AsyncUtils":133}],151:[function(require,module,exports){
+},{"./AsyncUtils":145}],163:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -57388,7 +59594,7 @@ function getRouteParams(route, params) {
 
 exports['default'] = getRouteParams;
 module.exports = exports['default'];
-},{"./PatternUtils":140}],152:[function(require,module,exports){
+},{"./PatternUtils":152}],164:[function(require,module,exports){
 /* components */
 'use strict';
 
@@ -57493,7 +59699,7 @@ exports.match = _match3['default'];
 var _Router4 = _interopRequireDefault(_Router2);
 
 exports['default'] = _Router4['default'];
-},{"./History":134,"./IndexLink":135,"./IndexRedirect":136,"./IndexRoute":137,"./Lifecycle":138,"./Link":139,"./PropTypes":141,"./Redirect":142,"./Route":143,"./RouteContext":144,"./RouteUtils":145,"./Router":146,"./RoutingContext":147,"./match":154,"./useRoutes":156}],153:[function(require,module,exports){
+},{"./History":146,"./IndexLink":147,"./IndexRedirect":148,"./IndexRoute":149,"./Lifecycle":150,"./Link":151,"./PropTypes":153,"./Redirect":154,"./Route":155,"./RouteContext":156,"./RouteUtils":157,"./Router":158,"./RoutingContext":159,"./match":166,"./useRoutes":168}],165:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -57617,7 +59823,7 @@ function isActive(pathname, query, indexOnly, location, routes, params) {
 
 exports['default'] = isActive;
 module.exports = exports['default'];
-},{"./PatternUtils":140}],154:[function(require,module,exports){
+},{"./PatternUtils":152}],166:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -57683,7 +59889,7 @@ function match(_ref, callback) {
 exports['default'] = match;
 module.exports = exports['default'];
 }).call(this,require('_process'))
-},{"./RouteUtils":145,"./useRoutes":156,"_process":120,"history/lib/createMemoryHistory":107,"history/lib/useBasename":112,"invariant":117}],155:[function(require,module,exports){
+},{"./RouteUtils":157,"./useRoutes":168,"_process":132,"history/lib/createMemoryHistory":119,"history/lib/useBasename":124,"invariant":129}],167:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -57874,7 +60080,7 @@ function matchRoutes(routes, location, callback) {
 exports['default'] = matchRoutes;
 module.exports = exports['default'];
 }).call(this,require('_process'))
-},{"./AsyncUtils":133,"./PatternUtils":140,"./RouteUtils":145,"_process":120,"warning":339}],156:[function(require,module,exports){
+},{"./AsyncUtils":145,"./PatternUtils":152,"./RouteUtils":157,"_process":132,"warning":352}],168:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -58168,7 +60374,7 @@ function useRoutes(createHistory) {
 exports['default'] = useRoutes;
 module.exports = exports['default'];
 }).call(this,require('_process'))
-},{"./TransitionUtils":148,"./computeChangedRoutes":149,"./getComponents":150,"./isActive":153,"./matchRoutes":155,"_process":120,"history/lib/Actions":97,"history/lib/useQueries":113,"warning":339}],157:[function(require,module,exports){
+},{"./TransitionUtils":160,"./computeChangedRoutes":161,"./getComponents":162,"./isActive":165,"./matchRoutes":167,"_process":132,"history/lib/Actions":109,"history/lib/useQueries":125,"warning":352}],169:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -58181,13 +60387,13 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _react = require('react');
-
-var _react2 = _interopRequireDefault(_react);
-
 var _propTypes = require('prop-types');
 
 var _propTypes2 = _interopRequireDefault(_propTypes);
+
+var _react = require('react');
+
+var _react2 = _interopRequireDefault(_react);
 
 var _Select = require('./Select');
 
@@ -58228,6 +60434,10 @@ var propTypes = {
 };
 
 var defaultCache = {};
+
+var defaultChildren = function defaultChildren(props) {
+	return _react2.default.createElement(_Select2.default, props);
+};
 
 var defaultProps = {
 	autoload: true,
@@ -58406,10 +60616,7 @@ var Async = function (_Component) {
 			var _props3 = this.props,
 			    children = _props3.children,
 			    loadingPlaceholder = _props3.loadingPlaceholder,
-			    multi = _props3.multi,
-			    onChange = _props3.onChange,
-			    placeholder = _props3.placeholder,
-			    value = _props3.value;
+			    placeholder = _props3.placeholder;
 			var _state2 = this.state,
 			    isLoading = _state2.isLoading,
 			    options = _state2.options;
@@ -58439,11 +60646,7 @@ exports.default = Async;
 
 Async.propTypes = propTypes;
 Async.defaultProps = defaultProps;
-
-function defaultChildren(props) {
-	return _react2.default.createElement(_Select2.default, props);
-}
-},{"./Select":161,"./utils/stripDiacritics":168,"prop-types":124,"react":320}],158:[function(require,module,exports){
+},{"./Select":173,"./utils/stripDiacritics":181,"prop-types":136,"react":333}],170:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -58454,17 +60657,13 @@ var _extends = Object.assign || function (target) { for (var i = 1; i < argument
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _react = require('react');
-
-var _react2 = _interopRequireDefault(_react);
-
 var _propTypes = require('prop-types');
 
 var _propTypes2 = _interopRequireDefault(_propTypes);
 
-var _Select = require('./Select');
+var _react = require('react');
 
-var _Select2 = _interopRequireDefault(_Select);
+var _react2 = _interopRequireDefault(_react);
 
 var _Async = require('./Async');
 
@@ -58473,6 +60672,10 @@ var _Async2 = _interopRequireDefault(_Async);
 var _Creatable = require('./Creatable');
 
 var _Creatable2 = _interopRequireDefault(_Creatable);
+
+var _Select = require('./Select');
+
+var _Select2 = _interopRequireDefault(_Select);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -58536,9 +60739,7 @@ var AsyncCreatableSelect = function (_React$Component) {
 	return AsyncCreatableSelect;
 }(_react2.default.Component);
 
-;
-
-function defaultChildren(props) {
+var defaultChildren = function defaultChildren(props) {
 	return _react2.default.createElement(_Select2.default, props);
 };
 
@@ -58551,7 +60752,7 @@ AsyncCreatableSelect.defaultProps = {
 };
 
 exports.default = AsyncCreatableSelect;
-},{"./Async":157,"./Creatable":159,"./Select":161,"prop-types":124,"react":320}],159:[function(require,module,exports){
+},{"./Async":169,"./Creatable":171,"./Select":173,"prop-types":136,"react":333}],171:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -58562,17 +60763,13 @@ var _extends = Object.assign || function (target) { for (var i = 1; i < argument
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _react = require('react');
-
-var _react2 = _interopRequireDefault(_react);
-
 var _propTypes = require('prop-types');
 
 var _propTypes2 = _interopRequireDefault(_propTypes);
 
-var _Select = require('./Select');
+var _react = require('react');
 
-var _Select2 = _interopRequireDefault(_Select);
+var _react2 = _interopRequireDefault(_react);
 
 var _defaultFilterOptions = require('./utils/defaultFilterOptions');
 
@@ -58581,6 +60778,10 @@ var _defaultFilterOptions2 = _interopRequireDefault(_defaultFilterOptions);
 var _defaultMenuRenderer = require('./utils/defaultMenuRenderer');
 
 var _defaultMenuRenderer2 = _interopRequireDefault(_defaultMenuRenderer);
+
+var _Select = require('./Select');
+
+var _Select2 = _interopRequireDefault(_Select);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -58616,13 +60817,12 @@ var CreatableSelect = function (_React$Component) {
 			    newOptionCreator = _props.newOptionCreator,
 			    onNewOptionClick = _props.onNewOptionClick,
 			    _props$options = _props.options,
-			    options = _props$options === undefined ? [] : _props$options,
-			    shouldKeyDownEventCreateNewOption = _props.shouldKeyDownEventCreateNewOption;
+			    options = _props$options === undefined ? [] : _props$options;
 
 
 			if (isValidNewOption({ label: this.inputValue })) {
 				var option = newOptionCreator({ label: this.inputValue, labelKey: this.labelKey, valueKey: this.valueKey });
-				var _isOptionUnique = this.isOptionUnique({ option: option });
+				var _isOptionUnique = this.isOptionUnique({ option: option, options: options });
 
 				// Don't add the same option twice.
 				if (_isOptionUnique) {
@@ -58747,7 +60947,7 @@ var CreatableSelect = function (_React$Component) {
 		}
 	}, {
 		key: 'onOptionSelect',
-		value: function onOptionSelect(option, event) {
+		value: function onOptionSelect(option) {
 			if (option === this._createPlaceholderOption) {
 				this.createNewOption();
 			} else {
@@ -58765,10 +60965,8 @@ var CreatableSelect = function (_React$Component) {
 			var _this2 = this;
 
 			var _props4 = this.props,
-			    newOptionCreator = _props4.newOptionCreator,
-			    shouldKeyDownEventCreateNewOption = _props4.shouldKeyDownEventCreateNewOption,
 			    refProp = _props4.ref,
-			    restProps = _objectWithoutProperties(_props4, ['newOptionCreator', 'shouldKeyDownEventCreateNewOption', 'ref']);
+			    restProps = _objectWithoutProperties(_props4, ['ref']);
 
 			var children = this.props.children;
 
@@ -58807,30 +61005,31 @@ var CreatableSelect = function (_React$Component) {
 	return CreatableSelect;
 }(_react2.default.Component);
 
-;
-
-function defaultChildren(props) {
+var defaultChildren = function defaultChildren(props) {
 	return _react2.default.createElement(_Select2.default, props);
 };
 
-function isOptionUnique(_ref3) {
+var isOptionUnique = function isOptionUnique(_ref3) {
 	var option = _ref3.option,
 	    options = _ref3.options,
 	    labelKey = _ref3.labelKey,
 	    valueKey = _ref3.valueKey;
+
+	if (!options || !options.length) {
+		return true;
+	}
 
 	return options.filter(function (existingOption) {
 		return existingOption[labelKey] === option[labelKey] || existingOption[valueKey] === option[valueKey];
 	}).length === 0;
 };
 
-function isValidNewOption(_ref4) {
+var isValidNewOption = function isValidNewOption(_ref4) {
 	var label = _ref4.label;
-
 	return !!label;
 };
 
-function newOptionCreator(_ref5) {
+var newOptionCreator = function newOptionCreator(_ref5) {
 	var label = _ref5.label,
 	    labelKey = _ref5.labelKey,
 	    valueKey = _ref5.valueKey;
@@ -58839,14 +61038,15 @@ function newOptionCreator(_ref5) {
 	option[valueKey] = label;
 	option[labelKey] = label;
 	option.className = 'Select-create-option-placeholder';
+
 	return option;
 };
 
-function promptTextCreator(label) {
+var promptTextCreator = function promptTextCreator(label) {
 	return 'Create option "' + label + '"';
-}
+};
 
-function shouldKeyDownEventCreateNewOption(_ref6) {
+var shouldKeyDownEventCreateNewOption = function shouldKeyDownEventCreateNewOption(_ref6) {
 	var keyCode = _ref6.keyCode;
 
 	switch (keyCode) {
@@ -58925,7 +61125,7 @@ CreatableSelect.propTypes = {
 };
 
 exports.default = CreatableSelect;
-},{"./Select":161,"./utils/defaultFilterOptions":166,"./utils/defaultMenuRenderer":167,"prop-types":124,"react":320}],160:[function(require,module,exports){
+},{"./Select":173,"./utils/defaultFilterOptions":179,"./utils/defaultMenuRenderer":180,"prop-types":136,"react":333}],172:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -58934,17 +61134,21 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _react = require('react');
+var _classnames = require('classnames');
 
-var _react2 = _interopRequireDefault(_react);
+var _classnames2 = _interopRequireDefault(_classnames);
 
 var _propTypes = require('prop-types');
 
 var _propTypes2 = _interopRequireDefault(_propTypes);
 
-var _classnames = require('classnames');
+var _react = require('react');
 
-var _classnames2 = _interopRequireDefault(_classnames);
+var _react2 = _interopRequireDefault(_react);
+
+var _blockEvent = require('./utils/blockEvent');
+
+var _blockEvent2 = _interopRequireDefault(_blockEvent);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -58973,20 +61177,6 @@ var Option = function (_React$Component) {
 	}
 
 	_createClass(Option, [{
-		key: 'blockEvent',
-		value: function blockEvent(event) {
-			event.preventDefault();
-			event.stopPropagation();
-			if (event.target.tagName !== 'A' || !('href' in event.target)) {
-				return;
-			}
-			if (event.target.target) {
-				window.open(event.target.href, event.target.target);
-			} else {
-				window.location.href = event.target.href;
-			}
-		}
-	}, {
 		key: 'handleMouseDown',
 		value: function handleMouseDown(event) {
 			event.preventDefault();
@@ -59014,13 +61204,13 @@ var Option = function (_React$Component) {
 		}
 	}, {
 		key: 'handleTouchMove',
-		value: function handleTouchMove(event) {
+		value: function handleTouchMove() {
 			// Set a flag that the view is being dragged
 			this.dragging = true;
 		}
 	}, {
 		key: 'handleTouchStart',
-		value: function handleTouchStart(event) {
+		value: function handleTouchStart() {
 			// Set a flag that the view is not being dragged
 			this.dragging = false;
 		}
@@ -59044,8 +61234,8 @@ var Option = function (_React$Component) {
 			return option.disabled ? _react2.default.createElement(
 				'div',
 				{ className: className,
-					onMouseDown: this.blockEvent,
-					onClick: this.blockEvent },
+					onMouseDown: _blockEvent2.default,
+					onClick: _blockEvent2.default },
 				this.props.children
 			) : _react2.default.createElement(
 				'div',
@@ -59069,8 +61259,6 @@ var Option = function (_React$Component) {
 	return Option;
 }(_react2.default.Component);
 
-;
-
 Option.propTypes = {
 	children: _propTypes2.default.node,
 	className: _propTypes2.default.string, // className (based on mouse position)
@@ -59086,7 +61274,7 @@ Option.propTypes = {
 };
 
 exports.default = Option;
-},{"classnames":55,"prop-types":124,"react":320}],161:[function(require,module,exports){
+},{"./utils/blockEvent":176,"classnames":55,"prop-types":136,"react":333}],173:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -59095,19 +61283,14 @@ Object.defineProperty(exports, "__esModule", {
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _react = require('react');
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; /*!
+                                                                                                                                                                                                                                                                                Copyright (c) 2018 Jed Watson.
+                                                                                                                                                                                                                                                                                Licensed under the MIT License (MIT), see
+                                                                                                                                                                                                                                                                                http://jedwatson.github.io/react-select
+                                                                                                                                                                                                                                                                              */
 
-var _react2 = _interopRequireDefault(_react);
-
-var _propTypes = require('prop-types');
-
-var _propTypes2 = _interopRequireDefault(_propTypes);
-
-var _reactDom = require('react-dom');
 
 var _reactInputAutosize = require('react-input-autosize');
 
@@ -59117,9 +61300,23 @@ var _classnames = require('classnames');
 
 var _classnames2 = _interopRequireDefault(_classnames);
 
+var _propTypes = require('prop-types');
+
+var _propTypes2 = _interopRequireDefault(_propTypes);
+
+var _react = require('react');
+
+var _react2 = _interopRequireDefault(_react);
+
+var _reactDom = require('react-dom');
+
 var _defaultArrowRenderer = require('./utils/defaultArrowRenderer');
 
 var _defaultArrowRenderer2 = _interopRequireDefault(_defaultArrowRenderer);
+
+var _defaultClearRenderer = require('./utils/defaultClearRenderer');
+
+var _defaultClearRenderer2 = _interopRequireDefault(_defaultClearRenderer);
 
 var _defaultFilterOptions = require('./utils/defaultFilterOptions');
 
@@ -59128,10 +61325,6 @@ var _defaultFilterOptions2 = _interopRequireDefault(_defaultFilterOptions);
 var _defaultMenuRenderer = require('./utils/defaultMenuRenderer');
 
 var _defaultMenuRenderer2 = _interopRequireDefault(_defaultMenuRenderer);
-
-var _defaultClearRenderer = require('./utils/defaultClearRenderer');
-
-var _defaultClearRenderer2 = _interopRequireDefault(_defaultClearRenderer);
 
 var _Option = require('./Option');
 
@@ -59151,12 +61344,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; } /*!
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 Copyright (c) 2017 Jed Watson.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 Licensed under the MIT License (MIT), see
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 http://jedwatson.github.io/react-select
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               */
-
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 var stringifyValue = function stringifyValue(value) {
 	return typeof value === 'string' ? value : value !== null && JSON.stringify(value) || '';
@@ -59167,6 +61355,54 @@ var stringOrNumber = _propTypes2.default.oneOfType([_propTypes2.default.string, 
 
 var instanceId = 1;
 
+var shouldShowValue = function shouldShowValue(state, props) {
+	var inputValue = state.inputValue,
+	    isPseudoFocused = state.isPseudoFocused,
+	    isFocused = state.isFocused;
+	var onSelectResetsInput = props.onSelectResetsInput;
+
+
+	if (!inputValue) return true;
+
+	if (!onSelectResetsInput) {
+		return !(!isFocused && isPseudoFocused || isFocused && !isPseudoFocused);
+	}
+
+	return false;
+};
+
+var shouldShowPlaceholder = function shouldShowPlaceholder(state, props, isOpen) {
+	var inputValue = state.inputValue,
+	    isPseudoFocused = state.isPseudoFocused,
+	    isFocused = state.isFocused;
+	var onSelectResetsInput = props.onSelectResetsInput;
+
+
+	return !inputValue || !onSelectResetsInput && !isOpen && !isPseudoFocused && !isFocused;
+};
+
+/**
+ * Retrieve a value from the given options and valueKey
+ * @param {String|Number|Array} value	- the selected value(s)
+ * @param {Object}		 props	- the Select component's props (or nextProps)
+ */
+var expandValue = function expandValue(value, props) {
+	var valueType = typeof value === 'undefined' ? 'undefined' : _typeof(value);
+	if (valueType !== 'string' && valueType !== 'number' && valueType !== 'boolean') return value;
+	var options = props.options,
+	    valueKey = props.valueKey;
+
+	if (!options) return;
+	for (var i = 0; i < options.length; i++) {
+		if (String(options[i][valueKey]) === String(value)) return options[i];
+	}
+};
+
+var handleRequired = function handleRequired(value, multi) {
+	if (!value) return true;
+	return multi ? value.length === 0 : Object.keys(value).length === 0;
+};
+
 var Select = function (_React$Component) {
 	_inherits(Select, _React$Component);
 
@@ -59175,7 +61411,7 @@ var Select = function (_React$Component) {
 
 		var _this = _possibleConstructorReturn(this, (Select.__proto__ || Object.getPrototypeOf(Select)).call(this, props));
 
-		['clearValue', 'focusOption', 'handleInputBlur', 'handleInputChange', 'handleInputFocus', 'handleInputValueChange', 'handleKeyDown', 'handleMenuScroll', 'handleMouseDown', 'handleMouseDownOnArrow', 'handleMouseDownOnMenu', 'handleRequired', 'handleTouchOutside', 'handleTouchMove', 'handleTouchStart', 'handleTouchEnd', 'handleTouchEndClearValue', 'handleValueClick', 'getOptionLabel', 'onOptionRef', 'removeValue', 'selectValue'].forEach(function (fn) {
+		['clearValue', 'focusOption', 'getOptionLabel', 'handleInputBlur', 'handleInputChange', 'handleInputFocus', 'handleInputValueChange', 'handleKeyDown', 'handleMenuScroll', 'handleMouseDown', 'handleMouseDownOnArrow', 'handleMouseDownOnMenu', 'handleTouchEnd', 'handleTouchEndClearValue', 'handleTouchMove', 'handleTouchOutside', 'handleTouchStart', 'handleValueClick', 'onOptionRef', 'removeValue', 'selectValue'].forEach(function (fn) {
 			return _this[fn] = _this[fn].bind(_this);
 		});
 
@@ -59197,7 +61433,7 @@ var Select = function (_React$Component) {
 
 			if (this.props.required) {
 				this.setState({
-					required: this.handleRequired(valueArray[0], this.props.multi)
+					required: handleRequired(valueArray[0], this.props.multi)
 				});
 			}
 		}
@@ -59218,11 +61454,15 @@ var Select = function (_React$Component) {
 
 			if (nextProps.required) {
 				this.setState({
-					required: this.handleRequired(valueArray[0], nextProps.multi)
+					required: handleRequired(valueArray[0], nextProps.multi)
 				});
 			} else if (this.props.required) {
 				// Used to be required but it's not any more
 				this.setState({ required: false });
+			}
+
+			if (this.state.inputValue && this.props.value !== nextProps.value && nextProps.onSelectResetsInput) {
+				this.setState({ inputValue: this.handleInputValueChange('') });
 			}
 		}
 	}, {
@@ -59322,13 +61562,13 @@ var Select = function (_React$Component) {
 		}
 	}, {
 		key: 'handleTouchMove',
-		value: function handleTouchMove(event) {
+		value: function handleTouchMove() {
 			// Set a flag that the view is being dragged
 			this.dragging = true;
 		}
 	}, {
 		key: 'handleTouchStart',
-		value: function handleTouchStart(event) {
+		value: function handleTouchStart() {
 			// Set a flag that the view is not being dragged
 			this.dragging = false;
 		}
@@ -59371,6 +61611,7 @@ var Select = function (_React$Component) {
 						isPseudoFocused: false
 					});
 				}
+
 				return;
 			}
 
@@ -59379,7 +61620,7 @@ var Select = function (_React$Component) {
 
 			// for the non-searchable select, toggle the menu
 			if (!this.props.searchable) {
-				// TODO: This code means that if a select is searchable, onClick the options menu will not appear, only on subsequent click will it open.
+				// This code means that if a select is searchable, onClick the options menu will not appear, only on subsequent click will it open.
 				this.focus();
 				return this.setState({
 					isOpen: !this.state.isOpen
@@ -59393,6 +61634,8 @@ var Select = function (_React$Component) {
 				this.focus();
 
 				var input = this.input;
+				var toOpen = true;
+
 				if (typeof input.getInput === 'function') {
 					// Get the actual DOM input if the ref is an <AutosizeInput /> component
 					input = input.getInput();
@@ -59401,15 +61644,22 @@ var Select = function (_React$Component) {
 				// clears the value so that the cursor will be at the end of input when the component re-renders
 				input.value = '';
 
+				if (this._focusAfterClear) {
+					toOpen = false;
+					this._focusAfterClear = false;
+				}
+
 				// if the input is focused, ensure the menu is open
 				this.setState({
-					isOpen: true,
-					isPseudoFocused: false
+					isOpen: toOpen,
+					isPseudoFocused: false,
+					focusedOption: null
 				});
 			} else {
 				// otherwise, focus the input and open the menu
 				this._openAfterFocus = this.props.openOnClick;
 				this.focus();
+				this.setState({ focusedOption: null });
 			}
 		}
 	}, {
@@ -59420,18 +61670,18 @@ var Select = function (_React$Component) {
 			if (this.props.disabled || event.type === 'mousedown' && event.button !== 0) {
 				return;
 			}
-			// If the menu isn't open, let the event bubble to the main handleMouseDown
-			if (!this.state.isOpen) {
+
+			if (this.state.isOpen) {
+				// prevent default event handlers
+				event.stopPropagation();
+				event.preventDefault();
+				// close the menu
+				this.closeMenu();
+			} else {
+				// If the menu isn't open, let the event bubble to the main handleMouseDown
 				this.setState({
 					isOpen: true
 				});
-			}
-			// prevent default event handlers
-			event.stopPropagation();
-			event.preventDefault();
-			// close the menu
-			if (this.state.isOpen) {
-				this.closeMenu();
 			}
 		}
 	}, {
@@ -59442,6 +61692,7 @@ var Select = function (_React$Component) {
 			if (this.props.disabled || event.type === 'mousedown' && event.button !== 0) {
 				return;
 			}
+
 			event.stopPropagation();
 			event.preventDefault();
 
@@ -59453,9 +61704,9 @@ var Select = function (_React$Component) {
 		value: function closeMenu() {
 			if (this.props.onCloseResetsInput) {
 				this.setState({
+					inputValue: this.handleInputValueChange(''),
 					isOpen: false,
-					isPseudoFocused: this.state.isFocused && !this.props.multi,
-					inputValue: this.handleInputValueChange('')
+					isPseudoFocused: this.state.isFocused && !this.props.multi
 				});
 			} else {
 				this.setState({
@@ -59469,14 +61720,20 @@ var Select = function (_React$Component) {
 		key: 'handleInputFocus',
 		value: function handleInputFocus(event) {
 			if (this.props.disabled) return;
-			var isOpen = this.state.isOpen || this._openAfterFocus || this.props.openOnFocus;
+
+			var toOpen = this.state.isOpen || this._openAfterFocus || this.props.openOnFocus;
+			toOpen = this._focusAfterClear ? false : toOpen; //if focus happens after clear values, don't open dropdown yet.
+
 			if (this.props.onFocus) {
 				this.props.onFocus(event);
 			}
+
 			this.setState({
 				isFocused: true,
-				isOpen: isOpen
+				isOpen: !!toOpen
 			});
+
+			this._focusAfterClear = false;
 			this._openAfterFocus = false;
 		}
 	}, {
@@ -59511,9 +61768,22 @@ var Select = function (_React$Component) {
 			}
 
 			this.setState({
+				inputValue: newInputValue,
 				isOpen: true,
-				isPseudoFocused: false,
-				inputValue: newInputValue
+				isPseudoFocused: false
+			});
+		}
+	}, {
+		key: 'setInputValue',
+		value: function setInputValue(newValue) {
+			if (this.props.onInputChange) {
+				var nextState = this.props.onInputChange(newValue);
+				if (nextState != null && (typeof nextState === 'undefined' ? 'undefined' : _typeof(nextState)) !== 'object') {
+					newValue = '' + nextState;
+				}
+			}
+			this.setState({
+				inputValue: newValue
 			});
 		}
 	}, {
@@ -59547,15 +61817,15 @@ var Select = function (_React$Component) {
 						event.preventDefault();
 						this.popValue();
 					}
-					return;
+					break;
 				case 9:
 					// tab
 					if (event.shiftKey || !this.state.isOpen || !this.props.tabSelectsValue) {
-						return;
+						break;
 					}
 					event.preventDefault();
 					this.selectFocusedOption();
-					return;
+					break;
 				case 13:
 					// enter
 					event.preventDefault();
@@ -59565,10 +61835,10 @@ var Select = function (_React$Component) {
 					} else {
 						this.focusNextOption();
 					}
-					return;
 					break;
 				case 27:
 					// escape
+					event.preventDefault();
 					if (this.state.isOpen) {
 						this.closeMenu();
 						event.stopPropagation();
@@ -59580,44 +61850,50 @@ var Select = function (_React$Component) {
 				case 32:
 					// space
 					if (this.props.searchable) {
-						return;
+						break;
 					}
 					event.preventDefault();
 					if (!this.state.isOpen) {
 						this.focusNextOption();
-						return;
+						break;
 					}
 					event.stopPropagation();
 					this.selectFocusedOption();
 					break;
 				case 38:
 					// up
+					event.preventDefault();
 					this.focusPreviousOption();
 					break;
 				case 40:
 					// down
+					event.preventDefault();
 					this.focusNextOption();
 					break;
 				case 33:
 					// page up
+					event.preventDefault();
 					this.focusPageUpOption();
 					break;
 				case 34:
 					// page down
+					event.preventDefault();
 					this.focusPageDownOption();
 					break;
 				case 35:
 					// end key
 					if (event.shiftKey) {
-						return;
+						break;
 					}
+					event.preventDefault();
 					this.focusEndOption();
 					break;
 				case 36:
 					// home key
 					if (event.shiftKey) {
-						return;
+						break;
 					}
+					event.preventDefault();
 					this.focusStartOption();
 					break;
 				case 46:
@@ -59626,11 +61902,8 @@ var Select = function (_React$Component) {
 						event.preventDefault();
 						this.popValue();
 					}
-					return;
-				default:
-					return;
+					break;
 			}
-			event.preventDefault();
 		}
 	}, {
 		key: 'handleValueClick',
@@ -59649,12 +61922,6 @@ var Select = function (_React$Component) {
 			}
 		}
 	}, {
-		key: 'handleRequired',
-		value: function handleRequired(value, multi) {
-			if (!value) return true;
-			return multi ? value.length === 0 : Object.keys(value).length === 0;
-		}
-	}, {
 		key: 'getOptionLabel',
 		value: function getOptionLabel(op) {
 			return op[this.props.labelKey];
@@ -59662,15 +61929,15 @@ var Select = function (_React$Component) {
 
 		/**
    * Turns a value into an array from the given options
-   * @param	{String|Number|Array}	value		- the value of the select input
-   * @param	{Object}		nextProps	- optionally specify the nextProps so the returned array uses the latest configuration
+   * @param {String|Number|Array} value		- the value of the select input
+   * @param {Object}		nextProps	- optionally specify the nextProps so the returned array uses the latest configuration
    * @returns	{Array}	the value of the select represented in an array
    */
 
 	}, {
 		key: 'getValueArray',
-		value: function getValueArray(value, nextProps) {
-			var _this2 = this;
+		value: function getValueArray(value) {
+			var nextProps = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : undefined;
 
 			/** support optionally passing in the `nextProps` so `componentWillReceiveProps` updates will function as expected */
 			var props = (typeof nextProps === 'undefined' ? 'undefined' : _typeof(nextProps)) === 'object' ? nextProps : this.props;
@@ -59683,88 +61950,68 @@ var Select = function (_React$Component) {
 					value = [value];
 				}
 				return value.map(function (value) {
-					return _this2.expandValue(value, props);
+					return expandValue(value, props);
 				}).filter(function (i) {
 					return i;
 				});
 			}
-			var expandedValue = this.expandValue(value, props);
+			var expandedValue = expandValue(value, props);
 			return expandedValue ? [expandedValue] : [];
-		}
-
-		/**
-   * Retrieve a value from the given options and valueKey
-   * @param	{String|Number|Array}	value	- the selected value(s)
-   * @param	{Object}		props	- the Select component's props (or nextProps)
-   */
-
-	}, {
-		key: 'expandValue',
-		value: function expandValue(value, props) {
-			var valueType = typeof value === 'undefined' ? 'undefined' : _typeof(value);
-			if (valueType !== 'string' && valueType !== 'number' && valueType !== 'boolean') return value;
-			var options = props.options,
-			    valueKey = props.valueKey;
-
-			if (!options) return;
-			for (var i = 0; i < options.length; i++) {
-				if (String(options[i][valueKey]) === String(value)) return options[i];
-			}
 		}
 	}, {
 		key: 'setValue',
 		value: function setValue(value) {
-			var _this3 = this;
+			var _this2 = this;
 
 			if (this.props.autoBlur) {
 				this.blurInput();
 			}
 			if (this.props.required) {
-				var required = this.handleRequired(value, this.props.multi);
+				var required = handleRequired(value, this.props.multi);
 				this.setState({ required: required });
 			}
+			if (this.props.simpleValue && value) {
+				value = this.props.multi ? value.map(function (i) {
+					return i[_this2.props.valueKey];
+				}).join(this.props.delimiter) : value[this.props.valueKey];
+			}
 			if (this.props.onChange) {
-				if (this.props.simpleValue && value) {
-					value = this.props.multi ? value.map(function (i) {
-						return i[_this3.props.valueKey];
-					}).join(this.props.delimiter) : value[this.props.valueKey];
-				}
 				this.props.onChange(value);
 			}
 		}
 	}, {
 		key: 'selectValue',
 		value: function selectValue(value) {
-			var _this4 = this;
+			var _this3 = this;
 
 			// NOTE: we actually add/set the value in a callback to make sure the
 			// input value is empty to avoid styling issues in Chrome
 			if (this.props.closeOnSelect) {
 				this.hasScrolledToOption = false;
 			}
+			var updatedValue = this.props.onSelectResetsInput ? '' : this.state.inputValue;
 			if (this.props.multi) {
-				var updatedValue = this.props.onSelectResetsInput ? '' : this.state.inputValue;
 				this.setState({
 					focusedIndex: null,
 					inputValue: this.handleInputValueChange(updatedValue),
 					isOpen: !this.props.closeOnSelect
 				}, function () {
-					var valueArray = _this4.getValueArray(_this4.props.value);
+					var valueArray = _this3.getValueArray(_this3.props.value);
 					if (valueArray.some(function (i) {
-						return i[_this4.props.valueKey] === value[_this4.props.valueKey];
+						return i[_this3.props.valueKey] === value[_this3.props.valueKey];
 					})) {
-						_this4.removeValue(value);
+						_this3.removeValue(value);
 					} else {
-						_this4.addValue(value);
+						_this3.addValue(value);
 					}
 				});
 			} else {
 				this.setState({
-					inputValue: this.handleInputValueChange(''),
+					inputValue: this.handleInputValueChange(updatedValue),
 					isOpen: !this.props.closeOnSelect,
 					isPseudoFocused: this.state.isFocused
 				}, function () {
-					_this4.setValue(value);
+					_this3.setValue(value);
 				});
 			}
 		}
@@ -59796,11 +62043,11 @@ var Select = function (_React$Component) {
 	}, {
 		key: 'removeValue',
 		value: function removeValue(value) {
-			var _this5 = this;
+			var _this4 = this;
 
 			var valueArray = this.getValueArray(this.props.value);
 			this.setValue(valueArray.filter(function (i) {
-				return i[_this5.props.valueKey] !== value[_this5.props.valueKey];
+				return i[_this4.props.valueKey] !== value[_this4.props.valueKey];
 			}));
 			this.focus();
 		}
@@ -59812,12 +62059,16 @@ var Select = function (_React$Component) {
 			if (event && event.type === 'mousedown' && event.button !== 0) {
 				return;
 			}
+
 			event.preventDefault();
+
 			this.setValue(this.getResetValue());
 			this.setState({
-				isOpen: false,
-				inputValue: this.handleInputValueChange('')
+				inputValue: this.handleInputValueChange(''),
+				isOpen: false
 			}, this.focus);
+
+			this._focusAfterClear = true;
 		}
 	}, {
 		key: 'getResetValue',
@@ -59877,11 +62128,14 @@ var Select = function (_React$Component) {
 			});
 			this._scrollToFocusedOptionOnUpdate = true;
 			if (!this.state.isOpen) {
-				this.setState({
-					isOpen: true,
-					inputValue: '',
-					focusedOption: this._focusedOption || (options.length ? options[dir === 'next' ? 0 : options.length - 1].option : null)
-				});
+				var newState = {
+					focusedOption: this._focusedOption || (options.length ? options[dir === 'next' ? 0 : options.length - 1].option : null),
+					isOpen: true
+				};
+				if (this.props.onSelectResetsInput) {
+					newState.inputValue = '';
+				}
+				this.setState(newState);
 				return;
 			}
 			if (!options.length) return;
@@ -59912,11 +62166,11 @@ var Select = function (_React$Component) {
 					focusedIndex = potentialIndex;
 				}
 			} else if (dir === 'page_down') {
-				var potentialIndex = focusedIndex + this.props.pageSize;
-				if (potentialIndex > options.length - 1) {
+				var _potentialIndex = focusedIndex + this.props.pageSize;
+				if (_potentialIndex > options.length - 1) {
 					focusedIndex = options.length - 1;
 				} else {
-					focusedIndex = potentialIndex;
+					focusedIndex = _potentialIndex;
 				}
 			}
 
@@ -59954,12 +62208,13 @@ var Select = function (_React$Component) {
 	}, {
 		key: 'renderValue',
 		value: function renderValue(valueArray, isOpen) {
-			var _this6 = this;
+			var _this5 = this;
 
 			var renderLabel = this.props.valueRenderer || this.getOptionLabel;
 			var ValueComponent = this.props.valueComponent;
 			if (!valueArray.length) {
-				return !this.state.inputValue ? _react2.default.createElement(
+				var showPlaceholder = shouldShowPlaceholder(this.state, this.props, isOpen);
+				return showPlaceholder ? _react2.default.createElement(
 					'div',
 					{ className: 'Select-placeholder' },
 					this.props.placeholder
@@ -59971,12 +62226,13 @@ var Select = function (_React$Component) {
 					return _react2.default.createElement(
 						ValueComponent,
 						{
-							id: _this6._instancePrefix + '-value-' + i,
-							instancePrefix: _this6._instancePrefix,
-							disabled: _this6.props.disabled || value.clearableValue === false,
-							key: 'value-' + i + '-' + value[_this6.props.valueKey],
+							disabled: _this5.props.disabled || value.clearableValue === false,
+							id: _this5._instancePrefix + '-value-' + i,
+							instancePrefix: _this5._instancePrefix,
+							key: 'value-' + i + '-' + value[_this5.props.valueKey],
 							onClick: onClick,
-							onRemove: _this6.removeValue,
+							onRemove: _this5.removeValue,
+							placeholder: _this5.props.placeholder,
 							value: value
 						},
 						renderLabel(value, i),
@@ -59987,15 +62243,16 @@ var Select = function (_React$Component) {
 						)
 					);
 				});
-			} else if (!this.state.inputValue) {
+			} else if (shouldShowValue(this.state, this.props)) {
 				if (isOpen) onClick = null;
 				return _react2.default.createElement(
 					ValueComponent,
 					{
-						id: this._instancePrefix + '-value-item',
 						disabled: this.props.disabled,
+						id: this._instancePrefix + '-value-item',
 						instancePrefix: this._instancePrefix,
 						onClick: onClick,
+						placeholder: this.props.placeholder,
 						value: valueArray[0]
 					},
 					renderLabel(valueArray[0])
@@ -60006,31 +62263,38 @@ var Select = function (_React$Component) {
 		key: 'renderInput',
 		value: function renderInput(valueArray, focusedOptionIndex) {
 			var _classNames,
-			    _this7 = this;
+			    _this6 = this;
 
 			var className = (0, _classnames2.default)('Select-input', this.props.inputProps.className);
-			var isOpen = !!this.state.isOpen;
+			var isOpen = this.state.isOpen;
 
 			var ariaOwns = (0, _classnames2.default)((_classNames = {}, _defineProperty(_classNames, this._instancePrefix + '-list', isOpen), _defineProperty(_classNames, this._instancePrefix + '-backspace-remove-message', this.props.multi && !this.props.disabled && this.state.isFocused && !this.state.inputValue), _classNames));
+
+			var value = this.state.inputValue;
+			if (value && !this.props.onSelectResetsInput && !this.state.isFocused) {
+				// it hides input value when it is not focused and was not reset on select
+				value = '';
+			}
+
 			var inputProps = _extends({}, this.props.inputProps, {
-				role: 'combobox',
-				'aria-expanded': '' + isOpen,
-				'aria-owns': ariaOwns,
-				'aria-haspopup': '' + isOpen,
 				'aria-activedescendant': isOpen ? this._instancePrefix + '-option-' + focusedOptionIndex : this._instancePrefix + '-value',
 				'aria-describedby': this.props['aria-describedby'],
-				'aria-labelledby': this.props['aria-labelledby'],
+				'aria-expanded': '' + isOpen,
+				'aria-haspopup': '' + isOpen,
 				'aria-label': this.props['aria-label'],
+				'aria-labelledby': this.props['aria-labelledby'],
+				'aria-owns': ariaOwns,
 				className: className,
-				tabIndex: this.props.tabIndex,
 				onBlur: this.handleInputBlur,
 				onChange: this.handleInputChange,
 				onFocus: this.handleInputFocus,
 				ref: function ref(_ref) {
-					return _this7.input = _ref;
+					return _this6.input = _ref;
 				},
+				role: 'combobox',
 				required: this.state.required,
-				value: this.state.inputValue
+				tabIndex: this.props.tabIndex,
+				value: value
 			});
 
 			if (this.props.inputRenderer) {
@@ -60038,27 +62302,26 @@ var Select = function (_React$Component) {
 			}
 
 			if (this.props.disabled || !this.props.searchable) {
-				var _props$inputProps = this.props.inputProps,
-				    inputClassName = _props$inputProps.inputClassName,
-				    divProps = _objectWithoutProperties(_props$inputProps, ['inputClassName']);
+				var divProps = _objectWithoutProperties(this.props.inputProps, []);
 
 				var _ariaOwns = (0, _classnames2.default)(_defineProperty({}, this._instancePrefix + '-list', isOpen));
 				return _react2.default.createElement('div', _extends({}, divProps, {
-					role: 'combobox',
 					'aria-expanded': isOpen,
 					'aria-owns': _ariaOwns,
 					'aria-activedescendant': isOpen ? this._instancePrefix + '-option-' + focusedOptionIndex : this._instancePrefix + '-value',
-					'aria-labelledby': this.props['aria-labelledby'],
+					'aria-disabled': '' + this.props.disabled,
 					'aria-label': this.props['aria-label'],
+					'aria-labelledby': this.props['aria-labelledby'],
 					className: className,
-					tabIndex: this.props.tabIndex || 0,
 					onBlur: this.handleInputBlur,
 					onFocus: this.handleInputFocus,
 					ref: function ref(_ref2) {
-						return _this7.input = _ref2;
+						return _this6.input = _ref2;
 					},
-					'aria-disabled': '' + !!this.props.disabled,
-					style: { border: 0, width: 1, display: 'inline-block' } }));
+					role: 'combobox',
+					style: { border: 0, width: 1, display: 'inline-block' },
+					tabIndex: this.props.tabIndex || 0
+				}));
 			}
 
 			if (this.props.autosize) {
@@ -60066,7 +62329,7 @@ var Select = function (_React$Component) {
 			}
 			return _react2.default.createElement(
 				'div',
-				{ className: className, key: 'input-wrap' },
+				{ className: className, key: 'input-wrap', style: { display: 'inline-block' } },
 				_react2.default.createElement('input', _extends({ id: this.props.id }, inputProps))
 			);
 		}
@@ -60075,16 +62338,19 @@ var Select = function (_React$Component) {
 		value: function renderClear() {
 			var valueArray = this.getValueArray(this.props.value);
 			if (!this.props.clearable || !valueArray.length || this.props.disabled || this.props.isLoading) return;
+			var ariaLabel = this.props.multi ? this.props.clearAllText : this.props.clearValueText;
 			var clear = this.props.clearRenderer();
 
 			return _react2.default.createElement(
 				'span',
-				{ className: 'Select-clear-zone', title: this.props.multi ? this.props.clearAllText : this.props.clearValueText,
-					'aria-label': this.props.multi ? this.props.clearAllText : this.props.clearValueText,
+				{
+					'aria-label': ariaLabel,
+					className: 'Select-clear-zone',
 					onMouseDown: this.clearValue,
-					onTouchStart: this.handleTouchStart,
+					onTouchEnd: this.handleTouchEndClearValue,
 					onTouchMove: this.handleTouchMove,
-					onTouchEnd: this.handleTouchEndClearValue
+					onTouchStart: this.handleTouchStart,
+					title: ariaLabel
 				},
 				clear
 			);
@@ -60127,8 +62393,8 @@ var Select = function (_React$Component) {
 					labelKey: this.props.labelKey,
 					matchPos: this.props.matchPos,
 					matchProp: this.props.matchProp,
-					valueKey: this.props.valueKey,
-					trimFilter: this.props.trimFilter
+					trimFilter: this.props.trimFilter,
+					valueKey: this.props.valueKey
 				});
 			} else {
 				return options;
@@ -60152,16 +62418,16 @@ var Select = function (_React$Component) {
 					instancePrefix: this._instancePrefix,
 					labelKey: this.props.labelKey,
 					onFocus: this.focusOption,
+					onOptionRef: this.onOptionRef,
 					onSelect: this.selectValue,
 					optionClassName: this.props.optionClassName,
 					optionComponent: this.props.optionComponent,
 					optionRenderer: this.props.optionRenderer || this.getOptionLabel,
 					options: options,
-					selectValue: this.selectValue,
 					removeValue: this.removeValue,
+					selectValue: this.selectValue,
 					valueArray: valueArray,
-					valueKey: this.props.valueKey,
-					onOptionRef: this.onOptionRef
+					valueKey: this.props.valueKey
 				});
 			} else if (this.props.noResultsText) {
 				return _react2.default.createElement(
@@ -60176,29 +62442,32 @@ var Select = function (_React$Component) {
 	}, {
 		key: 'renderHiddenField',
 		value: function renderHiddenField(valueArray) {
-			var _this8 = this;
+			var _this7 = this;
 
 			if (!this.props.name) return;
 			if (this.props.joinValues) {
 				var value = valueArray.map(function (i) {
-					return stringifyValue(i[_this8.props.valueKey]);
+					return stringifyValue(i[_this7.props.valueKey]);
 				}).join(this.props.delimiter);
 				return _react2.default.createElement('input', {
-					type: 'hidden',
-					ref: function ref(_ref3) {
-						return _this8.value = _ref3;
-					},
+					disabled: this.props.disabled,
 					name: this.props.name,
-					value: value,
-					disabled: this.props.disabled });
+					ref: function ref(_ref3) {
+						return _this7.value = _ref3;
+					},
+					type: 'hidden',
+					value: value
+				});
 			}
 			return valueArray.map(function (item, index) {
-				return _react2.default.createElement('input', { key: 'hidden.' + index,
-					type: 'hidden',
+				return _react2.default.createElement('input', {
+					disabled: _this7.props.disabled,
+					key: 'hidden.' + index,
+					name: _this7.props.name,
 					ref: 'value' + index,
-					name: _this8.props.name,
-					value: stringifyValue(item[_this8.props.valueKey]),
-					disabled: _this8.props.disabled });
+					type: 'hidden',
+					value: stringifyValue(item[_this7.props.valueKey])
+				});
 			});
 		}
 	}, {
@@ -60231,7 +62500,7 @@ var Select = function (_React$Component) {
 	}, {
 		key: 'renderOuter',
 		value: function renderOuter(options, valueArray, focusedOption) {
-			var _this9 = this;
+			var _this8 = this;
 
 			var menu = this.renderMenu(options, valueArray, focusedOption);
 			if (!menu) {
@@ -60241,16 +62510,22 @@ var Select = function (_React$Component) {
 			return _react2.default.createElement(
 				'div',
 				{ ref: function ref(_ref5) {
-						return _this9.menuContainer = _ref5;
+						return _this8.menuContainer = _ref5;
 					}, className: 'Select-menu-outer', style: this.props.menuContainerStyle },
 				_react2.default.createElement(
 					'div',
-					{ ref: function ref(_ref4) {
-							return _this9.menu = _ref4;
-						}, role: 'listbox', tabIndex: -1, className: 'Select-menu', id: this._instancePrefix + '-list',
-						style: this.props.menuStyle,
+					{
+						className: 'Select-menu',
+						id: this._instancePrefix + '-list',
+						onMouseDown: this.handleMouseDownOnMenu,
 						onScroll: this.handleMenuScroll,
-						onMouseDown: this.handleMouseDownOnMenu },
+						ref: function ref(_ref4) {
+							return _this8.menu = _ref4;
+						},
+						role: 'listbox',
+						style: this.props.menuStyle,
+						tabIndex: -1
+					},
 					menu
 				)
 			);
@@ -60258,7 +62533,7 @@ var Select = function (_React$Component) {
 	}, {
 		key: 'render',
 		value: function render() {
-			var _this10 = this;
+			var _this9 = this;
 
 			var valueArray = this.getValueArray(this.props.value);
 			var options = this._visibleOptions = this.filterOptions(this.props.multi && this.props.removeSelected ? valueArray : null);
@@ -60273,8 +62548,7 @@ var Select = function (_React$Component) {
 				focusedOption = this._focusedOption = null;
 			}
 			var className = (0, _classnames2.default)('Select', this.props.className, {
-				'Select--multi': this.props.multi,
-				'Select--single': !this.props.multi,
+				'has-value': valueArray.length,
 				'is-clearable': this.props.clearable,
 				'is-disabled': this.props.disabled,
 				'is-focused': this.state.isFocused,
@@ -60282,8 +62556,9 @@ var Select = function (_React$Component) {
 				'is-open': isOpen,
 				'is-pseudo-focused': this.state.isPseudoFocused,
 				'is-searchable': this.props.searchable,
-				'has-value': valueArray.length,
-				'Select--rtl': this.props.rtl
+				'Select--multi': this.props.multi,
+				'Select--rtl': this.props.rtl,
+				'Select--single': !this.props.multi
 			});
 
 			var removeMessage = null;
@@ -60298,7 +62573,7 @@ var Select = function (_React$Component) {
 			return _react2.default.createElement(
 				'div',
 				{ ref: function ref(_ref7) {
-						return _this10.wrapper = _ref7;
+						return _this9.wrapper = _ref7;
 					},
 					className: className,
 					style: this.props.wrapperStyle },
@@ -60306,15 +62581,15 @@ var Select = function (_React$Component) {
 				_react2.default.createElement(
 					'div',
 					{ ref: function ref(_ref6) {
-							return _this10.control = _ref6;
+							return _this9.control = _ref6;
 						},
 						className: 'Select-control',
-						style: this.props.style,
 						onKeyDown: this.handleKeyDown,
 						onMouseDown: this.handleMouseDown,
 						onTouchEnd: this.handleTouchEnd,
+						onTouchMove: this.handleTouchMove,
 						onTouchStart: this.handleTouchStart,
-						onTouchMove: this.handleTouchMove
+						style: this.props.style
 					},
 					_react2.default.createElement(
 						'span',
@@ -60334,8 +62609,6 @@ var Select = function (_React$Component) {
 
 	return Select;
 }(_react2.default.Component);
-
-;
 
 Select.propTypes = {
 	'aria-describedby': _propTypes2.default.string, // html id(s) of element(s) that should be used to describe this input (for assistive tech)
@@ -60444,8 +62717,8 @@ Select.defaultProps = {
 	multi: false,
 	noResultsText: 'No results found',
 	onBlurResetsInput: true,
-	onSelectResetsInput: true,
 	onCloseResetsInput: true,
+	onSelectResetsInput: true,
 	openOnClick: true,
 	optionComponent: _Option2.default,
 	pageSize: 5,
@@ -60463,7 +62736,7 @@ Select.defaultProps = {
 };
 
 exports.default = Select;
-},{"./Option":160,"./Value":162,"./utils/defaultArrowRenderer":164,"./utils/defaultClearRenderer":165,"./utils/defaultFilterOptions":166,"./utils/defaultMenuRenderer":167,"classnames":55,"prop-types":124,"react":320,"react-dom":131,"react-input-autosize":132}],162:[function(require,module,exports){
+},{"./Option":172,"./Value":174,"./utils/defaultArrowRenderer":177,"./utils/defaultClearRenderer":178,"./utils/defaultFilterOptions":179,"./utils/defaultMenuRenderer":180,"classnames":55,"prop-types":136,"react":333,"react-dom":143,"react-input-autosize":144}],174:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -60472,17 +62745,17 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _react = require('react');
+var _classnames = require('classnames');
 
-var _react2 = _interopRequireDefault(_react);
+var _classnames2 = _interopRequireDefault(_classnames);
 
 var _propTypes = require('prop-types');
 
 var _propTypes2 = _interopRequireDefault(_propTypes);
 
-var _classnames = require('classnames');
+var _react = require('react');
 
-var _classnames2 = _interopRequireDefault(_classnames);
+var _react2 = _interopRequireDefault(_react);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -60542,13 +62815,13 @@ var Value = function (_React$Component) {
 		}
 	}, {
 		key: 'handleTouchMove',
-		value: function handleTouchMove(event) {
+		value: function handleTouchMove() {
 			// Set a flag that the view is being dragged
 			this.dragging = true;
 		}
 	}, {
 		key: 'handleTouchStart',
-		value: function handleTouchStart(event) {
+		value: function handleTouchStart() {
 			// Set a flag that the view is not being dragged
 			this.dragging = false;
 		}
@@ -60599,8 +62872,6 @@ var Value = function (_React$Component) {
 	return Value;
 }(_react2.default.Component);
 
-;
-
 Value.propTypes = {
 	children: _propTypes2.default.node,
 	disabled: _propTypes2.default.bool, // disabled prop passed to ReactSelect
@@ -60611,7 +62882,7 @@ Value.propTypes = {
 };
 
 exports.default = Value;
-},{"classnames":55,"prop-types":124,"react":320}],163:[function(require,module,exports){
+},{"classnames":55,"prop-types":136,"react":333}],175:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -60677,13 +62948,31 @@ exports.defaultMenuRenderer = _defaultMenuRenderer2.default;
 exports.defaultArrowRenderer = _defaultArrowRenderer2.default;
 exports.defaultClearRenderer = _defaultClearRenderer2.default;
 exports.defaultFilterOptions = _defaultFilterOptions2.default;
-},{"./Async":157,"./AsyncCreatable":158,"./Creatable":159,"./Option":160,"./Select":161,"./Value":162,"./utils/defaultArrowRenderer":164,"./utils/defaultClearRenderer":165,"./utils/defaultFilterOptions":166,"./utils/defaultMenuRenderer":167}],164:[function(require,module,exports){
+},{"./Async":169,"./AsyncCreatable":170,"./Creatable":171,"./Option":172,"./Select":173,"./Value":174,"./utils/defaultArrowRenderer":177,"./utils/defaultClearRenderer":178,"./utils/defaultFilterOptions":179,"./utils/defaultMenuRenderer":180}],176:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
 	value: true
 });
-exports.default = arrowRenderer;
+
+exports.default = function (event) {
+	event.preventDefault();
+	event.stopPropagation();
+	if (event.target.tagName !== 'A' || !('href' in event.target)) {
+		return;
+	}
+	if (event.target.target) {
+		window.open(event.target.href, event.target.target);
+	} else {
+		window.location.href = event.target.href;
+	}
+};
+},{}],177:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+	value: true
+});
 
 var _react = require('react');
 
@@ -60695,7 +62984,7 @@ var _propTypes2 = _interopRequireDefault(_propTypes);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function arrowRenderer(_ref) {
+var arrowRenderer = function arrowRenderer(_ref) {
 	var onMouseDown = _ref.onMouseDown;
 
 	return _react2.default.createElement('span', {
@@ -60707,13 +62996,14 @@ function arrowRenderer(_ref) {
 arrowRenderer.propTypes = {
 	onMouseDown: _propTypes2.default.func
 };
-},{"prop-types":124,"react":320}],165:[function(require,module,exports){
+
+exports.default = arrowRenderer;
+},{"prop-types":136,"react":333}],178:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
 	value: true
 });
-exports.default = clearRenderer;
 
 var _react = require('react');
 
@@ -60721,13 +63011,15 @@ var _react2 = _interopRequireDefault(_react);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function clearRenderer() {
+var clearRenderer = function clearRenderer() {
 	return _react2.default.createElement('span', {
 		className: 'Select-clear',
 		dangerouslySetInnerHTML: { __html: '&times;' }
 	});
 };
-},{"react":320}],166:[function(require,module,exports){
+
+exports.default = clearRenderer;
+},{"react":333}],179:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -60744,9 +63036,11 @@ var _trim2 = _interopRequireDefault(_trim);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function filterOptions(options, filterValue, excludeOptions, props) {
-	var _this = this;
+var isValid = function isValid(value) {
+	return typeof value !== 'undefined' && value !== null && value !== '';
+};
 
+var filterOptions = function filterOptions(options, filterValue, excludeOptions, props) {
 	if (props.ignoreAccents) {
 		filterValue = (0, _stripDiacritics2.default)(filterValue);
 	}
@@ -60765,26 +63059,37 @@ function filterOptions(options, filterValue, excludeOptions, props) {
 
 	return options.filter(function (option) {
 		if (excludeOptions && excludeOptions.indexOf(option[props.valueKey]) > -1) return false;
-		if (props.filterOption) return props.filterOption.call(_this, option, filterValue);
+		if (props.filterOption) return props.filterOption.call(undefined, option, filterValue);
 		if (!filterValue) return true;
-		var valueTest = String(option[props.valueKey]);
-		var labelTest = String(option[props.labelKey]);
+
+		var value = option[props.valueKey];
+		var label = option[props.labelKey];
+		var hasValue = isValid(value);
+		var hasLabel = isValid(label);
+
+		if (!hasValue && !hasLabel) {
+			return false;
+		}
+
+		var valueTest = hasValue ? String(value) : null;
+		var labelTest = hasLabel ? String(label) : null;
 
 		if (props.ignoreAccents) {
-			if (props.matchProp !== 'label') valueTest = (0, _stripDiacritics2.default)(valueTest);
-			if (props.matchProp !== 'value') labelTest = (0, _stripDiacritics2.default)(labelTest);
+			if (valueTest && props.matchProp !== 'label') valueTest = (0, _stripDiacritics2.default)(valueTest);
+			if (labelTest && props.matchProp !== 'value') labelTest = (0, _stripDiacritics2.default)(labelTest);
 		}
 
 		if (props.ignoreCase) {
-			if (props.matchProp !== 'label') valueTest = valueTest.toLowerCase();
-			if (props.matchProp !== 'value') labelTest = labelTest.toLowerCase();
+			if (valueTest && props.matchProp !== 'label') valueTest = valueTest.toLowerCase();
+			if (labelTest && props.matchProp !== 'value') labelTest = labelTest.toLowerCase();
 		}
-		return props.matchPos === 'start' ? props.matchProp !== 'label' && valueTest.substr(0, filterValue.length) === filterValue || props.matchProp !== 'value' && labelTest.substr(0, filterValue.length) === filterValue : props.matchProp !== 'label' && valueTest.indexOf(filterValue) >= 0 || props.matchProp !== 'value' && labelTest.indexOf(filterValue) >= 0;
+
+		return props.matchPos === 'start' ? valueTest && props.matchProp !== 'label' && valueTest.substr(0, filterValue.length) === filterValue || labelTest && props.matchProp !== 'value' && labelTest.substr(0, filterValue.length) === filterValue : valueTest && props.matchProp !== 'label' && valueTest.indexOf(filterValue) >= 0 || labelTest && props.matchProp !== 'value' && labelTest.indexOf(filterValue) >= 0;
 	});
-}
+};
 
 exports.default = filterOptions;
-},{"./stripDiacritics":168,"./trim":169}],167:[function(require,module,exports){
+},{"./stripDiacritics":181,"./trim":182}],180:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -60795,18 +63100,21 @@ var _classnames = require('classnames');
 
 var _classnames2 = _interopRequireDefault(_classnames);
 
+var _propTypes = require('prop-types');
+
+var _propTypes2 = _interopRequireDefault(_propTypes);
+
 var _react = require('react');
 
 var _react2 = _interopRequireDefault(_react);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function menuRenderer(_ref) {
+var menuRenderer = function menuRenderer(_ref) {
 	var focusedOption = _ref.focusedOption,
 	    focusOption = _ref.focusOption,
 	    inputValue = _ref.inputValue,
 	    instancePrefix = _ref.instancePrefix,
-	    labelKey = _ref.labelKey,
 	    onFocus = _ref.onFocus,
 	    onOptionRef = _ref.onOptionRef,
 	    onSelect = _ref.onSelect,
@@ -60823,7 +63131,7 @@ function menuRenderer(_ref) {
 
 	return options.map(function (option, i) {
 		var isSelected = valueArray && valueArray.some(function (x) {
-			return x[valueKey] == option[valueKey];
+			return x[valueKey] === option[valueKey];
 		});
 		var isFocused = option === focusedOption;
 		var optionClass = (0, _classnames2.default)(optionClassName, {
@@ -60857,50 +63165,63 @@ function menuRenderer(_ref) {
 			optionRenderer(option, i, inputValue)
 		);
 	});
-}
+};
+
+menuRenderer.propTypes = {
+	focusOption: _propTypes2.default.func,
+	focusedOption: _propTypes2.default.object,
+	inputValue: _propTypes2.default.string,
+	instancePrefix: _propTypes2.default.string,
+	onFocus: _propTypes2.default.func,
+	onOptionRef: _propTypes2.default.func,
+	onSelect: _propTypes2.default.func,
+	optionClassName: _propTypes2.default.string,
+	optionComponent: _propTypes2.default.func,
+	optionRenderer: _propTypes2.default.func,
+	options: _propTypes2.default.array,
+	removeValue: _propTypes2.default.func,
+	selectValue: _propTypes2.default.func,
+	valueArray: _propTypes2.default.array,
+	valueKey: _propTypes2.default.string
+};
 
 exports.default = menuRenderer;
-},{"classnames":55,"react":320}],168:[function(require,module,exports){
+},{"classnames":55,"prop-types":136,"react":333}],181:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
 	value: true
 });
-exports.default = stripDiacritics;
 var map = [{ 'base': 'A', 'letters': /[\u0041\u24B6\uFF21\u00C0\u00C1\u00C2\u1EA6\u1EA4\u1EAA\u1EA8\u00C3\u0100\u0102\u1EB0\u1EAE\u1EB4\u1EB2\u0226\u01E0\u00C4\u01DE\u1EA2\u00C5\u01FA\u01CD\u0200\u0202\u1EA0\u1EAC\u1EB6\u1E00\u0104\u023A\u2C6F]/g }, { 'base': 'AA', 'letters': /[\uA732]/g }, { 'base': 'AE', 'letters': /[\u00C6\u01FC\u01E2]/g }, { 'base': 'AO', 'letters': /[\uA734]/g }, { 'base': 'AU', 'letters': /[\uA736]/g }, { 'base': 'AV', 'letters': /[\uA738\uA73A]/g }, { 'base': 'AY', 'letters': /[\uA73C]/g }, { 'base': 'B', 'letters': /[\u0042\u24B7\uFF22\u1E02\u1E04\u1E06\u0243\u0182\u0181]/g }, { 'base': 'C', 'letters': /[\u0043\u24B8\uFF23\u0106\u0108\u010A\u010C\u00C7\u1E08\u0187\u023B\uA73E]/g }, { 'base': 'D', 'letters': /[\u0044\u24B9\uFF24\u1E0A\u010E\u1E0C\u1E10\u1E12\u1E0E\u0110\u018B\u018A\u0189\uA779]/g }, { 'base': 'DZ', 'letters': /[\u01F1\u01C4]/g }, { 'base': 'Dz', 'letters': /[\u01F2\u01C5]/g }, { 'base': 'E', 'letters': /[\u0045\u24BA\uFF25\u00C8\u00C9\u00CA\u1EC0\u1EBE\u1EC4\u1EC2\u1EBC\u0112\u1E14\u1E16\u0114\u0116\u00CB\u1EBA\u011A\u0204\u0206\u1EB8\u1EC6\u0228\u1E1C\u0118\u1E18\u1E1A\u0190\u018E]/g }, { 'base': 'F', 'letters': /[\u0046\u24BB\uFF26\u1E1E\u0191\uA77B]/g }, { 'base': 'G', 'letters': /[\u0047\u24BC\uFF27\u01F4\u011C\u1E20\u011E\u0120\u01E6\u0122\u01E4\u0193\uA7A0\uA77D\uA77E]/g }, { 'base': 'H', 'letters': /[\u0048\u24BD\uFF28\u0124\u1E22\u1E26\u021E\u1E24\u1E28\u1E2A\u0126\u2C67\u2C75\uA78D]/g }, { 'base': 'I', 'letters': /[\u0049\u24BE\uFF29\u00CC\u00CD\u00CE\u0128\u012A\u012C\u0130\u00CF\u1E2E\u1EC8\u01CF\u0208\u020A\u1ECA\u012E\u1E2C\u0197]/g }, { 'base': 'J', 'letters': /[\u004A\u24BF\uFF2A\u0134\u0248]/g }, { 'base': 'K', 'letters': /[\u004B\u24C0\uFF2B\u1E30\u01E8\u1E32\u0136\u1E34\u0198\u2C69\uA740\uA742\uA744\uA7A2]/g }, { 'base': 'L', 'letters': /[\u004C\u24C1\uFF2C\u013F\u0139\u013D\u1E36\u1E38\u013B\u1E3C\u1E3A\u0141\u023D\u2C62\u2C60\uA748\uA746\uA780]/g }, { 'base': 'LJ', 'letters': /[\u01C7]/g }, { 'base': 'Lj', 'letters': /[\u01C8]/g }, { 'base': 'M', 'letters': /[\u004D\u24C2\uFF2D\u1E3E\u1E40\u1E42\u2C6E\u019C]/g }, { 'base': 'N', 'letters': /[\u004E\u24C3\uFF2E\u01F8\u0143\u00D1\u1E44\u0147\u1E46\u0145\u1E4A\u1E48\u0220\u019D\uA790\uA7A4]/g }, { 'base': 'NJ', 'letters': /[\u01CA]/g }, { 'base': 'Nj', 'letters': /[\u01CB]/g }, { 'base': 'O', 'letters': /[\u004F\u24C4\uFF2F\u00D2\u00D3\u00D4\u1ED2\u1ED0\u1ED6\u1ED4\u00D5\u1E4C\u022C\u1E4E\u014C\u1E50\u1E52\u014E\u022E\u0230\u00D6\u022A\u1ECE\u0150\u01D1\u020C\u020E\u01A0\u1EDC\u1EDA\u1EE0\u1EDE\u1EE2\u1ECC\u1ED8\u01EA\u01EC\u00D8\u01FE\u0186\u019F\uA74A\uA74C]/g }, { 'base': 'OI', 'letters': /[\u01A2]/g }, { 'base': 'OO', 'letters': /[\uA74E]/g }, { 'base': 'OU', 'letters': /[\u0222]/g }, { 'base': 'P', 'letters': /[\u0050\u24C5\uFF30\u1E54\u1E56\u01A4\u2C63\uA750\uA752\uA754]/g }, { 'base': 'Q', 'letters': /[\u0051\u24C6\uFF31\uA756\uA758\u024A]/g }, { 'base': 'R', 'letters': /[\u0052\u24C7\uFF32\u0154\u1E58\u0158\u0210\u0212\u1E5A\u1E5C\u0156\u1E5E\u024C\u2C64\uA75A\uA7A6\uA782]/g }, { 'base': 'S', 'letters': /[\u0053\u24C8\uFF33\u1E9E\u015A\u1E64\u015C\u1E60\u0160\u1E66\u1E62\u1E68\u0218\u015E\u2C7E\uA7A8\uA784]/g }, { 'base': 'T', 'letters': /[\u0054\u24C9\uFF34\u1E6A\u0164\u1E6C\u021A\u0162\u1E70\u1E6E\u0166\u01AC\u01AE\u023E\uA786]/g }, { 'base': 'TZ', 'letters': /[\uA728]/g }, { 'base': 'U', 'letters': /[\u0055\u24CA\uFF35\u00D9\u00DA\u00DB\u0168\u1E78\u016A\u1E7A\u016C\u00DC\u01DB\u01D7\u01D5\u01D9\u1EE6\u016E\u0170\u01D3\u0214\u0216\u01AF\u1EEA\u1EE8\u1EEE\u1EEC\u1EF0\u1EE4\u1E72\u0172\u1E76\u1E74\u0244]/g }, { 'base': 'V', 'letters': /[\u0056\u24CB\uFF36\u1E7C\u1E7E\u01B2\uA75E\u0245]/g }, { 'base': 'VY', 'letters': /[\uA760]/g }, { 'base': 'W', 'letters': /[\u0057\u24CC\uFF37\u1E80\u1E82\u0174\u1E86\u1E84\u1E88\u2C72]/g }, { 'base': 'X', 'letters': /[\u0058\u24CD\uFF38\u1E8A\u1E8C]/g }, { 'base': 'Y', 'letters': /[\u0059\u24CE\uFF39\u1EF2\u00DD\u0176\u1EF8\u0232\u1E8E\u0178\u1EF6\u1EF4\u01B3\u024E\u1EFE]/g }, { 'base': 'Z', 'letters': /[\u005A\u24CF\uFF3A\u0179\u1E90\u017B\u017D\u1E92\u1E94\u01B5\u0224\u2C7F\u2C6B\uA762]/g }, { 'base': 'a', 'letters': /[\u0061\u24D0\uFF41\u1E9A\u00E0\u00E1\u00E2\u1EA7\u1EA5\u1EAB\u1EA9\u00E3\u0101\u0103\u1EB1\u1EAF\u1EB5\u1EB3\u0227\u01E1\u00E4\u01DF\u1EA3\u00E5\u01FB\u01CE\u0201\u0203\u1EA1\u1EAD\u1EB7\u1E01\u0105\u2C65\u0250]/g }, { 'base': 'aa', 'letters': /[\uA733]/g }, { 'base': 'ae', 'letters': /[\u00E6\u01FD\u01E3]/g }, { 'base': 'ao', 'letters': /[\uA735]/g }, { 'base': 'au', 'letters': /[\uA737]/g }, { 'base': 'av', 'letters': /[\uA739\uA73B]/g }, { 'base': 'ay', 'letters': /[\uA73D]/g }, { 'base': 'b', 'letters': /[\u0062\u24D1\uFF42\u1E03\u1E05\u1E07\u0180\u0183\u0253]/g }, { 'base': 'c', 'letters': /[\u0063\u24D2\uFF43\u0107\u0109\u010B\u010D\u00E7\u1E09\u0188\u023C\uA73F\u2184]/g }, { 'base': 'd', 'letters': /[\u0064\u24D3\uFF44\u1E0B\u010F\u1E0D\u1E11\u1E13\u1E0F\u0111\u018C\u0256\u0257\uA77A]/g }, { 'base': 'dz', 'letters': /[\u01F3\u01C6]/g }, { 'base': 'e', 'letters': /[\u0065\u24D4\uFF45\u00E8\u00E9\u00EA\u1EC1\u1EBF\u1EC5\u1EC3\u1EBD\u0113\u1E15\u1E17\u0115\u0117\u00EB\u1EBB\u011B\u0205\u0207\u1EB9\u1EC7\u0229\u1E1D\u0119\u1E19\u1E1B\u0247\u025B\u01DD]/g }, { 'base': 'f', 'letters': /[\u0066\u24D5\uFF46\u1E1F\u0192\uA77C]/g }, { 'base': 'g', 'letters': /[\u0067\u24D6\uFF47\u01F5\u011D\u1E21\u011F\u0121\u01E7\u0123\u01E5\u0260\uA7A1\u1D79\uA77F]/g }, { 'base': 'h', 'letters': /[\u0068\u24D7\uFF48\u0125\u1E23\u1E27\u021F\u1E25\u1E29\u1E2B\u1E96\u0127\u2C68\u2C76\u0265]/g }, { 'base': 'hv', 'letters': /[\u0195]/g }, { 'base': 'i', 'letters': /[\u0069\u24D8\uFF49\u00EC\u00ED\u00EE\u0129\u012B\u012D\u00EF\u1E2F\u1EC9\u01D0\u0209\u020B\u1ECB\u012F\u1E2D\u0268\u0131]/g }, { 'base': 'j', 'letters': /[\u006A\u24D9\uFF4A\u0135\u01F0\u0249]/g }, { 'base': 'k', 'letters': /[\u006B\u24DA\uFF4B\u1E31\u01E9\u1E33\u0137\u1E35\u0199\u2C6A\uA741\uA743\uA745\uA7A3]/g }, { 'base': 'l', 'letters': /[\u006C\u24DB\uFF4C\u0140\u013A\u013E\u1E37\u1E39\u013C\u1E3D\u1E3B\u017F\u0142\u019A\u026B\u2C61\uA749\uA781\uA747]/g }, { 'base': 'lj', 'letters': /[\u01C9]/g }, { 'base': 'm', 'letters': /[\u006D\u24DC\uFF4D\u1E3F\u1E41\u1E43\u0271\u026F]/g }, { 'base': 'n', 'letters': /[\u006E\u24DD\uFF4E\u01F9\u0144\u00F1\u1E45\u0148\u1E47\u0146\u1E4B\u1E49\u019E\u0272\u0149\uA791\uA7A5]/g }, { 'base': 'nj', 'letters': /[\u01CC]/g }, { 'base': 'o', 'letters': /[\u006F\u24DE\uFF4F\u00F2\u00F3\u00F4\u1ED3\u1ED1\u1ED7\u1ED5\u00F5\u1E4D\u022D\u1E4F\u014D\u1E51\u1E53\u014F\u022F\u0231\u00F6\u022B\u1ECF\u0151\u01D2\u020D\u020F\u01A1\u1EDD\u1EDB\u1EE1\u1EDF\u1EE3\u1ECD\u1ED9\u01EB\u01ED\u00F8\u01FF\u0254\uA74B\uA74D\u0275]/g }, { 'base': 'oi', 'letters': /[\u01A3]/g }, { 'base': 'ou', 'letters': /[\u0223]/g }, { 'base': 'oo', 'letters': /[\uA74F]/g }, { 'base': 'p', 'letters': /[\u0070\u24DF\uFF50\u1E55\u1E57\u01A5\u1D7D\uA751\uA753\uA755]/g }, { 'base': 'q', 'letters': /[\u0071\u24E0\uFF51\u024B\uA757\uA759]/g }, { 'base': 'r', 'letters': /[\u0072\u24E1\uFF52\u0155\u1E59\u0159\u0211\u0213\u1E5B\u1E5D\u0157\u1E5F\u024D\u027D\uA75B\uA7A7\uA783]/g }, { 'base': 's', 'letters': /[\u0073\u24E2\uFF53\u00DF\u015B\u1E65\u015D\u1E61\u0161\u1E67\u1E63\u1E69\u0219\u015F\u023F\uA7A9\uA785\u1E9B]/g }, { 'base': 't', 'letters': /[\u0074\u24E3\uFF54\u1E6B\u1E97\u0165\u1E6D\u021B\u0163\u1E71\u1E6F\u0167\u01AD\u0288\u2C66\uA787]/g }, { 'base': 'tz', 'letters': /[\uA729]/g }, { 'base': 'u', 'letters': /[\u0075\u24E4\uFF55\u00F9\u00FA\u00FB\u0169\u1E79\u016B\u1E7B\u016D\u00FC\u01DC\u01D8\u01D6\u01DA\u1EE7\u016F\u0171\u01D4\u0215\u0217\u01B0\u1EEB\u1EE9\u1EEF\u1EED\u1EF1\u1EE5\u1E73\u0173\u1E77\u1E75\u0289]/g }, { 'base': 'v', 'letters': /[\u0076\u24E5\uFF56\u1E7D\u1E7F\u028B\uA75F\u028C]/g }, { 'base': 'vy', 'letters': /[\uA761]/g }, { 'base': 'w', 'letters': /[\u0077\u24E6\uFF57\u1E81\u1E83\u0175\u1E87\u1E85\u1E98\u1E89\u2C73]/g }, { 'base': 'x', 'letters': /[\u0078\u24E7\uFF58\u1E8B\u1E8D]/g }, { 'base': 'y', 'letters': /[\u0079\u24E8\uFF59\u1EF3\u00FD\u0177\u1EF9\u0233\u1E8F\u00FF\u1EF7\u1E99\u1EF5\u01B4\u024F\u1EFF]/g }, { 'base': 'z', 'letters': /[\u007A\u24E9\uFF5A\u017A\u1E91\u017C\u017E\u1E93\u1E95\u01B6\u0225\u0240\u2C6C\uA763]/g }];
 
-function stripDiacritics(str) {
+var stripDiacritics = function stripDiacritics(str) {
 	for (var i = 0; i < map.length; i++) {
 		str = str.replace(map[i].letters, map[i].base);
 	}
 	return str;
 };
-},{}],169:[function(require,module,exports){
+
+exports.default = stripDiacritics;
+},{}],182:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
-    value: true
+  value: true
 });
+var trim = function trim(str) {
+  return str.replace(/^\s+|\s+$/g, '');
+};
+
 exports.default = trim;
-function trim(str) {
-    return str.replace(/^\s+|\s+$/g, '');
-}
-},{}],170:[function(require,module,exports){
+},{}],183:[function(require,module,exports){
 'use strict';
 
-var _react = require('react');
+function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
-var _react2 = _interopRequireDefault(_react);
-
-var _exenv = require('exenv');
-
-var _exenv2 = _interopRequireDefault(_exenv);
-
-var _shallowequal = require('shallowequal');
-
-var _shallowequal2 = _interopRequireDefault(_shallowequal);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+var React = require('react');
+var React__default = _interopDefault(React);
+var ExecutionEnvironment = _interopDefault(require('exenv'));
+var shallowEqual = _interopDefault(require('shallowequal'));
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -60908,7 +63229,7 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-module.exports = function withSideEffect(reducePropsToState, handleStateChangeOnClient, mapStateOnServer) {
+function withSideEffect(reducePropsToState, handleStateChangeOnClient, mapStateOnServer) {
   if (typeof reducePropsToState !== 'function') {
     throw new Error('Expected reducePropsToState to be a function.');
   }
@@ -60972,7 +63293,7 @@ module.exports = function withSideEffect(reducePropsToState, handleStateChangeOn
       };
 
       SideEffect.prototype.shouldComponentUpdate = function shouldComponentUpdate(nextProps) {
-        return !(0, _shallowequal2.default)(nextProps, this.props);
+        return !shallowEqual(nextProps, this.props);
       };
 
       SideEffect.prototype.componentWillMount = function componentWillMount() {
@@ -60991,20 +63312,23 @@ module.exports = function withSideEffect(reducePropsToState, handleStateChangeOn
       };
 
       SideEffect.prototype.render = function render() {
-        return _react2.default.createElement(WrappedComponent, this.props);
+        return React__default.createElement(WrappedComponent, this.props);
       };
 
       return SideEffect;
-    }(_react.Component);
+    }(React.Component);
 
     SideEffect.displayName = 'SideEffect(' + getDisplayName(WrappedComponent) + ')';
-    SideEffect.canUseDOM = _exenv2.default.canUseDOM;
+    SideEffect.canUseDOM = ExecutionEnvironment.canUseDOM;
 
 
     return SideEffect;
   };
-};
-},{"exenv":58,"react":320,"shallowequal":337}],171:[function(require,module,exports){
+}
+
+module.exports = withSideEffect;
+
+},{"exenv":68,"react":333,"shallowequal":350}],184:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -61208,34 +63532,83 @@ exports.default = {
   rowsText: 'rows',
 
   // Components
-  TableComponent: _utils2.default.makeTemplateComponent('rt-table', 'Table'),
-  TheadComponent: _utils2.default.makeTemplateComponent('rt-thead', 'Thead'),
-  TbodyComponent: _utils2.default.makeTemplateComponent('rt-tbody', 'Tbody'),
-  TrGroupComponent: _utils2.default.makeTemplateComponent('rt-tr-group', 'TrGroup'),
-  TrComponent: _utils2.default.makeTemplateComponent('rt-tr', 'Tr'),
-  ThComponent: function ThComponent(_ref) {
-    var toggleSort = _ref.toggleSort,
+  TableComponent: function TableComponent(_ref) {
+    var children = _ref.children,
         className = _ref.className,
-        children = _ref.children,
-        rest = _objectWithoutProperties(_ref, ['toggleSort', 'className', 'children']);
+        rest = _objectWithoutProperties(_ref, ['children', 'className']);
 
     return _react2.default.createElement(
       'div',
       _extends({
-        className: (0, _classnames2.default)('rt-th', className),
-        onClick: function onClick(e) {
-          return toggleSort && toggleSort(e);
-        },
-        role: 'heading'
+        className: (0, _classnames2.default)('rt-table', className),
+        role: 'grid'
+        // tabIndex='0'
       }, rest),
       children
     );
   },
-  TdComponent: _utils2.default.makeTemplateComponent('rt-td', 'Td'),
+  TheadComponent: _utils2.default.makeTemplateComponent('rt-thead', 'Thead'),
+  TbodyComponent: _utils2.default.makeTemplateComponent('rt-tbody', 'Tbody'),
+  TrGroupComponent: function TrGroupComponent(_ref2) {
+    var children = _ref2.children,
+        className = _ref2.className,
+        rest = _objectWithoutProperties(_ref2, ['children', 'className']);
+
+    return _react2.default.createElement(
+      'div',
+      _extends({ className: (0, _classnames2.default)('rt-tr-group', className), role: 'rowgroup' }, rest),
+      children
+    );
+  },
+  TrComponent: function TrComponent(_ref3) {
+    var children = _ref3.children,
+        className = _ref3.className,
+        rest = _objectWithoutProperties(_ref3, ['children', 'className']);
+
+    return _react2.default.createElement(
+      'div',
+      _extends({ className: (0, _classnames2.default)('rt-tr', className), role: 'row' }, rest),
+      children
+    );
+  },
+  ThComponent: function ThComponent(_ref4) {
+    var toggleSort = _ref4.toggleSort,
+        className = _ref4.className,
+        children = _ref4.children,
+        rest = _objectWithoutProperties(_ref4, ['toggleSort', 'className', 'children']);
+
+    return (
+      // eslint-disable-next-line jsx-a11y/click-events-have-key-events
+      _react2.default.createElement(
+        'div',
+        _extends({
+          className: (0, _classnames2.default)('rt-th', className),
+          onClick: function onClick(e) {
+            return toggleSort && toggleSort(e);
+          },
+          role: 'columnheader',
+          tabIndex: '-1' // Resolves eslint issues without implementing keyboard navigation incorrectly
+        }, rest),
+        children
+      )
+    );
+  },
+  TdComponent: function TdComponent(_ref5) {
+    var toggleSort = _ref5.toggleSort,
+        className = _ref5.className,
+        children = _ref5.children,
+        rest = _objectWithoutProperties(_ref5, ['toggleSort', 'className', 'children']);
+
+    return _react2.default.createElement(
+      'div',
+      _extends({ className: (0, _classnames2.default)('rt-td', className), role: 'gridcell' }, rest),
+      children
+    );
+  },
   TfootComponent: _utils2.default.makeTemplateComponent('rt-tfoot', 'Tfoot'),
-  FilterComponent: function FilterComponent(_ref2) {
-    var filter = _ref2.filter,
-        _onChange = _ref2.onChange;
+  FilterComponent: function FilterComponent(_ref6) {
+    var filter = _ref6.filter,
+        _onChange = _ref6.onChange;
     return _react2.default.createElement('input', {
       type: 'text',
       style: {
@@ -61247,17 +63620,17 @@ exports.default = {
       }
     });
   },
-  ExpanderComponent: function ExpanderComponent(_ref3) {
-    var isExpanded = _ref3.isExpanded;
+  ExpanderComponent: function ExpanderComponent(_ref7) {
+    var isExpanded = _ref7.isExpanded;
     return _react2.default.createElement(
       'div',
       { className: (0, _classnames2.default)('rt-expander', isExpanded && '-open') },
       '\u2022'
     );
   },
-  PivotValueComponent: function PivotValueComponent(_ref4) {
-    var subRows = _ref4.subRows,
-        value = _ref4.value;
+  PivotValueComponent: function PivotValueComponent(_ref8) {
+    var subRows = _ref8.subRows,
+        value = _ref8.value;
     return _react2.default.createElement(
       'span',
       null,
@@ -61266,9 +63639,9 @@ exports.default = {
       subRows && '(' + subRows.length + ')'
     );
   },
-  AggregatedComponent: function AggregatedComponent(_ref5) {
-    var subRows = _ref5.subRows,
-        column = _ref5.column;
+  AggregatedComponent: function AggregatedComponent(_ref9) {
+    var subRows = _ref9.subRows,
+        column = _ref9.column;
 
     var previewValues = subRows.filter(function (d) {
       return typeof d[column.id] !== 'undefined';
@@ -61294,17 +63667,15 @@ exports.default = {
   PaginationComponent: _pagination2.default,
   PreviousComponent: undefined,
   NextComponent: undefined,
-  LoadingComponent: function LoadingComponent(_ref6) {
-    var className = _ref6.className,
-        loading = _ref6.loading,
-        loadingText = _ref6.loadingText,
-        rest = _objectWithoutProperties(_ref6, ['className', 'loading', 'loadingText']);
+  LoadingComponent: function LoadingComponent(_ref10) {
+    var className = _ref10.className,
+        loading = _ref10.loading,
+        loadingText = _ref10.loadingText,
+        rest = _objectWithoutProperties(_ref10, ['className', 'loading', 'loadingText']);
 
     return _react2.default.createElement(
       'div',
-      _extends({
-        className: (0, _classnames2.default)('-loading', { '-active': loading }, className)
-      }, rest),
+      _extends({ className: (0, _classnames2.default)('-loading', { '-active': loading }, className) }, rest),
       _react2.default.createElement(
         'div',
         { className: '-loading-inner' },
@@ -61323,7 +63694,7 @@ exports.default = {
   }
 };
 
-},{"./pagination":175,"./utils":177,"classnames":55,"react":320}],172:[function(require,module,exports){
+},{"./pagination":188,"./utils":190,"classnames":55,"react":333}],185:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -61534,6 +63905,7 @@ var ReactTable = function (_Methods) {
           return rowWithViewIndex;
         }), index];
       };
+
       var _recurseRowsViewIndex3 = recurseRowsViewIndex(pageRows);
 
       var _recurseRowsViewIndex4 = _slicedToArray(_recurseRowsViewIndex3, 1);
@@ -62137,10 +64509,7 @@ var ReactTable = function (_Methods) {
             noDataProps,
             _utils2.default.normalizeComponent(noDataText)
           ),
-          _react2.default.createElement(LoadingComponent, _extends({
-            loading: loading,
-            loadingText: loadingText
-          }, loadingProps))
+          _react2.default.createElement(LoadingComponent, _extends({ loading: loading, loadingText: loadingText }, loadingProps))
         );
       };
 
@@ -62156,7 +64525,7 @@ ReactTable.propTypes = _propTypes2.default;
 ReactTable.defaultProps = _defaultProps2.default;
 exports.default = ReactTable;
 
-},{"./defaultProps":171,"./lifecycle":173,"./methods":174,"./propTypes":176,"./utils":177,"classnames":55,"react":320}],173:[function(require,module,exports){
+},{"./defaultProps":184,"./lifecycle":186,"./methods":187,"./propTypes":189,"./utils":190,"classnames":55,"react":333}],186:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -62288,7 +64657,7 @@ exports.default = function (Base) {
   }(Base);
 };
 
-},{}],174:[function(require,module,exports){
+},{}],187:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -62296,8 +64665,6 @@ Object.defineProperty(exports, "__esModule", {
 });
 
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
@@ -62406,18 +64773,12 @@ exports.default = function (Base) {
 
           // First check for string accessor
           if (typeof dcol.accessor === 'string') {
-            var _ret = function () {
-              dcol.id = dcol.id || dcol.accessor;
-              var accessorString = dcol.accessor;
-              dcol.accessor = function (row) {
-                return _utils2.default.get(row, accessorString);
-              };
-              return {
-                v: dcol
-              };
-            }();
-
-            if ((typeof _ret === 'undefined' ? 'undefined' : _typeof(_ret)) === "object") return _ret.v;
+            dcol.id = dcol.id || dcol.accessor;
+            var accessorString = dcol.accessor;
+            dcol.accessor = function (row) {
+              return _utils2.default.get(row, accessorString);
+            };
+            return dcol;
           }
 
           // Fall back to functional accessor (but require an ID)
@@ -62483,48 +64844,46 @@ exports.default = function (Base) {
 
         // Handle Pivot Columns
         if (pivotBy.length) {
-          (function () {
-            // Retrieve the pivot columns in the correct pivot order
-            var pivotColumns = [];
-            pivotBy.forEach(function (pivotID) {
-              var found = allDecoratedColumns.find(function (d) {
-                return d.id === pivotID;
-              });
-              if (found) {
-                pivotColumns.push(found);
-              }
+          // Retrieve the pivot columns in the correct pivot order
+          var pivotColumns = [];
+          pivotBy.forEach(function (pivotID) {
+            var found = allDecoratedColumns.find(function (d) {
+              return d.id === pivotID;
             });
-
-            var PivotParentColumn = pivotColumns.reduce(function (prev, current) {
-              return prev && prev === current.parentColumn && current.parentColumn;
-            }, pivotColumns[0].parentColumn);
-
-            var PivotGroupHeader = hasHeaderGroups && PivotParentColumn.Header;
-            PivotGroupHeader = PivotGroupHeader || function () {
-              return _react2.default.createElement(
-                'strong',
-                null,
-                'Pivoted'
-              );
-            };
-
-            var pivotColumnGroup = {
-              Header: PivotGroupHeader,
-              columns: pivotColumns.map(function (col) {
-                return _extends({}, _this2.props.pivotDefaults, col, {
-                  pivoted: true
-                });
-              })
-            };
-
-            // Place the pivotColumns back into the visibleColumns
-            if (pivotIndex >= 0) {
-              pivotColumnGroup = _extends({}, visibleColumns[pivotIndex], pivotColumnGroup);
-              visibleColumns.splice(pivotIndex, 1, pivotColumnGroup);
-            } else {
-              visibleColumns.unshift(pivotColumnGroup);
+            if (found) {
+              pivotColumns.push(found);
             }
-          })();
+          });
+
+          var PivotParentColumn = pivotColumns.reduce(function (prev, current) {
+            return prev && prev === current.parentColumn && current.parentColumn;
+          }, pivotColumns[0].parentColumn);
+
+          var PivotGroupHeader = hasHeaderGroups && PivotParentColumn.Header;
+          PivotGroupHeader = PivotGroupHeader || function () {
+            return _react2.default.createElement(
+              'strong',
+              null,
+              'Pivoted'
+            );
+          };
+
+          var pivotColumnGroup = {
+            Header: PivotGroupHeader,
+            columns: pivotColumns.map(function (col) {
+              return _extends({}, _this2.props.pivotDefaults, col, {
+                pivoted: true
+              });
+            })
+          };
+
+          // Place the pivotColumns back into the visibleColumns
+          if (pivotIndex >= 0) {
+            pivotColumnGroup = _extends({}, visibleColumns[pivotIndex], pivotColumnGroup);
+            visibleColumns.splice(pivotIndex, 1, pivotColumnGroup);
+          } else {
+            visibleColumns.unshift(pivotColumnGroup);
+          }
         }
 
         // Build Header Groups
@@ -62595,35 +64954,33 @@ exports.default = function (Base) {
           return aggregationValues;
         };
         if (pivotBy.length) {
-          (function () {
-            var groupRecursively = function groupRecursively(rows, keys) {
-              var i = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0;
+          var groupRecursively = function groupRecursively(rows, keys) {
+            var i = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0;
 
-              // This is the last level, just return the rows
-              if (i === keys.length) {
-                return rows;
-              }
-              // Group the rows together for this level
-              var groupedRows = Object.entries(_utils2.default.groupBy(rows, keys[i])).map(function (_ref) {
-                var _ref3;
+            // This is the last level, just return the rows
+            if (i === keys.length) {
+              return rows;
+            }
+            // Group the rows together for this level
+            var groupedRows = Object.entries(_utils2.default.groupBy(rows, keys[i])).map(function (_ref) {
+              var _ref3;
 
-                var _ref2 = _slicedToArray(_ref, 2),
-                    key = _ref2[0],
-                    value = _ref2[1];
+              var _ref2 = _slicedToArray(_ref, 2),
+                  key = _ref2[0],
+                  value = _ref2[1];
 
-                return _ref3 = {}, _defineProperty(_ref3, pivotIDKey, keys[i]), _defineProperty(_ref3, pivotValKey, key), _defineProperty(_ref3, keys[i], key), _defineProperty(_ref3, subRowsKey, value), _defineProperty(_ref3, nestingLevelKey, i), _defineProperty(_ref3, groupedByPivotKey, true), _ref3;
-              });
-              // Recurse into the subRows
-              groupedRows = groupedRows.map(function (rowGroup) {
-                var _extends2;
+              return _ref3 = {}, _defineProperty(_ref3, pivotIDKey, keys[i]), _defineProperty(_ref3, pivotValKey, key), _defineProperty(_ref3, keys[i], key), _defineProperty(_ref3, subRowsKey, value), _defineProperty(_ref3, nestingLevelKey, i), _defineProperty(_ref3, groupedByPivotKey, true), _ref3;
+            });
+            // Recurse into the subRows
+            groupedRows = groupedRows.map(function (rowGroup) {
+              var _extends2;
 
-                var subRows = groupRecursively(rowGroup[subRowsKey], keys, i + 1);
-                return _extends({}, rowGroup, (_extends2 = {}, _defineProperty(_extends2, subRowsKey, subRows), _defineProperty(_extends2, aggregatedKey, true), _extends2), aggregate(subRows));
-              });
-              return groupedRows;
-            };
-            resolvedData = groupRecursively(resolvedData, pivotBy);
-          })();
+              var subRows = groupRecursively(rowGroup[subRowsKey], keys, i + 1);
+              return _extends({}, rowGroup, (_extends2 = {}, _defineProperty(_extends2, subRowsKey, subRows), _defineProperty(_extends2, aggregatedKey, true), _extends2), aggregate(subRows));
+            });
+            return groupedRows;
+          };
+          resolvedData = groupRecursively(resolvedData, pivotBy);
         }
 
         return _extends({}, newState, {
@@ -62861,47 +65218,45 @@ exports.default = function (Base) {
             }];
           }
         } else {
-          (function () {
-            // Multi-Sort
-            var existingIndex = newSorted.findIndex(function (d) {
-              return d.id === column[0].id;
-            });
-            // Existing Sorted Column
-            if (existingIndex > -1) {
-              var _existing = newSorted[existingIndex];
-              if (_existing.desc === secondSortDirection) {
-                if (additive) {
-                  newSorted.splice(existingIndex, column.length);
-                } else {
-                  column.forEach(function (d, i) {
-                    newSorted[existingIndex + i].desc = firstSortDirection;
-                  });
-                }
+          // Multi-Sort
+          var _existingIndex = newSorted.findIndex(function (d) {
+            return d.id === column[0].id;
+          });
+          // Existing Sorted Column
+          if (_existingIndex > -1) {
+            var _existing = newSorted[_existingIndex];
+            if (_existing.desc === secondSortDirection) {
+              if (additive) {
+                newSorted.splice(_existingIndex, column.length);
               } else {
                 column.forEach(function (d, i) {
-                  newSorted[existingIndex + i].desc = secondSortDirection;
+                  newSorted[_existingIndex + i].desc = firstSortDirection;
                 });
               }
-              if (!additive) {
-                newSorted = newSorted.slice(existingIndex, column.length);
-              }
-              // New Sort Column
-            } else if (additive) {
-              newSorted = newSorted.concat(column.map(function (d) {
-                return {
-                  id: d.id,
-                  desc: firstSortDirection
-                };
-              }));
             } else {
-              newSorted = column.map(function (d) {
-                return {
-                  id: d.id,
-                  desc: firstSortDirection
-                };
+              column.forEach(function (d, i) {
+                newSorted[_existingIndex + i].desc = secondSortDirection;
               });
             }
-          })();
+            if (!additive) {
+              newSorted = newSorted.slice(_existingIndex, column.length);
+            }
+            // New Sort Column
+          } else if (additive) {
+            newSorted = newSorted.concat(column.map(function (d) {
+              return {
+                id: d.id,
+                desc: firstSortDirection
+              };
+            }));
+          } else {
+            newSorted = column.map(function (d) {
+              return {
+                id: d.id,
+                desc: firstSortDirection
+              };
+            });
+          }
         }
 
         this.setStateWithData({
@@ -63046,7 +65401,7 @@ exports.default = function (Base) {
   }(Base);
 };
 
-},{"./utils":177,"react":320}],175:[function(require,module,exports){
+},{"./utils":190,"react":333}],188:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -63110,7 +65465,7 @@ var ReactTablePagination = function (_Component) {
   }, {
     key: 'getSafePage',
     value: function getSafePage(page) {
-      if (isNaN(page)) {
+      if (Number.isNaN(page)) {
         page = this.props.page;
       }
       return Math.min(Math.max(page, 0), this.props.pages - 1);
@@ -63157,10 +65512,7 @@ var ReactTablePagination = function (_Component) {
 
       return _react2.default.createElement(
         'div',
-        {
-          className: (0, _classnames2.default)(className, '-pagination'),
-          style: this.props.paginationStyle
-        },
+        { className: (0, _classnames2.default)(className, '-pagination'), style: this.props.style },
         _react2.default.createElement(
           'div',
           { className: '-previous' },
@@ -63224,12 +65576,9 @@ var ReactTablePagination = function (_Component) {
             { className: 'select-wrap -pageSizeOptions' },
             _react2.default.createElement(
               'select',
-              {
-                onChange: function onChange(e) {
+              { onChange: function onChange(e) {
                   return onPageSizeChange(Number(e.target.value));
-                },
-                value: pageSize
-              },
+                }, value: pageSize },
               pageSizeOptions.map(function (option, i) {
                 return (
                   // eslint-disable-next-line react/no-array-index-key
@@ -63269,7 +65618,7 @@ var ReactTablePagination = function (_Component) {
 
 exports.default = ReactTablePagination;
 
-},{"classnames":55,"react":320}],176:[function(require,module,exports){
+},{"classnames":55,"react":333}],189:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -63445,7 +65794,7 @@ exports.default = {
   PadRowComponent: _propTypes2.default.oneOfType([_propTypes2.default.func, _propTypes2.default.element])
 };
 
-},{"prop-types":124}],177:[function(require,module,exports){
+},{"prop-types":136}],190:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -63687,7 +66036,7 @@ function normalizeComponent(Comp) {
   return typeof Comp === 'function' ? Object.getPrototypeOf(Comp).isReactComponent ? _react2.default.createElement(Comp, params) : Comp(params) : fallback;
 }
 
-},{"classnames":55,"react":320}],178:[function(require,module,exports){
+},{"classnames":55,"react":333}],191:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -64088,7 +66437,7 @@ TextareaAutosize.defaultProps = {
 module.exports = TextareaAutosize;
 
 }).call(this,require('_process'))
-},{"_process":120,"prop-types":124,"react":320}],179:[function(require,module,exports){
+},{"_process":132,"prop-types":136,"react":333}],192:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -64102,7 +66451,7 @@ exports.default = {
     SHOW: '__react_tooltip_show_event'
   }
 };
-},{}],180:[function(require,module,exports){
+},{}],193:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -64191,7 +66540,7 @@ var setUntargetItems = function setUntargetItems(currentTarget, targetArray) {
 };
 
 var customListener = void 0;
-},{}],181:[function(require,module,exports){
+},{}],194:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -64204,7 +66553,7 @@ exports.default = function (target) {
     return dataEffect || this.props.effect || 'float';
   };
 };
-},{}],182:[function(require,module,exports){
+},{}],195:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -64217,7 +66566,7 @@ exports.default = function (target) {
     return dataIsCapture && dataIsCapture === 'true' || this.props.isCapture || false;
   };
 };
-},{}],183:[function(require,module,exports){
+},{}],196:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -64296,7 +66645,7 @@ var dispatchGlobalEvent = function dispatchGlobalEvent(eventName, opts) {
 }; /**
     * Static methods for react-tooltip
     */
-},{"../constant":179}],184:[function(require,module,exports){
+},{"../constant":192}],197:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -64311,52 +66660,13 @@ exports.default = function (target) {
     if (MutationObserver == null) return;
 
     var observer = new MutationObserver(function (mutations) {
-      var _iteratorNormalCompletion = true;
-      var _didIteratorError = false;
-      var _iteratorError = undefined;
-
-      try {
-        for (var _iterator = mutations[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-          var mutation = _step.value;
-          var _iteratorNormalCompletion2 = true;
-          var _didIteratorError2 = false;
-          var _iteratorError2 = undefined;
-
-          try {
-            for (var _iterator2 = mutation.removedNodes[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-              var element = _step2.value;
-
-              if (element === _this.state.currentTarget) {
-                _this.hideTooltip();
-                return;
-              }
-            }
-          } catch (err) {
-            _didIteratorError2 = true;
-            _iteratorError2 = err;
-          } finally {
-            try {
-              if (!_iteratorNormalCompletion2 && _iterator2.return) {
-                _iterator2.return();
-              }
-            } finally {
-              if (_didIteratorError2) {
-                throw _iteratorError2;
-              }
-            }
-          }
-        }
-      } catch (err) {
-        _didIteratorError = true;
-        _iteratorError = err;
-      } finally {
-        try {
-          if (!_iteratorNormalCompletion && _iterator.return) {
-            _iterator.return();
-          }
-        } finally {
-          if (_didIteratorError) {
-            throw _iteratorError;
+      for (var m1 = 0; m1 < mutations.length; m1++) {
+        var mutation = mutations[m1];
+        for (var m2 = 0; m2 < mutation.removedNodes.length; m2++) {
+          var element = mutation.removedNodes[m2];
+          if (element === _this.state.currentTarget) {
+            _this.hideTooltip();
+            return;
           }
         }
       }
@@ -64388,7 +66698,7 @@ exports.default = function (target) {
 var getMutationObserverClass = function getMutationObserverClass() {
   return window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;
 };
-},{}],185:[function(require,module,exports){
+},{}],198:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -64437,7 +66747,7 @@ var _constant = require('../constant');
 var _constant2 = _interopRequireDefault(_constant);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-},{"../constant":179}],186:[function(require,module,exports){
+},{"../constant":192}],199:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -64521,8 +66831,8 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-var ReactTooltip = (0, _staticMethods2.default)(_class = (0, _windowListener2.default)(_class = (0, _customEvent2.default)(_class = (0, _isCapture2.default)(_class = (0, _getEffect2.default)(_class = (0, _trackRemoval2.default)(_class = (_temp = _class2 = function (_Component) {
-  _inherits(ReactTooltip, _Component);
+var ReactTooltip = (0, _staticMethods2.default)(_class = (0, _windowListener2.default)(_class = (0, _customEvent2.default)(_class = (0, _isCapture2.default)(_class = (0, _getEffect2.default)(_class = (0, _trackRemoval2.default)(_class = (_temp = _class2 = function (_React$Component) {
+  _inherits(ReactTooltip, _React$Component);
 
   function ReactTooltip(props) {
     _classCallCheck(this, ReactTooltip);
@@ -64535,7 +66845,6 @@ var ReactTooltip = (0, _staticMethods2.default)(_class = (0, _windowListener2.de
       effect: 'float', // float or fixed
       show: false,
       border: false,
-      placeholder: '',
       offset: {},
       extraClass: '',
       html: false,
@@ -64547,10 +66856,12 @@ var ReactTooltip = (0, _staticMethods2.default)(_class = (0, _windowListener2.de
       currentTarget: null, // Current target of mouse event
       ariaProps: (0, _aria.parseAria)(props), // aria- and role attributes
       isEmptyTip: false,
-      disable: false
+      disable: false,
+      originTooltip: null,
+      isMultiline: false
     };
 
-    _this.bind(['showTooltip', 'updateTooltip', 'hideTooltip', 'globalRebuild', 'globalShow', 'globalHide', 'onWindowResize']);
+    _this.bind(['showTooltip', 'updateTooltip', 'hideTooltip', 'getTooltipContent', 'globalRebuild', 'globalShow', 'globalHide', 'onWindowResize']);
 
     _this.mount = true;
     _this.delayShowLoop = null;
@@ -64713,6 +67024,31 @@ var ReactTooltip = (0, _staticMethods2.default)(_class = (0, _windowListener2.de
       target.removeEventListener('mousemove', this.updateTooltip, isCaptureMode);
       target.removeEventListener('mouseleave', this.hideTooltip, isCaptureMode);
     }
+  }, {
+    key: 'getTooltipContent',
+    value: function getTooltipContent() {
+      var _props4 = this.props,
+          getContent = _props4.getContent,
+          children = _props4.children;
+
+      // Generate tooltip content
+
+      var content = void 0;
+      if (getContent) {
+        if (Array.isArray(getContent)) {
+          content = getContent[0] && getContent[0]();
+        } else {
+          content = getContent();
+        }
+      }
+
+      return (0, _getTipContent2.default)(this.state.originTooltip, children, content, this.state.isMultiline);
+    }
+  }, {
+    key: 'isEmptyTip',
+    value: function isEmptyTip(placeholder) {
+      return typeof placeholder === 'string' && placeholder === '' || placeholder === null;
+    }
 
     /**
      * When mouse enter, show the tooltip
@@ -64729,29 +67065,16 @@ var ReactTooltip = (0, _staticMethods2.default)(_class = (0, _windowListener2.de
         var isMyElement = targetArray.some(function (ele) {
           return ele === e.currentTarget;
         });
-        if (!isMyElement || this.state.show) return;
+        if (!isMyElement) return;
       }
       // Get the tooltip content
       // calculate in this phrase so that tip width height can be detected
-      var _props4 = this.props,
-          children = _props4.children,
-          multiline = _props4.multiline,
-          getContent = _props4.getContent;
+      var _props5 = this.props,
+          multiline = _props5.multiline,
+          getContent = _props5.getContent;
 
       var originTooltip = e.currentTarget.getAttribute('data-tip');
       var isMultiline = e.currentTarget.getAttribute('data-multiline') || multiline || false;
-
-      // Generate tootlip content
-      var content = void 0;
-      if (getContent) {
-        if (Array.isArray(getContent)) {
-          content = getContent[0] && getContent[0]();
-        } else {
-          content = getContent();
-        }
-      }
-      var placeholder = (0, _getTipContent2.default)(originTooltip, children, content, isMultiline);
-      var isEmptyTip = typeof placeholder === 'string' && placeholder === '' || placeholder === null;
 
       // If it is focus event or called by ReactTooltip.show, switch to `solid` effect
       var switchToSolid = e instanceof window.FocusEvent || isGlobalCall;
@@ -64768,8 +67091,9 @@ var ReactTooltip = (0, _staticMethods2.default)(_class = (0, _windowListener2.de
       this.clearTimer();
 
       this.setState({
-        placeholder: placeholder,
-        isEmptyTip: isEmptyTip,
+        originTooltip: originTooltip,
+        isMultiline: isMultiline,
+        desiredPlace: e.currentTarget.getAttribute('data-place') || this.props.place || 'top',
         place: e.currentTarget.getAttribute('data-place') || this.props.place || 'top',
         type: e.currentTarget.getAttribute('data-type') || this.props.type || 'dark',
         effect: switchToSolid && 'solid' || this.getEffect(e.currentTarget),
@@ -64789,12 +67113,12 @@ var ReactTooltip = (0, _staticMethods2.default)(_class = (0, _windowListener2.de
             if (_this5.mount) {
               var _getContent = _this5.props.getContent;
 
-              var _placeholder = (0, _getTipContent2.default)(originTooltip, _getContent[0](), isMultiline);
-              var _isEmptyTip = typeof _placeholder === 'string' && _placeholder === '';
+              var placeholder = (0, _getTipContent2.default)(originTooltip, '', _getContent[0](), isMultiline);
+              var isEmptyTip = _this5.isEmptyTip(placeholder);
               _this5.setState({
-                placeholder: _placeholder,
-                isEmptyTip: _isEmptyTip
+                isEmptyTip: isEmptyTip
               });
+              _this5.updatePosition();
             }
           }, getContent[1]);
         }
@@ -64813,15 +67137,14 @@ var ReactTooltip = (0, _staticMethods2.default)(_class = (0, _windowListener2.de
       var _state = this.state,
           delayShow = _state.delayShow,
           show = _state.show,
-          isEmptyTip = _state.isEmptyTip,
           disable = _state.disable;
       var afterShow = this.props.afterShow;
-      var placeholder = this.state.placeholder;
 
+      var placeholder = this.getTooltipContent();
       var delayTime = show ? 0 : parseInt(delayShow, 10);
       var eventTarget = e.currentTarget;
 
-      if (isEmptyTip || disable) return; // if the tooltip is empty, disable the tooltip
+      if (this.isEmptyTip(placeholder) || disable) return; // if the tooltip is empty, disable the tooltip
       var updateState = function updateState() {
         if (Array.isArray(placeholder) && placeholder.length > 0 || placeholder) {
           var isInvisible = !_this6.state.show;
@@ -64855,12 +67178,12 @@ var ReactTooltip = (0, _staticMethods2.default)(_class = (0, _windowListener2.de
 
       var _state2 = this.state,
           delayHide = _state2.delayHide,
-          isEmptyTip = _state2.isEmptyTip,
           disable = _state2.disable;
       var afterHide = this.props.afterHide;
 
+      var placeholder = this.getTooltipContent();
       if (!this.mount) return;
-      if (isEmptyTip || disable) return; // if the tooltip is empty, disable the tooltip
+      if (this.isEmptyTip(placeholder) || disable) return; // if the tooltip is empty, disable the tooltip
       if (hasTarget) {
         // Don't trigger other elements belongs to other ReactTooltip
         var targetArray = this.getTargetArray(this.props.id);
@@ -64915,11 +67238,12 @@ var ReactTooltip = (0, _staticMethods2.default)(_class = (0, _windowListener2.de
           currentEvent = _state3.currentEvent,
           currentTarget = _state3.currentTarget,
           place = _state3.place,
+          desiredPlace = _state3.desiredPlace,
           effect = _state3.effect,
           offset = _state3.offset;
 
       var node = _reactDom2.default.findDOMNode(this);
-      var result = (0, _getPosition2.default)(currentEvent, currentTarget, node, place, effect, offset);
+      var result = (0, _getPosition2.default)(currentEvent, currentTarget, node, place, desiredPlace, effect, offset);
 
       if (result.isNewState) {
         // Switch to reverse placement
@@ -64940,11 +67264,12 @@ var ReactTooltip = (0, _staticMethods2.default)(_class = (0, _windowListener2.de
   }, {
     key: 'setStyleHeader',
     value: function setStyleHeader() {
-      if (!document.getElementsByTagName('head')[0].querySelector('style[id="react-tooltip"]')) {
+      var head = document.getElementsByTagName('head')[0];
+      if (!head.querySelector('style[id="react-tooltip"]')) {
         var tag = document.createElement('style');
         tag.id = 'react-tooltip';
         tag.innerHTML = _style2.default;
-        document.getElementsByTagName('head')[0].appendChild(tag);
+        head.insertBefore(tag, head.firstChild);
       }
     }
 
@@ -64963,13 +67288,13 @@ var ReactTooltip = (0, _staticMethods2.default)(_class = (0, _windowListener2.de
     key: 'render',
     value: function render() {
       var _state4 = this.state,
-          placeholder = _state4.placeholder,
           extraClass = _state4.extraClass,
           html = _state4.html,
           ariaProps = _state4.ariaProps,
-          disable = _state4.disable,
-          isEmptyTip = _state4.isEmptyTip;
+          disable = _state4.disable;
 
+      var placeholder = this.getTooltipContent();
+      var isEmptyTip = this.isEmptyTip(placeholder);
       var tooltipClass = (0, _classnames2.default)('__react_component_tooltip', { 'show': this.state.show && !disable && !isEmptyTip }, { 'border': this.state.border }, { 'place-top': this.state.place === 'top' }, { 'place-bottom': this.state.place === 'bottom' }, { 'place-left': this.state.place === 'left' }, { 'place-right': this.state.place === 'right' }, { 'type-dark': this.state.type === 'dark' }, { 'type-success': this.state.type === 'success' }, { 'type-warning': this.state.type === 'warning' }, { 'type-error': this.state.type === 'error' }, { 'type-info': this.state.type === 'info' }, { 'type-light': this.state.type === 'light' });
 
       var Wrapper = this.props.wrapper;
@@ -64978,14 +67303,16 @@ var ReactTooltip = (0, _staticMethods2.default)(_class = (0, _windowListener2.de
       }
 
       if (html) {
-        return _react2.default.createElement(Wrapper, _extends({ className: tooltipClass + ' ' + extraClass
+        return _react2.default.createElement(Wrapper, _extends({ className: tooltipClass + ' ' + extraClass,
+          id: this.props.id
         }, ariaProps, {
           'data-id': 'tooltip',
           dangerouslySetInnerHTML: { __html: placeholder } }));
       } else {
         return _react2.default.createElement(
           Wrapper,
-          _extends({ className: tooltipClass + ' ' + extraClass
+          _extends({ className: tooltipClass + ' ' + extraClass,
+            id: this.props.id
           }, ariaProps, {
             'data-id': 'tooltip' }),
           placeholder
@@ -64995,7 +67322,7 @@ var ReactTooltip = (0, _staticMethods2.default)(_class = (0, _windowListener2.de
   }]);
 
   return ReactTooltip;
-}(_react.Component), _class2.propTypes = {
+}(_react2.default.Component), _class2.propTypes = {
   children: _propTypes2.default.any,
   place: _propTypes2.default.string,
   type: _propTypes2.default.string,
@@ -65026,20 +67353,20 @@ var ReactTooltip = (0, _staticMethods2.default)(_class = (0, _windowListener2.de
   insecure: true,
   resizeHide: true,
   wrapper: 'div'
-}, _class2.supportedWrappers = ['div', 'span'], _temp)) || _class) || _class) || _class) || _class) || _class) || _class;
+}, _class2.supportedWrappers = ['div', 'span'], _class2.displayName = 'ReactTooltip', _temp)) || _class) || _class) || _class) || _class) || _class) || _class;
 
 /* export default not fit for standalone, it will exports {default:...} */
 
 
 module.exports = ReactTooltip;
-},{"./decorators/customEvent":180,"./decorators/getEffect":181,"./decorators/isCapture":182,"./decorators/staticMethods":183,"./decorators/trackRemoval":184,"./decorators/windowListener":185,"./style":187,"./utils/aria":188,"./utils/getPosition":189,"./utils/getTipContent":190,"./utils/nodeListToArray":191,"classnames":55,"prop-types":124,"react":320,"react-dom":131}],187:[function(require,module,exports){
+},{"./decorators/customEvent":193,"./decorators/getEffect":194,"./decorators/isCapture":195,"./decorators/staticMethods":196,"./decorators/trackRemoval":197,"./decorators/windowListener":198,"./style":200,"./utils/aria":201,"./utils/getPosition":202,"./utils/getTipContent":203,"./utils/nodeListToArray":204,"classnames":55,"prop-types":136,"react":333,"react-dom":143}],200:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.default = '.__react_component_tooltip{border-radius:3px;display:inline-block;font-size:13px;left:-999em;opacity:0;padding:8px 21px;position:fixed;pointer-events:none;transition:opacity 0.3s ease-out;top:-999em;visibility:hidden;z-index:999}.__react_component_tooltip:before,.__react_component_tooltip:after{content:"";width:0;height:0;position:absolute}.__react_component_tooltip.show{opacity:0.9;margin-top:0px;margin-left:0px;visibility:visible}.__react_component_tooltip.type-dark{color:#fff;background-color:#222}.__react_component_tooltip.type-dark.place-top:after{border-top-color:#222;border-top-style:solid;border-top-width:6px}.__react_component_tooltip.type-dark.place-bottom:after{border-bottom-color:#222;border-bottom-style:solid;border-bottom-width:6px}.__react_component_tooltip.type-dark.place-left:after{border-left-color:#222;border-left-style:solid;border-left-width:6px}.__react_component_tooltip.type-dark.place-right:after{border-right-color:#222;border-right-style:solid;border-right-width:6px}.__react_component_tooltip.type-dark.border{border:1px solid #fff}.__react_component_tooltip.type-dark.border.place-top:before{border-top:8px solid #fff}.__react_component_tooltip.type-dark.border.place-bottom:before{border-bottom:8px solid #fff}.__react_component_tooltip.type-dark.border.place-left:before{border-left:8px solid #fff}.__react_component_tooltip.type-dark.border.place-right:before{border-right:8px solid #fff}.__react_component_tooltip.type-success{color:#fff;background-color:#8DC572}.__react_component_tooltip.type-success.place-top:after{border-top-color:#8DC572;border-top-style:solid;border-top-width:6px}.__react_component_tooltip.type-success.place-bottom:after{border-bottom-color:#8DC572;border-bottom-style:solid;border-bottom-width:6px}.__react_component_tooltip.type-success.place-left:after{border-left-color:#8DC572;border-left-style:solid;border-left-width:6px}.__react_component_tooltip.type-success.place-right:after{border-right-color:#8DC572;border-right-style:solid;border-right-width:6px}.__react_component_tooltip.type-success.border{border:1px solid #fff}.__react_component_tooltip.type-success.border.place-top:before{border-top:8px solid #fff}.__react_component_tooltip.type-success.border.place-bottom:before{border-bottom:8px solid #fff}.__react_component_tooltip.type-success.border.place-left:before{border-left:8px solid #fff}.__react_component_tooltip.type-success.border.place-right:before{border-right:8px solid #fff}.__react_component_tooltip.type-warning{color:#fff;background-color:#F0AD4E}.__react_component_tooltip.type-warning.place-top:after{border-top-color:#F0AD4E;border-top-style:solid;border-top-width:6px}.__react_component_tooltip.type-warning.place-bottom:after{border-bottom-color:#F0AD4E;border-bottom-style:solid;border-bottom-width:6px}.__react_component_tooltip.type-warning.place-left:after{border-left-color:#F0AD4E;border-left-style:solid;border-left-width:6px}.__react_component_tooltip.type-warning.place-right:after{border-right-color:#F0AD4E;border-right-style:solid;border-right-width:6px}.__react_component_tooltip.type-warning.border{border:1px solid #fff}.__react_component_tooltip.type-warning.border.place-top:before{border-top:8px solid #fff}.__react_component_tooltip.type-warning.border.place-bottom:before{border-bottom:8px solid #fff}.__react_component_tooltip.type-warning.border.place-left:before{border-left:8px solid #fff}.__react_component_tooltip.type-warning.border.place-right:before{border-right:8px solid #fff}.__react_component_tooltip.type-error{color:#fff;background-color:#BE6464}.__react_component_tooltip.type-error.place-top:after{border-top-color:#BE6464;border-top-style:solid;border-top-width:6px}.__react_component_tooltip.type-error.place-bottom:after{border-bottom-color:#BE6464;border-bottom-style:solid;border-bottom-width:6px}.__react_component_tooltip.type-error.place-left:after{border-left-color:#BE6464;border-left-style:solid;border-left-width:6px}.__react_component_tooltip.type-error.place-right:after{border-right-color:#BE6464;border-right-style:solid;border-right-width:6px}.__react_component_tooltip.type-error.border{border:1px solid #fff}.__react_component_tooltip.type-error.border.place-top:before{border-top:8px solid #fff}.__react_component_tooltip.type-error.border.place-bottom:before{border-bottom:8px solid #fff}.__react_component_tooltip.type-error.border.place-left:before{border-left:8px solid #fff}.__react_component_tooltip.type-error.border.place-right:before{border-right:8px solid #fff}.__react_component_tooltip.type-info{color:#fff;background-color:#337AB7}.__react_component_tooltip.type-info.place-top:after{border-top-color:#337AB7;border-top-style:solid;border-top-width:6px}.__react_component_tooltip.type-info.place-bottom:after{border-bottom-color:#337AB7;border-bottom-style:solid;border-bottom-width:6px}.__react_component_tooltip.type-info.place-left:after{border-left-color:#337AB7;border-left-style:solid;border-left-width:6px}.__react_component_tooltip.type-info.place-right:after{border-right-color:#337AB7;border-right-style:solid;border-right-width:6px}.__react_component_tooltip.type-info.border{border:1px solid #fff}.__react_component_tooltip.type-info.border.place-top:before{border-top:8px solid #fff}.__react_component_tooltip.type-info.border.place-bottom:before{border-bottom:8px solid #fff}.__react_component_tooltip.type-info.border.place-left:before{border-left:8px solid #fff}.__react_component_tooltip.type-info.border.place-right:before{border-right:8px solid #fff}.__react_component_tooltip.type-light{color:#222;background-color:#fff}.__react_component_tooltip.type-light.place-top:after{border-top-color:#fff;border-top-style:solid;border-top-width:6px}.__react_component_tooltip.type-light.place-bottom:after{border-bottom-color:#fff;border-bottom-style:solid;border-bottom-width:6px}.__react_component_tooltip.type-light.place-left:after{border-left-color:#fff;border-left-style:solid;border-left-width:6px}.__react_component_tooltip.type-light.place-right:after{border-right-color:#fff;border-right-style:solid;border-right-width:6px}.__react_component_tooltip.type-light.border{border:1px solid #222}.__react_component_tooltip.type-light.border.place-top:before{border-top:8px solid #222}.__react_component_tooltip.type-light.border.place-bottom:before{border-bottom:8px solid #222}.__react_component_tooltip.type-light.border.place-left:before{border-left:8px solid #222}.__react_component_tooltip.type-light.border.place-right:before{border-right:8px solid #222}.__react_component_tooltip.place-top{margin-top:-10px}.__react_component_tooltip.place-top:before{border-left:10px solid transparent;border-right:10px solid transparent;bottom:-8px;left:50%;margin-left:-10px}.__react_component_tooltip.place-top:after{border-left:8px solid transparent;border-right:8px solid transparent;bottom:-6px;left:50%;margin-left:-8px}.__react_component_tooltip.place-bottom{margin-top:10px}.__react_component_tooltip.place-bottom:before{border-left:10px solid transparent;border-right:10px solid transparent;top:-8px;left:50%;margin-left:-10px}.__react_component_tooltip.place-bottom:after{border-left:8px solid transparent;border-right:8px solid transparent;top:-6px;left:50%;margin-left:-8px}.__react_component_tooltip.place-left{margin-left:-10px}.__react_component_tooltip.place-left:before{border-top:6px solid transparent;border-bottom:6px solid transparent;right:-8px;top:50%;margin-top:-5px}.__react_component_tooltip.place-left:after{border-top:5px solid transparent;border-bottom:5px solid transparent;right:-6px;top:50%;margin-top:-4px}.__react_component_tooltip.place-right{margin-left:10px}.__react_component_tooltip.place-right:before{border-top:6px solid transparent;border-bottom:6px solid transparent;left:-8px;top:50%;margin-top:-5px}.__react_component_tooltip.place-right:after{border-top:5px solid transparent;border-bottom:5px solid transparent;left:-6px;top:50%;margin-top:-4px}.__react_component_tooltip .multi-line{display:block;padding:2px 0px;text-align:center}';
-},{}],188:[function(require,module,exports){
+},{}],201:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -65064,22 +67391,27 @@ function parseAria(props) {
 
   return ariaObj;
 }
-},{}],189:[function(require,module,exports){
+},{}],202:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-exports.default = function (e, target, node, place, effect, offset) {
-  var tipWidth = node.clientWidth;
-  var tipHeight = node.clientHeight;
+exports.default = function (e, target, node, place, desiredPlace, effect, offset) {
+  var _getDimensions = getDimensions(node),
+      tipWidth = _getDimensions.width,
+      tipHeight = _getDimensions.height;
+
+  var _getDimensions2 = getDimensions(target),
+      targetWidth = _getDimensions2.width,
+      targetHeight = _getDimensions2.height;
 
   var _getCurrentOffset = getCurrentOffset(e, target, effect),
       mouseX = _getCurrentOffset.mouseX,
       mouseY = _getCurrentOffset.mouseY;
 
-  var defaultOffset = getDefaultPosition(effect, target.clientWidth, target.clientHeight, tipWidth, tipHeight);
+  var defaultOffset = getDefaultPosition(effect, targetWidth, targetHeight, tipWidth, tipHeight);
 
   var _calculateOffset = calculateOffset(offset),
       extraOffset_X = _calculateOffset.extraOffset_X,
@@ -65226,6 +67558,31 @@ exports.default = function (e, target, node, place, effect, offset) {
     };
   }
 
+  // Change back to original place if possible
+  if (place !== desiredPlace) {
+    if (desiredPlace === 'top' && !outsideTopResult.result) {
+      return {
+        isNewState: true,
+        newState: { place: 'top' }
+      };
+    } else if (desiredPlace === 'left' && !outsideLeftResult.result) {
+      return {
+        isNewState: true,
+        newState: { place: 'left' }
+      };
+    } else if (desiredPlace === 'right' && !outsideRightResult.result) {
+      return {
+        isNewState: true,
+        newState: { place: 'right' }
+      };
+    } else if (desiredPlace === 'bottom' && !outsideBottomResult.result) {
+      return {
+        isNewState: true,
+        newState: { place: 'bottom' }
+      };
+    }
+  }
+
   // Return tooltip offset position
   return {
     isNewState: false,
@@ -65236,28 +67593,18 @@ exports.default = function (e, target, node, place, effect, offset) {
   };
 };
 
-// Get current mouse offset
-var getCurrentOffset = function getCurrentOffset(e, currentTarget, effect) {
-  var boundingClientRect = currentTarget.getBoundingClientRect();
-  var targetTop = boundingClientRect.top;
-  var targetLeft = boundingClientRect.left;
-  var targetWidth = currentTarget.clientWidth;
-  var targetHeight = currentTarget.clientHeight;
+var getDimensions = function getDimensions(node) {
+  var _node$getBoundingClie = node.getBoundingClientRect(),
+      height = _node$getBoundingClie.height,
+      width = _node$getBoundingClie.width;
 
-  if (effect === 'float') {
-    return {
-      mouseX: e.clientX,
-      mouseY: e.clientY
-    };
-  }
   return {
-    mouseX: targetLeft + targetWidth / 2,
-    mouseY: targetTop + targetHeight / 2
+    height: parseInt(height, 10),
+    width: parseInt(width, 10)
   };
 };
 
-// List all possibility of tooltip final offset
-// This is useful in judging if it is necessary for tooltip to switch position when out of window
+// Get current mouse offset
 /**
  * Calculate the position of tooltip
  *
@@ -65274,6 +67621,29 @@ var getCurrentOffset = function getCurrentOffset(e, currentTarget, effect) {
  * - `newState` {Object}
  * - `position` {OBject} {left: {Number}, top: {Number}}
  */
+var getCurrentOffset = function getCurrentOffset(e, currentTarget, effect) {
+  var boundingClientRect = currentTarget.getBoundingClientRect();
+  var targetTop = boundingClientRect.top;
+  var targetLeft = boundingClientRect.left;
+
+  var _getDimensions3 = getDimensions(currentTarget),
+      targetWidth = _getDimensions3.width,
+      targetHeight = _getDimensions3.height;
+
+  if (effect === 'float') {
+    return {
+      mouseX: e.clientX,
+      mouseY: e.clientY
+    };
+  }
+  return {
+    mouseX: targetLeft + targetWidth / 2,
+    mouseY: targetTop + targetHeight / 2
+  };
+};
+
+// List all possibility of tooltip final offset
+// This is useful in judging if it is necessary for tooltip to switch position when out of window
 var getDefaultPosition = function getDefaultPosition(effect, targetWidth, targetHeight, tipWidth, tipHeight) {
   var top = void 0;
   var right = void 0;
@@ -65374,7 +67744,7 @@ var getParent = function getParent(currentTarget) {
 
   return { parentTop: parentTop, parentLeft: parentLeft };
 };
-},{}],190:[function(require,module,exports){
+},{}],203:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -65407,7 +67777,7 @@ var _react = require('react');
 var _react2 = _interopRequireDefault(_react);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-},{"react":320}],191:[function(require,module,exports){
+},{"react":333}],204:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -65423,7 +67793,7 @@ exports.default = function (nodeList) {
     return nodeList[index];
   });
 };
-},{}],192:[function(require,module,exports){
+},{}],205:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -65460,7 +67830,7 @@ var AutoFocusUtils = {
 };
 
 module.exports = AutoFocusUtils;
-},{"./ReactMount":256,"./findDOMNode":299,"fbjs/lib/focusNode":68}],193:[function(require,module,exports){
+},{"./ReactMount":269,"./findDOMNode":312,"fbjs/lib/focusNode":79}],206:[function(require,module,exports){
 /**
  * Copyright 2013-2015 Facebook, Inc.
  * All rights reserved.
@@ -65866,7 +68236,7 @@ var BeforeInputEventPlugin = {
 };
 
 module.exports = BeforeInputEventPlugin;
-},{"./EventConstants":205,"./EventPropagators":209,"./FallbackCompositionState":210,"./SyntheticCompositionEvent":281,"./SyntheticInputEvent":285,"fbjs/lib/ExecutionEnvironment":60,"fbjs/lib/keyOf":78}],194:[function(require,module,exports){
+},{"./EventConstants":218,"./EventPropagators":222,"./FallbackCompositionState":223,"./SyntheticCompositionEvent":294,"./SyntheticInputEvent":298,"fbjs/lib/ExecutionEnvironment":71,"fbjs/lib/keyOf":89}],207:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -66006,7 +68376,7 @@ var CSSProperty = {
 };
 
 module.exports = CSSProperty;
-},{}],195:[function(require,module,exports){
+},{}],208:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -66184,7 +68554,7 @@ ReactPerf.measureMethods(CSSPropertyOperations, 'CSSPropertyOperations', {
 
 module.exports = CSSPropertyOperations;
 }).call(this,require('_process'))
-},{"./CSSProperty":194,"./ReactPerf":262,"./dangerousStyleValue":296,"_process":120,"fbjs/lib/ExecutionEnvironment":60,"fbjs/lib/camelizeStyleName":62,"fbjs/lib/hyphenateStyleName":73,"fbjs/lib/memoizeStringOnly":80,"fbjs/lib/warning":85}],196:[function(require,module,exports){
+},{"./CSSProperty":207,"./ReactPerf":275,"./dangerousStyleValue":309,"_process":132,"fbjs/lib/ExecutionEnvironment":71,"fbjs/lib/camelizeStyleName":73,"fbjs/lib/hyphenateStyleName":84,"fbjs/lib/memoizeStringOnly":91,"fbjs/lib/warning":96}],209:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -66280,7 +68650,7 @@ PooledClass.addPoolingTo(CallbackQueue);
 
 module.exports = CallbackQueue;
 }).call(this,require('_process'))
-},{"./Object.assign":213,"./PooledClass":214,"_process":120,"fbjs/lib/invariant":74}],197:[function(require,module,exports){
+},{"./Object.assign":226,"./PooledClass":227,"_process":132,"fbjs/lib/invariant":85}],210:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -66602,7 +68972,7 @@ var ChangeEventPlugin = {
 };
 
 module.exports = ChangeEventPlugin;
-},{"./EventConstants":205,"./EventPluginHub":206,"./EventPropagators":209,"./ReactUpdates":274,"./SyntheticEvent":283,"./getEventTarget":305,"./isEventSupported":310,"./isTextInputElement":311,"fbjs/lib/ExecutionEnvironment":60,"fbjs/lib/keyOf":78}],198:[function(require,module,exports){
+},{"./EventConstants":218,"./EventPluginHub":219,"./EventPropagators":222,"./ReactUpdates":287,"./SyntheticEvent":296,"./getEventTarget":318,"./isEventSupported":323,"./isTextInputElement":324,"fbjs/lib/ExecutionEnvironment":71,"fbjs/lib/keyOf":89}],211:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -66626,7 +68996,7 @@ var ClientReactRootIndex = {
 };
 
 module.exports = ClientReactRootIndex;
-},{}],199:[function(require,module,exports){
+},{}],212:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -66758,7 +69128,7 @@ ReactPerf.measureMethods(DOMChildrenOperations, 'DOMChildrenOperations', {
 
 module.exports = DOMChildrenOperations;
 }).call(this,require('_process'))
-},{"./Danger":202,"./ReactMultiChildUpdateTypes":258,"./ReactPerf":262,"./setInnerHTML":315,"./setTextContent":316,"_process":120,"fbjs/lib/invariant":74}],200:[function(require,module,exports){
+},{"./Danger":215,"./ReactMultiChildUpdateTypes":271,"./ReactPerf":275,"./setInnerHTML":328,"./setTextContent":329,"_process":132,"fbjs/lib/invariant":85}],213:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -66995,7 +69365,7 @@ var DOMProperty = {
 
 module.exports = DOMProperty;
 }).call(this,require('_process'))
-},{"_process":120,"fbjs/lib/invariant":74}],201:[function(require,module,exports){
+},{"_process":132,"fbjs/lib/invariant":85}],214:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -67223,7 +69593,7 @@ ReactPerf.measureMethods(DOMPropertyOperations, 'DOMPropertyOperations', {
 
 module.exports = DOMPropertyOperations;
 }).call(this,require('_process'))
-},{"./DOMProperty":200,"./ReactPerf":262,"./quoteAttributeValueForBrowser":313,"_process":120,"fbjs/lib/warning":85}],202:[function(require,module,exports){
+},{"./DOMProperty":213,"./ReactPerf":275,"./quoteAttributeValueForBrowser":326,"_process":132,"fbjs/lib/warning":96}],215:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -67371,7 +69741,7 @@ var Danger = {
 
 module.exports = Danger;
 }).call(this,require('_process'))
-},{"_process":120,"fbjs/lib/ExecutionEnvironment":60,"fbjs/lib/createNodesFromMarkup":65,"fbjs/lib/emptyFunction":66,"fbjs/lib/getMarkupWrap":70,"fbjs/lib/invariant":74}],203:[function(require,module,exports){
+},{"_process":132,"fbjs/lib/ExecutionEnvironment":71,"fbjs/lib/createNodesFromMarkup":76,"fbjs/lib/emptyFunction":77,"fbjs/lib/getMarkupWrap":81,"fbjs/lib/invariant":85}],216:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -67399,7 +69769,7 @@ var keyOf = require('fbjs/lib/keyOf');
 var DefaultEventPluginOrder = [keyOf({ ResponderEventPlugin: null }), keyOf({ SimpleEventPlugin: null }), keyOf({ TapEventPlugin: null }), keyOf({ EnterLeaveEventPlugin: null }), keyOf({ ChangeEventPlugin: null }), keyOf({ SelectEventPlugin: null }), keyOf({ BeforeInputEventPlugin: null })];
 
 module.exports = DefaultEventPluginOrder;
-},{"fbjs/lib/keyOf":78}],204:[function(require,module,exports){
+},{"fbjs/lib/keyOf":89}],217:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -67524,7 +69894,7 @@ var EnterLeaveEventPlugin = {
 };
 
 module.exports = EnterLeaveEventPlugin;
-},{"./EventConstants":205,"./EventPropagators":209,"./ReactMount":256,"./SyntheticMouseEvent":287,"fbjs/lib/keyOf":78}],205:[function(require,module,exports){
+},{"./EventConstants":218,"./EventPropagators":222,"./ReactMount":269,"./SyntheticMouseEvent":300,"fbjs/lib/keyOf":89}],218:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -67617,7 +69987,7 @@ var EventConstants = {
 };
 
 module.exports = EventConstants;
-},{"fbjs/lib/keyMirror":77}],206:[function(require,module,exports){
+},{"fbjs/lib/keyMirror":88}],219:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -67899,7 +70269,7 @@ var EventPluginHub = {
 
 module.exports = EventPluginHub;
 }).call(this,require('_process'))
-},{"./EventPluginRegistry":207,"./EventPluginUtils":208,"./ReactErrorUtils":247,"./accumulateInto":293,"./forEachAccumulated":301,"_process":120,"fbjs/lib/invariant":74,"fbjs/lib/warning":85}],207:[function(require,module,exports){
+},{"./EventPluginRegistry":220,"./EventPluginUtils":221,"./ReactErrorUtils":260,"./accumulateInto":306,"./forEachAccumulated":314,"_process":132,"fbjs/lib/invariant":85,"fbjs/lib/warning":96}],220:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -68122,7 +70492,7 @@ var EventPluginRegistry = {
 
 module.exports = EventPluginRegistry;
 }).call(this,require('_process'))
-},{"_process":120,"fbjs/lib/invariant":74}],208:[function(require,module,exports){
+},{"_process":132,"fbjs/lib/invariant":85}],221:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -68327,7 +70697,7 @@ var EventPluginUtils = {
 
 module.exports = EventPluginUtils;
 }).call(this,require('_process'))
-},{"./EventConstants":205,"./ReactErrorUtils":247,"_process":120,"fbjs/lib/invariant":74,"fbjs/lib/warning":85}],209:[function(require,module,exports){
+},{"./EventConstants":218,"./ReactErrorUtils":260,"_process":132,"fbjs/lib/invariant":85,"fbjs/lib/warning":96}],222:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -68465,7 +70835,7 @@ var EventPropagators = {
 
 module.exports = EventPropagators;
 }).call(this,require('_process'))
-},{"./EventConstants":205,"./EventPluginHub":206,"./accumulateInto":293,"./forEachAccumulated":301,"_process":120,"fbjs/lib/warning":85}],210:[function(require,module,exports){
+},{"./EventConstants":218,"./EventPluginHub":219,"./accumulateInto":306,"./forEachAccumulated":314,"_process":132,"fbjs/lib/warning":96}],223:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -68561,7 +70931,7 @@ assign(FallbackCompositionState.prototype, {
 PooledClass.addPoolingTo(FallbackCompositionState);
 
 module.exports = FallbackCompositionState;
-},{"./Object.assign":213,"./PooledClass":214,"./getTextContentAccessor":308}],211:[function(require,module,exports){
+},{"./Object.assign":226,"./PooledClass":227,"./getTextContentAccessor":321}],224:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -68792,7 +71162,7 @@ var HTMLDOMPropertyConfig = {
 };
 
 module.exports = HTMLDOMPropertyConfig;
-},{"./DOMProperty":200,"fbjs/lib/ExecutionEnvironment":60}],212:[function(require,module,exports){
+},{"./DOMProperty":213,"fbjs/lib/ExecutionEnvironment":71}],225:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -68929,7 +71299,7 @@ var LinkedValueUtils = {
 
 module.exports = LinkedValueUtils;
 }).call(this,require('_process'))
-},{"./ReactPropTypeLocations":264,"./ReactPropTypes":265,"_process":120,"fbjs/lib/invariant":74,"fbjs/lib/warning":85}],213:[function(require,module,exports){
+},{"./ReactPropTypeLocations":277,"./ReactPropTypes":278,"_process":132,"fbjs/lib/invariant":85,"fbjs/lib/warning":96}],226:[function(require,module,exports){
 /**
  * Copyright 2014-2015, Facebook, Inc.
  * All rights reserved.
@@ -68977,7 +71347,7 @@ function assign(target, sources) {
 }
 
 module.exports = assign;
-},{}],214:[function(require,module,exports){
+},{}],227:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -69099,7 +71469,7 @@ var PooledClass = {
 
 module.exports = PooledClass;
 }).call(this,require('_process'))
-},{"_process":120,"fbjs/lib/invariant":74}],215:[function(require,module,exports){
+},{"_process":132,"fbjs/lib/invariant":85}],228:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -69140,7 +71510,7 @@ React.__SECRET_DOM_DO_NOT_USE_OR_YOU_WILL_BE_FIRED = ReactDOM;
 React.__SECRET_DOM_SERVER_DO_NOT_USE_OR_YOU_WILL_BE_FIRED = ReactDOMServer;
 
 module.exports = React;
-},{"./Object.assign":213,"./ReactDOM":226,"./ReactDOMServer":236,"./ReactIsomorphic":254,"./deprecated":297}],216:[function(require,module,exports){
+},{"./Object.assign":226,"./ReactDOM":239,"./ReactDOMServer":249,"./ReactIsomorphic":267,"./deprecated":310}],229:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -69179,7 +71549,7 @@ var ReactBrowserComponentMixin = {
 
 module.exports = ReactBrowserComponentMixin;
 }).call(this,require('_process'))
-},{"./ReactInstanceMap":253,"./findDOMNode":299,"_process":120,"fbjs/lib/warning":85}],217:[function(require,module,exports){
+},{"./ReactInstanceMap":266,"./findDOMNode":312,"_process":132,"fbjs/lib/warning":96}],230:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -69504,7 +71874,7 @@ ReactPerf.measureMethods(ReactBrowserEventEmitter, 'ReactBrowserEventEmitter', {
 });
 
 module.exports = ReactBrowserEventEmitter;
-},{"./EventConstants":205,"./EventPluginHub":206,"./EventPluginRegistry":207,"./Object.assign":213,"./ReactEventEmitterMixin":248,"./ReactPerf":262,"./ViewportMetrics":292,"./isEventSupported":310}],218:[function(require,module,exports){
+},{"./EventConstants":218,"./EventPluginHub":219,"./EventPluginRegistry":220,"./Object.assign":226,"./ReactEventEmitterMixin":261,"./ReactPerf":275,"./ViewportMetrics":305,"./isEventSupported":323}],231:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2014-2015, Facebook, Inc.
@@ -69629,7 +71999,7 @@ var ReactChildReconciler = {
 
 module.exports = ReactChildReconciler;
 }).call(this,require('_process'))
-},{"./ReactReconciler":267,"./instantiateReactComponent":309,"./shouldUpdateReactComponent":317,"./traverseAllChildren":318,"_process":120,"fbjs/lib/warning":85}],219:[function(require,module,exports){
+},{"./ReactReconciler":280,"./instantiateReactComponent":322,"./shouldUpdateReactComponent":330,"./traverseAllChildren":331,"_process":132,"fbjs/lib/warning":96}],232:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -69812,7 +72182,7 @@ var ReactChildren = {
 };
 
 module.exports = ReactChildren;
-},{"./PooledClass":214,"./ReactElement":243,"./traverseAllChildren":318,"fbjs/lib/emptyFunction":66}],220:[function(require,module,exports){
+},{"./PooledClass":227,"./ReactElement":256,"./traverseAllChildren":331,"fbjs/lib/emptyFunction":77}],233:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -70586,7 +72956,7 @@ var ReactClass = {
 
 module.exports = ReactClass;
 }).call(this,require('_process'))
-},{"./Object.assign":213,"./ReactComponent":221,"./ReactElement":243,"./ReactNoopUpdateQueue":260,"./ReactPropTypeLocationNames":263,"./ReactPropTypeLocations":264,"_process":120,"fbjs/lib/emptyObject":67,"fbjs/lib/invariant":74,"fbjs/lib/keyMirror":77,"fbjs/lib/keyOf":78,"fbjs/lib/warning":85}],221:[function(require,module,exports){
+},{"./Object.assign":226,"./ReactComponent":234,"./ReactElement":256,"./ReactNoopUpdateQueue":273,"./ReactPropTypeLocationNames":276,"./ReactPropTypeLocations":277,"_process":132,"fbjs/lib/emptyObject":78,"fbjs/lib/invariant":85,"fbjs/lib/keyMirror":88,"fbjs/lib/keyOf":89,"fbjs/lib/warning":96}],234:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -70711,7 +73081,7 @@ if (process.env.NODE_ENV !== 'production') {
 
 module.exports = ReactComponent;
 }).call(this,require('_process'))
-},{"./ReactNoopUpdateQueue":260,"./canDefineProperty":295,"_process":120,"fbjs/lib/emptyObject":67,"fbjs/lib/invariant":74,"fbjs/lib/warning":85}],222:[function(require,module,exports){
+},{"./ReactNoopUpdateQueue":273,"./canDefineProperty":308,"_process":132,"fbjs/lib/emptyObject":78,"fbjs/lib/invariant":85,"fbjs/lib/warning":96}],235:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -70753,7 +73123,7 @@ var ReactComponentBrowserEnvironment = {
 };
 
 module.exports = ReactComponentBrowserEnvironment;
-},{"./ReactDOMIDOperations":231,"./ReactMount":256}],223:[function(require,module,exports){
+},{"./ReactDOMIDOperations":244,"./ReactMount":269}],236:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2014-2015, Facebook, Inc.
@@ -70807,7 +73177,7 @@ var ReactComponentEnvironment = {
 
 module.exports = ReactComponentEnvironment;
 }).call(this,require('_process'))
-},{"_process":120,"fbjs/lib/invariant":74}],224:[function(require,module,exports){
+},{"_process":132,"fbjs/lib/invariant":85}],237:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -71504,7 +73874,7 @@ var ReactCompositeComponent = {
 
 module.exports = ReactCompositeComponent;
 }).call(this,require('_process'))
-},{"./Object.assign":213,"./ReactComponentEnvironment":223,"./ReactCurrentOwner":225,"./ReactElement":243,"./ReactInstanceMap":253,"./ReactPerf":262,"./ReactPropTypeLocationNames":263,"./ReactPropTypeLocations":264,"./ReactReconciler":267,"./ReactUpdateQueue":273,"./shouldUpdateReactComponent":317,"_process":120,"fbjs/lib/emptyObject":67,"fbjs/lib/invariant":74,"fbjs/lib/warning":85}],225:[function(require,module,exports){
+},{"./Object.assign":226,"./ReactComponentEnvironment":236,"./ReactCurrentOwner":238,"./ReactElement":256,"./ReactInstanceMap":266,"./ReactPerf":275,"./ReactPropTypeLocationNames":276,"./ReactPropTypeLocations":277,"./ReactReconciler":280,"./ReactUpdateQueue":286,"./shouldUpdateReactComponent":330,"_process":132,"fbjs/lib/emptyObject":78,"fbjs/lib/invariant":85,"fbjs/lib/warning":96}],238:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -71535,7 +73905,7 @@ var ReactCurrentOwner = {
 };
 
 module.exports = ReactCurrentOwner;
-},{}],226:[function(require,module,exports){
+},{}],239:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -71630,7 +74000,7 @@ if (process.env.NODE_ENV !== 'production') {
 
 module.exports = React;
 }).call(this,require('_process'))
-},{"./ReactCurrentOwner":225,"./ReactDOMTextComponent":237,"./ReactDefaultInjection":240,"./ReactInstanceHandles":252,"./ReactMount":256,"./ReactPerf":262,"./ReactReconciler":267,"./ReactUpdates":274,"./ReactVersion":275,"./findDOMNode":299,"./renderSubtreeIntoContainer":314,"_process":120,"fbjs/lib/ExecutionEnvironment":60,"fbjs/lib/warning":85}],227:[function(require,module,exports){
+},{"./ReactCurrentOwner":238,"./ReactDOMTextComponent":250,"./ReactDefaultInjection":253,"./ReactInstanceHandles":265,"./ReactMount":269,"./ReactPerf":275,"./ReactReconciler":280,"./ReactUpdates":287,"./ReactVersion":288,"./findDOMNode":312,"./renderSubtreeIntoContainer":327,"_process":132,"fbjs/lib/ExecutionEnvironment":71,"fbjs/lib/warning":96}],240:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -71681,7 +74051,7 @@ var ReactDOMButton = {
 };
 
 module.exports = ReactDOMButton;
-},{}],228:[function(require,module,exports){
+},{}],241:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -72646,7 +75016,7 @@ assign(ReactDOMComponent.prototype, ReactDOMComponent.Mixin, ReactMultiChild.Mix
 
 module.exports = ReactDOMComponent;
 }).call(this,require('_process'))
-},{"./AutoFocusUtils":192,"./CSSPropertyOperations":195,"./DOMProperty":200,"./DOMPropertyOperations":201,"./EventConstants":205,"./Object.assign":213,"./ReactBrowserEventEmitter":217,"./ReactComponentBrowserEnvironment":222,"./ReactDOMButton":227,"./ReactDOMInput":232,"./ReactDOMOption":233,"./ReactDOMSelect":234,"./ReactDOMTextarea":238,"./ReactMount":256,"./ReactMultiChild":257,"./ReactPerf":262,"./ReactUpdateQueue":273,"./canDefineProperty":295,"./escapeTextContentForBrowser":298,"./isEventSupported":310,"./setInnerHTML":315,"./setTextContent":316,"./validateDOMNesting":319,"_process":120,"fbjs/lib/invariant":74,"fbjs/lib/keyOf":78,"fbjs/lib/shallowEqual":83,"fbjs/lib/warning":85}],229:[function(require,module,exports){
+},{"./AutoFocusUtils":205,"./CSSPropertyOperations":208,"./DOMProperty":213,"./DOMPropertyOperations":214,"./EventConstants":218,"./Object.assign":226,"./ReactBrowserEventEmitter":230,"./ReactComponentBrowserEnvironment":235,"./ReactDOMButton":240,"./ReactDOMInput":245,"./ReactDOMOption":246,"./ReactDOMSelect":247,"./ReactDOMTextarea":251,"./ReactMount":269,"./ReactMultiChild":270,"./ReactPerf":275,"./ReactUpdateQueue":286,"./canDefineProperty":308,"./escapeTextContentForBrowser":311,"./isEventSupported":323,"./setInnerHTML":328,"./setTextContent":329,"./validateDOMNesting":332,"_process":132,"fbjs/lib/invariant":85,"fbjs/lib/keyOf":89,"fbjs/lib/shallowEqual":94,"fbjs/lib/warning":96}],242:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -72826,7 +75196,7 @@ var ReactDOMFactories = mapObject({
 
 module.exports = ReactDOMFactories;
 }).call(this,require('_process'))
-},{"./ReactElement":243,"./ReactElementValidator":244,"_process":120,"fbjs/lib/mapObject":79}],230:[function(require,module,exports){
+},{"./ReactElement":256,"./ReactElementValidator":257,"_process":132,"fbjs/lib/mapObject":90}],243:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -72845,7 +75215,7 @@ var ReactDOMFeatureFlags = {
 };
 
 module.exports = ReactDOMFeatureFlags;
-},{}],231:[function(require,module,exports){
+},{}],244:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -72942,7 +75312,7 @@ ReactPerf.measureMethods(ReactDOMIDOperations, 'ReactDOMIDOperations', {
 
 module.exports = ReactDOMIDOperations;
 }).call(this,require('_process'))
-},{"./DOMChildrenOperations":199,"./DOMPropertyOperations":201,"./ReactMount":256,"./ReactPerf":262,"_process":120,"fbjs/lib/invariant":74}],232:[function(require,module,exports){
+},{"./DOMChildrenOperations":212,"./DOMPropertyOperations":214,"./ReactMount":269,"./ReactPerf":275,"_process":132,"fbjs/lib/invariant":85}],245:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -73098,7 +75468,7 @@ function _handleChange(event) {
 
 module.exports = ReactDOMInput;
 }).call(this,require('_process'))
-},{"./LinkedValueUtils":212,"./Object.assign":213,"./ReactDOMIDOperations":231,"./ReactMount":256,"./ReactUpdates":274,"_process":120,"fbjs/lib/invariant":74}],233:[function(require,module,exports){
+},{"./LinkedValueUtils":225,"./Object.assign":226,"./ReactDOMIDOperations":244,"./ReactMount":269,"./ReactUpdates":287,"_process":132,"fbjs/lib/invariant":85}],246:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -73190,7 +75560,7 @@ var ReactDOMOption = {
 
 module.exports = ReactDOMOption;
 }).call(this,require('_process'))
-},{"./Object.assign":213,"./ReactChildren":219,"./ReactDOMSelect":234,"_process":120,"fbjs/lib/warning":85}],234:[function(require,module,exports){
+},{"./Object.assign":226,"./ReactChildren":232,"./ReactDOMSelect":247,"_process":132,"fbjs/lib/warning":96}],247:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -73381,7 +75751,7 @@ function _handleChange(event) {
 
 module.exports = ReactDOMSelect;
 }).call(this,require('_process'))
-},{"./LinkedValueUtils":212,"./Object.assign":213,"./ReactMount":256,"./ReactUpdates":274,"_process":120,"fbjs/lib/warning":85}],235:[function(require,module,exports){
+},{"./LinkedValueUtils":225,"./Object.assign":226,"./ReactMount":269,"./ReactUpdates":287,"_process":132,"fbjs/lib/warning":96}],248:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -73594,7 +75964,7 @@ var ReactDOMSelection = {
 };
 
 module.exports = ReactDOMSelection;
-},{"./getNodeForCharacterOffset":307,"./getTextContentAccessor":308,"fbjs/lib/ExecutionEnvironment":60}],236:[function(require,module,exports){
+},{"./getNodeForCharacterOffset":320,"./getTextContentAccessor":321,"fbjs/lib/ExecutionEnvironment":71}],249:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -73621,7 +75991,7 @@ var ReactDOMServer = {
 };
 
 module.exports = ReactDOMServer;
-},{"./ReactDefaultInjection":240,"./ReactServerRendering":271,"./ReactVersion":275}],237:[function(require,module,exports){
+},{"./ReactDefaultInjection":253,"./ReactServerRendering":284,"./ReactVersion":288}],250:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -73751,7 +76121,7 @@ assign(ReactDOMTextComponent.prototype, {
 
 module.exports = ReactDOMTextComponent;
 }).call(this,require('_process'))
-},{"./DOMChildrenOperations":199,"./DOMPropertyOperations":201,"./Object.assign":213,"./ReactComponentBrowserEnvironment":222,"./ReactMount":256,"./escapeTextContentForBrowser":298,"./setTextContent":316,"./validateDOMNesting":319,"_process":120}],238:[function(require,module,exports){
+},{"./DOMChildrenOperations":212,"./DOMPropertyOperations":214,"./Object.assign":226,"./ReactComponentBrowserEnvironment":235,"./ReactMount":269,"./escapeTextContentForBrowser":311,"./setTextContent":329,"./validateDOMNesting":332,"_process":132}],251:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -73867,7 +76237,7 @@ function _handleChange(event) {
 
 module.exports = ReactDOMTextarea;
 }).call(this,require('_process'))
-},{"./LinkedValueUtils":212,"./Object.assign":213,"./ReactDOMIDOperations":231,"./ReactUpdates":274,"_process":120,"fbjs/lib/invariant":74,"fbjs/lib/warning":85}],239:[function(require,module,exports){
+},{"./LinkedValueUtils":225,"./Object.assign":226,"./ReactDOMIDOperations":244,"./ReactUpdates":287,"_process":132,"fbjs/lib/invariant":85,"fbjs/lib/warning":96}],252:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -73935,7 +76305,7 @@ var ReactDefaultBatchingStrategy = {
 };
 
 module.exports = ReactDefaultBatchingStrategy;
-},{"./Object.assign":213,"./ReactUpdates":274,"./Transaction":291,"fbjs/lib/emptyFunction":66}],240:[function(require,module,exports){
+},{"./Object.assign":226,"./ReactUpdates":287,"./Transaction":304,"fbjs/lib/emptyFunction":77}],253:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -74035,7 +76405,7 @@ module.exports = {
   inject: inject
 };
 }).call(this,require('_process'))
-},{"./BeforeInputEventPlugin":193,"./ChangeEventPlugin":197,"./ClientReactRootIndex":198,"./DefaultEventPluginOrder":203,"./EnterLeaveEventPlugin":204,"./HTMLDOMPropertyConfig":211,"./ReactBrowserComponentMixin":216,"./ReactComponentBrowserEnvironment":222,"./ReactDOMComponent":228,"./ReactDOMTextComponent":237,"./ReactDefaultBatchingStrategy":239,"./ReactDefaultPerf":241,"./ReactEventListener":249,"./ReactInjection":250,"./ReactInstanceHandles":252,"./ReactMount":256,"./ReactReconcileTransaction":266,"./SVGDOMPropertyConfig":276,"./SelectEventPlugin":277,"./ServerReactRootIndex":278,"./SimpleEventPlugin":279,"_process":120,"fbjs/lib/ExecutionEnvironment":60}],241:[function(require,module,exports){
+},{"./BeforeInputEventPlugin":206,"./ChangeEventPlugin":210,"./ClientReactRootIndex":211,"./DefaultEventPluginOrder":216,"./EnterLeaveEventPlugin":217,"./HTMLDOMPropertyConfig":224,"./ReactBrowserComponentMixin":229,"./ReactComponentBrowserEnvironment":235,"./ReactDOMComponent":241,"./ReactDOMTextComponent":250,"./ReactDefaultBatchingStrategy":252,"./ReactDefaultPerf":254,"./ReactEventListener":262,"./ReactInjection":263,"./ReactInstanceHandles":265,"./ReactMount":269,"./ReactReconcileTransaction":279,"./SVGDOMPropertyConfig":289,"./SelectEventPlugin":290,"./ServerReactRootIndex":291,"./SimpleEventPlugin":292,"_process":132,"fbjs/lib/ExecutionEnvironment":71}],254:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -74273,7 +76643,7 @@ var ReactDefaultPerf = {
 };
 
 module.exports = ReactDefaultPerf;
-},{"./DOMProperty":200,"./ReactDefaultPerfAnalysis":242,"./ReactMount":256,"./ReactPerf":262,"fbjs/lib/performanceNow":82}],242:[function(require,module,exports){
+},{"./DOMProperty":213,"./ReactDefaultPerfAnalysis":255,"./ReactMount":269,"./ReactPerf":275,"fbjs/lib/performanceNow":93}],255:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -74475,7 +76845,7 @@ var ReactDefaultPerfAnalysis = {
 };
 
 module.exports = ReactDefaultPerfAnalysis;
-},{"./Object.assign":213}],243:[function(require,module,exports){
+},{"./Object.assign":226}],256:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2014-2015, Facebook, Inc.
@@ -74725,7 +77095,7 @@ ReactElement.isValidElement = function (object) {
 
 module.exports = ReactElement;
 }).call(this,require('_process'))
-},{"./Object.assign":213,"./ReactCurrentOwner":225,"./canDefineProperty":295,"_process":120}],244:[function(require,module,exports){
+},{"./Object.assign":226,"./ReactCurrentOwner":238,"./canDefineProperty":308,"_process":132}],257:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2014-2015, Facebook, Inc.
@@ -75009,7 +77379,7 @@ var ReactElementValidator = {
 
 module.exports = ReactElementValidator;
 }).call(this,require('_process'))
-},{"./ReactCurrentOwner":225,"./ReactElement":243,"./ReactPropTypeLocationNames":263,"./ReactPropTypeLocations":264,"./canDefineProperty":295,"./getIteratorFn":306,"_process":120,"fbjs/lib/invariant":74,"fbjs/lib/warning":85}],245:[function(require,module,exports){
+},{"./ReactCurrentOwner":238,"./ReactElement":256,"./ReactPropTypeLocationNames":276,"./ReactPropTypeLocations":277,"./canDefineProperty":308,"./getIteratorFn":319,"_process":132,"fbjs/lib/invariant":85,"fbjs/lib/warning":96}],258:[function(require,module,exports){
 /**
  * Copyright 2014-2015, Facebook, Inc.
  * All rights reserved.
@@ -75065,7 +77435,7 @@ assign(ReactEmptyComponent.prototype, {
 ReactEmptyComponent.injection = ReactEmptyComponentInjection;
 
 module.exports = ReactEmptyComponent;
-},{"./Object.assign":213,"./ReactElement":243,"./ReactEmptyComponentRegistry":246,"./ReactReconciler":267}],246:[function(require,module,exports){
+},{"./Object.assign":226,"./ReactElement":256,"./ReactEmptyComponentRegistry":259,"./ReactReconciler":280}],259:[function(require,module,exports){
 /**
  * Copyright 2014-2015, Facebook, Inc.
  * All rights reserved.
@@ -75114,7 +77484,7 @@ var ReactEmptyComponentRegistry = {
 };
 
 module.exports = ReactEmptyComponentRegistry;
-},{}],247:[function(require,module,exports){
+},{}],260:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -75194,7 +77564,7 @@ if (process.env.NODE_ENV !== 'production') {
 
 module.exports = ReactErrorUtils;
 }).call(this,require('_process'))
-},{"_process":120}],248:[function(require,module,exports){
+},{"_process":132}],261:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -75233,7 +77603,7 @@ var ReactEventEmitterMixin = {
 };
 
 module.exports = ReactEventEmitterMixin;
-},{"./EventPluginHub":206}],249:[function(require,module,exports){
+},{"./EventPluginHub":219}],262:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -75445,7 +77815,7 @@ var ReactEventListener = {
 };
 
 module.exports = ReactEventListener;
-},{"./Object.assign":213,"./PooledClass":214,"./ReactInstanceHandles":252,"./ReactMount":256,"./ReactUpdates":274,"./getEventTarget":305,"fbjs/lib/EventListener":59,"fbjs/lib/ExecutionEnvironment":60,"fbjs/lib/getUnboundedScrollPosition":71}],250:[function(require,module,exports){
+},{"./Object.assign":226,"./PooledClass":227,"./ReactInstanceHandles":265,"./ReactMount":269,"./ReactUpdates":287,"./getEventTarget":318,"fbjs/lib/EventListener":70,"fbjs/lib/ExecutionEnvironment":71,"fbjs/lib/getUnboundedScrollPosition":82}],263:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -75484,7 +77854,7 @@ var ReactInjection = {
 };
 
 module.exports = ReactInjection;
-},{"./DOMProperty":200,"./EventPluginHub":206,"./ReactBrowserEventEmitter":217,"./ReactClass":220,"./ReactComponentEnvironment":223,"./ReactEmptyComponent":245,"./ReactNativeComponent":259,"./ReactPerf":262,"./ReactRootIndex":269,"./ReactUpdates":274}],251:[function(require,module,exports){
+},{"./DOMProperty":213,"./EventPluginHub":219,"./ReactBrowserEventEmitter":230,"./ReactClass":233,"./ReactComponentEnvironment":236,"./ReactEmptyComponent":258,"./ReactNativeComponent":272,"./ReactPerf":275,"./ReactRootIndex":282,"./ReactUpdates":287}],264:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -75609,7 +77979,7 @@ var ReactInputSelection = {
 };
 
 module.exports = ReactInputSelection;
-},{"./ReactDOMSelection":235,"fbjs/lib/containsNode":63,"fbjs/lib/focusNode":68,"fbjs/lib/getActiveElement":69}],252:[function(require,module,exports){
+},{"./ReactDOMSelection":248,"fbjs/lib/containsNode":74,"fbjs/lib/focusNode":79,"fbjs/lib/getActiveElement":80}],265:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -75914,7 +78284,7 @@ var ReactInstanceHandles = {
 
 module.exports = ReactInstanceHandles;
 }).call(this,require('_process'))
-},{"./ReactRootIndex":269,"_process":120,"fbjs/lib/invariant":74}],253:[function(require,module,exports){
+},{"./ReactRootIndex":282,"_process":132,"fbjs/lib/invariant":85}],266:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -75962,7 +78332,7 @@ var ReactInstanceMap = {
 };
 
 module.exports = ReactInstanceMap;
-},{}],254:[function(require,module,exports){
+},{}],267:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -76039,7 +78409,7 @@ var React = {
 
 module.exports = React;
 }).call(this,require('_process'))
-},{"./Object.assign":213,"./ReactChildren":219,"./ReactClass":220,"./ReactComponent":221,"./ReactDOMFactories":229,"./ReactElement":243,"./ReactElementValidator":244,"./ReactPropTypes":265,"./ReactVersion":275,"./onlyChild":312,"_process":120}],255:[function(require,module,exports){
+},{"./Object.assign":226,"./ReactChildren":232,"./ReactClass":233,"./ReactComponent":234,"./ReactDOMFactories":242,"./ReactElement":256,"./ReactElementValidator":257,"./ReactPropTypes":278,"./ReactVersion":288,"./onlyChild":325,"_process":132}],268:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -76085,7 +78455,7 @@ var ReactMarkupChecksum = {
 };
 
 module.exports = ReactMarkupChecksum;
-},{"./adler32":294}],256:[function(require,module,exports){
+},{"./adler32":307}],269:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -76938,7 +79308,7 @@ ReactPerf.measureMethods(ReactMount, 'ReactMount', {
 
 module.exports = ReactMount;
 }).call(this,require('_process'))
-},{"./DOMProperty":200,"./Object.assign":213,"./ReactBrowserEventEmitter":217,"./ReactCurrentOwner":225,"./ReactDOMFeatureFlags":230,"./ReactElement":243,"./ReactEmptyComponentRegistry":246,"./ReactInstanceHandles":252,"./ReactInstanceMap":253,"./ReactMarkupChecksum":255,"./ReactPerf":262,"./ReactReconciler":267,"./ReactUpdateQueue":273,"./ReactUpdates":274,"./instantiateReactComponent":309,"./setInnerHTML":315,"./shouldUpdateReactComponent":317,"./validateDOMNesting":319,"_process":120,"fbjs/lib/containsNode":63,"fbjs/lib/emptyObject":67,"fbjs/lib/invariant":74,"fbjs/lib/warning":85}],257:[function(require,module,exports){
+},{"./DOMProperty":213,"./Object.assign":226,"./ReactBrowserEventEmitter":230,"./ReactCurrentOwner":238,"./ReactDOMFeatureFlags":243,"./ReactElement":256,"./ReactEmptyComponentRegistry":259,"./ReactInstanceHandles":265,"./ReactInstanceMap":266,"./ReactMarkupChecksum":268,"./ReactPerf":275,"./ReactReconciler":280,"./ReactUpdateQueue":286,"./ReactUpdates":287,"./instantiateReactComponent":322,"./setInnerHTML":328,"./shouldUpdateReactComponent":330,"./validateDOMNesting":332,"_process":132,"fbjs/lib/containsNode":74,"fbjs/lib/emptyObject":78,"fbjs/lib/invariant":85,"fbjs/lib/warning":96}],270:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -77437,7 +79807,7 @@ var ReactMultiChild = {
 
 module.exports = ReactMultiChild;
 }).call(this,require('_process'))
-},{"./ReactChildReconciler":218,"./ReactComponentEnvironment":223,"./ReactCurrentOwner":225,"./ReactMultiChildUpdateTypes":258,"./ReactReconciler":267,"./flattenChildren":300,"_process":120}],258:[function(require,module,exports){
+},{"./ReactChildReconciler":231,"./ReactComponentEnvironment":236,"./ReactCurrentOwner":238,"./ReactMultiChildUpdateTypes":271,"./ReactReconciler":280,"./flattenChildren":313,"_process":132}],271:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -77470,7 +79840,7 @@ var ReactMultiChildUpdateTypes = keyMirror({
 });
 
 module.exports = ReactMultiChildUpdateTypes;
-},{"fbjs/lib/keyMirror":77}],259:[function(require,module,exports){
+},{"fbjs/lib/keyMirror":88}],272:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2014-2015, Facebook, Inc.
@@ -77567,7 +79937,7 @@ var ReactNativeComponent = {
 
 module.exports = ReactNativeComponent;
 }).call(this,require('_process'))
-},{"./Object.assign":213,"_process":120,"fbjs/lib/invariant":74}],260:[function(require,module,exports){
+},{"./Object.assign":226,"_process":132,"fbjs/lib/invariant":85}],273:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2015, Facebook, Inc.
@@ -77688,7 +80058,7 @@ var ReactNoopUpdateQueue = {
 
 module.exports = ReactNoopUpdateQueue;
 }).call(this,require('_process'))
-},{"_process":120,"fbjs/lib/warning":85}],261:[function(require,module,exports){
+},{"_process":132,"fbjs/lib/warning":96}],274:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -77782,7 +80152,7 @@ var ReactOwner = {
 
 module.exports = ReactOwner;
 }).call(this,require('_process'))
-},{"_process":120,"fbjs/lib/invariant":74}],262:[function(require,module,exports){
+},{"_process":132,"fbjs/lib/invariant":85}],275:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -77881,7 +80251,7 @@ function _noMeasure(objName, fnName, func) {
 
 module.exports = ReactPerf;
 }).call(this,require('_process'))
-},{"_process":120}],263:[function(require,module,exports){
+},{"_process":132}],276:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -77908,7 +80278,7 @@ if (process.env.NODE_ENV !== 'production') {
 
 module.exports = ReactPropTypeLocationNames;
 }).call(this,require('_process'))
-},{"_process":120}],264:[function(require,module,exports){
+},{"_process":132}],277:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -77931,7 +80301,7 @@ var ReactPropTypeLocations = keyMirror({
 });
 
 module.exports = ReactPropTypeLocations;
-},{"fbjs/lib/keyMirror":77}],265:[function(require,module,exports){
+},{"fbjs/lib/keyMirror":88}],278:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -78288,7 +80658,7 @@ function getClassName(propValue) {
 }
 
 module.exports = ReactPropTypes;
-},{"./ReactElement":243,"./ReactPropTypeLocationNames":263,"./getIteratorFn":306,"fbjs/lib/emptyFunction":66}],266:[function(require,module,exports){
+},{"./ReactElement":256,"./ReactPropTypeLocationNames":276,"./getIteratorFn":319,"fbjs/lib/emptyFunction":77}],279:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -78440,7 +80810,7 @@ assign(ReactReconcileTransaction.prototype, Transaction.Mixin, Mixin);
 PooledClass.addPoolingTo(ReactReconcileTransaction);
 
 module.exports = ReactReconcileTransaction;
-},{"./CallbackQueue":196,"./Object.assign":213,"./PooledClass":214,"./ReactBrowserEventEmitter":217,"./ReactDOMFeatureFlags":230,"./ReactInputSelection":251,"./Transaction":291}],267:[function(require,module,exports){
+},{"./CallbackQueue":209,"./Object.assign":226,"./PooledClass":227,"./ReactBrowserEventEmitter":230,"./ReactDOMFeatureFlags":243,"./ReactInputSelection":264,"./Transaction":304}],280:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -78548,7 +80918,7 @@ var ReactReconciler = {
 };
 
 module.exports = ReactReconciler;
-},{"./ReactRef":268}],268:[function(require,module,exports){
+},{"./ReactRef":281}],281:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -78627,7 +80997,7 @@ ReactRef.detachRefs = function (instance, element) {
 };
 
 module.exports = ReactRef;
-},{"./ReactOwner":261}],269:[function(require,module,exports){
+},{"./ReactOwner":274}],282:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -78657,7 +81027,7 @@ var ReactRootIndex = {
 };
 
 module.exports = ReactRootIndex;
-},{}],270:[function(require,module,exports){
+},{}],283:[function(require,module,exports){
 /**
  * Copyright 2014-2015, Facebook, Inc.
  * All rights reserved.
@@ -78681,7 +81051,7 @@ var ReactServerBatchingStrategy = {
 };
 
 module.exports = ReactServerBatchingStrategy;
-},{}],271:[function(require,module,exports){
+},{}],284:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -78767,7 +81137,7 @@ module.exports = {
   renderToStaticMarkup: renderToStaticMarkup
 };
 }).call(this,require('_process'))
-},{"./ReactDefaultBatchingStrategy":239,"./ReactElement":243,"./ReactInstanceHandles":252,"./ReactMarkupChecksum":255,"./ReactServerBatchingStrategy":270,"./ReactServerRenderingTransaction":272,"./ReactUpdates":274,"./instantiateReactComponent":309,"_process":120,"fbjs/lib/emptyObject":67,"fbjs/lib/invariant":74}],272:[function(require,module,exports){
+},{"./ReactDefaultBatchingStrategy":252,"./ReactElement":256,"./ReactInstanceHandles":265,"./ReactMarkupChecksum":268,"./ReactServerBatchingStrategy":283,"./ReactServerRenderingTransaction":285,"./ReactUpdates":287,"./instantiateReactComponent":322,"_process":132,"fbjs/lib/emptyObject":78,"fbjs/lib/invariant":85}],285:[function(require,module,exports){
 /**
  * Copyright 2014-2015, Facebook, Inc.
  * All rights reserved.
@@ -78855,7 +81225,7 @@ assign(ReactServerRenderingTransaction.prototype, Transaction.Mixin, Mixin);
 PooledClass.addPoolingTo(ReactServerRenderingTransaction);
 
 module.exports = ReactServerRenderingTransaction;
-},{"./CallbackQueue":196,"./Object.assign":213,"./PooledClass":214,"./Transaction":291,"fbjs/lib/emptyFunction":66}],273:[function(require,module,exports){
+},{"./CallbackQueue":209,"./Object.assign":226,"./PooledClass":227,"./Transaction":304,"fbjs/lib/emptyFunction":77}],286:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2015, Facebook, Inc.
@@ -79115,7 +81485,7 @@ var ReactUpdateQueue = {
 
 module.exports = ReactUpdateQueue;
 }).call(this,require('_process'))
-},{"./Object.assign":213,"./ReactCurrentOwner":225,"./ReactElement":243,"./ReactInstanceMap":253,"./ReactUpdates":274,"_process":120,"fbjs/lib/invariant":74,"fbjs/lib/warning":85}],274:[function(require,module,exports){
+},{"./Object.assign":226,"./ReactCurrentOwner":238,"./ReactElement":256,"./ReactInstanceMap":266,"./ReactUpdates":287,"_process":132,"fbjs/lib/invariant":85,"fbjs/lib/warning":96}],287:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -79341,7 +81711,7 @@ var ReactUpdates = {
 
 module.exports = ReactUpdates;
 }).call(this,require('_process'))
-},{"./CallbackQueue":196,"./Object.assign":213,"./PooledClass":214,"./ReactPerf":262,"./ReactReconciler":267,"./Transaction":291,"_process":120,"fbjs/lib/invariant":74}],275:[function(require,module,exports){
+},{"./CallbackQueue":209,"./Object.assign":226,"./PooledClass":227,"./ReactPerf":275,"./ReactReconciler":280,"./Transaction":304,"_process":132,"fbjs/lib/invariant":85}],288:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -79356,7 +81726,7 @@ module.exports = ReactUpdates;
 'use strict';
 
 module.exports = '0.14.9';
-},{}],276:[function(require,module,exports){
+},{}],289:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -79484,7 +81854,7 @@ var SVGDOMPropertyConfig = {
 };
 
 module.exports = SVGDOMPropertyConfig;
-},{"./DOMProperty":200}],277:[function(require,module,exports){
+},{"./DOMProperty":213}],290:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -79686,7 +82056,7 @@ var SelectEventPlugin = {
 };
 
 module.exports = SelectEventPlugin;
-},{"./EventConstants":205,"./EventPropagators":209,"./ReactInputSelection":251,"./SyntheticEvent":283,"./isTextInputElement":311,"fbjs/lib/ExecutionEnvironment":60,"fbjs/lib/getActiveElement":69,"fbjs/lib/keyOf":78,"fbjs/lib/shallowEqual":83}],278:[function(require,module,exports){
+},{"./EventConstants":218,"./EventPropagators":222,"./ReactInputSelection":264,"./SyntheticEvent":296,"./isTextInputElement":324,"fbjs/lib/ExecutionEnvironment":71,"fbjs/lib/getActiveElement":80,"fbjs/lib/keyOf":89,"fbjs/lib/shallowEqual":94}],291:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -79716,7 +82086,7 @@ var ServerReactRootIndex = {
 };
 
 module.exports = ServerReactRootIndex;
-},{}],279:[function(require,module,exports){
+},{}],292:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -80306,7 +82676,7 @@ var SimpleEventPlugin = {
 
 module.exports = SimpleEventPlugin;
 }).call(this,require('_process'))
-},{"./EventConstants":205,"./EventPropagators":209,"./ReactMount":256,"./SyntheticClipboardEvent":280,"./SyntheticDragEvent":282,"./SyntheticEvent":283,"./SyntheticFocusEvent":284,"./SyntheticKeyboardEvent":286,"./SyntheticMouseEvent":287,"./SyntheticTouchEvent":288,"./SyntheticUIEvent":289,"./SyntheticWheelEvent":290,"./getEventCharCode":302,"_process":120,"fbjs/lib/EventListener":59,"fbjs/lib/emptyFunction":66,"fbjs/lib/invariant":74,"fbjs/lib/keyOf":78}],280:[function(require,module,exports){
+},{"./EventConstants":218,"./EventPropagators":222,"./ReactMount":269,"./SyntheticClipboardEvent":293,"./SyntheticDragEvent":295,"./SyntheticEvent":296,"./SyntheticFocusEvent":297,"./SyntheticKeyboardEvent":299,"./SyntheticMouseEvent":300,"./SyntheticTouchEvent":301,"./SyntheticUIEvent":302,"./SyntheticWheelEvent":303,"./getEventCharCode":315,"_process":132,"fbjs/lib/EventListener":70,"fbjs/lib/emptyFunction":77,"fbjs/lib/invariant":85,"fbjs/lib/keyOf":89}],293:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -80346,7 +82716,7 @@ function SyntheticClipboardEvent(dispatchConfig, dispatchMarker, nativeEvent, na
 SyntheticEvent.augmentClass(SyntheticClipboardEvent, ClipboardEventInterface);
 
 module.exports = SyntheticClipboardEvent;
-},{"./SyntheticEvent":283}],281:[function(require,module,exports){
+},{"./SyntheticEvent":296}],294:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -80384,7 +82754,7 @@ function SyntheticCompositionEvent(dispatchConfig, dispatchMarker, nativeEvent, 
 SyntheticEvent.augmentClass(SyntheticCompositionEvent, CompositionEventInterface);
 
 module.exports = SyntheticCompositionEvent;
-},{"./SyntheticEvent":283}],282:[function(require,module,exports){
+},{"./SyntheticEvent":296}],295:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -80422,7 +82792,7 @@ function SyntheticDragEvent(dispatchConfig, dispatchMarker, nativeEvent, nativeE
 SyntheticMouseEvent.augmentClass(SyntheticDragEvent, DragEventInterface);
 
 module.exports = SyntheticDragEvent;
-},{"./SyntheticMouseEvent":287}],283:[function(require,module,exports){
+},{"./SyntheticMouseEvent":300}],296:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -80605,7 +82975,7 @@ PooledClass.addPoolingTo(SyntheticEvent, PooledClass.fourArgumentPooler);
 
 module.exports = SyntheticEvent;
 }).call(this,require('_process'))
-},{"./Object.assign":213,"./PooledClass":214,"_process":120,"fbjs/lib/emptyFunction":66,"fbjs/lib/warning":85}],284:[function(require,module,exports){
+},{"./Object.assign":226,"./PooledClass":227,"_process":132,"fbjs/lib/emptyFunction":77,"fbjs/lib/warning":96}],297:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -80643,7 +83013,7 @@ function SyntheticFocusEvent(dispatchConfig, dispatchMarker, nativeEvent, native
 SyntheticUIEvent.augmentClass(SyntheticFocusEvent, FocusEventInterface);
 
 module.exports = SyntheticFocusEvent;
-},{"./SyntheticUIEvent":289}],285:[function(require,module,exports){
+},{"./SyntheticUIEvent":302}],298:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -80682,7 +83052,7 @@ function SyntheticInputEvent(dispatchConfig, dispatchMarker, nativeEvent, native
 SyntheticEvent.augmentClass(SyntheticInputEvent, InputEventInterface);
 
 module.exports = SyntheticInputEvent;
-},{"./SyntheticEvent":283}],286:[function(require,module,exports){
+},{"./SyntheticEvent":296}],299:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -80768,7 +83138,7 @@ function SyntheticKeyboardEvent(dispatchConfig, dispatchMarker, nativeEvent, nat
 SyntheticUIEvent.augmentClass(SyntheticKeyboardEvent, KeyboardEventInterface);
 
 module.exports = SyntheticKeyboardEvent;
-},{"./SyntheticUIEvent":289,"./getEventCharCode":302,"./getEventKey":303,"./getEventModifierState":304}],287:[function(require,module,exports){
+},{"./SyntheticUIEvent":302,"./getEventCharCode":315,"./getEventKey":316,"./getEventModifierState":317}],300:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -80842,7 +83212,7 @@ function SyntheticMouseEvent(dispatchConfig, dispatchMarker, nativeEvent, native
 SyntheticUIEvent.augmentClass(SyntheticMouseEvent, MouseEventInterface);
 
 module.exports = SyntheticMouseEvent;
-},{"./SyntheticUIEvent":289,"./ViewportMetrics":292,"./getEventModifierState":304}],288:[function(require,module,exports){
+},{"./SyntheticUIEvent":302,"./ViewportMetrics":305,"./getEventModifierState":317}],301:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -80889,7 +83259,7 @@ function SyntheticTouchEvent(dispatchConfig, dispatchMarker, nativeEvent, native
 SyntheticUIEvent.augmentClass(SyntheticTouchEvent, TouchEventInterface);
 
 module.exports = SyntheticTouchEvent;
-},{"./SyntheticUIEvent":289,"./getEventModifierState":304}],289:[function(require,module,exports){
+},{"./SyntheticUIEvent":302,"./getEventModifierState":317}],302:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -80950,7 +83320,7 @@ function SyntheticUIEvent(dispatchConfig, dispatchMarker, nativeEvent, nativeEve
 SyntheticEvent.augmentClass(SyntheticUIEvent, UIEventInterface);
 
 module.exports = SyntheticUIEvent;
-},{"./SyntheticEvent":283,"./getEventTarget":305}],290:[function(require,module,exports){
+},{"./SyntheticEvent":296,"./getEventTarget":318}],303:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -81006,7 +83376,7 @@ function SyntheticWheelEvent(dispatchConfig, dispatchMarker, nativeEvent, native
 SyntheticMouseEvent.augmentClass(SyntheticWheelEvent, WheelEventInterface);
 
 module.exports = SyntheticWheelEvent;
-},{"./SyntheticMouseEvent":287}],291:[function(require,module,exports){
+},{"./SyntheticMouseEvent":300}],304:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -81240,7 +83610,7 @@ var Transaction = {
 
 module.exports = Transaction;
 }).call(this,require('_process'))
-},{"_process":120,"fbjs/lib/invariant":74}],292:[function(require,module,exports){
+},{"_process":132,"fbjs/lib/invariant":85}],305:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -81268,7 +83638,7 @@ var ViewportMetrics = {
 };
 
 module.exports = ViewportMetrics;
-},{}],293:[function(require,module,exports){
+},{}],306:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2014-2015, Facebook, Inc.
@@ -81330,7 +83700,7 @@ function accumulateInto(current, next) {
 
 module.exports = accumulateInto;
 }).call(this,require('_process'))
-},{"_process":120,"fbjs/lib/invariant":74}],294:[function(require,module,exports){
+},{"_process":132,"fbjs/lib/invariant":85}],307:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -81373,7 +83743,7 @@ function adler32(data) {
 }
 
 module.exports = adler32;
-},{}],295:[function(require,module,exports){
+},{}],308:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -81400,7 +83770,7 @@ if (process.env.NODE_ENV !== 'production') {
 
 module.exports = canDefineProperty;
 }).call(this,require('_process'))
-},{"_process":120}],296:[function(require,module,exports){
+},{"_process":132}],309:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -81456,7 +83826,7 @@ function dangerousStyleValue(name, value) {
 }
 
 module.exports = dangerousStyleValue;
-},{"./CSSProperty":194}],297:[function(require,module,exports){
+},{"./CSSProperty":207}],310:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -81507,7 +83877,7 @@ function deprecated(fnName, newModule, newPackage, ctx, fn) {
 
 module.exports = deprecated;
 }).call(this,require('_process'))
-},{"./Object.assign":213,"_process":120,"fbjs/lib/warning":85}],298:[function(require,module,exports){
+},{"./Object.assign":226,"_process":132,"fbjs/lib/warning":96}],311:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -81546,7 +83916,7 @@ function escapeTextContentForBrowser(text) {
 }
 
 module.exports = escapeTextContentForBrowser;
-},{}],299:[function(require,module,exports){
+},{}],312:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -81598,7 +83968,7 @@ function findDOMNode(componentOrElement) {
 
 module.exports = findDOMNode;
 }).call(this,require('_process'))
-},{"./ReactCurrentOwner":225,"./ReactInstanceMap":253,"./ReactMount":256,"_process":120,"fbjs/lib/invariant":74,"fbjs/lib/warning":85}],300:[function(require,module,exports){
+},{"./ReactCurrentOwner":238,"./ReactInstanceMap":266,"./ReactMount":269,"_process":132,"fbjs/lib/invariant":85,"fbjs/lib/warning":96}],313:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -81649,7 +84019,7 @@ function flattenChildren(children) {
 
 module.exports = flattenChildren;
 }).call(this,require('_process'))
-},{"./traverseAllChildren":318,"_process":120,"fbjs/lib/warning":85}],301:[function(require,module,exports){
+},{"./traverseAllChildren":331,"_process":132,"fbjs/lib/warning":96}],314:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -81679,7 +84049,7 @@ var forEachAccumulated = function (arr, cb, scope) {
 };
 
 module.exports = forEachAccumulated;
-},{}],302:[function(require,module,exports){
+},{}],315:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -81730,7 +84100,7 @@ function getEventCharCode(nativeEvent) {
 }
 
 module.exports = getEventCharCode;
-},{}],303:[function(require,module,exports){
+},{}],316:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -81834,7 +84204,7 @@ function getEventKey(nativeEvent) {
 }
 
 module.exports = getEventKey;
-},{"./getEventCharCode":302}],304:[function(require,module,exports){
+},{"./getEventCharCode":315}],317:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -81879,7 +84249,7 @@ function getEventModifierState(nativeEvent) {
 }
 
 module.exports = getEventModifierState;
-},{}],305:[function(require,module,exports){
+},{}],318:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -81909,7 +84279,7 @@ function getEventTarget(nativeEvent) {
 }
 
 module.exports = getEventTarget;
-},{}],306:[function(require,module,exports){
+},{}],319:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -81950,7 +84320,7 @@ function getIteratorFn(maybeIterable) {
 }
 
 module.exports = getIteratorFn;
-},{}],307:[function(require,module,exports){
+},{}],320:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -82024,7 +84394,7 @@ function getNodeForCharacterOffset(root, offset) {
 }
 
 module.exports = getNodeForCharacterOffset;
-},{}],308:[function(require,module,exports){
+},{}],321:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -82058,7 +84428,7 @@ function getTextContentAccessor() {
 }
 
 module.exports = getTextContentAccessor;
-},{"fbjs/lib/ExecutionEnvironment":60}],309:[function(require,module,exports){
+},{"fbjs/lib/ExecutionEnvironment":71}],322:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -82173,7 +84543,7 @@ function instantiateReactComponent(node) {
 
 module.exports = instantiateReactComponent;
 }).call(this,require('_process'))
-},{"./Object.assign":213,"./ReactCompositeComponent":224,"./ReactEmptyComponent":245,"./ReactNativeComponent":259,"_process":120,"fbjs/lib/invariant":74,"fbjs/lib/warning":85}],310:[function(require,module,exports){
+},{"./Object.assign":226,"./ReactCompositeComponent":237,"./ReactEmptyComponent":258,"./ReactNativeComponent":272,"_process":132,"fbjs/lib/invariant":85,"fbjs/lib/warning":96}],323:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -82234,7 +84604,7 @@ function isEventSupported(eventNameSuffix, capture) {
 }
 
 module.exports = isEventSupported;
-},{"fbjs/lib/ExecutionEnvironment":60}],311:[function(require,module,exports){
+},{"fbjs/lib/ExecutionEnvironment":71}],324:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -82275,7 +84645,7 @@ function isTextInputElement(elem) {
 }
 
 module.exports = isTextInputElement;
-},{}],312:[function(require,module,exports){
+},{}],325:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -82311,7 +84681,7 @@ function onlyChild(children) {
 
 module.exports = onlyChild;
 }).call(this,require('_process'))
-},{"./ReactElement":243,"_process":120,"fbjs/lib/invariant":74}],313:[function(require,module,exports){
+},{"./ReactElement":256,"_process":132,"fbjs/lib/invariant":85}],326:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -82338,7 +84708,7 @@ function quoteAttributeValueForBrowser(value) {
 }
 
 module.exports = quoteAttributeValueForBrowser;
-},{"./escapeTextContentForBrowser":298}],314:[function(require,module,exports){
+},{"./escapeTextContentForBrowser":311}],327:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -82355,7 +84725,7 @@ module.exports = quoteAttributeValueForBrowser;
 var ReactMount = require('./ReactMount');
 
 module.exports = ReactMount.renderSubtreeIntoContainer;
-},{"./ReactMount":256}],315:[function(require,module,exports){
+},{"./ReactMount":269}],328:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -82446,7 +84816,7 @@ if (ExecutionEnvironment.canUseDOM) {
 }
 
 module.exports = setInnerHTML;
-},{"fbjs/lib/ExecutionEnvironment":60}],316:[function(require,module,exports){
+},{"fbjs/lib/ExecutionEnvironment":71}],329:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -82487,7 +84857,7 @@ if (ExecutionEnvironment.canUseDOM) {
 }
 
 module.exports = setTextContent;
-},{"./escapeTextContentForBrowser":298,"./setInnerHTML":315,"fbjs/lib/ExecutionEnvironment":60}],317:[function(require,module,exports){
+},{"./escapeTextContentForBrowser":311,"./setInnerHTML":328,"fbjs/lib/ExecutionEnvironment":71}],330:[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.
  * All rights reserved.
@@ -82531,7 +84901,7 @@ function shouldUpdateReactComponent(prevElement, nextElement) {
 }
 
 module.exports = shouldUpdateReactComponent;
-},{}],318:[function(require,module,exports){
+},{}],331:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.
@@ -82723,7 +85093,7 @@ function traverseAllChildren(children, callback, traverseContext) {
 
 module.exports = traverseAllChildren;
 }).call(this,require('_process'))
-},{"./ReactCurrentOwner":225,"./ReactElement":243,"./ReactInstanceHandles":252,"./getIteratorFn":306,"_process":120,"fbjs/lib/invariant":74,"fbjs/lib/warning":85}],319:[function(require,module,exports){
+},{"./ReactCurrentOwner":238,"./ReactElement":256,"./ReactInstanceHandles":265,"./getIteratorFn":319,"_process":132,"fbjs/lib/invariant":85,"fbjs/lib/warning":96}],332:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2015, Facebook, Inc.
@@ -83089,12 +85459,12 @@ if (process.env.NODE_ENV !== 'production') {
 
 module.exports = validateDOMNesting;
 }).call(this,require('_process'))
-},{"./Object.assign":213,"_process":120,"fbjs/lib/emptyFunction":66,"fbjs/lib/warning":85}],320:[function(require,module,exports){
+},{"./Object.assign":226,"_process":132,"fbjs/lib/emptyFunction":77,"fbjs/lib/warning":96}],333:[function(require,module,exports){
 'use strict';
 
 module.exports = require('./lib/React');
 
-},{"./lib/React":215}],321:[function(require,module,exports){
+},{"./lib/React":228}],334:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -83168,7 +85538,7 @@ if (typeof window !== 'undefined') {
 }
 module.exports = exports['default'];
 
-},{"./reactable/sort":329,"./reactable/table":330,"./reactable/td":331,"./reactable/tfoot":332,"./reactable/th":333,"./reactable/thead":334,"./reactable/tr":335,"./reactable/unsafe":336,"react":320}],322:[function(require,module,exports){
+},{"./reactable/sort":342,"./reactable/table":343,"./reactable/td":344,"./reactable/tfoot":345,"./reactable/th":346,"./reactable/thead":347,"./reactable/tr":348,"./reactable/unsafe":349,"react":333}],335:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -83261,7 +85631,7 @@ var Filterer = (function (_React$Component2) {
 exports.Filterer = Filterer;
 ;
 
-},{"react":320,"react-dom":131}],323:[function(require,module,exports){
+},{"react":333,"react-dom":143}],336:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -83286,7 +85656,7 @@ function extractDataFrom(key, column) {
     return (0, _stringable.stringable)(value) ? value : '';
 }
 
-},{"./stringable":326}],324:[function(require,module,exports){
+},{"./stringable":339}],337:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -83318,7 +85688,7 @@ function filterPropsFrom(baseProps) {
     return props;
 }
 
-},{}],325:[function(require,module,exports){
+},{}],338:[function(require,module,exports){
 // this is a bit hacky - it'd be nice if React exposed an API for this
 'use strict';
 
@@ -83331,7 +85701,7 @@ function isReactComponent(thing) {
     return thing !== null && typeof thing === 'object' && typeof thing.props !== 'undefined';
 }
 
-},{}],326:[function(require,module,exports){
+},{}],339:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -83343,7 +85713,7 @@ function stringable(thing) {
     return thing !== null && typeof thing !== 'undefined' && typeof (thing.toString === 'function');
 }
 
-},{}],327:[function(require,module,exports){
+},{}],340:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -83360,7 +85730,7 @@ function toArray(obj) {
     return ret;
 }
 
-},{}],328:[function(require,module,exports){
+},{}],341:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -83519,7 +85889,7 @@ var Paginator = (function (_React$Component) {
 exports.Paginator = Paginator;
 ;
 
-},{"react":320}],329:[function(require,module,exports){
+},{"react":333}],342:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -83614,7 +85984,7 @@ var Sort = {
 };
 exports.Sort = Sort;
 
-},{}],330:[function(require,module,exports){
+},{}],343:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -84134,7 +86504,7 @@ Table.defaultProps = {
     hideFilterInput: false
 };
 
-},{"./lib/extract_data_from":323,"./lib/filter_props_from":324,"./paginator":328,"./tfoot":332,"./th":333,"./thead":334,"./tr":335,"./unsafe":336,"react":320}],331:[function(require,module,exports){
+},{"./lib/extract_data_from":336,"./lib/filter_props_from":337,"./paginator":341,"./tfoot":345,"./th":346,"./thead":347,"./tr":348,"./unsafe":349,"react":333}],344:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -84224,7 +86594,7 @@ var Td = (function (_React$Component) {
 exports.Td = Td;
 ;
 
-},{"./lib/is_react_component":325,"./lib/stringable":326,"./unsafe":336,"react":320}],332:[function(require,module,exports){
+},{"./lib/is_react_component":338,"./lib/stringable":339,"./unsafe":349,"react":333}],345:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -84266,7 +86636,7 @@ var Tfoot = (function (_React$Component) {
 
 exports.Tfoot = Tfoot;
 
-},{"react":320}],333:[function(require,module,exports){
+},{"react":333}],346:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -84326,7 +86696,7 @@ var Th = (function (_React$Component) {
 exports.Th = Th;
 ;
 
-},{"./lib/filter_props_from":324,"./unsafe":336,"react":320}],334:[function(require,module,exports){
+},{"./lib/filter_props_from":337,"./unsafe":349,"react":333}],347:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -84483,7 +86853,7 @@ var Thead = (function (_React$Component) {
 exports.Thead = Thead;
 ;
 
-},{"./filterer":322,"./lib/filter_props_from":324,"./th":333,"react":320}],335:[function(require,module,exports){
+},{"./filterer":335,"./lib/filter_props_from":337,"./th":346,"react":333}],348:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -84568,7 +86938,7 @@ exports.Tr = Tr;
 Tr.childNode = _td.Td;
 Tr.dataType = 'object';
 
-},{"./lib/filter_props_from":324,"./lib/to_array":327,"./td":331,"react":320}],336:[function(require,module,exports){
+},{"./lib/filter_props_from":337,"./lib/to_array":340,"./td":344,"react":333}],349:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -84611,7 +86981,7 @@ function isUnsafe(obj) {
 
 ;
 
-},{}],337:[function(require,module,exports){
+},{}],350:[function(require,module,exports){
 module.exports = function shallowEqual(objA, objB, compare, compareContext) {
 
     var ret = compare ? compare.call(compareContext, objA, objB) : void 0;
@@ -84663,7 +87033,7 @@ module.exports = function shallowEqual(objA, objB, compare, compareContext) {
 
 };
 
-},{}],338:[function(require,module,exports){
+},{}],351:[function(require,module,exports){
 'use strict';
 module.exports = function (str) {
 	return encodeURIComponent(str).replace(/[!'()*]/g, function (c) {
@@ -84671,7 +87041,7 @@ module.exports = function (str) {
 	});
 };
 
-},{}],339:[function(require,module,exports){
+},{}],352:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2014-2015, Facebook, Inc.
@@ -84735,4 +87105,4 @@ if (process.env.NODE_ENV !== 'production') {
 module.exports = warning;
 
 }).call(this,require('_process'))
-},{"_process":120}]},{},[17]);
+},{"_process":132}]},{},[17]);
