@@ -2866,11 +2866,11 @@ var GeneList = React.createClass({displayName: "GeneList",
         })
     },
 
-    componentWillReceiveProps(newProps) {
+    componentWillReceiveProps: function(newProps) {
         this.handleUpdate(newProps.location.state.geneList);
     },
 
-    componentDidMount() {
+    componentDidMount: function() {
         this.handleUpdate(this.props.location.state.geneList)
     },
 
