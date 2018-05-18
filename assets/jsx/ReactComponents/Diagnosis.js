@@ -104,7 +104,7 @@ var ShowPhenotypes3 = React.createClass({
 
         var terms = this.props.prio.terms
         var termslist = _.map(terms, 'term.id')
-        var orderedTerms = this.props.prio.orderedTerms
+        var orderedTerms = this.props.orderedTerms
 
         if (orderedTerms){
             // console.log(this.props.prio)
@@ -232,14 +232,6 @@ var GeneTable = React.createClass({
 
                 var geneLink = GN.urls.genePage + this.props.prio.results[i].gene.name
 
-                // console.log(style)
-
-                // <Td column="DIRECTION" style={{textAlign: 'center'}}>{this.props.prio.results[i].weightedZScore > 0 ? <SVGCollection.TriangleUp className='directiontriangleup' /> : <SVGCollection.TriangleDown className='directiontriangledown' />}</Td>
-                // <Td column="ANNOTATION" style={{textAlign: 'center'}}><div title={this.props.prio.results[i].annotated.length == 0 ? "Not annotated to any of the phenotypes." : this.props.prio.results[i].annotated}>{this.props.prio.results[i].annotated.length}</div></Td>
-
-                // console.log('HEATMAP TERMS')
-                // console.log(this.props.prio)
-
                 var hpoZscores = []
                 for (var e = 0; e < this.props.prio.results[i].predicted.length; e++){
                     hpoZscores.push(<Td column={this.props.prio.terms[e].term.id}>{Math.round(this.props.prio.results[i].predicted[e] * 10)/10}</Td>)
@@ -274,53 +266,23 @@ var GeneTable = React.createClass({
         }
 
         var terms = this.props.prio.terms
-        var orderedTerms = this.props.prio.orderedTerms
-        var termslist = _.map(terms, 'term.id')
-
-        var newTerms = []
-        for (var i = 0; i < orderedTerms.length; i++){
-            var index = termslist.indexOf(orderedTerms[i])
-            newTerms.push(terms[index])
+        var orderedTerms = this.props.orderedTerms
+        
+        if (orderedTerms){
+        	var termslist = _.map(terms, 'term.id')
+        	var array = []
+	        for (var i = 0; i < orderedTerms.length; i++){
+	            var index = termslist.indexOf(orderedTerms[i])
+	            array.push(terms[index])
+	        }
+	        terms = array
         }
-
+        
         var hpoIds = []
-        for (var n = 0; n < newTerms.length; n++){
-            hpoIds.push(<Th column={newTerms[n].term.id}><SVGCollection.DiagonalText text={newTerms[n].term.id} /></Th>)
+        for (var n = 0; n < terms.length; n++){
+            hpoIds.push(<Th column={terms[n].term.id}><SVGCollection.DiagonalText text={terms[n].term.id} /></Th>)
         }
 
-        // var hpoIds = []
-        // for (var n = 0; n < terms.length; n++){
-        //     hpoIds.push(<Th column={terms[n].term.id}><SVGCollection.DiagonalText text={terms[n].term.id} /></Th>)
-        // }
-
-        // console.log('ordered terms')
-        // console.log()
-        // console.log(hpoIds)
-
-
-
-        // var terms = this.props.prio.terms
-        // var termslist = _.map(terms, 'term.id')
-        // var orderedTerms = this.props.prio.orderedTerms
-
-        // if (orderedTerms){
-        //     // console.log(this.props.prio)
-        //     // if heatmap clustering is done, replace terms array by ordered terms array (based on clustering)
-        //     var newTerms = []
-        //     for (var i = 0; i < orderedTerms.length; i++){
-        //         var index = termslist.indexOf(orderedTerms[i])
-        //         newTerms.push(terms[index])
-        //     }
-        //     terms = newTerms
-        // }
-
-
-
-        // console.log(hpoIds)
-
-        // var hpoIds = _.map(this.props.prio.terms, function(item){
-        //     return (<Th column={item.term.id}>{"x"}</Th>)
-        // })
 
         /* The actual table, with custom sorting: */
         return (<Table id="gentab" className='sortable rowcolors table diag-table' 
@@ -557,7 +519,8 @@ var Diagnosis = React.createClass({
             useCustomGeneSet: useCustomGeneSet,
             message: '',
             hoverRow: null,
-            hoverCol: null
+            hoverCol: null,
+            orderedTerms: null
         }
     },
 
@@ -597,19 +560,11 @@ var Diagnosis = React.createClass({
     		hoverRow: row,
     		hoverCol: col
     	})
-        // var data = this.state.data 
-        // data['hoverRow'] = row
-        // data['hoverCol'] = col 
-        // this.setState({
-        //     data: data
-        // })
     },
 
     createHeatmap: function(data, callback){
         if (data.hpoCorrelation.termsFound.length > 1){
-            console.log('create heatmap')
             var div = document.getElementById('heatmap')
-            
             var heatmap = new D3Heatmap(div, {
                 cormat: data.hpoCorrelation.hpoCorrelationMatrix,
                 terms: data.hpoCorrelation.termsFound,
@@ -617,19 +572,12 @@ var Diagnosis = React.createClass({
                 linkage: 'avg',
                 colorscale: ['#000080', '#FFFFFF', '#CD2626'],
                 cellsize: 20,
+                strokeWidth: 1,
                 handleHover: this.handleHover
             })
-
-            var data = this.state.data
-            data['orderedTerms'] = heatmap._props.orderedTerms
-            data['heatmap'] = heatmap
             this.setState({
-                data: data
+                orderedTerms: heatmap._props.orderedTerms
             })
-
-            // console.log('ordered terms')
-            // console.log(this.state)
-            // // console.log(this.state.heatmap._props.orderedTerms)
         }        
     },
 
@@ -741,7 +689,7 @@ var Diagnosis = React.createClass({
             <div className='hflex'>
                 <div className='flex11' style={{maxWidth: '730px'}}>
                     
-                    <ShowPhenotypes3 prio={this.state.data} hoverItem={this.state.hoverItem} hoverRow={this.state.hoverRow} hoverCol={this.state.hoverCol}/>
+                    <ShowPhenotypes3 prio={this.state.data} orderedTerms={this.state.orderedTerms} hoverItem={this.state.hoverItem} hoverRow={this.state.hoverRow} hoverCol={this.state.hoverCol}/>
                 
                 </div>
 
@@ -769,7 +717,6 @@ var Diagnosis = React.createClass({
                     </div>
                 </div>
                 :
-
                 <div style={{padding: '20px 0px 10px 0px', marginTop: '20px'}}>
                     <h3>Gene prioritization</h3>
                 </div>
@@ -778,12 +725,8 @@ var Diagnosis = React.createClass({
             
           <div style={{overflow: "auto", display: 'inline'}}>
           
+              <GeneTable prio={this.state.data} orderedTerms={this.state.orderedTerms} prioFiltered={this.state.newTable} onMouseOver={this.handleMouseOver} hoverRow={this.state.hoverRow}/>
 
-            {this.state.data.orderedTerms ? 
-                <GeneTable prio={this.state.data} prioFiltered={this.state.newTable} onMouseOver={this.handleMouseOver} hoverRow={this.state.hoverRow}/>
-                :
-                null
-            }
           </div>
 
         <div style={{padding: '10px 0px', marginTop: '10px'}}>

@@ -17,7 +17,8 @@ function D3Heatmap(elem, props) {
     this._props.distance = this._props.distance ? this._props.distance : 
     this._props.linkage = this._props.linkage ? this._props.linkage : 'avg'
     this._props.cellsize = this._props.cellsize ? this._props.cellsize : 30
-    
+    this._props.strokeWidth = this._props.strokeWidth ? this._props.strokeWidth : 1
+
     this._props.labelsizeBottom = 60
     this._props.labelsizeRight = 75
 
@@ -76,20 +77,20 @@ D3Heatmap.prototype._initScales = function(){
         .domain([-1, 0, 1])
         .range(this._props.colorscale)
         .clamp(true)
+
+    this._fontsizescale = d3.scale.linear()
+        .domain([9,15,20])
+        .range([8,10,12])
+        .clamp(true)
 }
 
 D3Heatmap.prototype._calculateProperties = function(){
-    console.log('width, height')
-    console.log(this.elem.clientWidth + ', ' + this.elem.clientHeight)
     this._props.size = this.elem.clientWidth > this.elem.clientHeight ? this.elem.clientHeight : this.elem.clientWidth - this._props.labelsizeRight 
-    var totalwidth = this._props.cellsize * this._props.numTerms
-    if (this._props.size < totalwidth){
+    if (this._props.size < this._props.cellsize * this._props.numTerms){
         //if the size of the div is smaller than the total width of the heatmap, make cellsize smaller so heatmap will fit in div 
         this._props.cellsize = this._props.size / this._props.numTerms
         
     }
-    console.log('size')
-    console.log(this._props.size)
 }
 
 D3Heatmap.prototype._drawHeatmap = function(){
@@ -123,8 +124,8 @@ D3Heatmap.prototype._drawHeatmap = function(){
         .attr('y', function(d){
             return d.row * cellsize
         })
-        .attr('width', cellsize - 1)
-        .attr('height', cellsize - 1)
+        .attr('width', cellsize - this._props.strokeWidth)
+        .attr('height', cellsize - this._props.strokeWidth)
         .attr('fill', function(d){
             return that._colorscale(d.value)
         })
@@ -143,6 +144,7 @@ D3Heatmap.prototype._addLabels = function(){
     var terms = this._props.orderedTerms
     var cellsize = this._props.cellsize 
     var numTerms = this._props.numTerms
+    var that = this
 
     this._vis.selectAll('text.right')
         .data(terms)
@@ -155,13 +157,14 @@ D3Heatmap.prototype._addLabels = function(){
             return cellsize * numTerms + 5
         })
         .attr('y', function(d){
+            return (terms.indexOf(d) * cellsize) + cellsize * 0.7
             // return (terms.indexOf(d) * cellsize + cellsize) - cellsize / 2.5
-            return (terms.indexOf(d) * cellsize + cellsize) - cellsize / 2.5
-            // return 20
-            // terms.indexOf(d) * 20
         })
-        // .attr('font-family', 'helvetica')
-        .attr('font-size', 12)
+        .attr('font-size', function(d){
+
+            // return 12
+            return that._fontsizescale(cellsize)
+        })
 
     this._vis.selectAll('text.bottom')
         .data(terms)
@@ -170,23 +173,16 @@ D3Heatmap.prototype._addLabels = function(){
         .text(function(d){
             return d
         })
-        // .attr('x', function(d){
-        //     return (terms.indexOf(d) * cellsize + cellsize) - cellsize / 2.5
-        //     // return cellsize * numTerms + 5
-        // })
-        // .attr('y', function(d){
-        //     return cellsize * numTerms
-        // })
         .attr('transform', function(d){
             var x = (terms.indexOf(d) * cellsize + cellsize) - cellsize / 1.5
             var y = cellsize * numTerms + 10
             return 'translate(' + x + ',' + y + ') rotate(45)'
         })
-        // .attr('font-family', 'helvetica')
-        .attr('font-size', 12)
-
-
-
+        .attr('font-size', function(d){
+            return that._fontsizescale(cellsize)
+            // return 12
+            // return 8
+        })
 }
 
 module.exports = D3Heatmap

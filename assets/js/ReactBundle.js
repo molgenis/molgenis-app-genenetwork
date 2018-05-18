@@ -18,7 +18,8 @@ function D3Heatmap(elem, props) {
     this._props.distance = this._props.distance ? this._props.distance : 
     this._props.linkage = this._props.linkage ? this._props.linkage : 'avg'
     this._props.cellsize = this._props.cellsize ? this._props.cellsize : 30
-    
+    this._props.strokeWidth = this._props.strokeWidth ? this._props.strokeWidth : 1
+
     this._props.labelsizeBottom = 60
     this._props.labelsizeRight = 75
 
@@ -77,20 +78,20 @@ D3Heatmap.prototype._initScales = function(){
         .domain([-1, 0, 1])
         .range(this._props.colorscale)
         .clamp(true)
+
+    this._fontsizescale = d3.scale.linear()
+        .domain([9,15,20])
+        .range([8,10,12])
+        .clamp(true)
 }
 
 D3Heatmap.prototype._calculateProperties = function(){
-    console.log('width, height')
-    console.log(this.elem.clientWidth + ', ' + this.elem.clientHeight)
     this._props.size = this.elem.clientWidth > this.elem.clientHeight ? this.elem.clientHeight : this.elem.clientWidth - this._props.labelsizeRight 
-    var totalwidth = this._props.cellsize * this._props.numTerms
-    if (this._props.size < totalwidth){
+    if (this._props.size < this._props.cellsize * this._props.numTerms){
         //if the size of the div is smaller than the total width of the heatmap, make cellsize smaller so heatmap will fit in div 
         this._props.cellsize = this._props.size / this._props.numTerms
         
     }
-    console.log('size')
-    console.log(this._props.size)
 }
 
 D3Heatmap.prototype._drawHeatmap = function(){
@@ -124,8 +125,8 @@ D3Heatmap.prototype._drawHeatmap = function(){
         .attr('y', function(d){
             return d.row * cellsize
         })
-        .attr('width', cellsize - 1)
-        .attr('height', cellsize - 1)
+        .attr('width', cellsize - this._props.strokeWidth)
+        .attr('height', cellsize - this._props.strokeWidth)
         .attr('fill', function(d){
             return that._colorscale(d.value)
         })
@@ -144,6 +145,7 @@ D3Heatmap.prototype._addLabels = function(){
     var terms = this._props.orderedTerms
     var cellsize = this._props.cellsize 
     var numTerms = this._props.numTerms
+    var that = this
 
     this._vis.selectAll('text.right')
         .data(terms)
@@ -156,13 +158,14 @@ D3Heatmap.prototype._addLabels = function(){
             return cellsize * numTerms + 5
         })
         .attr('y', function(d){
+            return (terms.indexOf(d) * cellsize) + cellsize * 0.7
             // return (terms.indexOf(d) * cellsize + cellsize) - cellsize / 2.5
-            return (terms.indexOf(d) * cellsize + cellsize) - cellsize / 2.5
-            // return 20
-            // terms.indexOf(d) * 20
         })
-        // .attr('font-family', 'helvetica')
-        .attr('font-size', 12)
+        .attr('font-size', function(d){
+
+            // return 12
+            return that._fontsizescale(cellsize)
+        })
 
     this._vis.selectAll('text.bottom')
         .data(terms)
@@ -171,23 +174,16 @@ D3Heatmap.prototype._addLabels = function(){
         .text(function(d){
             return d
         })
-        // .attr('x', function(d){
-        //     return (terms.indexOf(d) * cellsize + cellsize) - cellsize / 2.5
-        //     // return cellsize * numTerms + 5
-        // })
-        // .attr('y', function(d){
-        //     return cellsize * numTerms
-        // })
         .attr('transform', function(d){
             var x = (terms.indexOf(d) * cellsize + cellsize) - cellsize / 1.5
             var y = cellsize * numTerms + 10
             return 'translate(' + x + ',' + y + ') rotate(45)'
         })
-        // .attr('font-family', 'helvetica')
-        .attr('font-size', 12)
-
-
-
+        .attr('font-size', function(d){
+            return that._fontsizescale(cellsize)
+            // return 12
+            // return 8
+        })
 }
 
 module.exports = D3Heatmap
@@ -6028,7 +6024,7 @@ var ShowPhenotypes3 = React.createClass({displayName: "ShowPhenotypes3",
 
         var terms = this.props.prio.terms
         var termslist = _.map(terms, 'term.id')
-        var orderedTerms = this.props.prio.orderedTerms
+        var orderedTerms = this.props.orderedTerms
 
         if (orderedTerms){
             // console.log(this.props.prio)
@@ -6156,14 +6152,6 @@ var GeneTable = React.createClass({displayName: "GeneTable",
 
                 var geneLink = GN.urls.genePage + this.props.prio.results[i].gene.name
 
-                // console.log(style)
-
-                // <Td column="DIRECTION" style={{textAlign: 'center'}}>{this.props.prio.results[i].weightedZScore > 0 ? <SVGCollection.TriangleUp className='directiontriangleup' /> : <SVGCollection.TriangleDown className='directiontriangledown' />}</Td>
-                // <Td column="ANNOTATION" style={{textAlign: 'center'}}><div title={this.props.prio.results[i].annotated.length == 0 ? "Not annotated to any of the phenotypes." : this.props.prio.results[i].annotated}>{this.props.prio.results[i].annotated.length}</div></Td>
-
-                // console.log('HEATMAP TERMS')
-                // console.log(this.props.prio)
-
                 var hpoZscores = []
                 for (var e = 0; e < this.props.prio.results[i].predicted.length; e++){
                     hpoZscores.push(React.createElement(Td, {column: this.props.prio.terms[e].term.id}, Math.round(this.props.prio.results[i].predicted[e] * 10)/10))
@@ -6198,53 +6186,23 @@ var GeneTable = React.createClass({displayName: "GeneTable",
         }
 
         var terms = this.props.prio.terms
-        var orderedTerms = this.props.prio.orderedTerms
-        var termslist = _.map(terms, 'term.id')
-
-        var newTerms = []
-        for (var i = 0; i < orderedTerms.length; i++){
-            var index = termslist.indexOf(orderedTerms[i])
-            newTerms.push(terms[index])
+        var orderedTerms = this.props.orderedTerms
+        
+        if (orderedTerms){
+        	var termslist = _.map(terms, 'term.id')
+        	var array = []
+	        for (var i = 0; i < orderedTerms.length; i++){
+	            var index = termslist.indexOf(orderedTerms[i])
+	            array.push(terms[index])
+	        }
+	        terms = array
         }
-
+        
         var hpoIds = []
-        for (var n = 0; n < newTerms.length; n++){
-            hpoIds.push(React.createElement(Th, {column: newTerms[n].term.id}, React.createElement(SVGCollection.DiagonalText, {text: newTerms[n].term.id})))
+        for (var n = 0; n < terms.length; n++){
+            hpoIds.push(React.createElement(Th, {column: terms[n].term.id}, React.createElement(SVGCollection.DiagonalText, {text: terms[n].term.id})))
         }
 
-        // var hpoIds = []
-        // for (var n = 0; n < terms.length; n++){
-        //     hpoIds.push(<Th column={terms[n].term.id}><SVGCollection.DiagonalText text={terms[n].term.id} /></Th>)
-        // }
-
-        // console.log('ordered terms')
-        // console.log()
-        // console.log(hpoIds)
-
-
-
-        // var terms = this.props.prio.terms
-        // var termslist = _.map(terms, 'term.id')
-        // var orderedTerms = this.props.prio.orderedTerms
-
-        // if (orderedTerms){
-        //     // console.log(this.props.prio)
-        //     // if heatmap clustering is done, replace terms array by ordered terms array (based on clustering)
-        //     var newTerms = []
-        //     for (var i = 0; i < orderedTerms.length; i++){
-        //         var index = termslist.indexOf(orderedTerms[i])
-        //         newTerms.push(terms[index])
-        //     }
-        //     terms = newTerms
-        // }
-
-
-
-        // console.log(hpoIds)
-
-        // var hpoIds = _.map(this.props.prio.terms, function(item){
-        //     return (<Th column={item.term.id}>{"x"}</Th>)
-        // })
 
         /* The actual table, with custom sorting: */
         return (React.createElement(Table, {id: "gentab", className: "sortable rowcolors table diag-table", 
@@ -6481,7 +6439,8 @@ var Diagnosis = React.createClass({displayName: "Diagnosis",
             useCustomGeneSet: useCustomGeneSet,
             message: '',
             hoverRow: null,
-            hoverCol: null
+            hoverCol: null,
+            orderedTerms: null
         }
     },
 
@@ -6521,19 +6480,11 @@ var Diagnosis = React.createClass({displayName: "Diagnosis",
     		hoverRow: row,
     		hoverCol: col
     	})
-        // var data = this.state.data 
-        // data['hoverRow'] = row
-        // data['hoverCol'] = col 
-        // this.setState({
-        //     data: data
-        // })
     },
 
     createHeatmap: function(data, callback){
         if (data.hpoCorrelation.termsFound.length > 1){
-            console.log('create heatmap')
             var div = document.getElementById('heatmap')
-            
             var heatmap = new D3Heatmap(div, {
                 cormat: data.hpoCorrelation.hpoCorrelationMatrix,
                 terms: data.hpoCorrelation.termsFound,
@@ -6541,19 +6492,12 @@ var Diagnosis = React.createClass({displayName: "Diagnosis",
                 linkage: 'avg',
                 colorscale: ['#000080', '#FFFFFF', '#CD2626'],
                 cellsize: 20,
+                strokeWidth: 1,
                 handleHover: this.handleHover
             })
-
-            var data = this.state.data
-            data['orderedTerms'] = heatmap._props.orderedTerms
-            data['heatmap'] = heatmap
             this.setState({
-                data: data
+                orderedTerms: heatmap._props.orderedTerms
             })
-
-            // console.log('ordered terms')
-            // console.log(this.state)
-            // // console.log(this.state.heatmap._props.orderedTerms)
         }        
     },
 
@@ -6665,7 +6609,7 @@ var Diagnosis = React.createClass({displayName: "Diagnosis",
             React.createElement("div", {className: "hflex"}, 
                 React.createElement("div", {className: "flex11", style: {maxWidth: '730px'}}, 
                     
-                    React.createElement(ShowPhenotypes3, {prio: this.state.data, hoverItem: this.state.hoverItem, hoverRow: this.state.hoverRow, hoverCol: this.state.hoverCol})
+                    React.createElement(ShowPhenotypes3, {prio: this.state.data, orderedTerms: this.state.orderedTerms, hoverItem: this.state.hoverItem, hoverRow: this.state.hoverRow, hoverCol: this.state.hoverCol})
                 
                 ), 
 
@@ -6693,7 +6637,6 @@ var Diagnosis = React.createClass({displayName: "Diagnosis",
                     )
                 )
                 :
-
                 React.createElement("div", {style: {padding: '20px 0px 10px 0px', marginTop: '20px'}}, 
                     React.createElement("h3", null, "Gene prioritization")
                 ), 
@@ -6702,12 +6645,8 @@ var Diagnosis = React.createClass({displayName: "Diagnosis",
             
           React.createElement("div", {style: {overflow: "auto", display: 'inline'}}, 
           
+              React.createElement(GeneTable, {prio: this.state.data, orderedTerms: this.state.orderedTerms, prioFiltered: this.state.newTable, onMouseOver: this.handleMouseOver, hoverRow: this.state.hoverRow})
 
-            this.state.data.orderedTerms ? 
-                React.createElement(GeneTable, {prio: this.state.data, prioFiltered: this.state.newTable, onMouseOver: this.handleMouseOver, hoverRow: this.state.hoverRow})
-                :
-                null
-            
           ), 
 
         React.createElement("div", {style: {padding: '10px 0px', marginTop: '10px'}}, 
