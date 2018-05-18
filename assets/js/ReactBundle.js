@@ -114,10 +114,6 @@ D3Heatmap.prototype._drawHeatmap = function(){
 
     this._vis.call(tip)
 
-    // var div = d3.select("body").append("div")   
-    //     .attr("class", "tooltip")               
-    //     .style("visibility", 0);
-
     var rect = this._vis.selectAll('rect')
         .data(that._props.orderedData)
         .enter()
@@ -133,26 +129,15 @@ D3Heatmap.prototype._drawHeatmap = function(){
         .attr('fill', function(d){
             return that._colorscale(d.value)
         })
-        .on('mouseover', tip.show)
-        .on('mouseout', tip.hide)
+        .on('mouseover', function(d){
+            tip.show(d, this)
+            that._props.handleHover(orderedTerms[d.row], orderedTerms[d.col])
+        })
+        .on('mouseout', function(d){
+            tip.hide(d, this)
+            that._props.handleHover(null, null)
+        })
 
-
-        // .on('mouseover', function(d){
-        //     var matrix = this.getScreenCTM()
-        //         .translate(+ this.getAttribute("x"), + this.getAttribute("y"));
-        //     div.html(d.value)
-        //         .style('visibility', 'visible')
-        //         .style("left", (window.pageXOffset + matrix.e - 17) + "px")
-        //         .style("top", (window.pageYOffset + matrix.f - 30) + "px");  
-
-        //     that._props.handleHover(orderedTerms[d.row], orderedTerms[d.col])
-
-        // })
-        // .on('mouseout', function(d){
-        //     div.style('visibility', 'hidden')
-        //     that._props.handleHover(null, null)
-        // })
-        
 }
 
 D3Heatmap.prototype._addLabels = function(){
@@ -171,6 +156,7 @@ D3Heatmap.prototype._addLabels = function(){
             return cellsize * numTerms + 5
         })
         .attr('y', function(d){
+            // return (terms.indexOf(d) * cellsize + cellsize) - cellsize / 2.5
             return (terms.indexOf(d) * cellsize + cellsize) - cellsize / 2.5
             // return 20
             // terms.indexOf(d) * 20
@@ -8928,7 +8914,7 @@ module.exports = Tools;
 
 },{"../../config/gn":51,"../js/color":4,"./Box":8,"./BoxFunctionEnrichment":9,"react":333}],50:[function(require,module,exports){
 module.exports = {
-    domain: 'https://molgenis58.gcc.rug.nl'
+    domain: 'http://localhost:1337'
 };
 
 },{}],51:[function(require,module,exports){
