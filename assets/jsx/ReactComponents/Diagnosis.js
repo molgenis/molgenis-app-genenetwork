@@ -117,28 +117,13 @@ var ShowPhenotypes3 = React.createClass({
             terms = newTerms
         }
 
+        // console.log(this.props.hoverRow, this.props.hoverCol)
 
         /* Getting the colour: */
         for (var i = 0; i < terms.length; i++) {
-            var zToCol = hoverZScores ? Math.ceil(hoverZScores[i] * 60) : ''
-            var hoverColour =  hoverZScores ? 'rgb(' + zToCol + ',255,255)' : ''
-            // var rowtype = i % 2 === 0 ? 'datarow evenrow' : 'datarow oddrow'
-            var backgroundColour = hoverZScores ? getRGB(hoverZScores[i]) : 'rgb(0,0,0)'
-
-            /* Coloured squares: */
-            var square =
-                <div style={{height: '20px'}}>
-                <svg viewBox='0 0 10 10' width={20} height={this.props.h}>
-                <rect x1='0' y1='0' width='10' height='10' style={{fill: backgroundColour}} />
-                </svg>
-                </div>
-
-                // <Td column="COLOR">{square}</Td>
-            // <Td column="ZSCORE" style={{textAlign: 'center'}}>{hoverZScores ? hoverZScores[i] : ""}</Td>
-
             /* The actual phenotype information: */
             rows.push(
-                <Tr key={terms[i].term.name}>
+                <Tr key={terms[i].term.name} style={terms[i].term.id === this.props.hoverRow || terms[i].term.id === this.props.hoverCol ? {backgroundColor: color.colors.gnyellow} : {}}>
                     <Td column="PHENOTYPE">{terms[i].term.name}</Td>
                     <Td column="ANNOTATED" style={{textAlign: 'center'}}>{terms[i].term.numAnnotatedGenes}</Td>
                     <Td column="HPOTERM" style={{textAlign: 'center'}}><a className='nodecoration black' href={terms[i].term.url} target="_blank">{terms[i].term.id}</a></Td>
@@ -570,7 +555,9 @@ var Diagnosis = React.createClass({
         var useCustomGeneSet = this.props.location.state === null ? false : this.props.location.state.useCustomGeneSet
         return {
             useCustomGeneSet: useCustomGeneSet,
-            message: ''
+            message: '',
+            hoverRow: null,
+            hoverCol: null
         }
     },
 
@@ -606,8 +593,10 @@ var Diagnosis = React.createClass({
     },
 
     handleHover: function(row, col){
-    	console.log('handle hover')
-    	console.log(row, col)
+    	this.setState({
+    		hoverRow: row,
+    		hoverCol: col
+    	})
         // var data = this.state.data 
         // data['hoverRow'] = row
         // data['hoverCol'] = col 
@@ -752,7 +741,7 @@ var Diagnosis = React.createClass({
             <div className='hflex'>
                 <div className='flex11' style={{maxWidth: '730px'}}>
                     
-                    <ShowPhenotypes3 prio={this.state.data} hoverItem={this.state.hoverItem} />
+                    <ShowPhenotypes3 prio={this.state.data} hoverItem={this.state.hoverItem} hoverRow={this.state.hoverRow} hoverCol={this.state.hoverCol}/>
                 
                 </div>
 
