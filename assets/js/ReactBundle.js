@@ -3966,9 +3966,6 @@ var LegendPanel = React.createClass({displayName: "LegendPanel",
     
     render: function() {
 
-        console.log('ITEMS')
-        console.log(this.state.items)
-
         if (!this.state || !this.state.items) return null;
         // <table className='noselect defaultcursor' style={{backgroundColor: color.colors.gnwhite}}>
         // <tbody>
@@ -4262,6 +4259,12 @@ var Network = React.createClass({displayName: "Network",
 
         var width = ReactDOM.findDOMNode(this).offsetWidth;
         var height = document.getElementById('network').offsetHeight;//ReactDOM.findDOMNode(this).offsetHeight
+
+        console.log('WIDTH, HEIGHT')
+        console.log(width + ', ' + height)
+
+        console.log(document.getElementById('network'))
+
         var ts = new Date();
         var network = new D3Network(document.getElementById('network'), {
             width: width + 300,
@@ -4789,7 +4792,7 @@ var Network = React.createClass({displayName: "Network",
                     ), 
 
 
-                    React.createElement("div", {id: "network", className: "flex10 hflex gn-network", style: {position: 'relative', backgroundColor: color.colors.gnwhite}}, 
+                    React.createElement("div", {id: "network", className: "flex10 hflex gn-network", style: {position: 'relative', backgroundColor: color.colors.gnwhite, minHeight: '400px'}}, 
                     React.createElement("div", {id: "loadcontainer", className: "vflex flexcenter flexjustifycenter fullwidth"}, 
                     React.createElement("span", null, this.state.error || this.state.progressText)
                     )
@@ -4799,7 +4802,6 @@ var Network = React.createClass({displayName: "Network",
             )
 
         } else {
-            console.log(this.state.data)
             pageTitle = this.state.data.elements.nodes.length + ' genes' + GN.pageTitleSuffix;
             var title = this.state.data.pathway != null ? (this.state.data.pathway.database + ': ' + this.state.data.pathway.name) : null;
             var predictedgenes = (
@@ -4824,7 +4826,7 @@ var Network = React.createClass({displayName: "Network",
                 );
 
             var network = (
-                React.createElement("div", {id: "network", className: "flex10 hflex gn-network", style: {position: 'relative', backgroundColor: color.colors.gnwhite}}, 
+                React.createElement("div", {id: "network", className: "flex10 hflex gn-network", style: {position: 'relative', backgroundColor: color.colors.gnwhite, minHeight: '400px'}}, 
                                     
                       React.createElement(NetworkControlPanel, {download: this.download, onSelectionModeChange: this.onSelectionModeChange, selectionMode: this.state.selectionMode, isZoomedMax: this.state.isZoomedMax, isZoomedMin: this.state.isZoomedMin, onZoom: this.onZoom}), 
                         React.createElement(EdgeLegend, {threshold: this.state.threshold, edgeValueScales: this.state.data.edgeValueScales, edgeColorScales: this.state.data.edgeColorScales, onMouseOver: this.handleEdgeHover, hoverEdge: this.state.hoverEdge, onClick: this.updateThreshold}), 
@@ -5195,8 +5197,6 @@ var PWAPanel = React.createClass({displayName: "PWAPanel",
         if (!this.isMounted()) {
             console.warn('PWAPanel.setSocketListeners: pathwayanalysis.error received but component not mounted')
         }
-        console.log('_onIOERROR')
-        console.log(msg)
         
         this.setState({
             pwaMessage: msg.pwaMessage,
@@ -6514,8 +6514,6 @@ var Diagnosis = React.createClass({displayName: "Diagnosis",
                 this.setState({
                     data: data
                 })
-                console.log('DATA')
-                console.log(data)
                 callback(null, data)
             }.bind(this),
             error: function(xhr, status, err) {
@@ -7838,8 +7836,6 @@ var PredictedGenesPanel = React.createClass({displayName: "PredictedGenesPanel",
     },
     
     gpRequest: function(group, geneOfInterest) {
-        console.log('GROUP')
-        console.log(group)
         group = group || this.props.group
 
 
@@ -7896,8 +7892,6 @@ var PredictedGenesPanel = React.createClass({displayName: "PredictedGenesPanel",
     },
     
     render: function() {
-        console.log('this.state')
-        console.log(this.state)
         if (!this.props.group) return null
         if (!this.state.gpResults && this.state.gpMessage) {
             return (React.createElement("div", {style: this.props.style}, 

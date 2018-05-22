@@ -595,8 +595,6 @@ var Diagnosis = React.createClass({
                 this.setState({
                     data: data
                 })
-                console.log('DATA')
-                console.log(data)
                 callback(null, data)
             }.bind(this),
             error: function(xhr, status, err) {
