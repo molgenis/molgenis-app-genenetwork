@@ -138,7 +138,6 @@ D3Heatmap.prototype._drawHeatmap = function(){
             tip.hide(d, this)
             that._props.handleHover(null, null)
         })
-
 }
 
 D3Heatmap.prototype._addLabels = function(){
@@ -6555,14 +6554,13 @@ var Diagnosis = React.createClass({displayName: "Diagnosis",
 
     render: function() {
 
-        if (!this.state.data) {
+    	if (!this.state.data) {
             return (
-                React.createElement("div", {style: {paddingTop: '250px', paddingLeft: '40%'}}, 
+                React.createElement("div", {style: {paddingTop: '250px', paddingLeft: '40%', backgroundColor: '#fff'}, className: "flex10 hflex"}, 
                     React.createElement("span", {style: {fontWeight: 'bold', fontFamily: 'GG', fontSize: '1.5em'}}, "Loading")
                 )
             )
         }
-
 
     {/* Idea: 600 px - phenotype height? 
 
@@ -7223,6 +7221,14 @@ var SVGCollection = require('./SVGCollection')
 var color = require('../../js/color')
 var htmlutil = require('../../js/htmlutil')
 
+var reactable = require('reactable')
+var Tr = reactable.Tr
+var Td = reactable.Td
+var Th = reactable.Th
+var Thead = reactable.Thead
+var Tbody = reactable.Tbody
+var Table = reactable.Table
+
 var AnnotatedGeneRow = React.createClass({displayName: "AnnotatedGeneRow",
 
     propTypes: {
@@ -7329,28 +7335,60 @@ var GeneTable = React.createClass({displayName: "GeneTable",
         }
 
         return (
-            React.createElement("div", null, 
-                React.createElement("table", {className: "gn-term-table datatable"}, 
-                React.createElement("tbody", null, 
-                React.createElement("tr", null, 
-                  React.createElement("th", {className: "tabletextheader", style: {width: '10%'}}, "GENE"), 
-                  React.createElement("th", {className: "tabletextheader", style: {width: '60%'}}, "DESCRIPTION"), 
-                     this.props.type == 'prediction' ? React.createElement("th", null, "P-VALUE") : null, 
-                     this.props.type == 'prediction' ? React.createElement("th", null, "DIRECTION") : null, 
-                     this.props.type == 'prediction' ? React.createElement("th", null, "ANNOTATED") : null
-                  /*<th>NETWORK</th>*/
-                  ), 
-                  rows
-                )
+                React.createElement("div", null, 
+                    React.createElement("table", {className: "rowcolors table"}, 
+                    React.createElement("thead", null, 
+                        React.createElement("tr", null, 
+                            React.createElement("th", {className: "tabletextheader", style: {width: '10%'}}, "GENE"), 
+                            React.createElement("th", {className: "tabletextheader", style: {width: '60%'}}, "DESCRIPTION"), 
+                             this.props.type == 'prediction' ? React.createElement("th", null, "P-VALUE") : null, 
+                             this.props.type == 'prediction' ? React.createElement("th", null, "DIRECTION") : null, 
+                             this.props.type == 'prediction' ? React.createElement("th", null, "ANNOTATED") : null
+                        )
+                    ), 
+                    React.createElement("tbody", null, 
+                        rows
+                    )
+                    )
                 )
             )
-            )
+
+        // return (
+        //     <div>
+        //         <Table className='table'>
+        //         <Thead>
+        //             <Th column="GENE"></Th>
+        //             <Th column="DESCRIPTION"></Th>
+        //             {this.props.type == 'prediction' ? <Th column="PVALUE"></Th> : <>}
+        //         </Thead>
+        //         </Table>
+        //     </div>
+        // )
+
+
+        // return (
+        //     <div>
+        //         <table className='table'>
+        //         <tbody>
+        //         <tr>
+        //           <th className='tabletextheader' style={{width: '10%'}}>GENE</th>
+        //           <th className='tabletextheader' style={{width: '60%'}}>DESCRIPTION</th>
+        //             { this.props.type == 'prediction' ? <th>P-VALUE</th> : null}
+        //             { this.props.type == 'prediction' ? <th>DIRECTION</th> : null}
+        //             { this.props.type == 'prediction' ? <th>ANNOTATED</th> : null}
+        //           {/*<th>NETWORK</th>*/}
+        //           </tr>
+        //           {rows}
+        //         </tbody>
+        //         </table>
+        //     </div>
+        //     )
     }
 })
 
 module.exports = GeneTable
 
-},{"../../js/color":4,"../../js/htmlutil":5,"./SVGCollection":45,"async":54,"lodash":130,"react":333,"react-document-title":142,"react-dom":143,"react-router":164}],40:[function(require,module,exports){
+},{"../../js/color":4,"../../js/htmlutil":5,"./SVGCollection":45,"async":54,"lodash":130,"react":333,"react-document-title":142,"react-dom":143,"react-router":164,"reactable":334}],40:[function(require,module,exports){
 var _ = require('lodash')
 var React = require('react')
 
@@ -63294,6 +63332,9 @@ var emptyObj = function emptyObj() {
 exports.default = {
   // General
   data: [],
+  resolveData: function resolveData(data) {
+    return data;
+  },
   loading: false,
   showPagination: true,
   showPaginationTop: false,
@@ -64481,7 +64522,7 @@ exports.default = function (Base) {
     _createClass(_class, [{
       key: 'componentWillMount',
       value: function componentWillMount() {
-        this.setStateWithData(this.getDataModel(this.getResolvedState()));
+        this.setStateWithData(this.getDataModel(this.getResolvedState(), true));
       }
     }, {
       key: 'componentDidMount',
@@ -64520,7 +64561,7 @@ exports.default = function (Base) {
 
         // Props that trigger a data update
         if (oldState.data !== newState.data || oldState.columns !== newState.columns || oldState.pivotBy !== newState.pivotBy || oldState.sorted !== newState.sorted || oldState.filtered !== newState.filtered) {
-          this.setStateWithData(this.getDataModel(newState));
+          this.setStateWithData(this.getDataModel(newState, oldState.data !== newState.data));
         }
       }
     }, {
@@ -64636,13 +64677,14 @@ exports.default = function (Base) {
       }
     }, {
       key: 'getDataModel',
-      value: function getDataModel(newState) {
+      value: function getDataModel(newState, dataChanged) {
         var _this2 = this;
 
         var columns = newState.columns,
             _newState$pivotBy = newState.pivotBy,
             pivotBy = _newState$pivotBy === undefined ? [] : _newState$pivotBy,
             data = newState.data,
+            resolveData = newState.resolveData,
             pivotIDKey = newState.pivotIDKey,
             pivotValKey = newState.pivotValKey,
             subRowsKey = newState.subRowsKey,
@@ -64803,10 +64845,9 @@ exports.default = function (Base) {
                 pivoted: true
               });
             })
-          };
 
-          // Place the pivotColumns back into the visibleColumns
-          if (pivotIndex >= 0) {
+            // Place the pivotColumns back into the visibleColumns
+          };if (pivotIndex >= 0) {
             pivotColumnGroup = _extends({}, visibleColumns[pivotIndex], pivotColumnGroup);
             visibleColumns.splice(pivotIndex, 1, pivotColumnGroup);
           } else {
@@ -64861,7 +64902,16 @@ exports.default = function (Base) {
           }
           return row;
         };
-        var resolvedData = data.map(function (d, i) {
+
+        // // If the data hasn't changed, just use the cached data
+        var resolvedData = this.resolvedData;
+        // If the data has changed, run the data resolver and cache the result
+        if (!this.resolvedData || dataChanged) {
+          resolvedData = resolveData(data);
+          this.resolvedData = resolvedData;
+        }
+        // Use the resolved data
+        resolvedData = resolvedData.map(function (d, i) {
           return accessRow(d, i);
         });
 
@@ -65561,7 +65611,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 exports.default = {
   // General
-  data: _propTypes2.default.array,
+  data: _propTypes2.default.any.isRequired,
   loading: _propTypes2.default.bool,
   showPagination: _propTypes2.default.bool,
   showPaginationTop: _propTypes2.default.bool,

@@ -635,14 +635,13 @@ var Diagnosis = React.createClass({
 
     render: function() {
 
-        if (!this.state.data) {
+    	if (!this.state.data) {
             return (
-                <div style={{paddingTop: '250px', paddingLeft: '40%'}}>
+                <div style={{paddingTop: '250px', paddingLeft: '40%', backgroundColor: '#fff'}} className='flex10 hflex'>
                     <span style={{fontWeight: 'bold', fontFamily: 'GG', fontSize: '1.5em'}}>Loading</span>
                 </div>
             )
         }
-
 
     {/* Idea: 600 px - phenotype height? 
 

@@ -137,7 +137,6 @@ D3Heatmap.prototype._drawHeatmap = function(){
             tip.hide(d, this)
             that._props.handleHover(null, null)
         })
-
 }
 
 D3Heatmap.prototype._addLabels = function(){
