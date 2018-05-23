@@ -995,7 +995,7 @@ line.link {
 
 .pheno-table td:nth-child(1), .pheno-table th:nth-child(1) {min-width: 250px; width: 100%; padding-left: 10px;}
 .pheno-table td:nth-child(2), .pheno-table th:nth-child(2) {min-width: 150px;}
-/*.pheno-table td:nth-child(3), .pheno-table th:nth-child(4) {min-width: 100px;}*/
+.pheno-table td:nth-child(3), .pheno-table th:nth-child(3) {min-width: 100px;}
 
 /*.pheno-table tr {height: 30px;}*/
 
@@ -1578,4 +1578,38 @@ div.tooltip:after {
   position: absolute;
   pointer-events: none;
     transform: translate(-42px,20px)
+}
+
+ol.simple-list {
+    list-style-type: none;
+    list-style-type: decimal !ie; /*IE 7- hack*/
+    margin: 0;
+    margin-left: 2em;
+    padding: 0;
+     
+    counter-reset: li-counter;
+}
+ol.simple-list > li{
+    position: relative;
+    margin-bottom: 20px;
+    padding-left: 0.5em;
+    min-height: 3em;
+    /*border-left: 2px solid #CCCCCC;*/
+    border-left: 2px solid rgba(0,0,0,0.1);
+
+}
+ol.simple-list > li:before {
+    position: absolute;
+    top: 0;
+    left: -1.3em;
+    width: 0.8em;
+     
+    font-size: 1.5em;
+    line-height: 1;
+    font-weight: bold;
+    text-align: right;
+    /*color: #464646;*/
+    color: #6d6d6d;
+    content: counter(li-counter);
+    counter-increment: li-counter;
 }

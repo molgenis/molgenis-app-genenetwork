@@ -14,6 +14,14 @@ var SVGCollection = require('./SVGCollection')
 var color = require('../../js/color')
 var htmlutil = require('../../js/htmlutil')
 
+var reactable = require('reactable')
+var Tr = reactable.Tr
+var Td = reactable.Td
+var Th = reactable.Th
+var Thead = reactable.Thead
+var Tbody = reactable.Tbody
+var Table = reactable.Table
+
 var AnnotatedGeneRow = React.createClass({
 
     propTypes: {
@@ -28,7 +36,7 @@ var AnnotatedGeneRow = React.createClass({
         var data = this.props.data;
         var desc = (data.gene.description || 'no description').replace(/\[[^\]]+\]/g, '');
 
-        console.log("pvalue", data.pvalue);
+        // console.log("pvalue", data.pvalue);
         
         return ( <tr className={this.props.num % 2 === 0 ? 'datarow evenrow' : 'datarow oddrow'}>
                  <td className='text'>
@@ -122,22 +130,54 @@ var GeneTable = React.createClass({
         }
 
         return (
-            <div>
-                <table className='gn-term-table datatable'>
-                <tbody>
-                <tr>
-                  <th className='tabletextheader' style={{width: '10%'}}>GENE</th>
-                  <th className='tabletextheader' style={{width: '60%'}}>DESCRIPTION</th>
-                    { this.props.type == 'prediction' ? <th>P-VALUE</th> : null}
-                    { this.props.type == 'prediction' ? <th>DIRECTION</th> : null}
-                    { this.props.type == 'prediction' ? <th>ANNOTATED</th> : null}
-                  {/*<th>NETWORK</th>*/}
-                  </tr>
-                  {rows}
-                </tbody>
-                </table>
-            </div>
+                <div>
+                    <table className='rowcolors table'>
+                    <thead>
+                        <tr>
+                            <th className='tabletextheader' style={{width: '10%'}}>GENE</th>
+                            <th className='tabletextheader' style={{width: '60%'}}>DESCRIPTION</th>
+                            { this.props.type == 'prediction' ? <th>P-VALUE</th> : null}
+                            { this.props.type == 'prediction' ? <th>DIRECTION</th> : null}
+                            { this.props.type == 'prediction' ? <th>ANNOTATED</th> : null}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {rows}
+                    </tbody>
+                    </table>
+                </div>
             )
+
+        // return (
+        //     <div>
+        //         <Table className='table'>
+        //         <Thead>
+        //             <Th column="GENE"></Th>
+        //             <Th column="DESCRIPTION"></Th>
+        //             {this.props.type == 'prediction' ? <Th column="PVALUE"></Th> : <>}
+        //         </Thead>
+        //         </Table>
+        //     </div>
+        // )
+
+
+        // return (
+        //     <div>
+        //         <table className='table'>
+        //         <tbody>
+        //         <tr>
+        //           <th className='tabletextheader' style={{width: '10%'}}>GENE</th>
+        //           <th className='tabletextheader' style={{width: '60%'}}>DESCRIPTION</th>
+        //             { this.props.type == 'prediction' ? <th>P-VALUE</th> : null}
+        //             { this.props.type == 'prediction' ? <th>DIRECTION</th> : null}
+        //             { this.props.type == 'prediction' ? <th>ANNOTATED</th> : null}
+        //           {/*<th>NETWORK</th>*/}
+        //           </tr>
+        //           {rows}
+        //         </tbody>
+        //         </table>
+        //     </div>
+        //     )
     }
 })
 

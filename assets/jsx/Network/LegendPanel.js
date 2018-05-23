@@ -181,9 +181,6 @@ var LegendPanel = React.createClass({
     
     render: function() {
 
-        console.log('ITEMS')
-        console.log(this.state.items)
-
         if (!this.state || !this.state.items) return null;
         // <table className='noselect defaultcursor' style={{backgroundColor: color.colors.gnwhite}}>
         // <tbody>

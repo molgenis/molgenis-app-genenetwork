@@ -271,6 +271,7 @@ var Network = React.createClass({
 
         var width = ReactDOM.findDOMNode(this).offsetWidth;
         var height = document.getElementById('network').offsetHeight;//ReactDOM.findDOMNode(this).offsetHeight
+
         var ts = new Date();
         var network = new D3Network(document.getElementById('network'), {
             width: width + 300,
@@ -798,7 +799,7 @@ var Network = React.createClass({
                     </div>
 
 
-                    <div id='network' className='flex10 hflex gn-network' style={{position: 'relative', backgroundColor: color.colors.gnwhite}}>
+                    <div id='network' className='flex10 hflex gn-network' style={{position: 'relative', backgroundColor: color.colors.gnwhite, minHeight: '400px'}}>
                     <div id='loadcontainer' className='vflex flexcenter flexjustifycenter fullwidth'>
                     <span>{this.state.error || this.state.progressText}</span>
                     </div>
@@ -808,7 +809,7 @@ var Network = React.createClass({
             )
 
         } else {
-            console.log(this.state.data)
+
             pageTitle = this.state.data.elements.nodes.length + ' genes' + GN.pageTitleSuffix;
             var title = this.state.data.pathway != null ? (this.state.data.pathway.database + ': ' + this.state.data.pathway.name) : null;
             var predictedgenes = (
@@ -833,7 +834,7 @@ var Network = React.createClass({
                 );
 
             var network = (
-                <div id='network' className='flex10 hflex gn-network' style={{position: 'relative', backgroundColor: color.colors.gnwhite}}>
+                <div id='network' className='flex10 hflex gn-network' style={{position: 'relative', backgroundColor: color.colors.gnwhite, minHeight: '400px'}}>
                                     
                       <NetworkControlPanel download={this.download} onSelectionModeChange={this.onSelectionModeChange} selectionMode={this.state.selectionMode} isZoomedMax={this.state.isZoomedMax} isZoomedMin={this.state.isZoomedMin} onZoom={this.onZoom} />  
                         <EdgeLegend threshold={this.state.threshold} edgeValueScales={this.state.data.edgeValueScales} edgeColorScales={this.state.data.edgeColorScales} onMouseOver={this.handleEdgeHover} hoverEdge={this.state.hoverEdge} onClick={this.updateThreshold} />

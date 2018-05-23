@@ -17,7 +17,7 @@ var AnalysisPanel = React.createClass({
         onGeneRemove: React.PropTypes.func.isRequired,
         addedGenes: React.PropTypes.array.isRequired,
 
-        selectedTerm: React.PropTypes.object,
+        // selectedTerm: React.PropTypes.object,
         termColoring: React.PropTypes.string,
     },
 

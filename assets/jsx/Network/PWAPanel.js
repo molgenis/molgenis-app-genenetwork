@@ -17,7 +17,7 @@ var PWAPanel = React.createClass({
 
     propTypes: {
         group: React.PropTypes.object,
-        selectedTerm: React.PropTypes.object,
+        // selectedTerm: React.PropTypes.object,
         termColoring: React.PropTypes.string,
         areNodesColoredByTerm: React.PropTypes.bool
     },
@@ -174,8 +174,6 @@ var PWAPanel = React.createClass({
         if (!this.isMounted()) {
             console.warn('PWAPanel.setSocketListeners: pathwayanalysis.error received but component not mounted')
         }
-        console.log('_onIOERROR')
-        console.log(msg)
         
         this.setState({
             pwaMessage: msg.pwaMessage,

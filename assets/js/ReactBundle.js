@@ -14,6 +14,15 @@ function D3Heatmap(elem, props) {
     this._props.numTerms = props.terms.length
     this._props.hoverRow = null
     this._props.hoverCol = null
+    this._props.colorscale = this._props.colorscale ? this._props.colorscale : [color.colors.gnblue, color.colors.gnlightgray, color.colors.gnred]
+    this._props.distance = this._props.distance ? this._props.distance : 
+    this._props.linkage = this._props.linkage ? this._props.linkage : 'avg'
+    this._props.cellsize = this._props.cellsize ? this._props.cellsize : 30
+    this._props.strokeWidth = this._props.strokeWidth ? this._props.strokeWidth : 1
+
+    this._props.labelsizeBottom = 60
+    this._props.labelsizeRight = 75
+
     this._clusterData()
     this._initScales()
     this._calculateProperties()
@@ -26,6 +35,7 @@ D3Heatmap.prototype._clusterData = function(){
     var terms = this._props.terms
     var cormat = this._props.cormat
 
+    //transform data to right format
     var data = []
     for (var i = 0; i < terms.length; i++){
         data.push({
@@ -34,14 +44,17 @@ D3Heatmap.prototype._clusterData = function(){
         })
     }
 
+    //cluster data
     var cluster = hcluster()
-        .distance('euclidean')
-        .linkage('avg')
+        .distance(this._props.distance)
+        .linkage(this._props.linkage)
         .posKey('values')
         .data(data)
 
+    //get node ordening
     var indices = _.flatMap(cluster.orderedNodes(), 'indexes')
     
+    //order the data according to clustering
     var orderedData = []
     var orderedTerms = []
     for (var i = 0; i < indices.length; i++){
@@ -63,29 +76,21 @@ D3Heatmap.prototype._clusterData = function(){
 D3Heatmap.prototype._initScales = function(){
     this._colorscale = d3.scale.linear()
         .domain([-1, 0, 1])
-        .range(['#000080', '#FFFFFF', '#CD2626'])
+        .range(this._props.colorscale)
         .clamp(true)
-    // this._colorscale = d3.scale.linear()
-    //     .domain([-1, 0, 1])
-    //     .range([color.colors.gnblue, color.colors.gnlightgray, color.colors.gnred])
-    //     .clamp(true)
 
-    // this._colorscale = d3.scale.linear()
-    //     .domain([-1, -0.5, 0, 0.5, 1])
-    //     .range(['#0056a6', '#0085ff', '#b3b3b3', '#ff3c00', '#a62700'])
-    //     .clamp(true)
-
+    this._fontsizescale = d3.scale.linear()
+        .domain([9,15,20])
+        .range([8,10,12])
+        .clamp(true)
 }
 
 D3Heatmap.prototype._calculateProperties = function(){
-    this._props.size = this.elem.clientWidth > this.elem.clientHeight ? this.elem.clientHeight : this.elem.clientWidth
-    var maxCellsize = 20
-    var maxWidth = maxCellsize * this._props.numTerms
-    this._props.cellsize = (this._props.size) / this._props.numTerms 
-    
-    if (maxWidth < this._props.size) {
-        this._props.cellsize = 20
-        this._props.width = maxWidth
+    this._props.size = this.elem.clientWidth > this.elem.clientHeight ? this.elem.clientHeight : this.elem.clientWidth - this._props.labelsizeRight 
+    if (this._props.size < this._props.cellsize * this._props.numTerms){
+        //if the size of the div is smaller than the total width of the heatmap, make cellsize smaller so heatmap will fit in div 
+        this._props.cellsize = this._props.size / this._props.numTerms
+        
     }
 }
 
@@ -103,19 +108,12 @@ D3Heatmap.prototype._drawHeatmap = function(){
             return d.value
           })
 
-    console.log('SIZE')
-    console.log(this._props.size)
-
     this._vis = d3.select(this.elem).append('svg:svg')
         .attr('id', 'heatmapsvg')
-        .attr('width', this._props.size + 80)
-        .attr('height', this._props.size + 30)
+        .attr('width', this._props.size + this._props.labelsizeRight)
+        .attr('height', this._props.size + this._props.labelsizeBottom)
 
     this._vis.call(tip)
-
-    // var div = d3.select("body").append("div")   
-    //     .attr("class", "tooltip")               
-    //     .style("visibility", 0);
 
     var rect = this._vis.selectAll('rect')
         .data(that._props.orderedData)
@@ -127,36 +125,26 @@ D3Heatmap.prototype._drawHeatmap = function(){
         .attr('y', function(d){
             return d.row * cellsize
         })
-        .attr('width', cellsize - 1)
-        .attr('height', cellsize - 1)
+        .attr('width', cellsize - this._props.strokeWidth)
+        .attr('height', cellsize - this._props.strokeWidth)
         .attr('fill', function(d){
             return that._colorscale(d.value)
         })
-        .on('mouseover', tip.show)
-        .on('mouseout', tip.hide)
-
-
-        // .on('mouseover', function(d){
-        //     var matrix = this.getScreenCTM()
-        //         .translate(+ this.getAttribute("x"), + this.getAttribute("y"));
-        //     div.html(d.value)
-        //         .style('visibility', 'visible')
-        //         .style("left", (window.pageXOffset + matrix.e - 17) + "px")
-        //         .style("top", (window.pageYOffset + matrix.f - 30) + "px");  
-
-        //     that._props.handleHover(orderedTerms[d.row], orderedTerms[d.col])
-
-        // })
-        // .on('mouseout', function(d){
-        //     div.style('visibility', 'hidden')
-        //     that._props.handleHover(null, null)
-        // })
+        .on('mouseover', function(d){
+            tip.show(d, this)
+            that._props.handleHover(orderedTerms[d.row], orderedTerms[d.col])
+        })
+        .on('mouseout', function(d){
+            tip.hide(d, this)
+            that._props.handleHover(null, null)
+        })
 }
 
 D3Heatmap.prototype._addLabels = function(){
     var terms = this._props.orderedTerms
     var cellsize = this._props.cellsize 
     var numTerms = this._props.numTerms
+    var that = this
 
     this._vis.selectAll('text.right')
         .data(terms)
@@ -169,12 +157,14 @@ D3Heatmap.prototype._addLabels = function(){
             return cellsize * numTerms + 5
         })
         .attr('y', function(d){
-            return (terms.indexOf(d) * cellsize + cellsize) - cellsize / 2.5
-            // return 20
-            // terms.indexOf(d) * 20
+            return (terms.indexOf(d) * cellsize) + cellsize * 0.7
+            // return (terms.indexOf(d) * cellsize + cellsize) - cellsize / 2.5
         })
-        // .attr('font-family', 'helvetica')
-        .attr('font-size', 12)
+        .attr('font-size', function(d){
+
+            // return 12
+            return that._fontsizescale(cellsize)
+        })
 
     this._vis.selectAll('text.bottom')
         .data(terms)
@@ -183,23 +173,16 @@ D3Heatmap.prototype._addLabels = function(){
         .text(function(d){
             return d
         })
-        // .attr('x', function(d){
-        //     return (terms.indexOf(d) * cellsize + cellsize) - cellsize / 2.5
-        //     // return cellsize * numTerms + 5
-        // })
-        // .attr('y', function(d){
-        //     return cellsize * numTerms
-        // })
         .attr('transform', function(d){
             var x = (terms.indexOf(d) * cellsize + cellsize) - cellsize / 1.5
             var y = cellsize * numTerms + 10
             return 'translate(' + x + ',' + y + ') rotate(45)'
         })
-        // .attr('font-family', 'helvetica')
-        .attr('font-size', 12)
-
-
-
+        .attr('font-size', function(d){
+            return that._fontsizescale(cellsize)
+            // return 12
+            // return 8
+        })
 }
 
 module.exports = D3Heatmap
@@ -1210,7 +1193,6 @@ D3Network.prototype.highlightGroup = function(groupIndex) {
 D3Network.prototype.colorBy = function(type) {
 
     var that = this
-    console.log(this._data.elements.groups)
 
     var node2cluster = {}
     if (type === 'cluster') {
@@ -3407,7 +3389,7 @@ var AnalysisPanel = React.createClass({displayName: "AnalysisPanel",
         onGeneRemove: React.PropTypes.func.isRequired,
         addedGenes: React.PropTypes.array.isRequired,
 
-        selectedTerm: React.PropTypes.object,
+        // selectedTerm: React.PropTypes.object,
         termColoring: React.PropTypes.string,
     },
 
@@ -3983,9 +3965,6 @@ var LegendPanel = React.createClass({displayName: "LegendPanel",
     
     render: function() {
 
-        console.log('ITEMS')
-        console.log(this.state.items)
-
         if (!this.state || !this.state.items) return null;
         // <table className='noselect defaultcursor' style={{backgroundColor: color.colors.gnwhite}}>
         // <tbody>
@@ -4279,6 +4258,7 @@ var Network = React.createClass({displayName: "Network",
 
         var width = ReactDOM.findDOMNode(this).offsetWidth;
         var height = document.getElementById('network').offsetHeight;//ReactDOM.findDOMNode(this).offsetHeight
+
         var ts = new Date();
         var network = new D3Network(document.getElementById('network'), {
             width: width + 300,
@@ -4806,7 +4786,7 @@ var Network = React.createClass({displayName: "Network",
                     ), 
 
 
-                    React.createElement("div", {id: "network", className: "flex10 hflex gn-network", style: {position: 'relative', backgroundColor: color.colors.gnwhite}}, 
+                    React.createElement("div", {id: "network", className: "flex10 hflex gn-network", style: {position: 'relative', backgroundColor: color.colors.gnwhite, minHeight: '400px'}}, 
                     React.createElement("div", {id: "loadcontainer", className: "vflex flexcenter flexjustifycenter fullwidth"}, 
                     React.createElement("span", null, this.state.error || this.state.progressText)
                     )
@@ -4816,7 +4796,7 @@ var Network = React.createClass({displayName: "Network",
             )
 
         } else {
-            console.log(this.state.data)
+
             pageTitle = this.state.data.elements.nodes.length + ' genes' + GN.pageTitleSuffix;
             var title = this.state.data.pathway != null ? (this.state.data.pathway.database + ': ' + this.state.data.pathway.name) : null;
             var predictedgenes = (
@@ -4841,7 +4821,7 @@ var Network = React.createClass({displayName: "Network",
                 );
 
             var network = (
-                React.createElement("div", {id: "network", className: "flex10 hflex gn-network", style: {position: 'relative', backgroundColor: color.colors.gnwhite}}, 
+                React.createElement("div", {id: "network", className: "flex10 hflex gn-network", style: {position: 'relative', backgroundColor: color.colors.gnwhite, minHeight: '400px'}}, 
                                     
                       React.createElement(NetworkControlPanel, {download: this.download, onSelectionModeChange: this.onSelectionModeChange, selectionMode: this.state.selectionMode, isZoomedMax: this.state.isZoomedMax, isZoomedMin: this.state.isZoomedMin, onZoom: this.onZoom}), 
                         React.createElement(EdgeLegend, {threshold: this.state.threshold, edgeValueScales: this.state.data.edgeValueScales, edgeColorScales: this.state.data.edgeColorScales, onMouseOver: this.handleEdgeHover, hoverEdge: this.state.hoverEdge, onClick: this.updateThreshold}), 
@@ -5055,7 +5035,7 @@ var PWAPanel = React.createClass({displayName: "PWAPanel",
 
     propTypes: {
         group: React.PropTypes.object,
-        selectedTerm: React.PropTypes.object,
+        // selectedTerm: React.PropTypes.object,
         termColoring: React.PropTypes.string,
         areNodesColoredByTerm: React.PropTypes.bool
     },
@@ -5212,8 +5192,6 @@ var PWAPanel = React.createClass({displayName: "PWAPanel",
         if (!this.isMounted()) {
             console.warn('PWAPanel.setSocketListeners: pathwayanalysis.error received but component not mounted')
         }
-        console.log('_onIOERROR')
-        console.log(msg)
         
         this.setState({
             pwaMessage: msg.pwaMessage,
@@ -6040,7 +6018,7 @@ var ShowPhenotypes3 = React.createClass({displayName: "ShowPhenotypes3",
 
         var terms = this.props.prio.terms
         var termslist = _.map(terms, 'term.id')
-        var orderedTerms = this.props.prio.orderedTerms
+        var orderedTerms = this.props.orderedTerms
 
         if (orderedTerms){
             // console.log(this.props.prio)
@@ -6053,33 +6031,18 @@ var ShowPhenotypes3 = React.createClass({displayName: "ShowPhenotypes3",
             terms = newTerms
         }
 
+        // console.log(this.props.hoverRow, this.props.hoverCol)
 
         /* Getting the colour: */
         for (var i = 0; i < terms.length; i++) {
-            var zToCol = hoverZScores ? Math.ceil(hoverZScores[i] * 60) : ''
-            var hoverColour =  hoverZScores ? 'rgb(' + zToCol + ',255,255)' : ''
-            // var rowtype = i % 2 === 0 ? 'datarow evenrow' : 'datarow oddrow'
-            var backgroundColour = hoverZScores ? getRGB(hoverZScores[i]) : 'rgb(0,0,0)'
-
-            /* Coloured squares: */
-            var square =
-                React.createElement("div", {style: {height: '20px'}}, 
-                React.createElement("svg", {viewBox: "0 0 10 10", width: 20, height: this.props.h}, 
-                React.createElement("rect", {x1: "0", y1: "0", width: "10", height: "10", style: {fill: backgroundColour}})
-                )
-                )
-
-                // <Td column="COLOR">{square}</Td>
-            // <Td column="ZSCORE" style={{textAlign: 'center'}}>{hoverZScores ? hoverZScores[i] : ""}</Td>
-
             /* The actual phenotype information: */
             rows.push(
-                React.createElement(Tr, {key: terms[i].term.name}, 
+                React.createElement(Tr, {key: terms[i].term.name, style: terms[i].term.id === this.props.hoverRow || terms[i].term.id === this.props.hoverCol ? {backgroundColor: color.colors.gnyellow} : {}}, 
                     React.createElement(Td, {column: "PHENOTYPE"}, terms[i].term.name), 
                     React.createElement(Td, {column: "ANNOTATED", style: {textAlign: 'center'}}, terms[i].term.numAnnotatedGenes), 
-                    React.createElement(Td, {column: "HPOTERM", style: {textAlign: 'center'}}, React.createElement("a", {className: "nodecoration black", href: terms[i].term.url, target: "_blank"}, terms[i].term.id))
+                    React.createElement(Td, {column: "HPOTERM", style: {textAlign: 'center'}}, React.createElement("a", {className: "externallink", href: terms[i].term.url, target: "_blank"}, terms[i].term.id))
                 )
-                )
+            )
         }
 
         // <Th column="ZSCORE" style={{textAlign: 'center'}}>{"Z-SCORE"}</Th>
@@ -6183,14 +6146,6 @@ var GeneTable = React.createClass({displayName: "GeneTable",
 
                 var geneLink = GN.urls.genePage + this.props.prio.results[i].gene.name
 
-                // console.log(style)
-
-                // <Td column="DIRECTION" style={{textAlign: 'center'}}>{this.props.prio.results[i].weightedZScore > 0 ? <SVGCollection.TriangleUp className='directiontriangleup' /> : <SVGCollection.TriangleDown className='directiontriangledown' />}</Td>
-                // <Td column="ANNOTATION" style={{textAlign: 'center'}}><div title={this.props.prio.results[i].annotated.length == 0 ? "Not annotated to any of the phenotypes." : this.props.prio.results[i].annotated}>{this.props.prio.results[i].annotated.length}</div></Td>
-
-                // console.log('HEATMAP TERMS')
-                // console.log(this.props.prio)
-
                 var hpoZscores = []
                 for (var e = 0; e < this.props.prio.results[i].predicted.length; e++){
                     hpoZscores.push(React.createElement(Td, {column: this.props.prio.terms[e].term.id}, Math.round(this.props.prio.results[i].predicted[e] * 10)/10))
@@ -6225,53 +6180,23 @@ var GeneTable = React.createClass({displayName: "GeneTable",
         }
 
         var terms = this.props.prio.terms
-        var orderedTerms = this.props.prio.orderedTerms
-        var termslist = _.map(terms, 'term.id')
-
-        var newTerms = []
-        for (var i = 0; i < orderedTerms.length; i++){
-            var index = termslist.indexOf(orderedTerms[i])
-            newTerms.push(terms[index])
+        var orderedTerms = this.props.orderedTerms
+        
+        if (orderedTerms){
+        	var termslist = _.map(terms, 'term.id')
+        	var array = []
+	        for (var i = 0; i < orderedTerms.length; i++){
+	            var index = termslist.indexOf(orderedTerms[i])
+	            array.push(terms[index])
+	        }
+	        terms = array
         }
-
+        
         var hpoIds = []
-        for (var n = 0; n < newTerms.length; n++){
-            hpoIds.push(React.createElement(Th, {column: newTerms[n].term.id}, React.createElement(SVGCollection.DiagonalText, {text: newTerms[n].term.id})))
+        for (var n = 0; n < terms.length; n++){
+            hpoIds.push(React.createElement(Th, {column: terms[n].term.id}, React.createElement(SVGCollection.DiagonalText, {text: terms[n].term.id})))
         }
 
-        // var hpoIds = []
-        // for (var n = 0; n < terms.length; n++){
-        //     hpoIds.push(<Th column={terms[n].term.id}><SVGCollection.DiagonalText text={terms[n].term.id} /></Th>)
-        // }
-
-        // console.log('ordered terms')
-        // console.log()
-        // console.log(hpoIds)
-
-
-
-        // var terms = this.props.prio.terms
-        // var termslist = _.map(terms, 'term.id')
-        // var orderedTerms = this.props.prio.orderedTerms
-
-        // if (orderedTerms){
-        //     // console.log(this.props.prio)
-        //     // if heatmap clustering is done, replace terms array by ordered terms array (based on clustering)
-        //     var newTerms = []
-        //     for (var i = 0; i < orderedTerms.length; i++){
-        //         var index = termslist.indexOf(orderedTerms[i])
-        //         newTerms.push(terms[index])
-        //     }
-        //     terms = newTerms
-        // }
-
-
-
-        // console.log(hpoIds)
-
-        // var hpoIds = _.map(this.props.prio.terms, function(item){
-        //     return (<Th column={item.term.id}>{"x"}</Th>)
-        // })
 
         /* The actual table, with custom sorting: */
         return (React.createElement(Table, {id: "gentab", className: "sortable rowcolors table diag-table", 
@@ -6506,7 +6431,10 @@ var Diagnosis = React.createClass({displayName: "Diagnosis",
         var useCustomGeneSet = this.props.location.state === null ? false : this.props.location.state.useCustomGeneSet
         return {
             useCustomGeneSet: useCustomGeneSet,
-            message: ''
+            message: '',
+            hoverRow: null,
+            hoverCol: null,
+            orderedTerms: null
         }
     },
 
@@ -6542,35 +6470,28 @@ var Diagnosis = React.createClass({displayName: "Diagnosis",
     },
 
     handleHover: function(row, col){
-        var data = this.state.data 
-        data['hoverRow'] = row
-        data['hoverCol'] = col 
-        this.setState({
-            data: data
-        })
+    	this.setState({
+    		hoverRow: row,
+    		hoverCol: col
+    	})
     },
 
     createHeatmap: function(data, callback){
         if (data.hpoCorrelation.termsFound.length > 1){
-            console.log('create heatmap')
             var div = document.getElementById('heatmap')
-            
             var heatmap = new D3Heatmap(div, {
                 cormat: data.hpoCorrelation.hpoCorrelationMatrix,
                 terms: data.hpoCorrelation.termsFound,
+                distance: 'euclidean',
+                linkage: 'avg',
+                colorscale: ['#000080', '#FFFFFF', '#CD2626'],
+                cellsize: 20,
+                strokeWidth: 1,
                 handleHover: this.handleHover
             })
-
-            var data = this.state.data
-            data['orderedTerms'] = heatmap._props.orderedTerms
-            data['heatmap'] = heatmap
             this.setState({
-                data: data
+                orderedTerms: heatmap._props.orderedTerms
             })
-
-            // console.log('ordered terms')
-            // console.log(this.state)
-            // // console.log(this.state.heatmap._props.orderedTerms)
         }        
     },
 
@@ -6588,8 +6509,6 @@ var Diagnosis = React.createClass({displayName: "Diagnosis",
                 this.setState({
                     data: data
                 })
-                console.log('DATA')
-                console.log(data)
                 callback(null, data)
             }.bind(this),
             error: function(xhr, status, err) {
@@ -6628,14 +6547,13 @@ var Diagnosis = React.createClass({displayName: "Diagnosis",
 
     render: function() {
 
-        if (!this.state.data) {
+    	if (!this.state.data) {
             return (
-                React.createElement("div", {style: {paddingTop: '250px', paddingLeft: '40%'}}, 
+                React.createElement("div", {style: {paddingTop: '250px', paddingLeft: '45%', backgroundColor: '#fff'}, className: "flex10 hflex"}, 
                     React.createElement("span", {style: {fontWeight: 'bold', fontFamily: 'GG', fontSize: '1.5em'}}, "Loading")
                 )
             )
         }
-
 
     {/* Idea: 600 px - phenotype height? 
 
@@ -6682,7 +6600,7 @@ var Diagnosis = React.createClass({displayName: "Diagnosis",
             React.createElement("div", {className: "hflex"}, 
                 React.createElement("div", {className: "flex11", style: {maxWidth: '730px'}}, 
                     
-                    React.createElement(ShowPhenotypes3, {prio: this.state.data, hoverItem: this.state.hoverItem})
+                    React.createElement(ShowPhenotypes3, {prio: this.state.data, orderedTerms: this.state.orderedTerms, hoverItem: this.state.hoverItem, hoverRow: this.state.hoverRow, hoverCol: this.state.hoverCol})
                 
                 ), 
 
@@ -6710,7 +6628,6 @@ var Diagnosis = React.createClass({displayName: "Diagnosis",
                     )
                 )
                 :
-
                 React.createElement("div", {style: {padding: '20px 0px 10px 0px', marginTop: '20px'}}, 
                     React.createElement("h3", null, "Gene prioritization")
                 ), 
@@ -6719,12 +6636,8 @@ var Diagnosis = React.createClass({displayName: "Diagnosis",
             
           React.createElement("div", {style: {overflow: "auto", display: 'inline'}}, 
           
+              React.createElement(GeneTable, {prio: this.state.data, orderedTerms: this.state.orderedTerms, prioFiltered: this.state.newTable, onMouseOver: this.handleMouseOver, hoverRow: this.state.hoverRow})
 
-            this.state.data.orderedTerms ? 
-                React.createElement(GeneTable, {prio: this.state.data, prioFiltered: this.state.newTable, onMouseOver: this.handleMouseOver, hoverRow: this.state.hoverRow})
-                :
-                null
-            
           ), 
 
         React.createElement("div", {style: {padding: '10px 0px', marginTop: '10px'}}, 
@@ -6819,12 +6732,12 @@ var Back = require('./Back')
 var TermTable = React.createClass({displayName: "TermTable",
 
     componentDidUpdate: function() {
-        var terms = this.props.terms
-        if (!terms.length < 1){
-            var lastTerm = terms.slice(-1)[0]
-            var row = document.getElementById(lastTerm.value)
-            row.scrollIntoView()
-        }
+        // var terms = this.props.terms
+        // if (!terms.length < 1){
+        //     var lastTerm = terms.slice(-1)[0]
+        //     var row = document.getElementById(lastTerm.value)
+        //     row.scrollIntoView()
+        // }
     },
     
     render: function() {
@@ -6856,7 +6769,7 @@ var TermTable = React.createClass({displayName: "TermTable",
 
         return (
             React.createElement("div", null, 
-                React.createElement(Table, {id: "hpo-table", className: "datatable hpo-table", style: {margin: '0px 0 30px 0'}}, 
+                React.createElement(Table, {id: "hpo-table", className: "table rowcolors", style: {margin: '0px 0 30px 0'}}, 
                     React.createElement(Thead, null, 
                       React.createElement(Th, {column: "TERM", style: {width: '100%'}}, "TERM"), 
                       React.createElement(Th, {column: "ID", style: {minWidth: '110px', textAlign: 'center'}}, "ID"), 
@@ -6875,8 +6788,10 @@ var DiagnosisMain = React.createClass({displayName: "DiagnosisMain",
     getInitialState: function() {
         return {
             selectedTerms: Array(),
+            termsNotFound: Array(),
             checkbox: false,
-            filename: 'CHOOSE A FILE...'
+            genefilename: 'CHOOSE A FILE...',
+            termfilename: 'CHOOSE A FILE...'
         }
     },
 
@@ -6949,32 +6864,81 @@ var DiagnosisMain = React.createClass({displayName: "DiagnosisMain",
        })
     },
 
-    onFileUploadClick: function() {
-
+    onGeneFileUploadClick: function() {
         document.getElementById('file-genelist').onchange = function(){
-            var filename = document.getElementById('file-genelist').files[0].name
-            filename = filename.length > 30 ? (filename.slice(0, 15) + '...') : filename
+            var genefilename = document.getElementById('file-genelist').files[0].name
+            genefilename = genefilename.length > 30 ? (genefilename.slice(0, 15) + '...') : genefilename
             this.setState({
-                filename: filename,
+                genefilename: genefilename,
                 checkbox: true
             })
         }.bind(this)
+    },
+
+    onTermFileUploadClick: function(){
+      document.getElementById('file-termlist').onchange = function(){
+        var termfile = document.getElementById('file-termlist').files[0]
+        var fd = new FormData()
+        fd.append('genelist', termfile)
+        $.ajax({
+            url: GN.urls.fileupload,
+            data: fd,
+            processData: false,
+            contentType: false,
+            type: 'POST',
+            success: function(data){
+              var terms = data.split(',')
+              for (var i = 0; i < terms.length; i++){
+                var term = terms[i]
+                
+                io.socket.get(GN.urls.suggest, {
+                  q: term
+                },
+                function(res, jwres){
+                          if (jwres.statusCode === 200) {
+                              var options = _.compact(_.map(res, function(result) {
+                                  if (result._type === 'term') {
+                                    if (result._source.database == 'HPO'){
+                                      return {
+                                          value: result._source.id,                                          
+                                          label: result._source.name + ' - ' + result._source.id,
+                                          name: result._source.name
+                                      }
+                                    }
+                                  } else {
+                                      return null
+                                  }
+                              }))
+                              if (options.length == 1){
+                                this.onSelectChange(options[0])
+                              } else {
+                                  //multiple terms found
+                                  //handle term not found
+                              }
+                          } else {
+                            //handle term not found
+                          }
+                }.bind(this)   
+              )}
+            }.bind(this)
+        })
+      }.bind(this)
     },
 
     onSubmit: function(){
       var genes = document.getElementById('textarea-genelist').value
       var terms = _.map(this.state.selectedTerms, function(term){ return term.value }).join(',')
       var useCustomGeneSet = this.state.checkbox ? true : false
-      var file = document.getElementById('file-genelist').files[0]
+      var genefile = document.getElementById('file-genelist').files[0]
 
-      if (!file){
+      if (!genefile){
         this.props.history.pushState({
           genes: genes,
           useCustomGeneSet: useCustomGeneSet
         }, GN.urls.diagnosisPage + '/' + terms)
       } else {
           var fd = new FormData()
-          fd.append('genelist', file)
+          fd.append('genelist', genefile)
 
           $.ajax({
               url: GN.urls.fileupload,
@@ -6996,7 +6960,17 @@ var DiagnosisMain = React.createClass({displayName: "DiagnosisMain",
 
     render: function() {
         var textcolor = this.state.checkbox ? '#000' : color.colors.gngray
-        var style = this.state.checkbox ? {transition: 'all .5s ease-in-out', height: '150px', overflow: 'hidden'} : {transition: 'all .5s ease-in-out', overflow: 'hidden', height: '0px'}
+        var style = this.state.checkbox ? {transition: 'all .5s ease-in-out', height: '100px', overflow: 'hidden'} : {transition: 'all .5s ease-in-out', overflow: 'hidden', height: '0px'}
+        var textsize = {fontSize: '10pt'}
+        
+        console.log(this.state.termsNotFound)
+        // <div id='step1' className='hflex'>
+                            
+        //                     <div style={{width: '40px'}}><h2>1.</h2></div>
+                          
+        //                     <div id='step1content' style={{width: '100%',  paddingTop: '4px'}}>
+                            
+
         return (
                 React.createElement(DocumentTitle, {title: 'Diagnosis' + GN.pageTitleSuffix}, 
                 React.createElement("div", {className: "flex10", style: {backgroundColor: color.colors.gnwhite, marginTop: '10px', padding: '40px'}}, 
@@ -7005,19 +6979,12 @@ var DiagnosisMain = React.createClass({displayName: "DiagnosisMain",
 
                 ), 
                     React.createElement("div", {className: "hflex", style: {marginTop: '40px'}}, 
-                        React.createElement("div", {className: "", style: {width: '60%', minWidth: '600px', paddingRight: '40px'}}, 
+                        React.createElement("div", {className: "", style: {width: '55%', minWidth: '600px', paddingRight: '60px'}}, 
+                          React.createElement("ol", {className: "simple-list"}, 
+                          React.createElement("li", null, React.createElement("h3", null, "Select HPO terms"), 
 
-                          React.createElement("div", {id: "step1", className: "hflex"}, 
-                            React.createElement("div", {style: {width: '40px'}}, React.createElement("h2", null, "1.")), 
-                          
-                            React.createElement("div", {id: "step1content", style: {width: '100%',  paddingTop: '4px'}}, 
-                            React.createElement("div", {style: {paddingBottom: '20px'}}, 
-                              React.createElement("h3", null, "Select HPO terms")
-                            ), 
-
-                              React.createElement("div", null, 
-
-                                  React.createElement("div", {style: {float: 'left', width: '100%', paddingBottom: '20px'}}, 
+                                React.createElement("div", {className: "hflex", style: {paddingTop: '20px'}}, 
+                                  React.createElement("div", {className: "flex10", style: {float: 'left', paddingBottom: '20px', width: 'calc(100% - 200px)'}}, 
 
                                   React.createElement(Async, {
                                    // ref='select'
@@ -7035,67 +7002,76 @@ var DiagnosisMain = React.createClass({displayName: "DiagnosisMain",
                                    )
 
                                   ), 
+                                  React.createElement("div", {className: "flex10"}, 
+                                    React.createElement("label", {htmlFor: "file-termlist", onClick: this.onTermFileUploadClick, style: {float: 'right'}}, 
+                                      React.createElement(UploadPanel, {text: this.state.termfilename})
+                                    )
+                                  )
+                                  ), 
 
                                   React.createElement(TermTable, {terms: this.state.selectedTerms, removeTerm: this.removeTerm})
-                                )
-                              )
-                              ), 
-                              
-                              React.createElement("div", {id: "step2", className: "hflex"}, 
-                                React.createElement("div", {style: {width: '40px'}}, React.createElement("h2", {style: {color: textcolor}}, "2.")), 
 
-                              React.createElement("div", {id: "step2content", style: {paddingTop: '4px', paddingBottom: '20px', width: '100%'}}, 
-                                  
+                          ), 
+
+                                
+                            React.createElement("li", null, 
+  
 
                                 React.createElement("label", {htmlFor: "checkbox", onClick: this.onCheckboxClick, style: {position: 'absolute'}}, 
                                     React.createElement(SVGCollection.CheckBox, {selected: this.state.checkbox})
                                   ), 
                                   
-                                  React.createElement("div", null, React.createElement("h3", {style: {paddingLeft: '30px', color: textcolor, cursor: 'pointer'}, onClick: this.onCheckboxClick}, "OPTIONAL: filter output on candidate genes")), 
+                                    
+                                      React.createElement("div", null, React.createElement("h3", {style: {paddingLeft: '30px', color: textcolor, cursor: 'pointer'}, onClick: this.onCheckboxClick}, "OPTIONAL: filter output on candidate genes")), 
 
                                     React.createElement("input", {type: "checkbox", id: "checkbox", style: {display: 'none'}}), 
 
-                                    React.createElement("div", {style: style}, 
-                                  React.createElement("div", null, 
-                                  React.createElement("textarea", {id: "textarea-genelist", placeholder: "Paste a list of genes here...", onChange: this.onTextAreaChange, cols: "40", rows: "5", className: "textarea-genes", style: {width: 'calc(100% - 20px)', height: '65px', border: '1px solid ' + color.colors.gngray, color: textcolor, outline: 'none', marginTop: '20px'}})
+                                    React.createElement("div", {style: style, className: "hflex"}, 
+                                      React.createElement("div", {className: "flex10", style: {paddingTop: '20px', width: 'calc(100% - 200px)'}}, 
+                                        React.createElement("textarea", {id: "textarea-genelist", placeholder: "Paste a list of genes here...", onChange: this.onTextAreaChange, cols: "40", rows: "5", className: "textarea-genes", style: {width: '100%', height: '65px', border: '1px solid ' + color.colors.gngray, color: textcolor, outline: 'none'}})
+                                      ), 
+                                      React.createElement("div", {className: "flex10", style: {paddingTop: '20px'}}, 
+                                        React.createElement("label", {htmlFor: "file-genelist", onClick: this.onGeneFileUploadClick, style: {float: 'right'}}, 
+                                          React.createElement(UploadPanel, {text: this.state.genefilename})
+                                        )
+                                      )
+
+                                  )
+                              ), 
+
+                                React.createElement("form", {encType: "multipart/form-data"}, 
+                                  React.createElement("input", {id: "file-genelist", type: "file", style: {display: 'none'}})
                                 ), 
 
-                                React.createElement("div", {style: {paddingBottom: '20px', paddingTop: '5px'}}, 
-                                        React.createElement("form", {encType: "multipart/form-data"}, 
-                                          React.createElement("input", {id: "file-genelist", type: "file", style: {display: 'none'}}), 
-                                          React.createElement("label", {htmlFor: "file-genelist", onClick: this.onFileUploadClick}, 
-                                            React.createElement(UploadPanel, {text: this.state.filename})
-                                          )
-                                        )
-                                    )
-                                    )
-                              )
-                              ), 
+                                React.createElement("form", {encType: "multipart/form-data"}, 
+                                  React.createElement("input", {id: "file-termlist", type: "file", style: {display: 'none'}})
+                                ), 
+
+
+
                                 React.createElement("span", {onClick: this.onSubmit, className: "button noselect clickable", style: {marginTop: '20px'}}, "Prioritize genes for given HPO terms")
-                            ), 
+                            
+                                )
+                              ), 
 
-                        React.createElement("div", {className: "text-right", style: {width: '40%', minWidth: '300px', paddingLeft: '40px', fontSize: '10pt'}}, 
-                            React.createElement("p", null, 
-                              "Using the HPO gene prioritization it possible to rank genes based on a patient’s phenotypes."
-                            ), 
-                            
-                            React.createElement("p", null, 
-                              React.createElement("ol", null, 
-                                React.createElement("li", null, "Fill in the phenotypes of a patient as HPO terms (compbio.charite.de/hpoweb/showterm?id=HP:0000118). Try to be as specific as possible, if a term could not be found then a more general term should be used. If the exact phenotype of a patient is unclear it is better to use a more general term, as a wrongly assigned specific term might hinder accurate ranking. For example, there are many subclasses of seizures (http://compbio.charite.de/hpoweb/showterm?id=HP:0001250), if it clear that a patient shows a specific subclass then the HPO term for this subclass should be used, if this is not clear then it is best to use the general seizures term. It is also best to only use distinct HPO terms to describe a patient’s phenotypes. If two close related terms are used to describe the same phenotype, then these will result in some bias towards this phenotype in the prioritization. Please use the HPO number or the primary name, synonyms are not supported at the moment."), 
-                                React.createElement("li", null, "Optional list of genes to be ranked using the HPO terms. This could for instance be the genes in which a patient has candidate disease causing mutations that require classification or follow-up analysis. The genes that prioritize on top are the most likely candidates based on our HPO term predictions. If no gene list is provided we will simply rank all genes based on the provided HPO terms.")
-                              )
-                            ), 
-                            
-                            React.createElement("p", null, 
-                            React.createElement("b", null, "FAQ"), 
+                              React.createElement("div", {id: "text-right", style: {width: '45%', padding: '20px', backgroundColor: color.colors.gnyellow, lineHeight: '1'}}, 
+
+                              React.createElement("span", {style: textsize}, "Using the HPO gene prioritization it is possible to rank genes based on a patient’s phenotypes."), React.createElement("br", null), React.createElement("br", null), 
+                           
+                              React.createElement("ol", {className: "simple-list"}, 
+                                React.createElement("li", null, React.createElement("span", {style: textsize}, "Fill in the phenotypes of a patient as HPO terms (", React.createElement("a", {href: "http://compbio.charite.de/hpoweb/showterm?id=HP:0000118", className: "externallink", target: "_blank"}, "compbio.charite.de/hpoweb/showterm?id=HP:0000118"), "). Try to be as specific as possible, if a term could not be found then a more general term should be used. If the exact phenotype of a patient is unclear it is better to use a more general term, as a wrongly assigned specific term might hinder accurate ranking. For example, there are many subclasses of seizures (", React.createElement("a", {href: "http://compbio.charite.de/hpoweb/showterm?id=HP:0001250", className: "externallink", target: "_blank"}, "compbio.charite.de/hpoweb/showterm?id=HP:0001250"), "), if it clear that a patient shows a specific subclass then the HPO term for this subclass should be used, if this is not clear then it is best to use the general seizures term. It is also best to only use distinct HPO terms to describe a patient’s phenotypes. If two close related terms are used to describe the same phenotype, then these will result in some bias towards this phenotype in the prioritization. Please use the HPO number or the primary name, synonyms are not supported at the moment.")), 
+                                React.createElement("li", null, React.createElement("span", {style: textsize}, "Optional list of genes to be ranked using the HPO terms. This could for instance be the genes in which a patient has candidate disease causing mutations that require classification or follow-up analysis. The genes that prioritize on top are the most likely candidates based on our HPO term predictions. If no gene list is provided we will simply rank all genes based on the provided HPO terms."))
+                              ), 
+                    
+                            React.createElement("h3", {style: {paddingTop: '15px'}}, "FAQ"), 
                             React.createElement("ul", null, 
-                          React.createElement("li", null, React.createElement("i", null, "Why is my term not found? "), React.createElement("br", null), 
-                          "We do not have significant predictions for all HPO terms. Either because very few genes are known for a term of because our current dataset is unable to reliable predict back the known genes for a term. At the moment the best course of action is to manually select a more generic term. We are currently working on an extension to automatically suggest more general terms if one of these terms is entered. At the moment we don’t support searching using the synonym names of HPO terms, this will be resolved in a future version."), 
-                          React.createElement("li", null, React.createElement("i", null, "My favorite candidate gene for patient is found back in the top of the results?"), " ", React.createElement("br", null), 
-                          "Gene expression patterns are not informative for all genes. If an expected gene is not found back this is the most likely explanation.")
-                              )
-
+                              React.createElement("li", null, React.createElement("span", {style: textsize}, React.createElement("i", null, "Why is my term not found? "), React.createElement("br", null), 
+                                "We do not have significant predictions for all HPO terms. Either because very few genes are known for a term of because our current dataset is unable to reliable predict back the known genes for a term. At the moment the best course of action is to manually select a more generic term. We are currently working on an extension to automatically suggest more general terms if one of these terms is entered. At the moment we don’t support searching using the synonym names of HPO terms, this will be resolved in a future version.")), React.createElement("br", null), 
+                              React.createElement("li", null, React.createElement("span", {style: textsize}, React.createElement("i", null, "My favorite candidate gene for patient is found back in the top of the results?"), " ", React.createElement("br", null), 
+                              "Gene expression patterns are not informative for all genes. If an expected gene is not found back this is the most likely explanation."))
                             )
+
+                            
                         )
 
                         )
@@ -7301,6 +7277,14 @@ var SVGCollection = require('./SVGCollection')
 var color = require('../../js/color')
 var htmlutil = require('../../js/htmlutil')
 
+var reactable = require('reactable')
+var Tr = reactable.Tr
+var Td = reactable.Td
+var Th = reactable.Th
+var Thead = reactable.Thead
+var Tbody = reactable.Tbody
+var Table = reactable.Table
+
 var AnnotatedGeneRow = React.createClass({displayName: "AnnotatedGeneRow",
 
     propTypes: {
@@ -7315,7 +7299,7 @@ var AnnotatedGeneRow = React.createClass({displayName: "AnnotatedGeneRow",
         var data = this.props.data;
         var desc = (data.gene.description || 'no description').replace(/\[[^\]]+\]/g, '');
 
-        console.log("pvalue", data.pvalue);
+        // console.log("pvalue", data.pvalue);
         
         return React.createElement("tr", {className: this.props.num % 2 === 0 ? 'datarow evenrow' : 'datarow oddrow'}, 
                  React.createElement("td", {className: "text"}, 
@@ -7407,28 +7391,60 @@ var GeneTable = React.createClass({displayName: "GeneTable",
         }
 
         return (
-            React.createElement("div", null, 
-                React.createElement("table", {className: "gn-term-table datatable"}, 
-                React.createElement("tbody", null, 
-                React.createElement("tr", null, 
-                  React.createElement("th", {className: "tabletextheader", style: {width: '10%'}}, "GENE"), 
-                  React.createElement("th", {className: "tabletextheader", style: {width: '60%'}}, "DESCRIPTION"), 
-                     this.props.type == 'prediction' ? React.createElement("th", null, "P-VALUE") : null, 
-                     this.props.type == 'prediction' ? React.createElement("th", null, "DIRECTION") : null, 
-                     this.props.type == 'prediction' ? React.createElement("th", null, "ANNOTATED") : null
-                  /*<th>NETWORK</th>*/
-                  ), 
-                  rows
-                )
+                React.createElement("div", null, 
+                    React.createElement("table", {className: "rowcolors table"}, 
+                    React.createElement("thead", null, 
+                        React.createElement("tr", null, 
+                            React.createElement("th", {className: "tabletextheader", style: {width: '10%'}}, "GENE"), 
+                            React.createElement("th", {className: "tabletextheader", style: {width: '60%'}}, "DESCRIPTION"), 
+                             this.props.type == 'prediction' ? React.createElement("th", null, "P-VALUE") : null, 
+                             this.props.type == 'prediction' ? React.createElement("th", null, "DIRECTION") : null, 
+                             this.props.type == 'prediction' ? React.createElement("th", null, "ANNOTATED") : null
+                        )
+                    ), 
+                    React.createElement("tbody", null, 
+                        rows
+                    )
+                    )
                 )
             )
-            )
+
+        // return (
+        //     <div>
+        //         <Table className='table'>
+        //         <Thead>
+        //             <Th column="GENE"></Th>
+        //             <Th column="DESCRIPTION"></Th>
+        //             {this.props.type == 'prediction' ? <Th column="PVALUE"></Th> : <>}
+        //         </Thead>
+        //         </Table>
+        //     </div>
+        // )
+
+
+        // return (
+        //     <div>
+        //         <table className='table'>
+        //         <tbody>
+        //         <tr>
+        //           <th className='tabletextheader' style={{width: '10%'}}>GENE</th>
+        //           <th className='tabletextheader' style={{width: '60%'}}>DESCRIPTION</th>
+        //             { this.props.type == 'prediction' ? <th>P-VALUE</th> : null}
+        //             { this.props.type == 'prediction' ? <th>DIRECTION</th> : null}
+        //             { this.props.type == 'prediction' ? <th>ANNOTATED</th> : null}
+        //           {/*<th>NETWORK</th>*/}
+        //           </tr>
+        //           {rows}
+        //         </tbody>
+        //         </table>
+        //     </div>
+        //     )
     }
 })
 
 module.exports = GeneTable
 
-},{"../../js/color":4,"../../js/htmlutil":5,"./SVGCollection":45,"async":54,"lodash":130,"react":333,"react-document-title":142,"react-dom":143,"react-router":164}],40:[function(require,module,exports){
+},{"../../js/color":4,"../../js/htmlutil":5,"./SVGCollection":45,"async":54,"lodash":130,"react":333,"react-document-title":142,"react-dom":143,"react-router":164,"reactable":334}],40:[function(require,module,exports){
 var _ = require('lodash')
 var React = require('react')
 
@@ -7878,8 +7894,6 @@ var PredictedGenesPanel = React.createClass({displayName: "PredictedGenesPanel",
     },
     
     gpRequest: function(group, geneOfInterest) {
-        console.log('GROUP')
-        console.log(group)
         group = group || this.props.group
 
 
@@ -7936,8 +7950,6 @@ var PredictedGenesPanel = React.createClass({displayName: "PredictedGenesPanel",
     },
     
     render: function() {
-        console.log('this.state')
-        console.log(this.state)
         if (!this.props.group) return null
         if (!this.state.gpResults && this.state.gpMessage) {
             return (React.createElement("div", {style: this.props.style}, 
@@ -8873,7 +8885,7 @@ var UploadPanel = React.createClass({displayName: "UploadPanel",
         
         return (
             
-                React.createElement("div", {id: "uploadpanel", className: "clickable button noselect", style: {position: 'relative', width: '150px'}, onClick: this.props.onClick}, 
+                React.createElement("div", {id: "uploadpanel", className: "clickable button noselect", style: {position: 'relative', width: '100%'}, onClick: this.props.onClick}, 
                     React.createElement("div", {style: {position: 'absolute', top: '0px', left: '0px', height: '100%', padding: '0 8px 0 8px', backgroundColor: 'rgb(255,225,0)'}}, 
                     React.createElement("svg", {viewBox: "0 0 100 100", width: "20", height: "20", className: "arrow"}, 
                         React.createElement("polyline", {points: "10,50 50,0 90,50"}), 
@@ -8920,7 +8932,7 @@ module.exports = Tools;
 
 },{"../../config/gn":51,"../js/color":4,"./Box":8,"./BoxFunctionEnrichment":9,"react":333}],50:[function(require,module,exports){
 module.exports = {
-    domain: 'https://molgenis58.gcc.rug.nl'
+    domain: 'http://localhost:1337'
 };
 
 },{}],51:[function(require,module,exports){
@@ -39274,10 +39286,12 @@ function shim (obj) {
 },{}],129:[function(require,module,exports){
 (function (process){
 /**
- * Copyright (c) 2013-present, Facebook, Inc.
+ * Copyright 2013-2015, Facebook, Inc.
+ * All rights reserved.
  *
- * This source code is licensed under the MIT license found in the
- * LICENSE file in the root directory of this source tree.
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree. An additional grant
+ * of patent rights can be found in the PATENTS file in the same directory.
  */
 
 'use strict';
@@ -63216,12 +63230,19 @@ exports.default = trim;
 },{}],183:[function(require,module,exports){
 'use strict';
 
-function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
+var _react = require('react');
 
-var React = require('react');
-var React__default = _interopDefault(React);
-var ExecutionEnvironment = _interopDefault(require('exenv'));
-var shallowEqual = _interopDefault(require('shallowequal'));
+var _react2 = _interopRequireDefault(_react);
+
+var _exenv = require('exenv');
+
+var _exenv2 = _interopRequireDefault(_exenv);
+
+var _shallowequal = require('shallowequal');
+
+var _shallowequal2 = _interopRequireDefault(_shallowequal);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -63229,7 +63250,7 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-function withSideEffect(reducePropsToState, handleStateChangeOnClient, mapStateOnServer) {
+module.exports = function withSideEffect(reducePropsToState, handleStateChangeOnClient, mapStateOnServer) {
   if (typeof reducePropsToState !== 'function') {
     throw new Error('Expected reducePropsToState to be a function.');
   }
@@ -63293,7 +63314,7 @@ function withSideEffect(reducePropsToState, handleStateChangeOnClient, mapStateO
       };
 
       SideEffect.prototype.shouldComponentUpdate = function shouldComponentUpdate(nextProps) {
-        return !shallowEqual(nextProps, this.props);
+        return !(0, _shallowequal2.default)(nextProps, this.props);
       };
 
       SideEffect.prototype.componentWillMount = function componentWillMount() {
@@ -63312,22 +63333,19 @@ function withSideEffect(reducePropsToState, handleStateChangeOnClient, mapStateO
       };
 
       SideEffect.prototype.render = function render() {
-        return React__default.createElement(WrappedComponent, this.props);
+        return _react2.default.createElement(WrappedComponent, this.props);
       };
 
       return SideEffect;
-    }(React.Component);
+    }(_react.Component);
 
     SideEffect.displayName = 'SideEffect(' + getDisplayName(WrappedComponent) + ')';
-    SideEffect.canUseDOM = ExecutionEnvironment.canUseDOM;
+    SideEffect.canUseDOM = _exenv2.default.canUseDOM;
 
 
     return SideEffect;
   };
-}
-
-module.exports = withSideEffect;
-
+};
 },{"exenv":68,"react":333,"shallowequal":350}],184:[function(require,module,exports){
 'use strict';
 
@@ -63366,6 +63384,9 @@ var emptyObj = function emptyObj() {
 exports.default = {
   // General
   data: [],
+  resolveData: function resolveData(data) {
+    return data;
+  },
   loading: false,
   showPagination: true,
   showPaginationTop: false,
@@ -64553,7 +64574,7 @@ exports.default = function (Base) {
     _createClass(_class, [{
       key: 'componentWillMount',
       value: function componentWillMount() {
-        this.setStateWithData(this.getDataModel(this.getResolvedState()));
+        this.setStateWithData(this.getDataModel(this.getResolvedState(), true));
       }
     }, {
       key: 'componentDidMount',
@@ -64592,7 +64613,7 @@ exports.default = function (Base) {
 
         // Props that trigger a data update
         if (oldState.data !== newState.data || oldState.columns !== newState.columns || oldState.pivotBy !== newState.pivotBy || oldState.sorted !== newState.sorted || oldState.filtered !== newState.filtered) {
-          this.setStateWithData(this.getDataModel(newState));
+          this.setStateWithData(this.getDataModel(newState, oldState.data !== newState.data));
         }
       }
     }, {
@@ -64708,13 +64729,14 @@ exports.default = function (Base) {
       }
     }, {
       key: 'getDataModel',
-      value: function getDataModel(newState) {
+      value: function getDataModel(newState, dataChanged) {
         var _this2 = this;
 
         var columns = newState.columns,
             _newState$pivotBy = newState.pivotBy,
             pivotBy = _newState$pivotBy === undefined ? [] : _newState$pivotBy,
             data = newState.data,
+            resolveData = newState.resolveData,
             pivotIDKey = newState.pivotIDKey,
             pivotValKey = newState.pivotValKey,
             subRowsKey = newState.subRowsKey,
@@ -64875,10 +64897,9 @@ exports.default = function (Base) {
                 pivoted: true
               });
             })
-          };
 
-          // Place the pivotColumns back into the visibleColumns
-          if (pivotIndex >= 0) {
+            // Place the pivotColumns back into the visibleColumns
+          };if (pivotIndex >= 0) {
             pivotColumnGroup = _extends({}, visibleColumns[pivotIndex], pivotColumnGroup);
             visibleColumns.splice(pivotIndex, 1, pivotColumnGroup);
           } else {
@@ -64933,7 +64954,16 @@ exports.default = function (Base) {
           }
           return row;
         };
-        var resolvedData = data.map(function (d, i) {
+
+        // // If the data hasn't changed, just use the cached data
+        var resolvedData = this.resolvedData;
+        // If the data has changed, run the data resolver and cache the result
+        if (!this.resolvedData || dataChanged) {
+          resolvedData = resolveData(data);
+          this.resolvedData = resolvedData;
+        }
+        // Use the resolved data
+        resolvedData = resolvedData.map(function (d, i) {
           return accessRow(d, i);
         });
 
@@ -65633,7 +65663,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 exports.default = {
   // General
-  data: _propTypes2.default.array,
+  data: _propTypes2.default.any.isRequired,
   loading: _propTypes2.default.bool,
   showPagination: _propTypes2.default.bool,
   showPaginationTop: _propTypes2.default.bool,
