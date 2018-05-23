@@ -13,7 +13,8 @@ module.exports = function(req, res) {
             if (err) {
                 console.log(err)
             }
-            data = data.trim().replace(/(\r\n|\n|\r|\t|\s|;)/g, ',')
+            data = data.trim().replace(/ /g, '')
+            data = data.replace(/(\r\n|\n|\r|\t|\s|;)/g, ',')
             fs.unlink(file, function(err){
                 if (err) sails.log.err(err)
                 else {

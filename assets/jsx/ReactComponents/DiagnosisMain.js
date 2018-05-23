@@ -79,8 +79,10 @@ var DiagnosisMain = React.createClass({
     getInitialState: function() {
         return {
             selectedTerms: Array(),
+            termsNotFound: Array(),
             checkbox: false,
-            filename: 'CHOOSE A FILE...'
+            genefilename: 'CHOOSE A FILE...',
+            termfilename: 'CHOOSE A FILE...'
         }
     },
 
@@ -153,32 +155,80 @@ var DiagnosisMain = React.createClass({
        })
     },
 
-    onFileUploadClick: function() {
-
+    onGeneFileUploadClick: function() {
         document.getElementById('file-genelist').onchange = function(){
-            var filename = document.getElementById('file-genelist').files[0].name
-            filename = filename.length > 30 ? (filename.slice(0, 15) + '...') : filename
+            var genefilename = document.getElementById('file-genelist').files[0].name
+            genefilename = genefilename.length > 30 ? (genefilename.slice(0, 15) + '...') : genefilename
             this.setState({
-                filename: filename,
+                genefilename: genefilename,
                 checkbox: true
             })
         }.bind(this)
+    },
+
+    onTermFileUploadClick: function(){
+      document.getElementById('file-termlist').onchange = function(){
+        var termfile = document.getElementById('file-termlist').files[0]
+        var fd = new FormData()
+        fd.append('genelist', termfile)
+        $.ajax({
+            url: GN.urls.fileupload,
+            data: fd,
+            processData: false,
+            contentType: false,
+            type: 'POST',
+            success: function(data){
+              var terms = data.split(',')
+              for (var i = 0; i < terms.length; i++){
+                var term = terms[i]
+                
+                io.socket.get(GN.urls.suggest, {
+                  q: term
+                },
+                function(res, jwres){
+                          if (jwres.statusCode === 200) {
+                              var options = _.compact(_.map(res, function(result) {
+                                  if (result._type === 'term') {
+                                    if (result._source.database == 'HPO'){
+                                      return {
+                                          value: result._source.id,                                          
+                                          label: result._source.name + ' - ' + result._source.id,
+                                          name: result._source.name
+                                      }
+                                    }
+                                  } else {
+                                      return null
+                                  }
+                              }))
+                              if (options.length == 1){
+                                this.onSelectChange(options[0])
+                              } else {
+                                  //handle terms not found
+                              }
+                          } else {
+                            //handle terms not found
+                          }
+                }.bind(this)   
+              )}
+            }.bind(this)
+        })
+      }.bind(this)
     },
 
     onSubmit: function(){
       var genes = document.getElementById('textarea-genelist').value
       var terms = _.map(this.state.selectedTerms, function(term){ return term.value }).join(',')
       var useCustomGeneSet = this.state.checkbox ? true : false
-      var file = document.getElementById('file-genelist').files[0]
+      var genefile = document.getElementById('file-genelist').files[0]
 
-      if (!file){
+      if (!genefile){
         this.props.history.pushState({
           genes: genes,
           useCustomGeneSet: useCustomGeneSet
         }, GN.urls.diagnosisPage + '/' + terms)
       } else {
           var fd = new FormData()
-          fd.append('genelist', file)
+          fd.append('genelist', genefile)
 
           $.ajax({
               url: GN.urls.fileupload,
@@ -203,7 +253,7 @@ var DiagnosisMain = React.createClass({
         var style = this.state.checkbox ? {transition: 'all .5s ease-in-out', height: '100px', overflow: 'hidden'} : {transition: 'all .5s ease-in-out', overflow: 'hidden', height: '0px'}
         var textsize = {fontSize: '10pt'}
         
-
+        console.log(this.state.termsNotFound)
         // <div id='step1' className='hflex'>
                             
         //                     <div style={{width: '40px'}}><h2>1.</h2></div>
@@ -243,8 +293,8 @@ var DiagnosisMain = React.createClass({
 
                                   </div> 
                                   <div className='flex10'>
-                                    <label htmlFor='file-termlist' onClick={this.onFileUploadClick} style={{float: 'right'}}>
-                                      <UploadPanel text={this.state.filename} />
+                                    <label htmlFor='file-termlist' onClick={this.onTermFileUploadClick} style={{float: 'right'}}>
+                                      <UploadPanel text={this.state.termfilename} />
                                     </label>
                                   </div>
                                   </div>
@@ -271,8 +321,8 @@ var DiagnosisMain = React.createClass({
                                         <textarea id="textarea-genelist" placeholder='Paste a list of genes here...' onChange={this.onTextAreaChange} cols="40" rows="5" className='textarea-genes' style={{width: '100%', height: '65px', border: '1px solid ' + color.colors.gngray, color: textcolor, outline: 'none'}}></textarea>
                                       </div>
                                       <div className='flex10' style={{paddingTop: '20px'}}>
-                                        <label htmlFor='file-genelist' onClick={this.onFileUploadClick} style={{float: 'right'}}>
-                                          <UploadPanel text={this.state.filename} />
+                                        <label htmlFor='file-genelist' onClick={this.onGeneFileUploadClick} style={{float: 'right'}}>
+                                          <UploadPanel text={this.state.genefilename} />
                                         </label>
                                       </div>
 
