@@ -6912,10 +6912,11 @@ var DiagnosisMain = React.createClass({displayName: "DiagnosisMain",
                               if (options.length == 1){
                                 this.onSelectChange(options[0])
                               } else {
-                                  //handle terms not found
+                                  //multiple terms found
+                                  //handle term not found
                               }
                           } else {
-                            //handle terms not found
+                            //handle term not found
                           }
                 }.bind(this)   
               )}
@@ -8884,7 +8885,7 @@ var UploadPanel = React.createClass({displayName: "UploadPanel",
         
         return (
             
-                React.createElement("div", {id: "uploadpanel", className: "clickable button noselect", style: {position: 'relative', width: '150px'}, onClick: this.props.onClick}, 
+                React.createElement("div", {id: "uploadpanel", className: "clickable button noselect", style: {position: 'relative', width: '100%'}, onClick: this.props.onClick}, 
                     React.createElement("div", {style: {position: 'absolute', top: '0px', left: '0px', height: '100%', padding: '0 8px 0 8px', backgroundColor: 'rgb(255,225,0)'}}, 
                     React.createElement("svg", {viewBox: "0 0 100 100", width: "20", height: "20", className: "arrow"}, 
                         React.createElement("polyline", {points: "10,50 50,0 90,50"}), 

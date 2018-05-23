@@ -250,18 +250,20 @@ module.exports = function(req, res) {
             } else {
                 rows.push('#')
             }
-            rows.push('Name\tID\tRank\tOmimURL\tGeneCardsURL\tPubmedUrl\tWeightedZscore');
+            rows.push('Name\tID\tRank\tWeightedZscore' + '\t' + terms.split(',').join('\t'));
             var linesTop = rows.length;
-            rows.push(terms);
+
             for (var i = 0; i < result.results.length; i++){
+                var hpoZscores = result.results[i].predicted.join('\t')
                 rows.push(
                     result.results[i].gene.name + '\t' + //name
                     result.results[i].gene.id + '\t' + //id
                     parseInt(i+1) + '\t' + //rank
-                    (mim2gene.get(result.results[i].gene.name) !== undefined ? ('=HYPERLINK("http://omim.org/entry/' + mim2gene.get(result.results[i].gene.name) + '")') : '') + '\t' + //omimURL
-                    '=HYPERLINK("http://www.genecards.org/cgi-bin/carddisp.pl?gene=' + result.results[i].gene.name + '")\t' + //genecardsURL
-                    '=HYPERLINK("https://www.ncbi.nlm.nih.gov/pubmed/?term=' + result.results[i].gene.name + '")\t' + //pubmedURL
+                    // (mim2gene.get(result.results[i].gene.name) !== undefined ? ('=HYPERLINK("http://omim.org/entry/' + mim2gene.get(result.results[i].gene.name) + '")') : '') + '\t' + //omimURL
+                    // '=HYPERLINK("http://www.genecards.org/cgi-bin/carddisp.pl?gene=' + result.results[i].gene.name + '")\t' + //genecardsURL
+                    // '=HYPERLINK("https://www.ncbi.nlm.nih.gov/pubmed/?term=' + result.results[i].gene.name + '")\t' + //pubmedURL
                     result.results[i].weightedZScore //weightedZscore 
+                    + '\t' + hpoZscores
                 )
             }
             res.setHeader('Content-disposition', 'attachment; filename=GeneNetwork-Diagnosis-' + terms.split(',').join('-') + '.txt');

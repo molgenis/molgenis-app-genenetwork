@@ -203,10 +203,11 @@ var DiagnosisMain = React.createClass({
                               if (options.length == 1){
                                 this.onSelectChange(options[0])
                               } else {
-                                  //handle terms not found
+                                  //multiple terms found
+                                  //handle term not found
                               }
                           } else {
-                            //handle terms not found
+                            //handle term not found
                           }
                 }.bind(this)   
               )}
