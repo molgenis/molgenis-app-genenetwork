@@ -1193,7 +1193,6 @@ D3Network.prototype.highlightGroup = function(groupIndex) {
 D3Network.prototype.colorBy = function(type) {
 
     var that = this
-    console.log(this._data.elements.groups)
 
     var node2cluster = {}
     if (type === 'cluster') {
@@ -3390,7 +3389,7 @@ var AnalysisPanel = React.createClass({displayName: "AnalysisPanel",
         onGeneRemove: React.PropTypes.func.isRequired,
         addedGenes: React.PropTypes.array.isRequired,
 
-        selectedTerm: React.PropTypes.object,
+        // selectedTerm: React.PropTypes.object,
         termColoring: React.PropTypes.string,
     },
 
@@ -4260,11 +4259,6 @@ var Network = React.createClass({displayName: "Network",
         var width = ReactDOM.findDOMNode(this).offsetWidth;
         var height = document.getElementById('network').offsetHeight;//ReactDOM.findDOMNode(this).offsetHeight
 
-        console.log('WIDTH, HEIGHT')
-        console.log(width + ', ' + height)
-
-        console.log(document.getElementById('network'))
-
         var ts = new Date();
         var network = new D3Network(document.getElementById('network'), {
             width: width + 300,
@@ -4802,6 +4796,7 @@ var Network = React.createClass({displayName: "Network",
             )
 
         } else {
+
             pageTitle = this.state.data.elements.nodes.length + ' genes' + GN.pageTitleSuffix;
             var title = this.state.data.pathway != null ? (this.state.data.pathway.database + ': ' + this.state.data.pathway.name) : null;
             var predictedgenes = (
@@ -5040,7 +5035,7 @@ var PWAPanel = React.createClass({displayName: "PWAPanel",
 
     propTypes: {
         group: React.PropTypes.object,
-        selectedTerm: React.PropTypes.object,
+        // selectedTerm: React.PropTypes.object,
         termColoring: React.PropTypes.string,
         areNodesColoredByTerm: React.PropTypes.bool
     },
@@ -6737,12 +6732,12 @@ var Back = require('./Back')
 var TermTable = React.createClass({displayName: "TermTable",
 
     componentDidUpdate: function() {
-        var terms = this.props.terms
-        if (!terms.length < 1){
-            var lastTerm = terms.slice(-1)[0]
-            var row = document.getElementById(lastTerm.value)
-            row.scrollIntoView()
-        }
+        // var terms = this.props.terms
+        // if (!terms.length < 1){
+        //     var lastTerm = terms.slice(-1)[0]
+        //     var row = document.getElementById(lastTerm.value)
+        //     row.scrollIntoView()
+        // }
     },
     
     render: function() {
@@ -6914,7 +6909,17 @@ var DiagnosisMain = React.createClass({displayName: "DiagnosisMain",
 
     render: function() {
         var textcolor = this.state.checkbox ? '#000' : color.colors.gngray
-        var style = this.state.checkbox ? {transition: 'all .5s ease-in-out', height: '150px', overflow: 'hidden'} : {transition: 'all .5s ease-in-out', overflow: 'hidden', height: '0px'}
+        var style = this.state.checkbox ? {transition: 'all .5s ease-in-out', height: '100px', overflow: 'hidden'} : {transition: 'all .5s ease-in-out', overflow: 'hidden', height: '0px'}
+        var textsize = {fontSize: '10pt'}
+        
+
+        // <div id='step1' className='hflex'>
+                            
+        //                     <div style={{width: '40px'}}><h2>1.</h2></div>
+                          
+        //                     <div id='step1content' style={{width: '100%',  paddingTop: '4px'}}>
+                            
+
         return (
                 React.createElement(DocumentTitle, {title: 'Diagnosis' + GN.pageTitleSuffix}, 
                 React.createElement("div", {className: "flex10", style: {backgroundColor: color.colors.gnwhite, marginTop: '10px', padding: '40px'}}, 
@@ -6923,19 +6928,12 @@ var DiagnosisMain = React.createClass({displayName: "DiagnosisMain",
 
                 ), 
                     React.createElement("div", {className: "hflex", style: {marginTop: '40px'}}, 
-                        React.createElement("div", {className: "", style: {width: '60%', minWidth: '600px', paddingRight: '40px'}}, 
+                        React.createElement("div", {className: "", style: {width: '55%', minWidth: '600px', paddingRight: '60px'}}, 
+                          React.createElement("ol", {className: "simple-list"}, 
+                          React.createElement("li", null, React.createElement("h3", null, "Select HPO terms"), 
 
-                          React.createElement("div", {id: "step1", className: "hflex"}, 
-                            React.createElement("div", {style: {width: '40px'}}, React.createElement("h2", null, "1.")), 
-                          
-                            React.createElement("div", {id: "step1content", style: {width: '100%',  paddingTop: '4px'}}, 
-                            React.createElement("div", {style: {paddingBottom: '20px'}}, 
-                              React.createElement("h3", null, "Select HPO terms")
-                            ), 
-
-                              React.createElement("div", null, 
-
-                                  React.createElement("div", {style: {float: 'left', width: '100%', paddingBottom: '20px'}}, 
+                                React.createElement("div", {className: "hflex", style: {paddingTop: '20px'}}, 
+                                  React.createElement("div", {className: "flex10", style: {float: 'left', paddingBottom: '20px', width: 'calc(100% - 200px)'}}, 
 
                                   React.createElement(Async, {
                                    // ref='select'
@@ -6953,67 +6951,76 @@ var DiagnosisMain = React.createClass({displayName: "DiagnosisMain",
                                    )
 
                                   ), 
+                                  React.createElement("div", {className: "flex10"}, 
+                                    React.createElement("label", {htmlFor: "file-termlist", onClick: this.onFileUploadClick, style: {float: 'right'}}, 
+                                      React.createElement(UploadPanel, {text: this.state.filename})
+                                    )
+                                  )
+                                  ), 
 
                                   React.createElement(TermTable, {terms: this.state.selectedTerms, removeTerm: this.removeTerm})
-                                )
-                              )
-                              ), 
-                              
-                              React.createElement("div", {id: "step2", className: "hflex"}, 
-                                React.createElement("div", {style: {width: '40px'}}, React.createElement("h2", {style: {color: textcolor}}, "2.")), 
 
-                              React.createElement("div", {id: "step2content", style: {paddingTop: '4px', paddingBottom: '20px', width: '100%'}}, 
-                                  
+                          ), 
+
+                                
+                            React.createElement("li", null, 
+  
 
                                 React.createElement("label", {htmlFor: "checkbox", onClick: this.onCheckboxClick, style: {position: 'absolute'}}, 
                                     React.createElement(SVGCollection.CheckBox, {selected: this.state.checkbox})
                                   ), 
                                   
-                                  React.createElement("div", null, React.createElement("h3", {style: {paddingLeft: '30px', color: textcolor, cursor: 'pointer'}, onClick: this.onCheckboxClick}, "OPTIONAL: filter output on candidate genes")), 
+                                    
+                                      React.createElement("div", null, React.createElement("h3", {style: {paddingLeft: '30px', color: textcolor, cursor: 'pointer'}, onClick: this.onCheckboxClick}, "OPTIONAL: filter output on candidate genes")), 
 
                                     React.createElement("input", {type: "checkbox", id: "checkbox", style: {display: 'none'}}), 
 
-                                    React.createElement("div", {style: style}, 
-                                  React.createElement("div", null, 
-                                  React.createElement("textarea", {id: "textarea-genelist", placeholder: "Paste a list of genes here...", onChange: this.onTextAreaChange, cols: "40", rows: "5", className: "textarea-genes", style: {width: 'calc(100% - 20px)', height: '65px', border: '1px solid ' + color.colors.gngray, color: textcolor, outline: 'none', marginTop: '20px'}})
+                                    React.createElement("div", {style: style, className: "hflex"}, 
+                                      React.createElement("div", {className: "flex10", style: {paddingTop: '20px', width: 'calc(100% - 200px)'}}, 
+                                        React.createElement("textarea", {id: "textarea-genelist", placeholder: "Paste a list of genes here...", onChange: this.onTextAreaChange, cols: "40", rows: "5", className: "textarea-genes", style: {width: '100%', height: '65px', border: '1px solid ' + color.colors.gngray, color: textcolor, outline: 'none'}})
+                                      ), 
+                                      React.createElement("div", {className: "flex10", style: {paddingTop: '20px'}}, 
+                                        React.createElement("label", {htmlFor: "file-genelist", onClick: this.onFileUploadClick, style: {float: 'right'}}, 
+                                          React.createElement(UploadPanel, {text: this.state.filename})
+                                        )
+                                      )
+
+                                  )
+                              ), 
+
+                                React.createElement("form", {encType: "multipart/form-data"}, 
+                                  React.createElement("input", {id: "file-genelist", type: "file", style: {display: 'none'}})
                                 ), 
 
-                                React.createElement("div", {style: {paddingBottom: '20px', paddingTop: '5px'}}, 
-                                        React.createElement("form", {encType: "multipart/form-data"}, 
-                                          React.createElement("input", {id: "file-genelist", type: "file", style: {display: 'none'}}), 
-                                          React.createElement("label", {htmlFor: "file-genelist", onClick: this.onFileUploadClick}, 
-                                            React.createElement(UploadPanel, {text: this.state.filename})
-                                          )
-                                        )
-                                    )
-                                    )
-                              )
-                              ), 
+                                React.createElement("form", {encType: "multipart/form-data"}, 
+                                  React.createElement("input", {id: "file-termlist", type: "file", style: {display: 'none'}})
+                                ), 
+
+
+
                                 React.createElement("span", {onClick: this.onSubmit, className: "button noselect clickable", style: {marginTop: '20px'}}, "Prioritize genes for given HPO terms")
-                            ), 
+                            
+                                )
+                              ), 
 
-                        React.createElement("div", {className: "text-right", style: {width: '40%', minWidth: '300px', paddingLeft: '40px', fontSize: '10pt'}}, 
-                            React.createElement("p", null, 
-                              "Using the HPO gene prioritization it possible to rank genes based on a patient’s phenotypes."
-                            ), 
-                            
-                            React.createElement("p", null, 
-                              React.createElement("ol", null, 
-                                React.createElement("li", null, "Fill in the phenotypes of a patient as HPO terms (compbio.charite.de/hpoweb/showterm?id=HP:0000118). Try to be as specific as possible, if a term could not be found then a more general term should be used. If the exact phenotype of a patient is unclear it is better to use a more general term, as a wrongly assigned specific term might hinder accurate ranking. For example, there are many subclasses of seizures (http://compbio.charite.de/hpoweb/showterm?id=HP:0001250), if it clear that a patient shows a specific subclass then the HPO term for this subclass should be used, if this is not clear then it is best to use the general seizures term. It is also best to only use distinct HPO terms to describe a patient’s phenotypes. If two close related terms are used to describe the same phenotype, then these will result in some bias towards this phenotype in the prioritization. Please use the HPO number or the primary name, synonyms are not supported at the moment."), 
-                                React.createElement("li", null, "Optional list of genes to be ranked using the HPO terms. This could for instance be the genes in which a patient has candidate disease causing mutations that require classification or follow-up analysis. The genes that prioritize on top are the most likely candidates based on our HPO term predictions. If no gene list is provided we will simply rank all genes based on the provided HPO terms.")
-                              )
-                            ), 
-                            
-                            React.createElement("p", null, 
-                            React.createElement("b", null, "FAQ"), 
+                              React.createElement("div", {id: "text-right", style: {width: '45%', padding: '20px', backgroundColor: color.colors.gnyellow, lineHeight: '1'}}, 
+
+                              React.createElement("span", {style: textsize}, "Using the HPO gene prioritization it possible to rank genes based on a patient’s phenotypes."), React.createElement("br", null), React.createElement("br", null), 
+                           
+                              React.createElement("ol", {className: "simple-list"}, 
+                                React.createElement("li", null, React.createElement("span", {style: textsize}, "Fill in the phenotypes of a patient as HPO terms (", React.createElement("a", {href: "http://compbio.charite.de/hpoweb/showterm?id=HP:0000118", className: "externallink", target: "_blank"}, "compbio.charite.de/hpoweb/showterm?id=HP:0000118"), "). Try to be as specific as possible, if a term could not be found then a more general term should be used. If the exact phenotype of a patient is unclear it is better to use a more general term, as a wrongly assigned specific term might hinder accurate ranking. For example, there are many subclasses of seizures (", React.createElement("a", {href: "http://compbio.charite.de/hpoweb/showterm?id=HP:0001250", className: "externallink", target: "_blank"}, "compbio.charite.de/hpoweb/showterm?id=HP:0001250"), "), if it clear that a patient shows a specific subclass then the HPO term for this subclass should be used, if this is not clear then it is best to use the general seizures term. It is also best to only use distinct HPO terms to describe a patient’s phenotypes. If two close related terms are used to describe the same phenotype, then these will result in some bias towards this phenotype in the prioritization. Please use the HPO number or the primary name, synonyms are not supported at the moment.")), 
+                                React.createElement("li", null, React.createElement("span", {style: textsize}, "Optional list of genes to be ranked using the HPO terms. This could for instance be the genes in which a patient has candidate disease causing mutations that require classification or follow-up analysis. The genes that prioritize on top are the most likely candidates based on our HPO term predictions. If no gene list is provided we will simply rank all genes based on the provided HPO terms."))
+                              ), 
+                    
+                            React.createElement("h3", {style: {paddingTop: '15px'}}, "FAQ"), 
                             React.createElement("ul", null, 
-                          React.createElement("li", null, React.createElement("i", null, "Why is my term not found? "), React.createElement("br", null), 
-                          "We do not have significant predictions for all HPO terms. Either because very few genes are known for a term of because our current dataset is unable to reliable predict back the known genes for a term. At the moment the best course of action is to manually select a more generic term. We are currently working on an extension to automatically suggest more general terms if one of these terms is entered. At the moment we don’t support searching using the synonym names of HPO terms, this will be resolved in a future version."), 
-                          React.createElement("li", null, React.createElement("i", null, "My favorite candidate gene for patient is found back in the top of the results?"), " ", React.createElement("br", null), 
-                          "Gene expression patterns are not informative for all genes. If an expected gene is not found back this is the most likely explanation.")
-                              )
-
+                              React.createElement("li", null, React.createElement("span", {style: textsize}, React.createElement("i", null, "Why is my term not found? "), React.createElement("br", null), 
+                                "We do not have significant predictions for all HPO terms. Either because very few genes are known for a term of because our current dataset is unable to reliable predict back the known genes for a term. At the moment the best course of action is to manually select a more generic term. We are currently working on an extension to automatically suggest more general terms if one of these terms is entered. At the moment we don’t support searching using the synonym names of HPO terms, this will be resolved in a future version.")), React.createElement("br", null), 
+                              React.createElement("li", null, React.createElement("span", {style: textsize}, React.createElement("i", null, "My favorite candidate gene for patient is found back in the top of the results?"), " ", React.createElement("br", null), 
+                              "Gene expression patterns are not informative for all genes. If an expected gene is not found back this is the most likely explanation."))
                             )
+
+                            
                         )
 
                         )
@@ -7241,7 +7248,7 @@ var AnnotatedGeneRow = React.createClass({displayName: "AnnotatedGeneRow",
         var data = this.props.data;
         var desc = (data.gene.description || 'no description').replace(/\[[^\]]+\]/g, '');
 
-        console.log("pvalue", data.pvalue);
+        // console.log("pvalue", data.pvalue);
         
         return React.createElement("tr", {className: this.props.num % 2 === 0 ? 'datarow evenrow' : 'datarow oddrow'}, 
                  React.createElement("td", {className: "text"}, 

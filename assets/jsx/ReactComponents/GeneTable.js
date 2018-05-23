@@ -36,7 +36,7 @@ var AnnotatedGeneRow = React.createClass({
         var data = this.props.data;
         var desc = (data.gene.description || 'no description').replace(/\[[^\]]+\]/g, '');
 
-        console.log("pvalue", data.pvalue);
+        // console.log("pvalue", data.pvalue);
         
         return ( <tr className={this.props.num % 2 === 0 ? 'datarow evenrow' : 'datarow oddrow'}>
                  <td className='text'>

@@ -1003,7 +1003,6 @@ D3Network.prototype.highlightGroup = function(groupIndex) {
 D3Network.prototype.colorBy = function(type) {
 
     var that = this
-    console.log(this._data.elements.groups)
 
     var node2cluster = {}
     if (type === 'cluster') {

@@ -272,11 +272,6 @@ var Network = React.createClass({
         var width = ReactDOM.findDOMNode(this).offsetWidth;
         var height = document.getElementById('network').offsetHeight;//ReactDOM.findDOMNode(this).offsetHeight
 
-        console.log('WIDTH, HEIGHT')
-        console.log(width + ', ' + height)
-
-        console.log(document.getElementById('network'))
-
         var ts = new Date();
         var network = new D3Network(document.getElementById('network'), {
             width: width + 300,
@@ -814,6 +809,7 @@ var Network = React.createClass({
             )
 
         } else {
+
             pageTitle = this.state.data.elements.nodes.length + ' genes' + GN.pageTitleSuffix;
             var title = this.state.data.pathway != null ? (this.state.data.pathway.database + ': ' + this.state.data.pathway.name) : null;
             var predictedgenes = (

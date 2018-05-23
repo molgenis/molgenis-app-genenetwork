@@ -17,7 +17,7 @@ var PWAPanel = React.createClass({
 
     propTypes: {
         group: React.PropTypes.object,
-        selectedTerm: React.PropTypes.object,
+        // selectedTerm: React.PropTypes.object,
         termColoring: React.PropTypes.string,
         areNodesColoredByTerm: React.PropTypes.bool
     },
