@@ -6040,9 +6040,9 @@ var ShowPhenotypes3 = React.createClass({displayName: "ShowPhenotypes3",
                 React.createElement(Tr, {key: terms[i].term.name, style: terms[i].term.id === this.props.hoverRow || terms[i].term.id === this.props.hoverCol ? {backgroundColor: color.colors.gnyellow} : {}}, 
                     React.createElement(Td, {column: "PHENOTYPE"}, terms[i].term.name), 
                     React.createElement(Td, {column: "ANNOTATED", style: {textAlign: 'center'}}, terms[i].term.numAnnotatedGenes), 
-                    React.createElement(Td, {column: "HPOTERM", style: {textAlign: 'center'}}, React.createElement("a", {className: "nodecoration black", href: terms[i].term.url, target: "_blank"}, terms[i].term.id))
+                    React.createElement(Td, {column: "HPOTERM", style: {textAlign: 'center'}}, React.createElement("a", {className: "externallink", href: terms[i].term.url, target: "_blank"}, terms[i].term.id))
                 )
-                )
+            )
         }
 
         // <Th column="ZSCORE" style={{textAlign: 'center'}}>{"Z-SCORE"}</Th>
@@ -6549,7 +6549,7 @@ var Diagnosis = React.createClass({displayName: "Diagnosis",
 
     	if (!this.state.data) {
             return (
-                React.createElement("div", {style: {paddingTop: '250px', paddingLeft: '40%', backgroundColor: '#fff'}, className: "flex10 hflex"}, 
+                React.createElement("div", {style: {paddingTop: '250px', paddingLeft: '45%', backgroundColor: '#fff'}, className: "flex10 hflex"}, 
                     React.createElement("span", {style: {fontWeight: 'bold', fontFamily: 'GG', fontSize: '1.5em'}}, "Loading")
                 )
             )
@@ -7056,7 +7056,7 @@ var DiagnosisMain = React.createClass({displayName: "DiagnosisMain",
 
                               React.createElement("div", {id: "text-right", style: {width: '45%', padding: '20px', backgroundColor: color.colors.gnyellow, lineHeight: '1'}}, 
 
-                              React.createElement("span", {style: textsize}, "Using the HPO gene prioritization it possible to rank genes based on a patient’s phenotypes."), React.createElement("br", null), React.createElement("br", null), 
+                              React.createElement("span", {style: textsize}, "Using the HPO gene prioritization it is possible to rank genes based on a patient’s phenotypes."), React.createElement("br", null), React.createElement("br", null), 
                            
                               React.createElement("ol", {className: "simple-list"}, 
                                 React.createElement("li", null, React.createElement("span", {style: textsize}, "Fill in the phenotypes of a patient as HPO terms (", React.createElement("a", {href: "http://compbio.charite.de/hpoweb/showterm?id=HP:0000118", className: "externallink", target: "_blank"}, "compbio.charite.de/hpoweb/showterm?id=HP:0000118"), "). Try to be as specific as possible, if a term could not be found then a more general term should be used. If the exact phenotype of a patient is unclear it is better to use a more general term, as a wrongly assigned specific term might hinder accurate ranking. For example, there are many subclasses of seizures (", React.createElement("a", {href: "http://compbio.charite.de/hpoweb/showterm?id=HP:0001250", className: "externallink", target: "_blank"}, "compbio.charite.de/hpoweb/showterm?id=HP:0001250"), "), if it clear that a patient shows a specific subclass then the HPO term for this subclass should be used, if this is not clear then it is best to use the general seizures term. It is also best to only use distinct HPO terms to describe a patient’s phenotypes. If two close related terms are used to describe the same phenotype, then these will result in some bias towards this phenotype in the prioritization. Please use the HPO number or the primary name, synonyms are not supported at the moment.")), 

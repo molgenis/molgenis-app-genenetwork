@@ -126,9 +126,9 @@ var ShowPhenotypes3 = React.createClass({
                 <Tr key={terms[i].term.name} style={terms[i].term.id === this.props.hoverRow || terms[i].term.id === this.props.hoverCol ? {backgroundColor: color.colors.gnyellow} : {}}>
                     <Td column="PHENOTYPE">{terms[i].term.name}</Td>
                     <Td column="ANNOTATED" style={{textAlign: 'center'}}>{terms[i].term.numAnnotatedGenes}</Td>
-                    <Td column="HPOTERM" style={{textAlign: 'center'}}><a className='nodecoration black' href={terms[i].term.url} target="_blank">{terms[i].term.id}</a></Td>
+                    <Td column="HPOTERM" style={{textAlign: 'center'}}><a className='externallink' href={terms[i].term.url} target="_blank">{terms[i].term.id}</a></Td>
                 </Tr>
-                )
+            )
         }
 
         // <Th column="ZSCORE" style={{textAlign: 'center'}}>{"Z-SCORE"}</Th>
@@ -635,7 +635,7 @@ var Diagnosis = React.createClass({
 
     	if (!this.state.data) {
             return (
-                <div style={{paddingTop: '250px', paddingLeft: '40%', backgroundColor: '#fff'}} className='flex10 hflex'>
+                <div style={{paddingTop: '250px', paddingLeft: '45%', backgroundColor: '#fff'}} className='flex10 hflex'>
                     <span style={{fontWeight: 'bold', fontFamily: 'GG', fontSize: '1.5em'}}>Loading</span>
                 </div>
             )
