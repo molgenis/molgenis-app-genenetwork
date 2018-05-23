@@ -60,7 +60,7 @@ var TermTable = React.createClass({
 
         return (
             <div>
-                <Table id='hpo-table' className='datatable hpo-table' style={{margin: '0px 0 30px 0'}}>
+                <Table id='hpo-table' className='table rowcolors' style={{margin: '0px 0 30px 0'}}>
                     <Thead>
                       <Th column="TERM" style={{width: '100%'}}>TERM</Th>
                       <Th column="ID" style={{minWidth: '110px', textAlign: 'center'}}>ID</Th>

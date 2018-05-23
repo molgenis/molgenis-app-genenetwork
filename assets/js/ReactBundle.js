@@ -6769,7 +6769,7 @@ var TermTable = React.createClass({displayName: "TermTable",
 
         return (
             React.createElement("div", null, 
-                React.createElement(Table, {id: "hpo-table", className: "datatable hpo-table", style: {margin: '0px 0 30px 0'}}, 
+                React.createElement(Table, {id: "hpo-table", className: "table rowcolors", style: {margin: '0px 0 30px 0'}}, 
                     React.createElement(Thead, null, 
                       React.createElement(Th, {column: "TERM", style: {width: '100%'}}, "TERM"), 
                       React.createElement(Th, {column: "ID", style: {minWidth: '110px', textAlign: 'center'}}, "ID"), 
