@@ -65,12 +65,12 @@ var getPathwayDatabasesFromDB = function(db, callback) {
         //  description: 'Consistent description of gene products',
         //  url: 'http://geneontology.org/',
         //  inMemory: false},
-        // {id: 'GO-MF',
-        //  name: 'GO molecular function',
-        //  fullName: 'Gene Ontology - Molecular function',
-        //  description: 'Consistent description of gene products',
-        //  url: 'http://geneontology.org/',
-        //  inMemory: false},
+        {id: 'GO_F',
+         name: 'GO molecular function',
+         fullName: 'Gene Ontology - Molecular function',
+         description: 'Consistent description of gene products',
+         url: 'http://geneontology.org/',
+         inMemory: true},
         // {id: 'GO-CC',
         //  name: 'GO cellular component',
         //  fullName: 'Gene Ontology - Cellular component',
@@ -241,18 +241,17 @@ var getPredictions = function(buffer, dbname, options) {
     options = options || {};
     var result = [];
     var numSignificant = buffer.readUInt16BE(0);
-    //sails.log.debug('Will prepare ' + (dbname ? dbname : 'gene') + ' Z-scores (buffer length / 2 ' + buffer.length / 2 + ', numSignificant ' + numSignificant + ', start ' + options.start + ', stop ' + options.stop + ')')
+    sails.log.debug('Will prepare ' + (dbname ? dbname : 'gene') + ' Z-scores (buffer length / 2 ' + buffer.length / 2 + ', numSignificant ' + numSignificant + ', start ' + options.start + ', stop ' + options.stop + ')')
 
-    var ts = new Date();
     if (dbname) { // pathway z scores
         for (var i = 1; i < buffer.length / 2; i++) {
             var z;
             // TODO
-	    if ('OMIM' === dbname) {
-		z = buffer.readUInt16BE(i * 2) / 65535
-	    } else {
-		z = (buffer.readUInt16BE(i * 2) - 32768) / 1000
-	    }
+            if ('OMIM' === dbname) {
+                z = buffer.readUInt16BE(i * 2) / 65535
+            } else {
+                z = (buffer.readUInt16BE(i * 2) - 32768) / 1000
+            }
             if (options.verbose === '' || options.verbose === 'true') {
                 result.push({
                     href: sails.config.version.apiUrl + '/pathway/' + DBUTIL.pathways[dbname][i - 1].id,
@@ -270,10 +269,12 @@ var getPredictions = function(buffer, dbname, options) {
         if (options.annotations) { // add Z-scores for annotated genes, as they might not be included in the sliced list of predicted genes
             _.forEach(options.annotations, function(obj) {
                 if (obj.term.database === dbname) {
-                    obj.zScore = result[obj.term.index_].zScore;
-	            if (options.pvalue) {
+                    if (result[obj.term.index_]) {
+                        obj.zScore = result[obj.term.index_].zScore;
+                    }
+	                if (options.pvalue) {
                         obj.pValue = probability.zToP(obj.zScore)
-	            }
+	                }
                 }
             })
         }

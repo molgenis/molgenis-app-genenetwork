@@ -1,3 +1,3 @@
 module.exports = {
-    domain: 'https://www.genenetwork.nl'
+    domain: 'http://localhost:1337'
 };

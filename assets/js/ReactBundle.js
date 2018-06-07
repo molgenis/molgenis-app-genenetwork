@@ -1944,8 +1944,8 @@ var Gene = React.createClass({displayName: "Gene",
             contentTop = React.createElement(GeneHeader, {notFound: this.props.params.geneId});
             pageTitle = this.state.errorTitle + GN.pageTitleSuffix
         } else {
+
             var data = this.state.topMenuSelection == 'prediction' ? this.state.prediction : this.state.similar;
-        
             if (data) {
                 var tableContent = null;
                 if (this.state.topMenuSelection == 'prediction') {
@@ -5725,9 +5725,12 @@ var DataTable = React.createClass({displayName: "DataTable",
         var that = this;
         var pathways = this.state.annotationsOnly ? this.props.data.pathways.annotated : this.props.data.pathways.predicted;
 
+        console.log(pathways);
+        console.log(that.props.db);
         pathways = _.filter(pathways, function(pathway) {
             return pathway.term.database.toUpperCase() === that.props.db
         });
+        console.log(pathways);
 
         if (this.state.annotationsOnly) {
             pathways = _.sortBy(pathways, 'pValue')
@@ -8932,7 +8935,7 @@ module.exports = Tools;
 
 },{"../../config/gn":51,"../js/color":4,"./Box":8,"./BoxFunctionEnrichment":9,"react":333}],50:[function(require,module,exports){
 module.exports = {
-    domain: 'https://www.genenetwork.nl'
+    domain: 'http://localhost:1337'
 };
 
 },{}],51:[function(require,module,exports){
@@ -39286,10 +39289,12 @@ function shim (obj) {
 },{}],129:[function(require,module,exports){
 (function (process){
 /**
- * Copyright (c) 2013-present, Facebook, Inc.
+ * Copyright 2013-2015, Facebook, Inc.
+ * All rights reserved.
  *
- * This source code is licensed under the MIT license found in the
- * LICENSE file in the root directory of this source tree.
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree. An additional grant
+ * of patent rights can be found in the PATENTS file in the same directory.
  */
 
 'use strict';
@@ -63228,12 +63233,19 @@ exports.default = trim;
 },{}],183:[function(require,module,exports){
 'use strict';
 
-function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
+var _react = require('react');
 
-var React = require('react');
-var React__default = _interopDefault(React);
-var ExecutionEnvironment = _interopDefault(require('exenv'));
-var shallowEqual = _interopDefault(require('shallowequal'));
+var _react2 = _interopRequireDefault(_react);
+
+var _exenv = require('exenv');
+
+var _exenv2 = _interopRequireDefault(_exenv);
+
+var _shallowequal = require('shallowequal');
+
+var _shallowequal2 = _interopRequireDefault(_shallowequal);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -63241,7 +63253,7 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-function withSideEffect(reducePropsToState, handleStateChangeOnClient, mapStateOnServer) {
+module.exports = function withSideEffect(reducePropsToState, handleStateChangeOnClient, mapStateOnServer) {
   if (typeof reducePropsToState !== 'function') {
     throw new Error('Expected reducePropsToState to be a function.');
   }
@@ -63305,7 +63317,7 @@ function withSideEffect(reducePropsToState, handleStateChangeOnClient, mapStateO
       };
 
       SideEffect.prototype.shouldComponentUpdate = function shouldComponentUpdate(nextProps) {
-        return !shallowEqual(nextProps, this.props);
+        return !(0, _shallowequal2.default)(nextProps, this.props);
       };
 
       SideEffect.prototype.componentWillMount = function componentWillMount() {
@@ -63324,22 +63336,19 @@ function withSideEffect(reducePropsToState, handleStateChangeOnClient, mapStateO
       };
 
       SideEffect.prototype.render = function render() {
-        return React__default.createElement(WrappedComponent, this.props);
+        return _react2.default.createElement(WrappedComponent, this.props);
       };
 
       return SideEffect;
-    }(React.Component);
+    }(_react.Component);
 
     SideEffect.displayName = 'SideEffect(' + getDisplayName(WrappedComponent) + ')';
-    SideEffect.canUseDOM = ExecutionEnvironment.canUseDOM;
+    SideEffect.canUseDOM = _exenv2.default.canUseDOM;
 
 
     return SideEffect;
   };
-}
-
-module.exports = withSideEffect;
-
+};
 },{"exenv":68,"react":333,"shallowequal":350}],184:[function(require,module,exports){
 'use strict';
 
@@ -63378,6 +63387,9 @@ var emptyObj = function emptyObj() {
 exports.default = {
   // General
   data: [],
+  resolveData: function resolveData(data) {
+    return data;
+  },
   loading: false,
   showPagination: true,
   showPaginationTop: false,
@@ -64565,7 +64577,7 @@ exports.default = function (Base) {
     _createClass(_class, [{
       key: 'componentWillMount',
       value: function componentWillMount() {
-        this.setStateWithData(this.getDataModel(this.getResolvedState()));
+        this.setStateWithData(this.getDataModel(this.getResolvedState(), true));
       }
     }, {
       key: 'componentDidMount',
@@ -64604,7 +64616,7 @@ exports.default = function (Base) {
 
         // Props that trigger a data update
         if (oldState.data !== newState.data || oldState.columns !== newState.columns || oldState.pivotBy !== newState.pivotBy || oldState.sorted !== newState.sorted || oldState.filtered !== newState.filtered) {
-          this.setStateWithData(this.getDataModel(newState));
+          this.setStateWithData(this.getDataModel(newState, oldState.data !== newState.data));
         }
       }
     }, {
@@ -64720,13 +64732,14 @@ exports.default = function (Base) {
       }
     }, {
       key: 'getDataModel',
-      value: function getDataModel(newState) {
+      value: function getDataModel(newState, dataChanged) {
         var _this2 = this;
 
         var columns = newState.columns,
             _newState$pivotBy = newState.pivotBy,
             pivotBy = _newState$pivotBy === undefined ? [] : _newState$pivotBy,
             data = newState.data,
+            resolveData = newState.resolveData,
             pivotIDKey = newState.pivotIDKey,
             pivotValKey = newState.pivotValKey,
             subRowsKey = newState.subRowsKey,
@@ -64887,10 +64900,9 @@ exports.default = function (Base) {
                 pivoted: true
               });
             })
-          };
 
-          // Place the pivotColumns back into the visibleColumns
-          if (pivotIndex >= 0) {
+            // Place the pivotColumns back into the visibleColumns
+          };if (pivotIndex >= 0) {
             pivotColumnGroup = _extends({}, visibleColumns[pivotIndex], pivotColumnGroup);
             visibleColumns.splice(pivotIndex, 1, pivotColumnGroup);
           } else {
@@ -64945,7 +64957,16 @@ exports.default = function (Base) {
           }
           return row;
         };
-        var resolvedData = data.map(function (d, i) {
+
+        // // If the data hasn't changed, just use the cached data
+        var resolvedData = this.resolvedData;
+        // If the data has changed, run the data resolver and cache the result
+        if (!this.resolvedData || dataChanged) {
+          resolvedData = resolveData(data);
+          this.resolvedData = resolvedData;
+        }
+        // Use the resolved data
+        resolvedData = resolvedData.map(function (d, i) {
           return accessRow(d, i);
         });
 
@@ -65645,7 +65666,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 exports.default = {
   // General
-  data: _propTypes2.default.array,
+  data: _propTypes2.default.any.isRequired,
   loading: _propTypes2.default.bool,
   showPagination: _propTypes2.default.bool,
   showPaginationTop: _propTypes2.default.bool,

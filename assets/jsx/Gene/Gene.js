@@ -146,8 +146,8 @@ var Gene = React.createClass({
             contentTop = <GeneHeader notFound={this.props.params.geneId} />;
             pageTitle = this.state.errorTitle + GN.pageTitleSuffix
         } else {
+
             var data = this.state.topMenuSelection == 'prediction' ? this.state.prediction : this.state.similar;
-        
             if (data) {
                 var tableContent = null;
                 if (this.state.topMenuSelection == 'prediction') {
