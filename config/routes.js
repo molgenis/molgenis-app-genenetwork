@@ -68,9 +68,7 @@ module.exports.routes = {
     '/ontology*': {
         view: 'homepage'
     },
-
-    '/diagnosis': '/gado',
-
+    
     '/gado*': {
         view: 'homepage'
     },
