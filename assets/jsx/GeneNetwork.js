@@ -37,8 +37,8 @@ ReactDOM.render(<Router history={history}>
                             <Route path='/term/:termId' component = {Term} />
                             <Route path='/network/:ids' component = {Network} />
                             <Route path='/ontology/:id' component = {Ontology} />
-                            <Route path='/diagnosis' component = {DiagnosisMain} />
-                            <Route path='/diagnosis/:id' component = {Diagnosis} />
+                            <Route path='/gado' component = {DiagnosisMain} />
+                            <Route path='/gado/:id' component = {Diagnosis} />
                         </Route>
                     </Route>
                 </Router>,

@@ -20,6 +20,8 @@
  * http://sailsjs.org/#/documentation/concepts/Routes/RouteTargetSyntax.html
  */
 
+const url = require("request");
+
 module.exports.routes = {
 
     //// API routes
@@ -67,7 +69,13 @@ module.exports.routes = {
         view: 'homepage'
     },
 
-    '/diagnosis*': {
+    '/diagnosis*': function(req, res) {
+        var path = req.url.split("/");
+        var newPath = "/gado/" + path[path.length - 1];
+        res.redirect(newPath);
+    },
+
+    '/gado*': {
         view: 'homepage'
     },
 
@@ -78,12 +86,5 @@ module.exports.routes = {
     '/about*': {
         view: 'homepage'
     },
-
-    '/biosqtlbrowser': 'https://molgenis58.target.rug.nl/biosqtlbrowser/',
-
-    '/bloodeqtlbrowser': 'https://molgenis58.target.rug.nl/bloodeqtlbrowser/',
-
-    '/cd4cd8eqtlbrowser': 'https://molgenis58.target.rug.nl/cd4cd8eqtlbrowser/'
-
 
 };

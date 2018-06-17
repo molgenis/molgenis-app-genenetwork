@@ -382,10 +382,10 @@ var PWAPanel = React.createClass({
                 }
                 return (
                         <div key={db.id} onClick={that.handleDatabaseClick.bind(that, db.id)} className={cls} style={{float: 'left'}}>
-                        {db.id.replace('-', ' ')}
+                        {db.id.replace('_', ' ')}
                     </div>
                 )
-            })
+            });
 
 
 //            var message = {These are <strong>pathways</strong})

@@ -256,7 +256,7 @@ var Landing = React.createClass({
         var topBanner = null;
 
         if (_.size(this.props.params) === 0) {
-            if (this.props.location.pathname.indexOf('diagnosis') === 1) {
+            if (this.props.location.pathname.indexOf('gado') === 1) {
                 topBanner = (null)
             } else {
                 topBanner = (<div className='searchcontainer'>

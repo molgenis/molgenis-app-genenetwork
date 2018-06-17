@@ -176,12 +176,12 @@ var GeneTable = React.createClass({
                 var networkLink = GN.urls.networkPage + phens + gene
 
                 /* biotype squares: */
-                var square =
-                    <div style={this.props.style} title={subTable[i].gene.biotype}>
-                    <svg viewBox='0 0 10 10' width={10} height={10}>
-                    <rect x1='0' y1='0' width='10' height='10' style={{fill: color.biotype2color[subTable[i].gene.biotype] || color.colors.default}} />
-                    </svg>
-                    </div>
+                // var square =
+                //     <div style={this.props.style} title={subTable[i].gene.biotype}>
+                //     <svg viewBox='0 0 10 10' width={10} height={10}>
+                //     <rect x1='0' y1='0' width='10' height='10' style={{fill: color.biotype2color[subTable[i].gene.biotype] || color.colors.default}} />
+                //     </svg>
+                //     </div>
 
                 /* If impact scorses provided, include column in rows: */
                 var impactScore = null
@@ -195,7 +195,7 @@ var GeneTable = React.createClass({
 
                 newRows.push(
                     <Tr key={i} className = {rowtype} onMouseOver={this.props.onMouseOver.bind(null, subTable[i].predicted)}>
-                    <Td column="BIOTYPE" style={{textAlign: 'center'}}>{square}</Td>
+                    {/*<Td column="BIOTYPE" style={{textAlign: 'center'}}>{square}</Td>*/}
                     <Td column="RANK" style={{textAlign: 'center'}}>{i + 1}</Td>
                     <Td column="GENE" style={{textAlign: 'left'}}><a className='nodecoration black' href={geneLink} target="_blank">{subTable[i].gene.name}</a></Td>
                     {/*<Td column="P-VALUE" style={{textAlign: 'center'}}>{unsafe(htmlutil.pValueToReadable(prob.zToP(subTable[i].weightedZScore)))}</Td>*/}
@@ -239,7 +239,7 @@ var GeneTable = React.createClass({
 
                 newRows.push(
                     <Tr key={i} onMouseOver={this.props.onMouseOver.bind(null, this.props.prio.results[i])}>
-                    <Td column="" style={{textAlign: 'center'}}>{square}</Td>
+                    {/*<Td column="" style={{textAlign: 'center'}}>{square}</Td>*/}
                     <Td column="RANK" style={{textAlign: 'center'}}>{i + 1}</Td>
                     <Td column="GENE" style={{textAlign: 'left'}}><a className='nodecoration black' href={geneLink} target="_blank" title={this.props.prio.results[i].gene.description}>{this.props.prio.results[i].gene.name}</a></Td>
                     <Td column="Z-SCORE" style={{textAlign: 'center'}}>{Math.round(unsafe(this.props.prio.results[i].weightedZScore)*10)/10}</Td>
@@ -380,7 +380,7 @@ var GeneTable = React.createClass({
 
             >
             <Thead>
-                <Th>{""}</Th>
+                {/*<Th>{""}</Th>*/}
                 <Th column="RANK" style={{textAlign: 'center'}}>{"RANK"}</Th>
                 <Th column="GENE">{"GENE"}</Th>
                 <Th column="Z-SCORE" style={{textAlign: 'center'}}>

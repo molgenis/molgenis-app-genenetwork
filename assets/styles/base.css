@@ -263,7 +263,7 @@ h1, h2, h3, h4, h5 {
     color: #ffffff;
     padding: 8px;
     text-decoration: none;
-    stroke-width: 5px;
+    /*stroke-width: 5px;*/
     display: inline-block;
 }
 
@@ -806,7 +806,7 @@ line.link {
 }
 
 .tabletextheader {
-    padding-bottom: 5px;
+    padding-bottom: 0px;
 }
 
 .datatable th:not(.tabletextheader) {

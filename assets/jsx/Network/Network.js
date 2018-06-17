@@ -17,7 +17,6 @@ var LegendPanel = require('./LegendPanel');
 var Footer = require('../ReactComponents/Footer');
 var GeneTable = require('../ReactComponents/GeneTable');
 
-var Cookies = require('cookies-js');
 var D3Network = require('../../js/D3Network.js');
 var color = require('../../js/color');
 var htmlutil = require('../../js/htmlutil');
@@ -851,27 +850,27 @@ var Network = React.createClass({
 
                         <div className='gn-network-panelcontainer noselect smallscreensmallfont'>
                         
-                                <GroupPanel data={this.state.data}
-                            activeGroup={this.state.activeGroup}
-                            coloring={this.state.coloring}
-                            onGroupClick={this.updateGroup}
-                            onAnalyse={this.onAnalyse}
-                            style={{maxHeight: 1 / 3 * this.state.height - 30, paddingRight: '0px'}}
-                                />
+                            <GroupPanel data={this.state.data}
+                                        activeGroup={this.state.activeGroup}
+                                        coloring={this.state.coloring}
+                                        onGroupClick={this.updateGroup}
+                                        onAnalyse={this.onAnalyse}
+                                        style={{maxHeight: 1 / 3 * this.state.height - 30, paddingRight: '0px'}}
+                            />
                                 
                             {this.state.analysisGroup ?
-                             <AnalysisPanel
-                             style={{padding: '10px 0 10px 10px', maxHeight: 2 / 3 * this.state.height - 70}}
-                             onClose={this.handleAnalysisPanelClose}
-                             analysisGroup={this.state.analysisGroup}
-                             selectedTerm={this.state.selectedTerm}
-                             termColoring={this.state.termColoring}
-                             coloring={this.state.coloring}
-                             onTermSelect={this.selectTerm}
-                             onGeneAdd={this.addGeneRequest}
-                             onGeneRemove={this.removeGene}
-                             addedGenes={this.state.addedGenes}
-                             /> : null}
+                                <AnalysisPanel
+                                     style={{padding: '10px 0 10px 10px', maxHeight: 2 / 3 * this.state.height - 70}}
+                                     onClose={this.handleAnalysisPanelClose}
+                                     analysisGroup={this.state.analysisGroup}
+                                     selectedTerm={this.state.selectedTerm}
+                                     termColoring={this.state.termColoring}
+                                     coloring={this.state.coloring}
+                                     onTermSelect={this.selectTerm}
+                                     onGeneAdd={this.addGeneRequest}
+                                     onGeneRemove={this.removeGene}
+                                     addedGenes={this.state.addedGenes}
+                                /> : null}
 
                         </div>
 

@@ -18,7 +18,7 @@ var GroupPanel = React.createClass({
      * Start pathway analysis automatically
      */
     componentDidMount: function() {
-        this.props.onAnalyse(this.props.activeGroup);
+        // this.props.onAnalyse(this.props.activeGroup);
     },
 
     download: function() {
