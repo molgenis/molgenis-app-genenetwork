@@ -44,15 +44,14 @@ module.exports = function (req, res) {
 
         var parentTerms = [];
 
-        function getParents(termId, depth = 0) {
+        function getParents(termId) {
             var term = allTerms[termId];
             if (term.isSignificantTerm) {
-                term.depth = depth;
+                term.depth = 0;
                 parentTerms.push(term);
             } else {
-                depth++;
                 _.forEach(term.parents, function (parent) {
-                    getParents(parent, depth)
+                    getParents(parent)
                 });
             }
         }
