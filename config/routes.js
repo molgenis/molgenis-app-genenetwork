@@ -20,8 +20,6 @@
  * http://sailsjs.org/#/documentation/concepts/Routes/RouteTargetSyntax.html
  */
 
-const url = require("request");
-
 module.exports.routes = {
 
     //// API routes
@@ -68,7 +66,7 @@ module.exports.routes = {
     '/ontology*': {
         view: 'homepage'
     },
-    
+
     '/gado*': {
         view: 'homepage'
     },
