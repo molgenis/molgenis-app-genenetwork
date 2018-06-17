@@ -67,6 +67,8 @@ module.exports.routes = {
         view: 'homepage'
     },
 
+    '/diagnosis': '/gado',
+
     '/gado*': {
         view: 'homepage'
     },
