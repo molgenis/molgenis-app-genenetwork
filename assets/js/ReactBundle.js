@@ -1947,7 +1947,7 @@ var Gene = React.createClass({displayName: "Gene",
 
             var data = this.state.topMenuSelection == 'prediction' ? this.state.prediction : this.state.similar;
             if (data) {
-                
+
                 var tableContent = null;
                 if (this.state.topMenuSelection == 'prediction') {
                     tableContent = React.createElement(DataTable, {data: data, db: this.state.databaseSelection})

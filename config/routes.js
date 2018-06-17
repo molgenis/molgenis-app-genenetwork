@@ -69,11 +69,7 @@ module.exports.routes = {
         view: 'homepage'
     },
 
-    '/diagnosis*': function(req, res) {
-        var path = req.url.split("/");
-        var newPath = "/gado/" + path[path.length - 1];
-        res.redirect(newPath);
-    },
+    '/diagnosis': '/gado',
 
     '/gado*': {
         view: 'homepage'
