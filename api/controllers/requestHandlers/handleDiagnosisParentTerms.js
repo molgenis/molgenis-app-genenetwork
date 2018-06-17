@@ -8,7 +8,7 @@ if (sails.config.useElastic === true) {
     })
 }
 
-module.exports = async function (req, res) {
+module.exports = function (req, res) {
 
     if (!CLIENT) {
         return res.notFound()
