@@ -29,7 +29,7 @@ pathwayDb.createReadStream({
 function readObo() {
     var currentTerm = null;
 
-    fs.createReadStream('/data/genenetwork/data/new/hp.obo', 'utf8')
+    fs.createReadStream('/data/genenetwork/files/new/hp.obo', 'utf8')
         .pipe(split())
         .on('data', function(data) {
             data = data.trim();
