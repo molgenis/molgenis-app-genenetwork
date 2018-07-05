@@ -101,6 +101,20 @@ node rankPathwaysFromDataFileTXT.js \
 ### KEGG
 ###
 
+node populateGenesetDBTXT.js \
+	/data/genenetwork/level/new/dbgenes_uint16be \
+	/data/genenetwork/level/new/dbexternal_uint16be \
+	KEGG \
+	/data/genenetwork/files/Version2_01_04_2018/KEGG/kegg_PathwaysClean_bonSigTerms_gnInputFormat.txt \
+	/data/genenetwork/files/Version2_01_04_2018/KEGG/kegg_predictions_bonSigOnly_termNames_tranposed.txt \
+	/data/genenetwork/files/Version2_01_04_2018/KEGG/kegg_predictions_auc_gnInputFormat.txt \
+	/data/genenetwork/files/Version2_01_04_2018/KEGG/c2.cp.kegg.v6.1.entrez.gmt_matrix_gnInputFormat.txt
+
+node rankPathwaysFromDataFileTXT.js \
+	/data/genenetwork/level/new/dbexternalranks \
+	KEGG \
+	/data/genenetwork/files/Version2_01_04_2018/KEGG/kegg_PathwaysClean_bonSigTerms_gnInputFormat.txt \
+	/data/genenetwork/files/Version2_01_04_2018/KEGG/kegg_predictions_bonSigOnly_termNames_tranposed.txt 
 
 
 ##

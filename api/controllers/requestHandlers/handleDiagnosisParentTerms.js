@@ -27,7 +27,6 @@ module.exports = function (req, res) {
         search_type: 'scan',
         query: {match_all : {}}
     }, function getMoreUntilDone(error, response) {
-        console.log(response);
         response.hits.hits.forEach(function (term) {
             allTerms[term._id] = term._source ;
         });

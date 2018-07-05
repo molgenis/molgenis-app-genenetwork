@@ -82,7 +82,13 @@ var getPathwayDatabasesFromDB = function(db, callback) {
          fullName: 'Gene Ontology - Cellular component',
          description: 'Consistent description of gene products',
          url: 'http://geneontology.org/',
-         inMemory: true}
+         inMemory: true},
+        {id: 'KEGG',
+            name: 'KEGG PATHWAY',
+            fullName: 'Kyoto Encyclopedia of Genes and Genomes',
+            description: 'A reference database for Pathway Mapping.',
+            url: 'https://www.genome.jp/kegg/pathway.html',
+            inMemory: true}
     ];
     callback(null, databases)
 };
