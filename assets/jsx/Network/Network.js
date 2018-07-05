@@ -869,8 +869,7 @@ var Network = React.createClass({
                                      onTermSelect={this.selectTerm}
                                      onGeneAdd={this.addGeneRequest}
                                      onGeneRemove={this.removeGene}
-                                     addedGenes={this.state.addedGenes}
-                                /> : null}
+                                     addedGenes={this.state.addedGenes}/> : null}
 
                         </div>
 
