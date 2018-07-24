@@ -6,10 +6,10 @@ module.exports.menuItems = [{
     name: 'HOME',
     route: '/'
 },
-//     {
-//     name: 'HOW IT WORKS',
-//     route: '/how'
-// },
+    {
+    name: 'FAQ',
+    route: '/faq'
+},
 //     {
 //     name: 'ABOUT',
 //     route: '/about'

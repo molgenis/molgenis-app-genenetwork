@@ -1796,6 +1796,21 @@ var BoxFunctionEnrichment = React.createClass({displayName: "BoxFunctionEnrichme
 module.exports = BoxFunctionEnrichment;
 
 },{"../js/color":4,"./ReactComponents/SVGCollection":45,"react":333,"react-router":164}],10:[function(require,module,exports){
+var React = require('react');
+
+var How = React.createClass({displayName: "How",
+    render: function() {
+        return (
+            React.createElement("div", null, 
+                React.createElement("div", null, "TBA")
+            )
+        );
+    }
+});
+
+module.exports = How;
+
+},{"react":333}],11:[function(require,module,exports){
 'use strict';
 
 var _ = require('lodash');
@@ -2000,12 +2015,12 @@ var Gene = React.createClass({displayName: "Gene",
 
 module.exports = Gene;
 
-},{"../../js/color":4,"../ReactComponents/DataTable":32,"../ReactComponents/DownloadPanel":36,"./GeneHeader":11,"./GeneMenu":12,"./SimilarGenesTable":14,"./Tissues":15,"cookies-js":56,"lodash":130,"react":333,"react-document-title":142,"react-router":164}],11:[function(require,module,exports){
-'use strict'
+},{"../../js/color":4,"../ReactComponents/DataTable":32,"../ReactComponents/DownloadPanel":36,"./GeneHeader":12,"./GeneMenu":13,"./SimilarGenesTable":15,"./Tissues":16,"cookies-js":56,"lodash":130,"react":333,"react-document-title":142,"react-router":164}],12:[function(require,module,exports){
+'use strict';
 
-var React = require('react')
-var SVGCollection = require('../ReactComponents/SVGCollection')
-var color = require('../../js/color.js')
+var React = require('react');
+var SVGCollection = require('../ReactComponents/SVGCollection');
+var color = require('../../js/color.js');
 
 var GeneHeader = React.createClass({displayName: "GeneHeader",
     
@@ -2018,60 +2033,63 @@ var GeneHeader = React.createClass({displayName: "GeneHeader",
 
         if (this.props.loading === true) {
             return (
-                    React.createElement("div", {className: "gn-gene-description-outer", style: {backgroundColor: color.colors.gnwhite, padding: '20px'}}, 
+                React.createElement("div", {className: "gn-gene-description-outer", style: {backgroundColor: color.colors.gnwhite, padding: '20px'}}, 
                     React.createElement("div", {className: "gn-gene-description-inner hflex flexcenter maxwidth"}, 
-                    React.createElement("div", {className: "gn-gene-description-name"}, 
-                    React.createElement("span", {style: {fontWeight: 'bold', fontFamily: 'GG', fontSize: '1.5em', paddingRight: '10px'}}, 
-                    "Loading"
+                        React.createElement("div", {className: "gn-gene-description-name"}, 
+                            React.createElement("span", {style: {fontWeight: 'bold', fontFamily: 'GG', fontSize: '1.5em', paddingRight: '10px'}}, 
+                            "Loading"
+                            )
+                        )
+                    )
                 )
-                    )
-                    )
-                    )
             )
         }
         
         if (this.props.notFound) {
             return (
-                    React.createElement("div", {className: "gn-gene-description-outer", style: {backgroundColor: color.colors.gnwhite, padding: '20px'}}, 
+                React.createElement("div", {className: "gn-gene-description-outer", style: {backgroundColor: color.colors.gnwhite, padding: '20px'}}, 
                     React.createElement("div", {className: "gn-gene-description-inner hflex flexcenter maxwidth"}, 
-                    React.createElement("div", {className: "gn-gene-description-name"}, 
-                    React.createElement("span", {style: {fontWeight: 'bold', fontFamily: 'GG', fontSize: '1.5em', paddingRight: '10px'}}, 
-                    this.props.notFound, " not found"
+                        React.createElement("div", {className: "gn-gene-description-name"}, 
+                            React.createElement("span", {style: {fontWeight: 'bold', fontFamily: 'GG', fontSize: '1.5em', paddingRight: '10px'}}, 
+                            this.props.notFound, " not found"
+                            )
+                        )
+                    )
                 )
-                    )
-                    )
-                    )
             )
         }
         
-	var desc = (this.props.gene.description || 'no description').replace(/\[[^\]]+\]/g, '')
+        var description = (this.props.gene.description || 'no description').replace(/\[[^\]]+]/g, '');
         return (
                 React.createElement("div", {className: "gn-gene-description-outer", style: {backgroundColor: color.colors.gnwhite, padding: '20px'}}, 
-                React.createElement("div", {className: "gn-gene-description-inner hflex flexcenter maxwidth"}, 
-                React.createElement("div", {className: "gn-gene-description-name"}, 
-                React.createElement("span", {style: {fontWeight: 'bold', fontFamily: 'GG', fontSize: '1.5em', paddingRight: '10px'}}, this.props.gene.name + ' '), 
-                React.createElement("span", null, desc)
-                ), 
-                React.createElement("div", {className: "flex11"}), 
-                React.createElement("div", {className: "gn-gene-description-chr", style: {textAlign: 'right'}}, 
-                React.createElement("span", null, "chromosome ", this.props.gene.chr), 
-                React.createElement(SVGCollection.Chromosome, {
-            chr: this.props.gene.chr, 
-            start: this.props.gene.start, 
-            stop: this.props.gene.stop, 
-            position: (this.props.gene.stop + this.props.gene.start) / 2}
-                ), 
-                React.createElement("div", null, this.props.gene.biotype.replace(/_/g, ' '))
-                )
-                )
+                    React.createElement("div", {className: "gn-gene-description-inner hflex flexcenter maxwidth"}, 
+                        React.createElement("div", {className: "gn-gene-description-name", style: {display: 'flex'}}, 
+                            React.createElement("span", {style: {fontWeight: 'bold', fontFamily: 'GG', fontSize: '1.5em', paddingRight: '10px'}}, this.props.gene.name + ' '), 
+                            React.createElement("div", {style: { flexGrow: 1}}, 
+                                React.createElement("span", null, description), React.createElement("br", null), 
+                                React.createElement("span", null, "Gene predictability score: ", Math.round(this.props.gene.genePredScore * 100) / 100)
+                            )
+                        ), 
+                        React.createElement("div", {className: "flex11"}), 
+                            React.createElement("div", {className: "gn-gene-description-chr", style: {textAlign: 'right'}}, 
+                                React.createElement("span", null, "chromosome ", this.props.gene.chr), 
+                                React.createElement(SVGCollection.Chromosome, {
+                                    chr: this.props.gene.chr, 
+                                    start: this.props.gene.start, 
+                                    stop: this.props.gene.stop, 
+                                    position: (this.props.gene.stop + this.props.gene.start) / 2}), 
+                                React.createElement("div", null, this.props.gene.biotype.replace(/_/g, ' ')
+                                )
+                            )
+                    )
                 )
         )
     }
-})
+});
 
-module.exports = GeneHeader
+module.exports = GeneHeader;
 
-},{"../../js/color.js":4,"../ReactComponents/SVGCollection":45,"react":333}],12:[function(require,module,exports){
+},{"../../js/color.js":4,"../ReactComponents/SVGCollection":45,"react":333}],13:[function(require,module,exports){
 'use strict'
 
 var _ = require('lodash')
@@ -2157,7 +2175,7 @@ var GeneMenu = React.createClass({displayName: "GeneMenu",
 
 module.exports = GeneMenu
 
-},{"../ReactComponents/GeneOpenMenu":38,"../ReactComponents/SVGCollection":45,"lodash":130,"react":333}],13:[function(require,module,exports){
+},{"../ReactComponents/GeneOpenMenu":38,"../ReactComponents/SVGCollection":45,"lodash":130,"react":333}],14:[function(require,module,exports){
 'use strict'
 
 var React = require('react')
@@ -2464,7 +2482,7 @@ module.exports = React.createClass({displayName: "exports",
 	}
 })
 
-},{"lodash":130,"react":333}],14:[function(require,module,exports){
+},{"lodash":130,"react":333}],15:[function(require,module,exports){
 var _ = require('lodash');
 var React = require('react');
 var Link = require('react-router').Link;
@@ -2594,7 +2612,7 @@ var SimilarGenesTable = React.createClass({displayName: "SimilarGenesTable",
 
 module.exports = SimilarGenesTable;
 
-},{"../../js/color":4,"../../js/htmlutil":5,"../ReactComponents/SVGCollection":45,"lodash":130,"react":333,"react-router":164,"reactable":334}],15:[function(require,module,exports){
+},{"../../js/color":4,"../../js/htmlutil":5,"../ReactComponents/SVGCollection":45,"lodash":130,"react":333,"react-router":164,"reactable":334}],16:[function(require,module,exports){
 'use strict'
 
 var _ = require('lodash')
@@ -2833,7 +2851,7 @@ var Tissues = React.createClass({displayName: "Tissues",
 
 module.exports = Tissues
 
-},{"../../js/htmlutil":5,"../ReactComponents/OpenMenu":42,"../ReactComponents/SVGCollection":45,"./HomoSapiens":13,"lodash":130,"react":333,"reactable":334}],16:[function(require,module,exports){
+},{"../../js/htmlutil":5,"../ReactComponents/OpenMenu":42,"../ReactComponents/SVGCollection":45,"./HomoSapiens":14,"lodash":130,"react":333,"reactable":334}],17:[function(require,module,exports){
 var _ = require('lodash');
 var React = require('react');
 var ReactTable = require('react-table').default;
@@ -2953,7 +2971,7 @@ var GeneList = React.createClass({displayName: "GeneList",
 
 module.exports = GeneList;
 
-},{"../js/color":4,"lodash":130,"react":333,"react-document-title":142,"react-table":185}],17:[function(require,module,exports){
+},{"../js/color":4,"lodash":130,"react":333,"react-document-title":142,"react-table":185}],18:[function(require,module,exports){
 'use strict';
 
 
@@ -2967,7 +2985,7 @@ var Route = ReactRouter.Route;
 var createBrowserHistory = require('history/lib/createBrowserHistory');
 
 var Landing = require('./Landing');
-var How = require('./How');
+var FAQ = require('./FAQ');
 var About = require('./About');
 var GeneList = require('./GeneList');
 var API = require('./ReactComponents/API');
@@ -2985,7 +3003,7 @@ var history = createBrowserHistory();
 ReactDOM.render(React.createElement(Router, {history: history}, 
                     React.createElement(Route, null, 
                         React.createElement(Route, {path: "/", component: Landing}, 
-                            React.createElement(Route, {path: "/how", component: How}), 
+                            React.createElement(Route, {path: "/faq", component: FAQ}), 
                             React.createElement(Route, {path: "/about", component: About}), 
                             React.createElement(Route, {path: "/api", component: API}), 
                             React.createElement(Route, {path: "/gene-list", component: GeneList}), 
@@ -3001,22 +3019,7 @@ ReactDOM.render(React.createElement(Router, {history: history},
                 document.getElementById('reactcontainer')
                );
 
-},{"../../config/gn.js":51,"./About":7,"./Gene/Gene":10,"./GeneList":16,"./How":18,"./Landing":19,"./Network/Network":27,"./ReactComponents/API":30,"./ReactComponents/Diagnosis":33,"./ReactComponents/DiagnosisMain":34,"./ReactComponents/Ontology":41,"./ReactComponents/Term":47,"history/lib/createBrowserHistory":114,"react":333,"react-dom":143,"react-router":164}],18:[function(require,module,exports){
-var React = require('react');
-
-var How = React.createClass({displayName: "How",
-    render: function() {
-        return (
-            React.createElement("div", null, 
-                React.createElement("div", null, "TBA")
-            )
-        );
-    }
-});
-
-module.exports = How;
-
-},{"react":333}],19:[function(require,module,exports){
+},{"../../config/gn.js":51,"./About":7,"./FAQ":10,"./Gene/Gene":11,"./GeneList":17,"./Landing":19,"./Network/Network":27,"./ReactComponents/API":30,"./ReactComponents/Diagnosis":33,"./ReactComponents/DiagnosisMain":34,"./ReactComponents/Ontology":41,"./ReactComponents/Term":47,"history/lib/createBrowserHistory":114,"react":333,"react-dom":143,"react-router":164}],19:[function(require,module,exports){
 var _ = require('lodash');
 var React = require('react');
 var ReactRouter = require('react-router');
@@ -4953,9 +4956,9 @@ var Network = React.createClass({displayName: "Network",
 module.exports = Network;
 
 },{"../../js/D3Network.js":2,"../../js/color":4,"../../js/htmlutil":5,"../../js/sort/quicksort":6,"../ReactComponents/Footer":37,"../ReactComponents/GeneTable":39,"./AnalysisPanel":21,"./EdgeLegend":22,"./EdgePanel":23,"./GenePanel":24,"./GroupPanel":25,"./LegendPanel":26,"./NetworkControlPanel":28,"affinity-propagation":53,"async":54,"lodash":130,"react":333,"react-document-title":142,"react-dom":143}],28:[function(require,module,exports){
-var React = require('react')
-var SVGCollection =  require('../ReactComponents/SVGCollection')
-var color = require('../../js/color')
+var React = require('react');
+var SVGCollection =  require('../ReactComponents/SVGCollection');
+var color = require('../../js/color');
 
 var NetworkControlPanel = React.createClass({displayName: "NetworkControlPanel",
 
@@ -4970,49 +4973,49 @@ var NetworkControlPanel = React.createClass({displayName: "NetworkControlPanel",
 
     render: function() {
         
-        var zoomInStyle = {padding: '10px', borderBottom: '1px solid #dcdcdc'}
-        if (this.props.isZoomedMax) zoomInStyle.backgroundColor = '#f5f5f5'
-        var zoomOutStyle = {padding: '10px', borderBottom: '1px solid #dcdcdc'}
-        if (this.props.isZoomedMin) zoomOutStyle.backgroundColor = '#f5f5f5'
+        var zoomInStyle = {padding: '10px', borderBottom: '1px solid #dcdcdc'};
+        if (this.props.isZoomedMax) zoomInStyle.backgroundColor = '#f5f5f5';
+        var zoomOutStyle = {padding: '10px', borderBottom: '1px solid #dcdcdc'};
+        if (this.props.isZoomedMin) zoomOutStyle.backgroundColor = '#f5f5f5';
 
-        var selectIconStyles = [{padding: '10px'}, {backgroundColor: color.colors.gnyellow, padding: '10px'}]
+        var selectIconStyles = [{padding: '10px'}, {backgroundColor: color.colors.gnyellow, padding: '10px'}];
         if (this.props.selectionMode === 'move') {
             selectIconStyles.reverse()
         }
-        selectIconStyles[0].borderBottom = '1px solid #dcdcdc'
+        selectIconStyles[0].borderBottom = '1px solid #dcdcdc';
         
         return (
-                React.createElement("div", {className: "gn-network-controlpanel"}, 
+            React.createElement("div", {className: "gn-network-controlpanel"}, 
                 React.createElement("div", {className: "gn-network-controlpanel-group bordered"}, 
-                React.createElement("div", {className: "gn-network-controlpanel-control clickable", style: zoomInStyle, onClick: this.props.isZoomedMax ? null : this.props.onZoom.bind(null, 1.5)}, 
-                React.createElement(SVGCollection.Plus, null)
-                ), 
-                React.createElement("div", {className: "gn-network-controlpanel-control clickable", style: zoomOutStyle, onClick: this.props.isZoomedMin ? null : this.props.onZoom.bind(null, 1/1.5)}, 
-                React.createElement(SVGCollection.Minus, null)
-                )
-                ), 
-                React.createElement("div", {className: "gn-network-controlpanel-group bordered", style: {marginTop: '10px'}}, 
-                React.createElement("div", {style: selectIconStyles[0], className: "gn-network-controlpanel-selectionmode clickable", onClick: this.props.onSelectionModeChange.bind(null, 'move')}, 
-                React.createElement(SVGCollection.Move, null)
-                ), 
-                React.createElement("div", {style: selectIconStyles[1], className: "gn-network-controlpanel-selectionmode clickable", onClick: this.props.onSelectionModeChange.bind(null, 'select')}, 
-                React.createElement(SVGCollection.Crop, null)
-                )
+                    React.createElement("div", {className: "gn-network-controlpanel-control clickable", style: zoomInStyle, onClick: this.props.isZoomedMax ? null : this.props.onZoom.bind(null, 1.5)}, 
+                        React.createElement(SVGCollection.Plus, null)
+                    ), 
+                    React.createElement("div", {className: "gn-network-controlpanel-control clickable", style: zoomOutStyle, onClick: this.props.isZoomedMin ? null : this.props.onZoom.bind(null, 1/1.5)}, 
+                        React.createElement(SVGCollection.Minus, null)
+                    )
                 ), 
                 React.createElement("div", {className: "gn-network-controlpanel-group bordered", style: {marginTop: '10px'}}, 
-                React.createElement("div", {className: "gn-network-controlpanel-control clickable noselect", style: {padding: '10px', borderBottom: '1px solid #dcdcdc'}, onClick: this.props.download.bind(null, 'pdf')}, 
-                React.createElement(SVGCollection.Download, {text: "PDF"})
+                    React.createElement("div", {style: selectIconStyles[0], className: "gn-network-controlpanel-selectionmode clickable", onClick: this.props.onSelectionModeChange.bind(null, 'move')}, 
+                        React.createElement(SVGCollection.Move, null)
+                    ), 
+                    React.createElement("div", {style: selectIconStyles[1], className: "gn-network-controlpanel-selectionmode clickable", onClick: this.props.onSelectionModeChange.bind(null, 'select')}, 
+                        React.createElement(SVGCollection.Crop, null)
+                    )
                 ), 
-                React.createElement("div", {className: "gn-network-controlpanel-control clickable noselect", style: {padding: '10px'}, onClick: this.props.download.bind(null, 'png')}, 
-                React.createElement(SVGCollection.Download, {text: "PNG"})
+                React.createElement("div", {className: "gn-network-controlpanel-group bordered", style: {marginTop: '10px'}}, 
+                    React.createElement("div", {className: "gn-network-controlpanel-control clickable noselect", style: {padding: '10px', borderBottom: '1px solid #dcdcdc'}, onClick: this.props.download.bind(null, 'pdf')}, 
+                        React.createElement(SVGCollection.Download, {text: "PDF"})
+                    ), 
+                    React.createElement("div", {className: "gn-network-controlpanel-control clickable noselect", style: {padding: '10px'}, onClick: this.props.download.bind(null, 'png')}, 
+                        React.createElement(SVGCollection.Download, {text: "PNG"})
+                    )
                 )
-                )
-                )
+            )
         )
     }
-})
+});
 
-module.exports = NetworkControlPanel
+module.exports = NetworkControlPanel;
 
 },{"../../js/color":4,"../ReactComponents/SVGCollection":45,"react":333}],29:[function(require,module,exports){
 'use strict'
@@ -9082,7 +9085,7 @@ module.exports = Tools;
 
 },{"../../config/gn":51,"../js/color":4,"./Box":8,"./BoxFunctionEnrichment":9,"react":333}],50:[function(require,module,exports){
 module.exports = {
-    domain: 'https://molgenis27.target.rug.nl'
+    domain: 'https://www.genenetwork.nl'
 };
 
 },{}],51:[function(require,module,exports){
@@ -9094,10 +9097,10 @@ module.exports.menuItems = [{
     name: 'HOME',
     route: '/'
 },
-//     {
-//     name: 'HOW IT WORKS',
-//     route: '/how'
-// },
+    {
+    name: 'FAQ',
+    route: '/faq'
+},
 //     {
 //     name: 'ABOUT',
 //     route: '/about'
@@ -87286,4 +87289,4 @@ if (process.env.NODE_ENV !== 'production') {
 module.exports = warning;
 
 }).call(this,require('_process'))
-},{"_process":132}]},{},[17]);
+},{"_process":132}]},{},[18]);

@@ -84,7 +84,7 @@ var getPathwayDatabasesFromDB = function(db, callback) {
          url: 'http://geneontology.org/',
          inMemory: true},
         {id: 'KEGG',
-            name: 'KEGG PATHWAY',
+            name: 'KEGG pathway',
             fullName: 'Kyoto Encyclopedia of Genes and Genomes',
             description: 'A reference database for Pathway Mapping.',
             url: 'https://www.genome.jp/kegg/pathway.html',

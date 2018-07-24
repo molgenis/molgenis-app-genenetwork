@@ -91,4 +91,4 @@ module.exports = function(req, res) {
                      return res.download(filenameOut, 'GeneNetwork-'  + vanity + '.' + format)
                  }
                 )
-}
+};

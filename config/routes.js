@@ -73,7 +73,7 @@ module.exports.routes = {
         view: 'homepage'
     },
 
-    '/how*': {
+    '/faq*': {
         view: 'homepage'
     },
 

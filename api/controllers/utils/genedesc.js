@@ -130,6 +130,24 @@ function readGenes() {
         }
     }
 
+    var genePredictFileLines = fs.readFileSync(sails.config.genePredScoreFile, 'utf8').split('\n');
+
+    var indexOffset = 0;
+
+    for (var i = 1; i < genePredictFileLines.length-1; i++) {
+        var split = genePredictFileLines[i].split('\t');
+        var geneId = split[0];
+        var genePredScore = split[2];
+
+        // Some genes are not present in genes file
+        if (geneObjects[i-1+indexOffset].id !== geneId) {
+            indexOffset++;
+        }
+
+        geneObjects[i-1+indexOffset].genePredScore = genePredScore;
+
+    }
+
     sails.log.info(geneObjects.length + ' genes read from ' + sails.config.geneDescFile);
     return geneObjects
 }
