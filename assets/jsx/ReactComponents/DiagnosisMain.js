@@ -389,10 +389,12 @@ var DiagnosisMain = React.createClass({
                 <div>
                     {this.renderModal()}
                     <div className='flex10' style={{ backgroundColor: color.colors.gnwhite, marginTop: '10px', padding: '40px'}}>
+
                         <div style={{width: '100%'}}>
                             <h2 style={{display: 'inline'}}>GADO: GeneNetwork Assisted Diagnostic Optimization</h2> <Back url={GN.urls.main} />
-
+                            <h4>Using the HPO gene prioritization it is possible to rank genes based on a patient’s phenotypes.</h4>
                         </div>
+
                         <div className='hflex' style={{marginTop: '40px'}}>
                             <div className='' style={{width: '55%', minWidth: '600px', paddingRight: '60px'}}>
                                 <ol className='simple-list'>
@@ -460,8 +462,6 @@ var DiagnosisMain = React.createClass({
 
                             <div id='text-right' style={{width: '45%', padding: '20px', backgroundColor: color.colors.gnyellow, lineHeight: '1'}}>
 
-                                <span style={textsize}>Using the HPO gene prioritization it is possible to rank genes based on a patient’s phenotypes.</span><br /><br />
-
                                 <ol className='simple-list'>
                                     <li>
                                         <span style={textsize}>
@@ -488,32 +488,7 @@ var DiagnosisMain = React.createClass({
                                     </li>
                                 </ol>
 
-                                <h3 style={{paddingTop: '15px'}}>FAQ</h3>
-                                <ul>
-                                    <li>
-                                        <span style={textsize}>
-                                            <i>Why can’t my term be used?</i><br />
-                                            We do not have significant predictions for all HPO terms. Either because very few genes are known for a term,
-                                            or because our current dataset is unable to reliable predict back the known genes for a term. In these cases,
-                                            we suggest using the more generic parent terms.
-                                        </span>
-                                    </li>
-                                    <li>
-                                        <span style={textsize}>
-                                            <i>Why is my term not found?</i><br />
-                                            At the moment we don’t support searching using the synonym names of HPO terms, this will be resolved in a future version.
-                                            Try searching by the HPO number
-                                        </span>
-                                    </li>
-                                    <li>
-                                        <span style={textsize}>
-                                            <i>My favorite candidate gene for patient is not found back in the top of the results?</i> <br />
-                                            Gene expression patterns are not informative for all genes. If an expected gene is not found back this is the most likely explanation.
-                                        </span>
-                                    </li>
-                                </ul>
-
-
+                                See the <a href="/faq" target="blank">FAQ page</a> for additional support
                             </div>
 
                         </div>

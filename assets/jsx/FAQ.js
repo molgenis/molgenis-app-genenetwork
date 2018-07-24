@@ -10,15 +10,21 @@ var How = React.createClass({
                     <h2 style={{marginBottom: '10px'}}>FAQ</h2>
 
                     <ul>
+                        <li><a href={GN.urls.faqPage + "#what-is-genenetwork"}>What is GeneNetwork?</a></li>
                         <li><a href={GN.urls.faqPage + "#what-is-gado"}>What is GADO?</a></li>
                         <li><a href={GN.urls.faqPage + "#why-cant-my-term-be-used"}>Why can’t my term be used?</a></li>
                         <li><a href={GN.urls.faqPage + "#why-is-my-term-not-found"}>Why is my term not found?</a></li>
                         <li><a href={GN.urls.faqPage + "#gene-not-found"}>My favorite candidate gene for patient is not found back in the top of the results?</a></li>
                     </ul>
 
+                    <h3 id="what-is-genenetwork">What is GeneNetwork?</h3>
+                    <p>
+                        GeneNetwork is ...
+                    </p>
+                    <img title='GeneNetwork' style={{width: '1000px'}} src={GN.urls.main + '/images/genenetwork.png'} />
+
+
                     <h3 id="what-is-gado">What is GADO?</h3>
-
-
                     <p>
                         GADO (GeneNetwork Assisted Diagnostic Optimization) is a method that can predict phenotypic
                         consequences of genes when mutated, using public RNA-seq data of 31,499 samples. Using the
@@ -26,7 +32,7 @@ var How = React.createClass({
                         harbouring candidate mutations. This saves time interpreting identified variants and aids in
                         the discovery of new disease-causing genes.
                     </p>
-                    <img title='GeneNetwork' style={{width: '1000px'}} src={GN.urls.main + '/images/genenetwork.png'} />
+                    <img title='GeneNetwork' style={{width: '800px'}} src={GN.urls.main + '/images/gado.png'} />
 
                     <h3 id="why-cant-my-term-be-used">Why can’t my term be used?</h3>
                     <p>

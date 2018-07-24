@@ -50,6 +50,7 @@ var GeneHeader = React.createClass({
                             <div style={{ flexGrow: 1 }}>
                                 <span>{description}</span><br/>
                                 <span>Gene predictability score: {Math.round(this.props.gene.genePredScore * 100) / 100}</span>
+                                {/*<SVGCollection.I title="For more information look at ..."/>*/}
                             </div>
                         </div>
                         <div className='flex11' />

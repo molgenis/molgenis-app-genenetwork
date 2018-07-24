@@ -1732,7 +1732,7 @@ var Box = React.createClass({displayName: "Box",
         return (
             React.createElement("div", null, 
                 React.createElement(Link, {className: "nodecoration black clickable", to: this.props.url}, 
-                React.createElement("div", {className: "box-sizing", style: {backgroundColor: color.colors.gnlightergray, border: '20px solid #fff', padding: '40px', width: '33.33333%', float: 'left', minWidth: '350px'}}, 
+                React.createElement("div", {className: "box-sizing", style: {backgroundColor: color.colors.gnlightergray, border: '20px solid #fff', padding: '40px', width: '33.33333%', float: 'left', minWidth: '350px', minHeight: '255px'}}, 
                     React.createElement("h3", {style: {color: color.colors.gndarkgray}}, this.props.title), 
                     React.createElement("p", {style: {color: color.colors.gndarkgray}}, this.props.text), 
                     React.createElement("div", {style: {float: 'right'}}, 
@@ -1808,15 +1808,21 @@ var How = React.createClass({displayName: "How",
                     React.createElement("h2", {style: {marginBottom: '10px'}}, "FAQ"), 
 
                     React.createElement("ul", null, 
+                        React.createElement("li", null, React.createElement("a", {href: GN.urls.faqPage + "#what-is-genenetwork"}, "What is GeneNetwork?")), 
                         React.createElement("li", null, React.createElement("a", {href: GN.urls.faqPage + "#what-is-gado"}, "What is GADO?")), 
                         React.createElement("li", null, React.createElement("a", {href: GN.urls.faqPage + "#why-cant-my-term-be-used"}, "Why can’t my term be used?")), 
                         React.createElement("li", null, React.createElement("a", {href: GN.urls.faqPage + "#why-is-my-term-not-found"}, "Why is my term not found?")), 
                         React.createElement("li", null, React.createElement("a", {href: GN.urls.faqPage + "#gene-not-found"}, "My favorite candidate gene for patient is not found back in the top of the results?"))
                     ), 
 
+                    React.createElement("h3", {id: "what-is-genenetwork"}, "What is GeneNetwork?"), 
+                    React.createElement("p", null, 
+                        "GeneNetwork is ..."
+                    ), 
+                    React.createElement("img", {title: "GeneNetwork", style: {width: '1000px'}, src: GN.urls.main + '/images/genenetwork.png'}), 
+
+
                     React.createElement("h3", {id: "what-is-gado"}, "What is GADO?"), 
-
-
                     React.createElement("p", null, 
                         "GADO (GeneNetwork Assisted Diagnostic Optimization) is a method that can predict phenotypic" + ' ' +
                         "consequences of genes when mutated, using public RNA-seq data of 31,499 samples. Using the" + ' ' +
@@ -1824,7 +1830,7 @@ var How = React.createClass({displayName: "How",
                         "harbouring candidate mutations. This saves time interpreting identified variants and aids in" + ' ' +
                         "the discovery of new disease-causing genes."
                     ), 
-                    React.createElement("img", {title: "GeneNetwork", style: {width: '1000px'}, src: GN.urls.main + '/images/genenetwork.png'}), 
+                    React.createElement("img", {title: "GeneNetwork", style: {width: '800px'}, src: GN.urls.main + '/images/gado.png'}), 
 
                     React.createElement("h3", {id: "why-cant-my-term-be-used"}, "Why can’t my term be used?"), 
                     React.createElement("p", null, 
@@ -2110,6 +2116,7 @@ var GeneHeader = React.createClass({displayName: "GeneHeader",
                             React.createElement("div", {style: { flexGrow: 1}}, 
                                 React.createElement("span", null, description), React.createElement("br", null), 
                                 React.createElement("span", null, "Gene predictability score: ", Math.round(this.props.gene.genePredScore * 100) / 100)
+                                /*<SVGCollection.I title="For more information look at ..."/>*/
                             )
                         ), 
                         React.createElement("div", {className: "flex11"}), 
@@ -3381,6 +3388,9 @@ var Landing = React.createClass({displayName: "Landing",
                         React.createElement(Logo, {w: 33, h: 60, mirrored: true, style: {float: 'left', paddingRight: '10px'}}), 
                         React.createElement("div", {className: "noselect", style: {fontSize: '1.5em', color: color.colors.gndarkgray, float: 'left'}}, 
                             "GENE", React.createElement("br", null), "NETWORK"
+                        ), 
+                        React.createElement("div", {className: "noselect", style: {fontSize: '1em', color: color.colors.gndarkgray, float: 'left', marginTop: '37px', marginLeft: '7px'}}, 
+                            "v2.0"
                         )
                     ), 
                     topSearch, 
@@ -4533,7 +4543,7 @@ var Network = React.createClass({displayName: "Network",
 
     componentWillUnmount: function() {
         console.log('Network will unmount');
-        var el = this.getDOMNode();
+        var el = this.findDOMNode();
         // this.state.network.destroy(el)
         window.removeEventListener('resize', this.handleResize);
         $(document).unbind('keydown')
@@ -7141,10 +7151,12 @@ var DiagnosisMain = React.createClass({displayName: "DiagnosisMain",
                 React.createElement("div", null, 
                     this.renderModal(), 
                     React.createElement("div", {className: "flex10", style: { backgroundColor: color.colors.gnwhite, marginTop: '10px', padding: '40px'}}, 
-                        React.createElement("div", {style: {width: '100%'}}, 
-                            React.createElement("h2", {style: {display: 'inline'}}, "GADO: GeneNetwork Assisted Diagnostic Optimization"), " ", React.createElement(Back, {url: GN.urls.main})
 
+                        React.createElement("div", {style: {width: '100%'}}, 
+                            React.createElement("h2", {style: {display: 'inline'}}, "GADO: GeneNetwork Assisted Diagnostic Optimization"), " ", React.createElement(Back, {url: GN.urls.main}), 
+                            React.createElement("h4", null, "Using the HPO gene prioritization it is possible to rank genes based on a patient’s phenotypes.")
                         ), 
+
                         React.createElement("div", {className: "hflex", style: {marginTop: '40px'}}, 
                             React.createElement("div", {className: "", style: {width: '55%', minWidth: '600px', paddingRight: '60px'}}, 
                                 React.createElement("ol", {className: "simple-list"}, 
@@ -7212,8 +7224,6 @@ var DiagnosisMain = React.createClass({displayName: "DiagnosisMain",
 
                             React.createElement("div", {id: "text-right", style: {width: '45%', padding: '20px', backgroundColor: color.colors.gnyellow, lineHeight: '1'}}, 
 
-                                React.createElement("span", {style: textsize}, "Using the HPO gene prioritization it is possible to rank genes based on a patient’s phenotypes."), React.createElement("br", null), React.createElement("br", null), 
-
                                 React.createElement("ol", {className: "simple-list"}, 
                                     React.createElement("li", null, 
                                         React.createElement("span", {style: textsize}, 
@@ -7240,32 +7250,7 @@ var DiagnosisMain = React.createClass({displayName: "DiagnosisMain",
                                     )
                                 ), 
 
-                                React.createElement("h3", {style: {paddingTop: '15px'}}, "FAQ"), 
-                                React.createElement("ul", null, 
-                                    React.createElement("li", null, 
-                                        React.createElement("span", {style: textsize}, 
-                                            React.createElement("i", null, "Why can’t my term be used?"), React.createElement("br", null), 
-                                            "We do not have significant predictions for all HPO terms. Either because very few genes are known for a term," + ' ' +
-                                            "or because our current dataset is unable to reliable predict back the known genes for a term. In these cases," + ' ' +
-                                            "we suggest using the more generic parent terms."
-                                        )
-                                    ), 
-                                    React.createElement("li", null, 
-                                        React.createElement("span", {style: textsize}, 
-                                            React.createElement("i", null, "Why is my term not found?"), React.createElement("br", null), 
-                                            "At the moment we don’t support searching using the synonym names of HPO terms, this will be resolved in a future version." + ' ' +
-                                            "Try searching by the HPO number"
-                                        )
-                                    ), 
-                                    React.createElement("li", null, 
-                                        React.createElement("span", {style: textsize}, 
-                                            React.createElement("i", null, "My favorite candidate gene for patient is not found back in the top of the results?"), " ", React.createElement("br", null), 
-                                            "Gene expression patterns are not informative for all genes. If an expected gene is not found back this is the most likely explanation."
-                                        )
-                                    )
-                                )
-
-
+                                "See the ", React.createElement("a", {href: "/faq", target: "blank"}, "FAQ page"), " for additional support"
                             )
 
                         )
@@ -9107,7 +9092,7 @@ var Tools = React.createClass({displayName: "Tools",
 
     render: function() {
         return (
-            React.createElement("div", {style: {backgroundColor: color.colors.gnwhite, marginTop: '10px', padding: '20px'}}, 
+            React.createElement("div", {style: {backgroundColor: color.colors.gnwhite, marginTop: '10px', padding: '20px', flex: '1'}}, 
                 React.createElement("h2", {style: {display: 'inline'}}, "TOOLS"), 
                 React.createElement(Box, {
                     title: "GADO: GeneNetwork Assisted Diagnostic Optimization", 

@@ -318,6 +318,9 @@ var Landing = React.createClass({
                         <div className='noselect' style={{fontSize: '1.5em', color: color.colors.gndarkgray, float: 'left'}}>
                             GENE<br/>NETWORK
                         </div>
+                        <div className='noselect' style={{fontSize: '1em', color: color.colors.gndarkgray, float: 'left', marginTop: '37px', marginLeft: '7px'}}>
+                            v2.0
+                        </div>
                     </div>
                     {topSearch}
                     <MenuBar items={GN.menuItems} style={{padding: '30px 20px 20px 20px'}} />
