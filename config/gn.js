@@ -46,6 +46,7 @@ module.exports.urls = {
     termPage: DOMAIN + '/term/',
     networkPage: DOMAIN + '/network/',
     diagnosisPage: DOMAIN + '/gado',
+    faqPage: DOMAIN + '/faq',
 
     svg2pdf: DOMAIN + '/api/v1/svg2pdf',
     // diagnosisResults: domain + '/api/v1/diagnosisResults',

@@ -1797,12 +1797,54 @@ module.exports = BoxFunctionEnrichment;
 
 },{"../js/color":4,"./ReactComponents/SVGCollection":45,"react":333,"react-router":164}],10:[function(require,module,exports){
 var React = require('react');
+var DocumentTitle = require('react-document-title');
+var color = require('../js/color.js');
 
 var How = React.createClass({displayName: "How",
     render: function() {
         return (
-            React.createElement("div", null, 
-                React.createElement("div", null, "TBA")
+            React.createElement(DocumentTitle, {title: 'FAQ' + GN.pageTitleSuffix}, 
+                React.createElement("div", {style: {backgroundColor: color.colors.gnwhite, marginTop: '10px', padding: '20px'}}, 
+                    React.createElement("h2", {style: {marginBottom: '10px'}}, "FAQ"), 
+
+                    React.createElement("ul", null, 
+                        React.createElement("li", null, React.createElement("a", {href: GN.urls.faqPage + "#what-is-gado"}, "What is GADO?")), 
+                        React.createElement("li", null, React.createElement("a", {href: GN.urls.faqPage + "#why-cant-my-term-be-used"}, "Why can’t my term be used?")), 
+                        React.createElement("li", null, React.createElement("a", {href: GN.urls.faqPage + "#why-is-my-term-not-found"}, "Why is my term not found?")), 
+                        React.createElement("li", null, React.createElement("a", {href: GN.urls.faqPage + "#gene-not-found"}, "My favorite candidate gene for patient is not found back in the top of the results?"))
+                    ), 
+
+                    React.createElement("h3", {id: "what-is-gado"}, "What is GADO?"), 
+
+
+                    React.createElement("p", null, 
+                        "GADO (GeneNetwork Assisted Diagnostic Optimization) is a method that can predict phenotypic" + ' ' +
+                        "consequences of genes when mutated, using public RNA-seq data of 31,499 samples. Using the" + ' ' +
+                        "phenotypes of a patient denoted as Human Phenotype Ontology (HPO) terms we can prioritize genes" + ' ' +
+                        "harbouring candidate mutations. This saves time interpreting identified variants and aids in" + ' ' +
+                        "the discovery of new disease-causing genes."
+                    ), 
+                    React.createElement("img", {title: "GeneNetwork", style: {width: '1000px'}, src: GN.urls.main + '/images/genenetwork.png'}), 
+
+                    React.createElement("h3", {id: "why-cant-my-term-be-used"}, "Why can’t my term be used?"), 
+                    React.createElement("p", null, 
+                        "We do not have significant predictions for all HPO terms. Either because very few genes are" + ' ' +
+                        "known for a term, or because our current dataset is unable to reliable predict back the known" + ' ' +
+                        "genes for a term. In these cases, we suggest using the more generic parent terms."
+                    ), 
+
+                    React.createElement("h3", {id: "why-is-my-term-not-found"}, "Why is my term not found?"), 
+                    React.createElement("p", null, 
+                        "At the moment we don’t support searching using the synonym names of HPO terms, this will be" + ' ' +
+                        "resolved in a future version. Try searching by the HPO number"
+                    ), 
+
+                    React.createElement("h3", {id: "gene-not-found"}, "My favorite candidate gene for patient is not found back in the top of the results?"), 
+                    React.createElement("p", null, 
+                        "Gene expression patterns are not informative for all genes. If an expected gene is not found" + ' ' +
+                        "back this is the most likely explanation."
+                    )
+                )
             )
         );
     }
@@ -1810,7 +1852,7 @@ var How = React.createClass({displayName: "How",
 
 module.exports = How;
 
-},{"react":333}],11:[function(require,module,exports){
+},{"../js/color.js":4,"react":333,"react-document-title":142}],11:[function(require,module,exports){
 'use strict';
 
 var _ = require('lodash');
@@ -3323,8 +3365,8 @@ var Landing = React.createClass({displayName: "Landing",
                     React.createElement("div", {className: "examples noselect defaultcursor"}, "For example: ", 
                         React.createElement(Link, {className: "clickable", title: "SMIM1", to: "/gene/SMIM1"}, "SMIM1"), ", ", 
                         React.createElement(Link, {className: "clickable", title: "Interferon signaling", to: "/network/REACTOME:R-HSA-913531"}, "Interferon signaling"), ", ", 
-                        React.createElement(Link, {className: "clickable", title: "Migraine", to: "/network/3ZLYoS", params: {ids: 'Migraine'}}, "Migraine"), ", ", 
-                        React.createElement(Link, {className: "clickable", title: "Autism", to: "/network/2iGTR8", params: {ids: 'Autism'}}, "Autism")
+                        React.createElement(Link, {className: "clickable", title: "Migraine", to: "/network/HP:0002076"}, "Migraine"), ", ", 
+                        React.createElement(Link, {className: "clickable", title: "Autism", to: "/network/HP:0000717"}, "Autism")
                     )
                 ))
             }
@@ -9137,6 +9179,7 @@ module.exports.urls = {
     termPage: DOMAIN + '/term/',
     networkPage: DOMAIN + '/network/',
     diagnosisPage: DOMAIN + '/gado',
+    faqPage: DOMAIN + '/faq',
 
     svg2pdf: DOMAIN + '/api/v1/svg2pdf',
     // diagnosisResults: domain + '/api/v1/diagnosisResults',
