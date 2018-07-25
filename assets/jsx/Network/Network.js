@@ -332,23 +332,23 @@ var Network = React.createClass({
         callback(null)
     },
 
-    setTissueSocketListener: function() {
-        io.socket.on('network', function(network) {
-            this.setState({
-                error: null,
-                progressText: 'creating visualization'
-            });
-            // allow state change
-            setTimeout(function() {
-                // var view = new DataView(network.buffer)
-                var js = network2js(network);
-                this.setState({
-                    [network.tissue]: js,
-                    url: GN.urls.networkPage + network.shortURL
-                })
-            }.bind(this), 10) 
-        }.bind(this))
-    },
+    // setTissueSocketListener: function() {
+    //     io.socket.on('network', function(network) {
+    //         this.setState({
+    //             error: null,
+    //             progressText: 'creating visualization'
+    //         });
+    //         // allow state change
+    //         setTimeout(function() {
+    //             // var view = new DataView(network.buffer)
+    //             var js = network2js(network);
+    //             this.setState({
+    //                 [network.tissue]: js,
+    //                 url: GN.urls.networkPage + network.shortURL
+    //             })
+    //         }.bind(this), 10)
+    //     }.bind(this))
+    // },
 
     loadTissueData: function(tissue) {
         var ids = this.props.params.ids.replace(/(\r\n|\n|\r)/g, ',');

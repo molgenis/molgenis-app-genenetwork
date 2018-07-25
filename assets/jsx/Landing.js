@@ -106,7 +106,7 @@ var Landing = React.createClass({
      * @param options
      */
     onSelectChange: function(selectedOption) {
-        let value = selectedOption.value;
+        var value = selectedOption.value;
         if (value.indexOf('!') > -1) {
             var type = value.substring(0, value.indexOf('!'));
             var id = value.substring(value.indexOf('!') + 1);
@@ -210,13 +210,13 @@ var Landing = React.createClass({
      * Necessary to maintain focus at the end of the search bar when the state.geneList == true
      * @param event
      */
-    moveCaretAtEnd(event) {
+    moveCaretAtEnd: function(event) {
         var temp_value = event.target.value;
         event.target.value = '';
         event.target.value = temp_value
     },
 
-    renderSearchBar() {
+    renderSearchBar: function() {
         if (this.state.pasteGeneList && _.size(this.props.params) === 0) {
             return (
                 <TextareaAutosize

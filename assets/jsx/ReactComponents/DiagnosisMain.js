@@ -172,43 +172,6 @@ var DiagnosisMain = React.createClass({
         }.bind(this)
     },
 
-    digestHpoTermsFromUpload: function (terms, i = 0) {
-        if (terms.length > i) {
-            var term = terms[i];
-            console.log(term);
-            i++;
-            this.digestHpoTermsFromUpload(terms, i);
-        }
-
-        // for (var i = 0; i < terms.length; i++){
-        //     var term = terms[i];
-        //     console.log(term);
-        //
-        //     io.socket.get(GN.urls.diagnosisSuggest,
-        //         {
-        //             q: term
-        //         },
-        //         function(res, jwres) {
-        //             if (jwres.statusCode === 200) {
-        //                 var options = _.compact(_.map(res, function(result) {
-        //                     return {
-        //                         value: result._source.id,
-        //                         label: result._source.name + ' - ' + result._source.id,
-        //                         name: result._source.name,
-        //                         isSignificantTerm: result._source.isSignificantTerm
-        //                     }
-        //                 }));
-        //
-        //                 if (options.length === 1) {
-        //                     this.onSelectChange(options[0])
-        //                 } else {
-        //                 }
-        //             } else {
-        //             }
-        //         }.bind(this)
-        //     )}
-    },
-
     onTermFileUploadClick: function(){
         document.getElementById('file-termlist').onchange = function(){
             var termfile = document.getElementById('file-termlist').files[0];
@@ -261,8 +224,8 @@ var DiagnosisMain = React.createClass({
 
     onSubmitModal: function() {
         var selectedParentTerms = this.state.parentTerms
-            .filter(o =>  {return o.selected;})
-            .map(o => ({ value: o.id, name: o.name }));
+            .filter(function(o) {return o.selected;})
+            .map(function(o) {return { value: o.id, name: o.name }});
 
         var terms = this.state.selectedTerms;
 
@@ -305,7 +268,7 @@ var DiagnosisMain = React.createClass({
                 padding: 50
             };
 
-            const modalStyle = {
+            var modalStyle = {
                 backgroundColor: '#fff',
                 maxWidth: 500,
                 minHeight: 200,
@@ -313,7 +276,7 @@ var DiagnosisMain = React.createClass({
                 padding: 30
             };
 
-            const terms = this.state.parentTerms.map(term => {
+            var terms = this.state.parentTerms.map(function(term) {
                 return (
                     <tr>
                         <td>
@@ -325,7 +288,7 @@ var DiagnosisMain = React.createClass({
                         {/*<td className='text'>{term.depth}</td>*/}
                     </tr>
                 );
-            });
+            }.bind(this));
 
             return <div style={backdropStyle}>
                 <div  style={modalStyle}>

@@ -30,7 +30,7 @@ var Footer = React.createClass({
                     </div>
                     <div style={{padding: '0 5px 0 5px'}}>
                         <a href='http://www.bbmri-eric.eu/services/standardisation/' target='_blank'>
-                            <img className='bbmri' title='BBMRI' src={GN.urls.main + '/images/bbmri.jpg'} />
+                            <img className='bbmri' title='BBMRI' src={GN.urls.main + '/images/bbmri_nl.png'} />
                         </a>
                     </div>
                 </div>

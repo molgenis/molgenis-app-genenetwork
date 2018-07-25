@@ -277,10 +277,10 @@ exp.ListIcon = React.createClass({
     
     render: function() {
 
-        let lines = [];
-        let n = this.props.n;
-        let size = n * 5;
-        let viewBox = '0 0 ' + size + ' ' + size;
+        var lines = [];
+        var n = this.props.n;
+        var size = n * 5;
+        var viewBox = '0 0 ' + size + ' ' + size;
 
         for (var i = 0; i < this.props.n; i++) {
             lines.push(<line key={i} x1='0' y1={2 + n * i * 1.5} x2={size} y2={2 + n * i * 1.5} />);
