@@ -19,7 +19,8 @@ var How = React.createClass({
 
                     <h3 id="what-is-genenetwork">What is GeneNetwork?</h3>
                     <p>
-                        GeneNetwork is ...
+                        GeneNetwork uses gene co-regulation to predict pathway membership and HPO term associations.
+                        This is done by integrating 31,499 public RNA-seq sample.
                     </p>
                     <img title='GeneNetwork' style={{width: '1000px'}} src={GN.urls.main + '/images/genenetwork.png'} />
 

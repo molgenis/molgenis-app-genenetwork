@@ -500,7 +500,7 @@ var Network = React.createClass({
 
     componentWillUnmount: function() {
         console.log('Network will unmount');
-        var el = this.findDOMNode();
+        var el = this.getDOMNode();
         // this.state.network.destroy(el)
         window.removeEventListener('resize', this.handleResize);
         $(document).unbind('keydown')

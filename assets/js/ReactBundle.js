@@ -1817,7 +1817,8 @@ var How = React.createClass({displayName: "How",
 
                     React.createElement("h3", {id: "what-is-genenetwork"}, "What is GeneNetwork?"), 
                     React.createElement("p", null, 
-                        "GeneNetwork is ..."
+                        "GeneNetwork uses gene co-regulation to predict pathway membership and HPO term associations." + ' ' +
+                        "This is done by integrating 31,499 public RNA-seq sample."
                     ), 
                     React.createElement("img", {title: "GeneNetwork", style: {width: '1000px'}, src: GN.urls.main + '/images/genenetwork.png'}), 
 
@@ -4543,7 +4544,7 @@ var Network = React.createClass({displayName: "Network",
 
     componentWillUnmount: function() {
         console.log('Network will unmount');
-        var el = this.findDOMNode();
+        var el = this.getDOMNode();
         // this.state.network.destroy(el)
         window.removeEventListener('resize', this.handleResize);
         $(document).unbind('keydown')
