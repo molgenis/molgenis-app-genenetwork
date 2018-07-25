@@ -15,6 +15,7 @@ var How = React.createClass({
                         <li><a href={GN.urls.faqPage + "#why-cant-my-term-be-used"}>Why can’t my term be used?</a></li>
                         <li><a href={GN.urls.faqPage + "#why-is-my-term-not-found"}>Why is my term not found?</a></li>
                         <li><a href={GN.urls.faqPage + "#gene-not-found"}>My favorite candidate gene for patient is not found back in the top of the results?</a></li>
+                        <li><a href={GN.urls.faqPage + "#how-to-cite"}>How to cite?</a></li>
                     </ul>
 
                     <h3 id="what-is-genenetwork">What is GeneNetwork?</h3>
@@ -53,6 +54,14 @@ var How = React.createClass({
                         Gene expression patterns are not informative for all genes. If an expected gene is not found
                         back this is the most likely explanation.
                     </p>
+
+                    <h3 id="how-to-cite">How to cite?</h3>
+                    <p>
+                        <a href="https://www.biorxiv.org/content/early/2018/07/24/375766" target="blank">Improving the diagnostic yield of exome-sequencing, by predicting gene-phenotype
+                            associations using large-scale gene expression analysis</a>
+                    </p>
+
+
                 </div>
             </DocumentTitle>
         );
