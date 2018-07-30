@@ -951,7 +951,7 @@ exp.getCorrelationsJSON = function(gene, options, callback) {
             }
 
             for (var i = 0; i < r.data.length; i++) {
-                if (r.data[i].zScore) {
+                if (r.data[i]) {
                     var p = probability.zToP(r.data[i].zScore);
                     r.data[i].pValue = Number(Number(p.toPrecision(2)).toExponential())
                 }
