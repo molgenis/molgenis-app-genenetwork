@@ -10,12 +10,13 @@ var How = React.createClass({
                     <h2 style={{marginBottom: '10px'}}>FAQ</h2>
 
                     <ul>
-                        <li><a href={GN.urls.faqPage + "#what-is-genenetwork"}>What is GeneNetwork?</a></li>
-                        <li><a href={GN.urls.faqPage + "#what-is-gado"}>What is GADO?</a></li>
-                        <li><a href={GN.urls.faqPage + "#why-cant-my-term-be-used"}>Why can’t my term be used?</a></li>
-                        <li><a href={GN.urls.faqPage + "#why-is-my-term-not-found"}>Why is my term not found?</a></li>
-                        <li><a href={GN.urls.faqPage + "#gene-not-found"}>My favorite candidate gene for patient is not found back in the top of the results?</a></li>
-                        <li><a href={GN.urls.faqPage + "#how-to-cite"}>How to cite?</a></li>
+                        <li><a href={"#what-is-genenetwork"}>What is GeneNetwork?</a></li>
+                        <li><a href={"#what-is-gado"}>What is GADO?</a></li>
+                        <li><a href={"#why-cant-my-term-be-used"}>Why can’t my term be used?</a></li>
+                        <li><a href={"#why-is-my-term-not-found"}>Why is my term not found?</a></li>
+                        <li><a href={"#gene-not-found"}>My favorite candidate gene for patient is not found back in the top of the results?</a></li>
+                        <li><a href={"#gene-predict-score"}>What is the gene predictability score?</a></li>
+                        <li><a href={"#how-to-cite"}>How to cite?</a></li>
                     </ul>
 
                     <h3 id="what-is-genenetwork">What is GeneNetwork?</h3>
@@ -55,9 +56,16 @@ var How = React.createClass({
                         back this is the most likely explanation.
                     </p>
 
+                    <h3 id="gene-predict-score">What is the gene predictability score?</h3>
+                    <p>
+                        The gene predictability score is an indicator on how informative gene expression is in
+                        predicting gene functions. For details please see: <a href="https://www.biorxiv.org/content/early/2018/07/25/375766" target="_blank">Improving the diagnostic yield of exome-sequencing, by predicting gene-phenotype
+                        associations using large-scale gene expression analysis</a>
+                    </p>
+
                     <h3 id="how-to-cite">How to cite?</h3>
                     <p>
-                        <a href="https://www.biorxiv.org/content/early/2018/07/24/375766" target="blank">Improving the diagnostic yield of exome-sequencing, by predicting gene-phenotype
+                        <a href="https://www.biorxiv.org/content/early/2018/07/25/375766" target="_blank">Improving the diagnostic yield of exome-sequencing, by predicting gene-phenotype
                             associations using large-scale gene expression analysis</a>
                     </p>
 

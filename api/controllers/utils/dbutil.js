@@ -951,8 +951,12 @@ exp.getCorrelationsJSON = function(gene, options, callback) {
             }
 
             for (var i = 0; i < r.data.length; i++) {
-                var p = probability.zToP(r.data[i].zScore);
-                r.data[i].pValue = Number(Number(p.toPrecision(2)).toExponential())
+                if (r.data[i].zScore) {
+                    var p = probability.zToP(r.data[i].zScore);
+                    r.data[i].pValue = Number(Number(p.toPrecision(2)).toExponential())
+                }
+                // var p = probability.zToP(r.data[i].zScore);
+                // r.data[i].pValue = Number(Number(p.toPrecision(2)).toExponential())
                 // r.data[i].zScore = Number(r.data[i].zScore.toPrecision(4))
             }
 
