@@ -819,17 +819,23 @@ var Network = React.createClass({
 
             pageTitle = this.state.data.elements.nodes.length + ' genes' + GN.pageTitleSuffix;
             var title = this.state.data.pathway != null ? (this.state.data.pathway.database + ': ' + this.state.data.pathway.name) : null;
+
+            var downloadButton = this.state.data.pathway != null ? (
+                <div>
+                <DownloadPanel onClick={this.downloadPredictions} text='DOWNLOAD ALL' />
+                <form id='gn-term-downloadform' method='post' encType='multipart/form-data' action={GN.urls.tabdelim}>
+                    <input type='hidden' id='termId' name='termId' value={this.state.data.pathway.id} />
+                    <input type='hidden' id='db' name='db' value={this.state.data.pathway.database} />
+                    <input type='hidden' id='what' name='what' value='termprediction' />
+                </form>
+                </div>
+            ) : null;
+
             var predictedgenes = (
                     <div>
                         <div className='gn-term-container-outer' style={{backgroundColor: color.colors.gnwhite}}>
                         <div className='gn-term-container-inner maxwidth' style={{padding: '20px'}}>                        
-                            <GeneTable genes={this.state.genes.genes.predicted ? this.state.genes.genes.predicted : null} type='prediction' gpMessage={this.state.gpMessage}/>
-                            <DownloadPanel onClick={this.downloadPredictions} text='DOWNLOAD ALL' />
-                            <form id='gn-term-downloadform' method='post' encType='multipart/form-data' action={GN.urls.tabdelim}>
-                                <input type='hidden' id='termId' name='termId' value={this.state.data.pathway.id} />
-                                <input type='hidden' id='db' name='db' value={this.state.data.pathway.database} />
-                                <input type='hidden' id='what' name='what' value='termprediction' />
-                            </form>
+                            { downloadButton }
                         </div>
                         </div>
                         <Footer />
