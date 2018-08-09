@@ -24,6 +24,7 @@ var GeneList = React.createClass({
     parseGeneList: function(geneList) {
         geneList = geneList.trim().replace(/(\r\n|\n|\r|\t|\s|;)/g, ',');
         var genes = geneList.split(',').filter(function(e){return e});
+        genes = _.uniq(genes);
         return(genes);
     },
 

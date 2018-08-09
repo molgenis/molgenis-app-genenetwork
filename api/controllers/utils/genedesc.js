@@ -53,7 +53,7 @@ exp.get = function(x) {
             gene = genesByENSG[x.toUpperCase()]
         } else {
             if (genesByName[x]) gene = genesByName[x];
-            else if (genesByName[x.toUpperCase]) gene = genesByName[x.toUpperCase];
+            else if (genesByName[x.toUpperCase()]) gene = genesByName[x.toUpperCase()];
             else gene = genesByName[x.toLowerCase()];
         }
     }
