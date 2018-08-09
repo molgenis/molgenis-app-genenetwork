@@ -834,7 +834,8 @@ var Network = React.createClass({
             var predictedgenes = (
                     <div>
                         <div className='gn-term-container-outer' style={{backgroundColor: color.colors.gnwhite}}>
-                        <div className='gn-term-container-inner maxwidth' style={{padding: '20px'}}>                        
+                        <div className='gn-term-container-inner maxwidth' style={{padding: '20px'}}>
+                            <GeneTable genes={this.state.genes.genes.predicted ? this.state.genes.genes.predicted : null} type='prediction' gpMessage={this.state.gpMessage}/>
                             { downloadButton }
                         </div>
                         </div>
