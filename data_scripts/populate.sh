@@ -23,7 +23,7 @@ node rankPathwaysFromDataFileTXT.js \
 	/data/genenetwork/level/new/dbexternalranks \
 	HPO \
 	/data/genenetwork/files/Version2_01_04_2018/HPO/hpoTerms_bonSigTerms_gnInputFormat.txt \
-	/data/genenetwork/files/Version2_01_04_2018/HPO/hpo_predictions_bonSigOnly_termNames_transposed.txt 
+	/data/genenetwork/files/Version2_01_04_2018/HPO/hpo_predictions_bonSigOnly_termNames_tranposed.txt 
 
 ###
 ### Reactome
@@ -42,7 +42,7 @@ node rankPathwaysFromDataFileTXT.js \
 	/data/genenetwork/level/new/dbexternalranks \
 	REACTOME \
 	/data/genenetwork/files/Version2_01_04_2018/Reactome/reactomePathwaysHuman_bonSigTerms_gnInputFormat.txt \
-	/data/genenetwork/files/Version2_01_04_2018/Reactome/reactome_predictions_bonSigOnly_termNames_transposed.txt 
+	/data/genenetwork/files/Version2_01_04_2018/Reactome/reactome_predictions_bonSigOnly_termNames_tranposed.txt 
 
 ###
 ### GO
