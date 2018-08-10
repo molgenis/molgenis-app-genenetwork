@@ -15,7 +15,7 @@ node populateGenesetDBTXT.js \
 	/data/genenetwork/level/new/dbexternal_uint16be \
 	HPO \
 	/data/genenetwork/files/Version2_01_04_2018/HPO/hpoTerms_bonSigTerms_gnInputFormat.txt \
-	/data/genenetwork/files/Version2_01_04_2018/HPO/hpo_predictions_bonSigOnly_termNames_transposed.txt \
+	/data/genenetwork/files/Version2_01_04_2018/HPO/hpo_predictions_bonSigOnly_termNames_tranposed.txt \
 	/data/genenetwork/files/Version2_01_04_2018/HPO/hpo_predictions_auc_gnInputFormat.txt \
 	/data/genenetwork/files/Version2_01_04_2018/HPO/ALL_SOURCES_ALL_FREQUENCIES_phenotype_to_genes_matrix_gnInputFormat.txt
 
@@ -34,7 +34,7 @@ node populateGenesetDBTXT.js \
 	/data/genenetwork/level/new/dbexternal_uint16be \
 	REACTOME \
 	/data/genenetwork/files/Version2_01_04_2018/Reactome/reactomePathwaysHuman_bonSigTerms_gnInputFormat.txt \
-	/data/genenetwork/files/Version2_01_04_2018/Reactome/reactome_predictions_bonSigOnly_termNames_transposed.txt \
+	/data/genenetwork/files/Version2_01_04_2018/Reactome/reactome_predictions_bonSigOnly_termNames_tranposed.txt \
 	/data/genenetwork/files/Version2_01_04_2018/Reactome/reactome_predictions_auc_gnInputFormat.txt \
 	/data/genenetwork/files/Version2_01_04_2018/Reactome/Ensembl2Reactome_All_Levels_matrix_gnInputFormat.txt
 
