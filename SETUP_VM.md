@@ -2,9 +2,13 @@
 VM setup on CentOS 6.9.
 
 ## Install NodeJS
+We need to install nodejs and npm to run this application on CentOS.
+
+```bash
 yum install nodejs
 npm install n
 npm n stable
+```
 
 ## Install the right version of GCLIB
 > http://luiarthur.github.io/gccinstall
