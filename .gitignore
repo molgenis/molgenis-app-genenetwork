@@ -9,3 +9,4 @@ node_modules/
 .tmp
 ReactBundle.js
 backup_elasticsearch
+*.iml
