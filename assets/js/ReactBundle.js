@@ -1,159 +1,9087 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
-"use strict";function D3Heatmap(t,s){this.elem=t,this._props=s||{},this._props.numTerms=s.terms.length,this._props.hoverRow=null,this._props.hoverCol=null,this._props.colorscale=this._props.colorscale?this._props.colorscale:[color.colors.gnblue,color.colors.gnlightgray,color.colors.gnred],this._props.distance=this._props.distance?this._props.distance:this._props.linkage=this._props.linkage?this._props.linkage:"avg",this._props.cellsize=this._props.cellsize?this._props.cellsize:30,this._props.strokeWidth=this._props.strokeWidth?this._props.strokeWidth:1,this._props.labelsizeBottom=60,this._props.labelsizeRight=75,this._clusterData(),this._initScales(),this._calculateProperties(),this._drawHeatmap(),this._addLabels()}var _=require("lodash"),d3=require("d3"),color=require("./color.js"),hcluster=require("hclusterjs"),d3tip=require("d3-tip");D3Heatmap.prototype._clusterData=function(){for(var t=this._props.terms,s=this._props.cormat,e=[],r=0;r<t.length;r++)e.push({term:t[r],values:s[r]});for(var i=hcluster().distance(this._props.distance).linkage(this._props.linkage).posKey("values").data(e),o=_.flatMap(i.orderedNodes(),"indexes"),p=[],l=[],r=0;r<o.length;r++){for(var a=0;a<o.length;a++)p.push({row:r,col:a,value:s[o[r]][o[a]]});l.push(t[o[r]])}this._props.orderedData=p,this._props.orderedTerms=l},D3Heatmap.prototype._initScales=function(){this._colorscale=d3.scale.linear().domain([-1,0,1]).range(this._props.colorscale).clamp(!0),this._fontsizescale=d3.scale.linear().domain([9,15,20]).range([8,10,12]).clamp(!0)},D3Heatmap.prototype._calculateProperties=function(){this._props.size=this.elem.clientWidth>this.elem.clientHeight?this.elem.clientHeight:this.elem.clientWidth-this._props.labelsizeRight,this._props.size<this._props.cellsize*this._props.numTerms&&(this._props.cellsize=this._props.size/this._props.numTerms)},D3Heatmap.prototype._drawHeatmap=function(){var t=this._props.cellsize,s=this,e=this._props.orderedTerms,r=d3tip().attr("class","d3-tip").offset([0,0]).html(function(t){return t.value});this._vis=d3.select(this.elem).append("svg:svg").attr("id","heatmapsvg").attr("width",this._props.size+this._props.labelsizeRight).attr("height",this._props.size+this._props.labelsizeBottom),this._vis.call(r);this._vis.selectAll("rect").data(s._props.orderedData).enter().append("rect").attr("x",function(s){return s.col*t}).attr("y",function(s){return s.row*t}).attr("width",t-this._props.strokeWidth).attr("height",t-this._props.strokeWidth).attr("fill",function(t){return s._colorscale(t.value)}).on("mouseover",function(t){r.show(t,this),s._props.handleHover(e[t.row],e[t.col])}).on("mouseout",function(t){r.hide(t,this),s._props.handleHover(null,null)})},D3Heatmap.prototype._addLabels=function(){var t=this._props.orderedTerms,s=this._props.cellsize,e=this._props.numTerms,r=this;this._vis.selectAll("text.right").data(t).enter().append("text").text(function(t){return t}).attr("x",function(t){return s*e+5}).attr("y",function(e){return t.indexOf(e)*s+.7*s}).attr("font-size",function(t){return r._fontsizescale(s)}),this._vis.selectAll("text.bottom").data(t).enter().append("text").text(function(t){return t}).attr("transform",function(r){return"translate("+(t.indexOf(r)*s+s-s/1.5)+","+(s*e+10)+") rotate(45)"}).attr("font-size",function(t){return r._fontsizescale(s)})},module.exports=D3Heatmap;
+'use strict'
+
+var _ = require('lodash')
+var d3 = require('d3')
+var color = require('./color.js')
+var hcluster = require('hclusterjs')
+var d3tip = require('d3-tip')
+
+function D3Heatmap(elem, props) {
+
+    this.elem = elem
+    this._props = props || {}
+    this._props.numTerms = props.terms.length
+    this._props.hoverRow = null
+    this._props.hoverCol = null
+    this._props.colorscale = this._props.colorscale ? this._props.colorscale : [color.colors.gnblue, color.colors.gnlightgray, color.colors.gnred]
+    this._props.distance = this._props.distance ? this._props.distance : 
+    this._props.linkage = this._props.linkage ? this._props.linkage : 'avg'
+    this._props.cellsize = this._props.cellsize ? this._props.cellsize : 30
+    this._props.strokeWidth = this._props.strokeWidth ? this._props.strokeWidth : 1
+
+    this._props.labelsizeBottom = 60
+    this._props.labelsizeRight = 75
+
+    this._clusterData()
+    this._initScales()
+    this._calculateProperties()
+    this._drawHeatmap()
+    this._addLabels()
+
+}
+
+D3Heatmap.prototype._clusterData = function(){
+    var terms = this._props.terms
+    var cormat = this._props.cormat
+
+    //transform data to right format
+    var data = []
+    for (var i = 0; i < terms.length; i++){
+        data.push({
+            term: terms[i],
+            values: cormat[i]
+        })
+    }
+
+    //cluster data
+    var cluster = hcluster()
+        .distance(this._props.distance)
+        .linkage(this._props.linkage)
+        .posKey('values')
+        .data(data)
+
+    //get node ordening
+    var indices = _.flatMap(cluster.orderedNodes(), 'indexes')
+    
+    //order the data according to clustering
+    var orderedData = []
+    var orderedTerms = []
+    for (var i = 0; i < indices.length; i++){
+        for (var e = 0; e < indices.length; e++){
+            orderedData.push({
+                row: i,
+                col: e,
+                value: cormat[indices[i]][indices[e]]
+            })
+        }
+        orderedTerms.push(terms[indices[i]])
+    }
+
+    this._props.orderedData = orderedData
+    this._props.orderedTerms = orderedTerms
+
+}
+
+D3Heatmap.prototype._initScales = function(){
+    this._colorscale = d3.scale.linear()
+        .domain([-1, 0, 1])
+        .range(this._props.colorscale)
+        .clamp(true)
+
+    this._fontsizescale = d3.scale.linear()
+        .domain([9,15,20])
+        .range([8,10,12])
+        .clamp(true)
+}
+
+D3Heatmap.prototype._calculateProperties = function(){
+    this._props.size = this.elem.clientWidth > this.elem.clientHeight ? this.elem.clientHeight : this.elem.clientWidth - this._props.labelsizeRight 
+    if (this._props.size < this._props.cellsize * this._props.numTerms){
+        //if the size of the div is smaller than the total width of the heatmap, make cellsize smaller so heatmap will fit in div 
+        this._props.cellsize = this._props.size / this._props.numTerms
+        
+    }
+}
+
+D3Heatmap.prototype._drawHeatmap = function(){
+    
+    var cellsize = this._props.cellsize
+    var that = this
+
+    var orderedTerms = this._props.orderedTerms
+
+    var tip = d3tip()
+          .attr('class', 'd3-tip')
+          .offset([0, 0])
+          .html(function(d) {
+            return d.value
+          })
+
+    this._vis = d3.select(this.elem).append('svg:svg')
+        .attr('id', 'heatmapsvg')
+        .attr('width', this._props.size + this._props.labelsizeRight)
+        .attr('height', this._props.size + this._props.labelsizeBottom)
+
+    this._vis.call(tip)
+
+    var rect = this._vis.selectAll('rect')
+        .data(that._props.orderedData)
+        .enter()
+        .append('rect')
+        .attr('x', function(d){
+            return d.col * cellsize
+        })
+        .attr('y', function(d){
+            return d.row * cellsize
+        })
+        .attr('width', cellsize - this._props.strokeWidth)
+        .attr('height', cellsize - this._props.strokeWidth)
+        .attr('fill', function(d){
+            return that._colorscale(d.value)
+        })
+        .on('mouseover', function(d){
+            tip.show(d, this)
+            that._props.handleHover(orderedTerms[d.row], orderedTerms[d.col])
+        })
+        .on('mouseout', function(d){
+            tip.hide(d, this)
+            that._props.handleHover(null, null)
+        })
+}
+
+D3Heatmap.prototype._addLabels = function(){
+    var terms = this._props.orderedTerms
+    var cellsize = this._props.cellsize 
+    var numTerms = this._props.numTerms
+    var that = this
+
+    this._vis.selectAll('text.right')
+        .data(terms)
+        .enter()
+        .append('text')
+        .text(function(d){
+            return d
+        })
+        .attr('x', function(d){
+            return cellsize * numTerms + 5
+        })
+        .attr('y', function(d){
+            return (terms.indexOf(d) * cellsize) + cellsize * 0.7
+            // return (terms.indexOf(d) * cellsize + cellsize) - cellsize / 2.5
+        })
+        .attr('font-size', function(d){
+
+            // return 12
+            return that._fontsizescale(cellsize)
+        })
+
+    this._vis.selectAll('text.bottom')
+        .data(terms)
+        .enter()
+        .append('text')
+        .text(function(d){
+            return d
+        })
+        .attr('transform', function(d){
+            var x = (terms.indexOf(d) * cellsize + cellsize) - cellsize / 1.5
+            var y = cellsize * numTerms + 10
+            return 'translate(' + x + ',' + y + ') rotate(45)'
+        })
+        .attr('font-size', function(d){
+            return that._fontsizescale(cellsize)
+            // return 12
+            // return 8
+        })
+}
+
+module.exports = D3Heatmap
 
 },{"./color.js":4,"d3":60,"d3-tip":59,"hclusterjs":108,"lodash":130}],2:[function(require,module,exports){
-"use strict";function d3_fisheye_scale(t,e,s){function o(o){var i=t(o),r=i<s,n=d3.extent(t.range()),a=n[0],h=n[1],l=r?s-a:h-s;return 0==l&&(l=h-a),(r?-1:1)*l*(e+1)/(e+l/Math.abs(i-s))+s}return o.distortion=function(t){return arguments.length?(e=+t,o):e},o.focus=function(t){return arguments.length?(s=+t,o):s},o.copy=function(){return d3_fisheye_scale(t.copy(),e,s)},o.nice=t.nice,o.ticks=t.ticks,o.tickFormat=t.tickFormat,d3.rebind(o,t,"domain","range")}function D3Network(t,e){if(!1==this instanceof D3Network)return new D3Network(t,e);this.elem=t,this._state={},this._props=e||{},this._props.alphaThresholds=this._props.alphaThresholds||[.01,.07],this._props.ticksPerRender=this._props.ticksPerRender||3,this._props.width=this._props.width||t.offsetWidth,this._props.height=this._props.height||t.offsetHeight,this._props.nodeHeight=this._props.nodeHeight||30,this._props.labelColor=this._props.labelColor||"#000000",this._props.labelSizeEm=this._props.labelSizeEm||1,this._props.minZoomScale=this._props.minZoomScale||.05,this._props.maxZoomScale=this._props.maxZoomScale||10,this._x=d3.scale.linear().domain([0,this._props.width]).range([0,this._props.width]),this._y=d3.scale.linear().domain([0,this._props.height]).range([0,this._props.height]),this._initDrag(),this._initZoom(),this._initBrush(),this._initForce(),this._addDOMElements(),this._addKeyListeners(),this.setSelectionMode("move")}var _=require("lodash"),d3=require("d3"),color=require("./color.js");d3.fisheye={scale:function(t){return d3_fisheye_scale(t(),3,0)},circular:function(){function t(t){var e=t.x-n[0],r=t.y-n[1],a=Math.sqrt(e*e+r*r);if(!a||a>=i)return{x:t.x,y:t.y,z:a>=i?1:10};var h=s*(1-Math.exp(-a*o))/a*.75+.25;return{x:n[0]+e*h,y:n[1]+r*h,z:Math.min(h,10)}}function e(){return s=Math.exp(r),s=s/(s-1)*i,o=r/i,t}var s,o,i=200,r=2,n=[0,0];return t.radius=function(t){return arguments.length?(i=+t,e()):i},t.distortion=function(t){return arguments.length?(r=+t,e()):r},t.focus=function(e){return arguments.length?(n=e,t):n},e()}},D3Network.prototype._initForce=function(){this._force=d3.layout.force().gravity(this._props.gravity||.7).distance(this._props.distance||150).theta(this._props.theta||.1).friction(this._props.friction||.65).charge(this._props.charge||-2e3).size([this._props.width,this._props.height]),this._force.on("start",this._startForce.bind(this));var t=this;this._force.on("end",function(){console.debug("D3Network: force directed layout calculation: %d ms",Date.now()-t._startForceTime)})},D3Network.prototype.tweenZoom=function(t,e){var s=this._zoom.scale(),o=this._zoom.translate(),i=Math.max(Math.min(t*s,this._props.maxZoomScale),this._props.minZoomScale),r=[o[0]+(s-i)*this._props.width/2,o[1]+(s-i)*this._props.height/2],n=this;return d3.transition().duration(e||200).ease("cubic-in-out").tween("zoom",function(){var t=d3.interpolate(s,i),e=d3.interpolate(o,r);return function(s){n._zoom.scale(t(s)),n._zoom.translate(e(s)),n.updateZoom()}}),i},D3Network.prototype.updateZoom=function(){this._brushvis&&this._brushvis.attr("transform","translate("+this._zoom.translate()+")scale("+this._zoom.scale()+")"),this._nodevis.attr("transform","translate("+this._zoom.translate()+")scale("+this._zoom.scale()+")"),this._linkvis.attr("transform","translate("+this._zoom.translate()+")scale("+this._zoom.scale()+")")},D3Network.prototype.getZoomScale=function(){return this._zoom.scale()},D3Network.prototype.isZoomedMax=function(){return this._zoom.scale()>=this._props.maxZoomScale},D3Network.prototype.isZoomedMin=function(){return this._zoom.scale()<=this._props.minZoomScale},D3Network.prototype._initZoom=function(){var t=this;this._zoom=d3.behavior.zoom().scaleExtent([this._props.minZoomScale,this._props.maxZoomScale]).x(t._x).y(t._y).on("zoomstart",function(){}).on("zoom",function(){t._state.isBrushing||t._state.isDragging||(t._brushvis.attr("transform","translate("+d3.event.translate+")scale("+d3.event.scale+")"),t._nodevis.attr("transform","translate("+d3.event.translate+")scale("+d3.event.scale+")"),t._linkvis.attr("transform","translate("+d3.event.translate+")scale("+d3.event.scale+")"))}).on("zoomend",function(){t._props.onZoomEnd&&t._props.onZoomEnd(t._zoom.scale())})},D3Network.prototype._initBrush=function(){this._state.isBrushing=!1,this._state.nodeIdsInsideBrush={};var t=this;this._brush=d3.svg.brush().x(d3.scale.linear().range([-10*t._props.width,10*t._props.width]).domain([-10*t._props.width,10*t._props.width])).y(d3.scale.linear().range([-10*t._props.height,10*t._props.height]).domain([-10*t._props.height,10*t._props.height])).on("brushstart",function(e){"move"===t._state.mode?(t._state.isBrushing=!1,t._brush.empty()&&d3.select(".brush").style("visibility","hidden"),0===_.size(t._state.nodeIdsInsideBrush)&&(t._nodevis.selectAll(".hidden, .semihidden").classed("hidden semihidden",!1).style("opacity",1),t._link.classed("hidden semihidden",!1).style("opacity",1),t._props.onSelect&&t._data.elements.groups&&t._props.onSelect(t._data.elements.groups[0]))):(t._state.isBrushing=!0,t._state.nodeIdsInsideBrush={},t._state.zoomTranslateOnBrushStart=t._zoom.translate(),d3.select(".brush").style("visibility","visible"))}).on("brush",function(){t._state.isBrushing&&t._updateBrush()}).on("brushend",function(){t._state.isBrushing&&(t._zoom.translate(t._state.zoomTranslateOnBrushStart),t._brush.empty()&&(t._nodevis.selectAll(".hidden").classed("hidden",!1).style("opacity",1),t._link.classed("hidden semihidden",!1).style("opacity",1),t._props.onSelect&&t._data.elements.groups&&t._props.onSelect(t._data.elements.groups[0])),d3.select(this).call(d3.event.target),t._state.isBrushing=!1,t.showAll())})},D3Network.prototype._updateBrush=function(){if(!this._brush||this._brush.empty())return!1;var t=[],e=this._brush.extent(),s=0,o={},i=this;if(this._nodevis.selectAll("g.node>rect.main").classed("hidden",!1).style("opacity",1).filter(function(r){if(e[0][0]>r.x||r.x>e[1][0]||e[0][1]>r.y||r.y>e[1][1]){var n=t.indexOf(r.id);return-1===n||(!0===i._state.nodeIdsInsideBrush[r.id]&&t.splice(n,1),i._state.nodeIdsInsideBrush[r.id]=!1,!1)}return i._state.nodeIdsInsideBrush[r.id]=!0,-1===t.indexOf(r.id)&&t.push(r.id),s++,o[r.id]=!0,!1}).classed("hidden",!0).style("opacity",.3),this._data.elements.nodes.length<101)if(s>0){var r={};this._link.classed("hidden",!1).style("opacity",1).filter(function(t){return!0===o[t.source.id]?(r[t.target.id]=!0,!1):!0!==o[t.target.id]||(r[t.source.id]=!0,!1)}).classed("hidden",!0).style("opacity",.3)}else this._link.classed("hidden",!0).style("opacity",.3);this._data.elements.groups&&(_.last(this._data.elements.groups).nodes=t,this._props.onSelect&&this._props.onSelect(_.last(this._data.elements.groups),!1))},D3Network.prototype._initDrag=function(){var t=this;this._state.isDragging=!1,this._drag=d3.behavior.drag().on("dragstart",function(){t._state.zoomTranslateOnDragStart=t._zoom.translate()}).on("drag",function(e){e.source||(t._state.isDragging=!0,e.x=d3.event.x,e.y=d3.event.y,d3.select(this).attr("transform","translate("+Math.round(100*d3.event.x)/100+","+Math.round(100*d3.event.y)/100+")"),t._link.attr("x1",function(t){return t.source.x}).attr("y1",function(t){return t.source.y}).attr("x2",function(t){return t.target.x}).attr("y2",function(t){return t.target.y}))}).on("dragend",function(){t._state.zoomTranslateOnDragStart&&t._zoom.translate(t._state.zoomTranslateOnDragStart),setTimeout(function(){t._state.isDragging=!1},50)})},D3Network.prototype.setSelectionMode=function(t){"move"===t?(this._state.mode="move",document.getElementsByClassName("background")[0].style.cursor="move",this._nodevis.selectAll("g.node>rect,text").style("cursor","pointer"),this._linkvis.selectAll("line.link").style("cursor","move")):"select"===t&&(this._state.mode="select",document.getElementsByClassName("background")[0].style.cursor="crosshair",this._nodevis.selectAll("g.node>rect,text").style("cursor","pointer"),this._linkvis.selectAll("line.link").style("cursor","initial"))},D3Network.prototype._addKeyListeners=function(){var t=this;d3.select("body").on("keydown",function(){16===d3.event.keyCode&&(t._props.onSelectionModeChange?t._props.onSelectionModeChange("select"):t.setSelectionMode("select"))}).on("keyup",function(){16===d3.event.keyCode&&(t._props.onSelectionModeChange?t._props.onSelectionModeChange("move"):t.setSelectionMode("move"))})},D3Network.prototype._addDOMElements=function(){var t=this;this._vis=d3.select(this.elem).append("svg:svg").attr("id","networksvg").attr("width",t._props.width).attr("height",t._props.height),this._brush&&(this._brushvis=this._vis.append("g").attr("class","brush").call(this._brush)),this._linkvis=this._vis.append("svg:g").attr("id","links"),this._nodevis=this._vis.append("svg:g").attr("id","nodes"),this._zoom&&this._vis.call(this._zoom)},D3Network.prototype._clearData=function(){this._data={},this._force.links().splice(0),this._force.nodes().splice(0),this._hashNodes={}},D3Network.prototype._initScales=function(){if(!this._data)return!1;if(this._data.edgeValueScales){this._linkscales=[];for(var t=0,e=this._data.edgeValueScales.length;t<e;t++)this._linkscales.push(d3.scale.linear().domain(this._data.edgeValueScales[t]).range(this._data.edgeColorScales[t]).clamp(!0))}this._nodescale=d3.scale.linear().domain([-10,0,10]).range([color.colors.gnblue,color.colors.gnlightgray,color.colors.gnred]).clamp(!0)},D3Network.prototype._initNodes=function(){this._node=this._nodevis.selectAll("g.node").data(this._force.nodes(),function(t){return t.id});for(var t=!!this._data.elements.groups,e=this,s=this._node.enter().append("g").attr("class","node").attr("data-id",function(t){return t.id}).on("click",function(s){e._state.isDragging||(d3.event.shiftKey&&t?(_.last(e._data.elements.groups).nodes.push(s.id),e.highlightGroup(e._data.elements.groups.length-1)):(t&&(_.last(e._data.elements.groups).nodes=[s.id]),e.highlightNode(s.id)),e._props.onSelect&&t&&e._props.onSelect(_.last(e._data.elements.groups)))}).call(this._drag),o=0;o<5;o++)s.filter(function(t){return 0===o||t.customGroups&&t.customGroups.length>o}).append("rect").attr("class","clickable main rect"+(o+1)).attr("height",this._props.nodeHeight).attr("rx",0).attr("ry",0).attr("y",-this._props.nodeHeight/2).style("fill",color.colors.gndarkgray);s.append("text").attr("class","nodetext clickable").attr("text-anchor","middle").attr("dy",".35em").style("fill",e._props.labelColor||color.colors.gndarkgray).style("font-family","GG").style("font-weight","bold").attr("displayState","y").text(function(t){return t.name}),this._node.exit().remove()},D3Network.prototype._initLinks=function(){var t=this;this._link=this._linkvis.selectAll("line.link").data(t._force.links(),function(t){return t.source.id+"-"+t.target.id}),this._link.enter().insert("line").attr("class","link clickable").style("stroke",function(e){return t._linkscales?e.weight<0?t._linkscales[1](e.weight):t._linkscales[0](e.weight):t._props.linkColor||color.colors.linkDefault}).on("click",t._props.onEdgeSelect).call(this._drag),this._link.exit().remove()},D3Network.prototype._initFisheye=function(){this._fisheye=d3.fisheye.circular().radius(100).distortion(3);var t=this;this._vis.on("mousemove",function(){t._fisheye.focus(d3.mouse(this)),t._nodevis.selectAll("g.node>rect.main").each(function(e){e.fisheye=t._fisheye(e)}).attr("height",function(e){return e.fisheye.z*t._props.nodeHeight}).attr("width",function(t){return t.fisheye.z*this.getAttribute("_width")}),t._nodevis.selectAll("g.node>text").style("font-size",function(e){return e.fisheye.z*t._props.labelSizeEm+"em"}),t._link.attr("x1",function(t){return t.source.fisheye.x}).attr("y1",function(t){return t.source.fisheye.y}).attr("x2",function(t){return t.target.fisheye.x}).attr("y2",function(t){return t.target.fisheye.y})})},D3Network.prototype._hide=function(){this._nodevis.selectAll("g.node>rect,text").style("opacity",0),this._link.style("opacity",0)},D3Network.prototype._show=function(){this._nodevis.selectAll("g.node>text").style("opacity",1).each(function(t){t.bbox=this.getBBox()}),this._nodevis.selectAll("g.node>rect").attr("width",function(t){return(t.bbox.width+12)/(t.customGroups&&t.customGroups.length||1)}).attr("_width",function(t){return(t.bbox.width+12)/(t.customGroups&&t.customGroups.length||1)}).attr("x",function(t){var e=+this.getAttribute("class").match(/rect(\d)/)[1];return-(t.bbox.width+12)/2+(e-1)*(t.bbox.width+12)/(t.customGroups&&t.customGroups.length||1)}),this.showAll()},D3Network.prototype.showAll=function(){this._nodevis.selectAll("g.node>rect.main").style("opacity",1),this._link.style("opacity",1)},D3Network.prototype._move=function(t,e){t=t||0,e=e||0,this._node.attr("transform",function(s){return s.x=Math.round(100*(s.x-t))/100,s.y=Math.round(100*(s.y-e))/100,"translate("+s.x+","+s.y+")"}),this._link.attr("x1",function(t){return t.source.x}).attr("y1",function(t){return t.source.y}).attr("x2",function(t){return t.target.x}).attr("y2",function(t){return t.target.y})},D3Network.prototype.fixNodes=function(){_.each(this._force.nodes(),function(t){t.fixed=!0})},D3Network.prototype.unfixNodes=function(){_.each(this._force.nodes(),function(t){t.fixed=!1})},D3Network.prototype._startForce=function(){var t=this;this._startForceTime=Date.now(),requestAnimationFrame(function e(){for(var s=0;s<t._props.ticksPerRender;s++)t._force.tick();if(!0===t._layoutDone&&(t._move(),t._updateBrush()),t._force.alpha()>t._props.alphaThresholds[t._data.elements.nodes.length<100?0:1])requestAnimationFrame(e);else{if(!1===t._layoutDone){var o=[1e6,0,0,1e6];t._node.each(function(t){o[0]=Math.min(t.y,o[0]),o[1]=Math.max(t.x,o[1]),o[2]=Math.max(t.y,o[2]),o[3]=Math.min(t.x,o[3])});var i=[.9*t._props.width/2,.9*t._props.height/2],r=t._data.elements.nodes.length<20?.5:.85,n=r/Math.max((o[2]-o[0])/t._props.height,(o[1]-o[3])/t._props.width),a=[(1-n)*t._props.width/2,(1-n)*t._props.height/2];t._zoom.scale(.1),t._zoom.translate(i),t.updateZoom(),t._show(),d3.transition().duration(500).ease("cubic").tween("zoom",function(){var e=d3.interpolate(.1,n),s=d3.interpolate(i,a);return function(o){t._zoom.scale(e(o)),t._zoom.translate(s(o)),t.updateZoom()}})}t._layoutDone=!0,t._force.stop(),t._move(),t._updateBrush(),t._props.onProgress&&t._props.onProgress("done")}})},D3Network.prototype._rehash=function(){this._hashNodes={};for(var t=0,e=this._force.nodes().length;t<e;t++){var s=this._force.nodes()[t];this._hashNodes[s.id]=t}for(var o=0,i=this._force.links().length;o<i;o++){this._hashNodes[this._force.links()[o].source.id],this._hashNodes[this._force.links()[o].target.id]}},D3Network.prototype.resize=function(t,e){this._props.width=t,this._props.height=e,this._vis.attr("width",t),this._vis.attr("height",e)},D3Network.prototype.draw=function(t){console.debug("D3Network.draw: %d nodes, %d edges",t.elements.nodes.length,t.elements.edges.length);var e=Date.now();this._clearData(),this._data=t,this._state.showNegatives=this._props.showNegatives||!1;for(var s=0,o=t.elements.nodes.length;s<o;s++)this._addNode(t.elements.nodes[s]);this._rehash();for(var i=0,r=t.elements.edges.length;i<r;i++)(this._state.showNegatives||void 0==t.elements.edges[i].data.weight||t.elements.edges[i].data.weight>0)&&this._addLink(t.elements.edges[i].data);this._rehash(),console.debug("D3Network.draw: nodes and links added"),this._initScales(),console.debug("D3Network.draw: scales added"),this._initNodes(),console.debug("D3Network.draw: nodes initialised"),this._initLinks(),console.debug("D3Network.draw: links initialised"),console.debug("D3Network.draw: initialisation %d ms",Date.now()-e),this._hide(),this._layoutDone=!1,this._props.onProgress&&this._props.onProgress("calculating layout"),this._force.start()},D3Network.prototype.toggleNetwork=function(t){this._force.links().splice(0),this._data=t;for(var e=0,s=t.elements.edges.length;e<s;e++)(this._state.showNegatives||void 0==t.elements.edges[e].data.weight||t.elements.edges[e].data.weight>0)&&this._addLink(t.elements.edges[e].data);this._rehash(),this._initNodes(),this._initLinks(),this.unfixNodes(),this._force.start()},D3Network.prototype.addEdges=function(t){for(var e=0;e<t.length;e++)this._data.elements.edges.push({data:t[e].data}),this._addLink(t[e].data);this._initNodes(),this._initLinks(),this._rehash(),this._show(),this.unfixNodes(),this._force.start()},D3Network.prototype.removeEdges=function(t){for(var e=0;e<t.length;e++){var s=this._data.elements.edges.indexOf(t[e]);this._force.links().splice(s,1),this._data.elements.edges.splice(s,1)}this._rehash(),this._initNodes(),this._initLinks(),this.unfixNodes(),this._force.start()},D3Network.prototype.addNodeToDataAndNetwork=function(t,e){console.debug("D3Network.addNodeToDataAndNetwork: Adding %s",t.name),t.added=!0,this._data.elements.nodes.push({data:t}),this._addNode({data:t}),this._rehash();for(var s=this._threshold||this._data.threshold||0,o=0,i=e.length;o<i-1;o++)if(Math.abs(e[o]>=s)){var r={source:t.id,target:this._data.elements.nodes[o].data.id,weight:e[o]};this._data.elements.edges.push({data:r}),this._addLink(r)}this._initNodes(),this._initLinks(),this._rehash(),this._show(),this.unfixNodes(),this._force.start()},D3Network.prototype.toggleNegative=function(t){if(this._data){var e=this;if(this._state.showNegatives=!this._state.showNegatives,this._state.showNegatives)for(var s=0,o=this._data.elements.allEdges.length;s<o;s++)this._data.elements.allEdges[s].data.weight<-this._data.threshold&&this._addLink(this._data.elements.allEdges[s].data);else{for(var i=this._force.links(),r=i.length,n=0,a=r-1;a>=0&&i[a].weight<-this._data.threshold;a--)n++;this._force.links().splice(r-n,n),console.debug("D3Network.toggleNegative: removed "+n+" links out of "+r),this._link.style("stroke",function(t){return e._linkscales?e._linkscales[0](t.weight):e._props.linkColor||color.colors.linkDefault})}this._initLinks(),this.unfixNodes(),this._force.start()}},D3Network.prototype.highlightNode=function(t){this._brush.clear();var e={};_.each(this._force.links(),function(s){s.source.id===t&&(e[s.target.id]=!0),s.target.id===t&&(e[s.source.id]=!0)}),this._nodevis.selectAll("g.node>rect.main").classed("hidden",!0).style("opacity",.3).filter(function(s){return s.id===t||!0===e[s.id]}).classed("hidden",!1).classed("semihidden",!0).style("opacity",.7).filter(function(e){return e.id===t}).style("opacity",1),this._linkvis.selectAll("line.link").style("opacity",.3).filter(function(e){return e.source.id==t||e.target.id==t}).style("opacity",1)},D3Network.prototype.highlightGroup=function(t){if(this._data.elements.groups){this._brush.clear();var e={},s=this;this._nodevis.selectAll("g.node>rect.main").classed("hidden",!0).style("opacity",.3).filter(function(o){return s._data.elements.groups[t].nodes.indexOf(o.id)>-1&&(e[o.id]=!0,!0)}).classed("hidden",!1).style("opacity",1),this._link.style("opacity",.3).filter(function(t){return!0===e[t.source.id]||!0===e[t.target.id]}).style("opacity",1)}},D3Network.prototype.colorBy=function(t){var e=this,s={};if("cluster"===t)for(var o=0,i=0;i<this._data.elements.groups.length;i++)if("cluster"===this._data.elements.groups[i].type){for(var r=0;r<this._data.elements.groups[i].nodes.length;r++)s[this._data.elements.groups[i].nodes[r]]=o;o++}this._nodevis.selectAll("g.node>text").style("fill","prediction"===t?color.colors.gndarkgray:e._props.labelColor||color.colors.gndarkgray).filter(function(e){return"prediction"!==t&&!0===e.added}).style("fill",color.colors.gnyellow),this._nodevis.selectAll("g.node>rect.main").style("fill",function(o){if("biotype"==t)return color.biotype2color[o.biotype];if("chr"==t||"chromosome"==t)return color.chr2color[o.chr];if("cluster"==t&&e._data.elements.groups)return color.cluster2color[s[o.id]]||color.colors.nodeDefault;if("prediction"==t)return e._nodescale(o.zScore);if("annotation"==t)return o.annotated?color.colors.gnred:color.colors.gngray;if("custom"==t&&e._data.elements.groups){if(o.customGroups&&o.customGroups.length>0){var i=+this.getAttribute("class").match(/rect(\d)/)[1];return color.group2color[o.customGroups[i-1]]}return color.colors.nodeDefault}return color.colors.default})},D3Network.prototype.removeGeneFromNetwork=function(t){var e=this._hashNodes[t];if(void 0!==e){for(;;){var s,o=!1,i=this._force.links().length;for(s=0;s<i;s++){var r=this._force.links()[s];if(r.source.id===t||r.target.id===t){o=!0;break}}if(!o)break;this._force.links().splice(s,1)}this._force.nodes().splice(e,1),this._data.elements.nodes.splice(e,1),this._rehash(),this._initNodes(),this._initLinks(),this.unfixNodes(),this._force.start()}},D3Network.prototype._addNode=function(t){t&&t.data||console.warn('D3Network._addNode: Argument must have properties: "data"'),this._force.nodes().push(t.data),_.last(this._force.nodes()).visited=0,_.last(this._force.nodes()).customGroups=t.customGroups},D3Network.prototype._addLink=function(t){var e=this._force.nodes()[this._hashNodes[t.source]],s=this._force.nodes()[this._hashNodes[t.target]];e&&s?this._force.links().push({source:e,target:s,visited:0,weight:t.weight}):console.debug("D3Network._addLink: Unknown node given: %s - %s",t.source,t.target)},D3Network.prototype.updateThreshold=function(t){this._data.threshold=t},D3Network.prototype.hide=function(){d3.select("#networksvg").style("display","none")},D3Network.prototype.show=function(){d3.select("#networksvg").style("display","block").style("opacity",1)},D3Network.prototype.transparant=function(){d3.select("#networksvg").style("opacity",0)},D3Network.prototype.getNodeById=function(t){return this._hashNodes[t]},D3Network.prototype.getGeneObjectById=function(t){return this._data.elements.nodes[this._hashNodes[t]]},module.exports=D3Network;
+'use strict'
+
+var _ = require('lodash')
+var d3 = require('d3')
+var color = require('./color.js')
+
+// this -> that
+// state, props
+// zoom, brush optional
+// classed vs. style
+// init brush etc
+// event vs. sourceevent
+// classes based on instance // wtf?
+// replace selectAll with predefined variables where possible
+// onSelect -> fire events
+
+d3.fisheye = {
+    scale: function(scaleType) {
+        return d3_fisheye_scale(scaleType(), 3, 0);
+    },
+    circular: function() {
+        var radius = 200,
+            distortion = 2,
+            k0,
+            k1,
+            focus = [0, 0];
+
+        function fisheye(d) {
+            var dx = d.x - focus[0],
+                dy = d.y - focus[1],
+                dd = Math.sqrt(dx * dx + dy * dy);
+            if (!dd || dd >= radius) return {x: d.x, y: d.y, z: dd >= radius ? 1 : 10};
+            var k = k0 * (1 - Math.exp(-dd * k1)) / dd * .75 + .25;
+            return {x: focus[0] + dx * k, y: focus[1] + dy * k, z: Math.min(k, 10)};
+        }
+
+        function rescale() {
+            k0 = Math.exp(distortion);
+            k0 = k0 / (k0 - 1) * radius;
+            k1 = distortion / radius;
+            return fisheye;
+        }
+
+        fisheye.radius = function(_) {
+            if (!arguments.length) return radius;
+            radius = +_;
+            return rescale();
+        };
+
+        fisheye.distortion = function(_) {
+            if (!arguments.length) return distortion;
+            distortion = +_;
+            return rescale();
+        };
+
+        fisheye.focus = function(_) {
+            if (!arguments.length) return focus;
+            focus = _;
+            return fisheye;
+        };
+
+        return rescale();
+    }
+};
+
+function d3_fisheye_scale(scale, d, a) {
+
+    function fisheye(_) {
+        var x = scale(_),
+            left = x < a,
+            range = d3.extent(scale.range()),
+            min = range[0],
+            max = range[1],
+            m = left ? a - min : max - a;
+        if (m == 0) m = max - min;
+        return (left ? -1 : 1) * m * (d + 1) / (d + (m / Math.abs(x - a))) + a;
+    }
+
+    fisheye.distortion = function(_) {
+        if (!arguments.length) return d;
+        d = +_;
+        return fisheye;
+    };
+
+    fisheye.focus = function(_) {
+        if (!arguments.length) return a;
+        a = +_;
+        return fisheye;
+    };
+
+    fisheye.copy = function() {
+        return d3_fisheye_scale(scale.copy(), d, a);
+    };
+
+    fisheye.nice = scale.nice;
+    fisheye.ticks = scale.ticks;
+    fisheye.tickFormat = scale.tickFormat;
+    return d3.rebind(fisheye, scale, "domain", "range");
+}
+
+function D3Network(elem, props) {
+
+    if (false === (this instanceof D3Network)) {
+        return new D3Network(elem, props)
+    }
+    
+    this.elem = elem
+    this._state = {}
+    this._props = props || {}
+    this._props.alphaThresholds = this._props.alphaThresholds || [0.01, 0.07]
+    this._props.ticksPerRender = this._props.ticksPerRender || 3
+    this._props.width = this._props.width || elem.offsetWidth
+    this._props.height = this._props.height || elem.offsetHeight
+    this._props.nodeHeight = this._props.nodeHeight || 30
+    this._props.labelColor = this._props.labelColor || '#000000'
+    this._props.labelSizeEm = this._props.labelSizeEm || 1
+    this._props.minZoomScale = this._props.minZoomScale || 0.05
+    this._props.maxZoomScale = this._props.maxZoomScale || 10
+
+
+    this._x = d3.scale.linear()
+        .domain([0, this._props.width])
+        .range([0, this._props.width])
+    this._y = d3.scale.linear()
+        .domain([0, this._props.height])
+        .range([0, this._props.height])
+
+    this._initDrag()
+    this._initZoom()
+    this._initBrush()
+    this._initForce()
+    this._addDOMElements()
+    this._addKeyListeners()
+
+    this.setSelectionMode('move')
+}
+
+D3Network.prototype._initForce = function() {
+    this._force = d3.layout.force()
+        .gravity(this._props.gravity || 0.7)
+        .distance(this._props.distance || 150)
+        .theta(this._props.theta || 0.1)
+        .friction(this._props.friction || 0.65)
+        .charge(this._props.charge || -2000) 
+        .size([this._props.width, this._props.height])
+
+        
+        // this._force = d3.layout.force()
+        // .gravity(this._props.gravity || 0.9)
+        // .distance(this._props.distance || 150)
+        // .theta(this._props.theta || 0.1)
+        // .friction(this._props.friction || 0.1)
+        // .charge(this._props.charge || -5000)
+        // .size([this._props.width, this._props.height])
+        // .linkDistance(500)
+        // .linkStrength(0)
+
+
+    this._force.on('start', this._startForce.bind(this))
+    var that = this
+    this._force.on('end', function() {
+        console.debug('D3Network: force directed layout calculation: %d ms', (Date.now() - that._startForceTime))
+    })
+}
+
+D3Network.prototype.tweenZoom = function(factor, duration) {
+    var initialZoomScale = this._zoom.scale()
+    var initialZoomTranslate = this._zoom.translate()
+    var newZoomScale = Math.max(Math.min(factor * initialZoomScale, this._props.maxZoomScale), this._props.minZoomScale)
+    // var newZoomTranslate = [(1 - newZoomScale) * this._props.width / 2, (1 - newZoomScale) * this._props.height / 2]
+    var newZoomTranslate = [initialZoomTranslate[0] + (initialZoomScale - newZoomScale) * this._props.width / 2,
+                            initialZoomTranslate[1] + (initialZoomScale - newZoomScale) * this._props.height / 2]
+    
+    var that = this
+    d3.transition().duration(duration || 200).ease('cubic-in-out').tween('zoom', function() {
+        var iScale = d3.interpolate(initialZoomScale, newZoomScale)
+        var iTranslate = d3.interpolate(initialZoomTranslate, newZoomTranslate)
+        return function(t) {
+            that._zoom.scale(iScale(t))
+            that._zoom.translate(iTranslate(t))
+            that.updateZoom()
+        }
+    })
+
+    return newZoomScale
+}
+
+D3Network.prototype.updateZoom = function() {
+    if (this._brushvis) {
+        this._brushvis.attr('transform', 'translate(' + this._zoom.translate() + ')scale(' + this._zoom.scale() + ')')
+    }
+    this._nodevis.attr('transform', 'translate(' + this._zoom.translate() + ')scale(' + this._zoom.scale() + ')')
+    this._linkvis.attr('transform', 'translate(' + this._zoom.translate() + ')scale(' + this._zoom.scale() + ')')
+}
+
+D3Network.prototype.getZoomScale = function() {
+    return this._zoom.scale()
+}
+
+D3Network.prototype.isZoomedMax = function() {
+    return this._zoom.scale() >= this._props.maxZoomScale
+}
+
+D3Network.prototype.isZoomedMin = function() {
+    return this._zoom.scale() <= this._props.minZoomScale
+}
+
+D3Network.prototype._initZoom = function() {
+    var that = this
+    this._zoom = d3.behavior.zoom()
+        .scaleExtent([this._props.minZoomScale, this._props.maxZoomScale])
+        .x(that._x)
+        .y(that._y)
+        .on('zoomstart', function() {
+        })
+        .on('zoom', function() {
+            // if (!that._state.isBrushing && d3.event && d3.event.sourceEvent && d3.event.sourceEvent.altKey) {
+            if (!that._state.isBrushing && !that._state.isDragging) {
+                // && (WheelEvent && se instanceof WheelEvent) || (TouchEvent && se instanceof TouchEvent)) {        
+                that._brushvis.attr('transform', 'translate(' + d3.event.translate + ')scale(' + d3.event.scale + ')')
+                that._nodevis.attr('transform', 'translate(' + d3.event.translate + ')scale(' + d3.event.scale + ')')
+                that._linkvis.attr('transform', 'translate(' + d3.event.translate + ')scale(' + d3.event.scale + ')')
+            }
+        })
+        .on('zoomend', function() {
+            if (that._props.onZoomEnd) {
+                that._props.onZoomEnd(that._zoom.scale())
+            }
+        })
+}
+
+D3Network.prototype._initBrush = function() {
+    this._state.isBrushing = false
+    this._state.nodeIdsInsideBrush = {}
+
+    var that = this
+    this._brush = d3.svg.brush()
+        .x(d3.scale.linear()
+           .range([-10 * that._props.width, 10 * that._props.width])
+           .domain([-10 * that._props.width, 10 * that._props.width]))
+        .y(d3.scale.linear()
+           .range([-10 * that._props.height, 10 * that._props.height])
+           .domain([-10 * that._props.height, 10 * that._props.height]))
+        .on('brushstart', function(d) {
+            if (that._state.mode === 'move') {
+                that._state.isBrushing = false
+                if (that._brush.empty()) {
+                    d3.select('.brush').style('visibility', 'hidden')
+                }
+                if (_.size(that._state.nodeIdsInsideBrush) === 0) {
+                    that._nodevis.selectAll('.hidden, .semihidden').classed('hidden semihidden', false).style('opacity', 1)
+                    that._link.classed('hidden semihidden', false).style('opacity', 1)
+                    if (that._props.onSelect && that._data.elements.groups) {
+                        that._props.onSelect(that._data.elements.groups[0])
+                    }
+                }
+            } else {
+                that._state.isBrushing = true
+                that._state.nodeIdsInsideBrush = {}
+                that._state.zoomTranslateOnBrushStart = that._zoom.translate()
+                // exp.hideBackgroundRects()
+                d3.select('.brush').style('visibility', 'visible')
+            }
+        })
+        .on('brush', function() {
+            if (that._state.isBrushing) {
+                that._updateBrush()
+            }
+        })
+        .on('brushend', function() {
+            if (that._state.isBrushing) {
+                that._zoom.translate(that._state.zoomTranslateOnBrushStart)
+                if (that._brush.empty()) {
+                    that._nodevis.selectAll('.hidden').classed('hidden', false).style('opacity', 1)
+                    that._link.classed('hidden semihidden', false).style('opacity', 1)
+                    // TODO no group select on programmatic .event() to allow pathway analysis
+                    if (that._props.onSelect && that._data.elements.groups) {
+                        that._props.onSelect(that._data.elements.groups[0])
+                    }
+                }
+                d3.select(this).call(d3.event.target)
+                that._state.isBrushing = false
+                that.showAll()
+            }
+        })
+}
+
+D3Network.prototype._updateBrush = function() {
+    
+    if (!this._brush || this._brush.empty()) return false
+    var nodes = []
+    
+    //// comment above, uncomment below to enable multiple selection with shift key
+    // var isShiftDown = d3.event && (d3.event.shiftKey || (d3.event.sourceEvent && d3.event.sourceEvent.shiftKey))
+    // if (!this._brush || (!isShiftDown && this._brush.empty())) return false
+    // var nodes = (isShiftDown && this._data.elements.groups) ? _.last(this._data.elements.groups).nodes : [] // previously selected nodes
+    
+    var e = this._brush.extent()
+    var numVisible = 0
+    var selectedNodeIds = {}
+
+    var that = this
+    this._nodevis.selectAll('g.node>rect.main')
+        .classed('hidden', false)
+        .style('opacity', 1)
+        .filter(function(d) {
+            if (e[0][0] > d.x || d.x > e[1][0] || e[0][1] > d.y || d.y > e[1][1]) { // outside of brush
+                var index = nodes.indexOf(d.id)
+                if (index === -1) {
+                    return true
+                } else { // node was among previously selected ones...
+                    if (that._state.nodeIdsInsideBrush[d.id] === true) { // ...and within the current brushing context
+                        nodes.splice(index, 1)
+                    }
+                    that._state.nodeIdsInsideBrush[d.id] = false
+                    return false
+                }
+            } else { // inside of brush
+                that._state.nodeIdsInsideBrush[d.id] = true
+                if (nodes.indexOf(d.id) === -1) {
+                    nodes.push(d.id)
+                }
+                numVisible++
+                selectedNodeIds[d.id] = true
+                return false
+            }
+        })
+        .classed('hidden', true)
+        .style('opacity', 0.3)
+    
+    // only highlight links in small networks for speed
+    if (this._data.elements.nodes.length < 101) {
+        if (numVisible > 0) {
+            var connectedNodeIds = {}
+            this._link
+                .classed('hidden', false)
+                .style('opacity', 1)
+                .filter(function(d) {
+                    if (selectedNodeIds[d.source.id] === true) {
+                        connectedNodeIds[d.target.id] = true
+                        return false
+                    } else if (selectedNodeIds[d.target.id] === true) {
+                        connectedNodeIds[d.source.id] = true
+                        return false
+                    }
+                    return true
+                })
+                .classed('hidden', true)
+                .style('opacity', 0.3)
+        } else {
+            this._link
+                .classed('hidden', true)
+                .style('opacity', 0.3)
+        }
+    }
+
+    if (this._data.elements.groups) {
+        _.last(this._data.elements.groups).nodes = nodes
+        if (this._props.onSelect) {
+            this._props.onSelect(_.last(this._data.elements.groups), false)
+        }
+    }
+}
+
+D3Network.prototype._initDrag = function() {
+    var that = this
+    this._state.isDragging = false
+    this._drag = d3.behavior.drag()
+        .on('dragstart', function() {
+            that._state.zoomTranslateOnDragStart = that._zoom.translate()
+        })
+        .on('drag', function(node) {
+
+            if (node.source) return // is a link, not a node
+            that._state.isDragging = true // pretend we're dragging even when alt down to avoid firing of click event on mouse release // TODO fix
+            // if (d3.event.sourceEvent && d3.event.sourceEvent.altKey) return
+            // if (that._state.mode === 'move') return
+
+            node.x = d3.event.x
+            node.y = d3.event.y
+            // rounding to make the svg size smaller, matters when sending large networks to server for pdf conversion
+            d3.select(this).attr('transform', 'translate(' + Math.round(100 * d3.event.x) / 100 + ',' + Math.round(100 * d3.event.y) / 100 + ')')    
+            that._link
+                .attr('x1', function(d) {
+                    return d.source.x
+                })
+                .attr('y1', function(d) {
+                    return d.source.y
+                })
+                .attr('x2', function(d) {
+                    return d.target.x
+                })
+                .attr('y2', function(d) {
+                    return d.target.y
+                })
+        })
+        .on('dragend', function() {
+            if (that._state.zoomTranslateOnDragStart) {
+                that._zoom.translate(that._state.zoomTranslateOnDragStart)
+            }
+            setTimeout(function() { // 'click' event fires after 'dragend' and it's nice if 'click' knows whether the click was a result of dragging or not // TODO small movements should be allowed
+                that._state.isDragging = false
+            }, 50)
+        })
+}
+
+D3Network.prototype.setSelectionMode = function(type) {
+    if (type === 'move') {
+        this._state.mode = 'move'
+        document.getElementsByClassName('background')[0].style.cursor = 'move' // the brush background
+        this._nodevis.selectAll('g.node>rect,text').style('cursor', 'pointer')
+        this._linkvis.selectAll('line.link').style('cursor', 'move')
+    } else if (type === 'select') {
+        this._state.mode = 'select'
+        document.getElementsByClassName('background')[0].style.cursor = 'crosshair' // the brush background
+        this._nodevis.selectAll('g.node>rect,text').style('cursor', 'pointer')
+        this._linkvis.selectAll('line.link').style('cursor', 'initial')
+    }
+}   
+
+D3Network.prototype._addKeyListeners = function() {
+    var that = this
+    d3.select('body')
+        .on('keydown', function() {
+            if (d3.event.keyCode === 16) { // 16 shift 17 ctrl 18 alt
+                if (that._props.onSelectionModeChange) {
+                    that._props.onSelectionModeChange('select')
+                } else {
+                    that.setSelectionMode('select')
+                }
+            }
+        })
+        .on('keyup', function() {
+            if (d3.event.keyCode === 16) { // 16 shift 17 ctrl 18 alt
+                if (that._props.onSelectionModeChange) {
+                    that._props.onSelectionModeChange('move')
+                } else {
+                    that.setSelectionMode('move')
+                }
+            }
+        })
+}    
+
+D3Network.prototype._addDOMElements = function() {
+    var that = this
+    this._vis = d3.select(this.elem).append('svg:svg')
+    //this._vis = d3.select(this.elem).insert('svg:svg', ':first-child')
+        .attr('id', 'networksvg')
+        .attr('width', that._props.width)
+        .attr('height', that._props.height)
+
+    if (this._brush) {
+        this._brushvis = this._vis.append('g')
+            .attr('class', 'brush')
+            .call(this._brush)
+    }
+
+    this._linkvis = this._vis.append('svg:g')
+        .attr('id', 'links')
+
+    this._nodevis = this._vis.append('svg:g')
+        .attr('id', 'nodes')
+    
+    if (this._zoom) {
+        this._vis.call(this._zoom)
+    }
+}
+
+D3Network.prototype._clearData = function() {
+    this._data = {}
+    this._force.links().splice(0)
+    this._force.nodes().splice(0)
+    this._hashNodes = {}
+}
+
+D3Network.prototype._initScales = function() {
+    if (!this._data) return false
+
+    if (this._data.edgeValueScales) {
+        this._linkscales = []
+        for (var i = 0, ii = this._data.edgeValueScales.length; i < ii; i++) {
+            this._linkscales.push(d3.scale.linear()
+                                  .domain(this._data.edgeValueScales[i])
+                                  .range(this._data.edgeColorScales[i])
+                                  .clamp(true))
+        }
+    }
+    
+    this._nodescale = d3.scale.linear()
+        .domain([-10, 0, 10])
+        .range([color.colors.gnblue, color.colors.gnlightgray, color.colors.gnred])
+        .clamp(true)
+}
+
+D3Network.prototype._initNodes = function() {
+    this._node = this._nodevis.selectAll('g.node')
+        .data(this._force.nodes(), function(d) {
+            return d.id
+        })
+
+
+    var hasGroups = !!this._data.elements.groups
+    
+    var that = this
+    var nodeEnter = this._node.enter().append('g')
+        .attr('class', 'node')
+        .attr('data-id', function(d) {
+            return d.id
+        })
+        .on('click', function(d) {
+            if (!that._state.isDragging) {
+                if (d3.event.shiftKey && hasGroups) {
+                    _.last(that._data.elements.groups).nodes.push(d.id)
+                    that.highlightGroup(that._data.elements.groups.length - 1)
+                } else {
+                    if (hasGroups) {
+                        _.last(that._data.elements.groups).nodes = [d.id]
+                    }
+                    that.highlightNode(d.id)
+                }
+                if (that._props.onSelect && hasGroups) {
+                    that._props.onSelect(_.last(that._data.elements.groups))
+                }
+            }
+        })
+        .call(this._drag)
+
+    for (var i = 0; i < 5; i++) { // each node -> max 5 rectangles for multicoloring
+        nodeEnter
+            .filter(function(d) {
+                return i === 0 || (d.customGroups && d.customGroups.length > i)
+            })
+            .append('rect')
+            .attr('class', 'clickable main rect' + (i + 1))
+            .attr('height', this._props.nodeHeight) // width will be defined after the bounding box is known
+            .attr('rx', 0)
+            .attr('ry', 0)
+            .attr('y', -(this._props.nodeHeight) / 2) // x will be defined after the bounding box is known
+            .style('fill', color.colors.gndarkgray)
+    }
+    
+    nodeEnter.append('text')
+        .attr('class', 'nodetext clickable')
+        .attr('text-anchor', 'middle')
+        .attr('dy', '.35em')
+        .style('fill', that._props.labelColor || color.colors.gndarkgray)
+    // .style('font-size', that._props.labelSizeEm + 'em')
+        .style('font-family', 'GG')
+        .style('font-weight', 'bold')
+        .attr('displayState', 'y')
+        .text(function(d) {
+            return d.name
+        })
+    
+    this._node.exit().remove()
+}
+
+D3Network.prototype._initLinks = function() {
+    var that = this
+    this._link = this._linkvis.selectAll('line.link')
+        .data(that._force.links(), function(d) {
+            return d.source.id + '-' + d.target.id
+        })
+
+    this._link.enter().insert('line')
+        .attr('class', 'link clickable')
+        .style('stroke', function(d) {
+            if (!that._linkscales) {
+                return that._props.linkColor || color.colors.linkDefault
+            } else {
+                return d.weight < 0 ? that._linkscales[1](d.weight) : that._linkscales[0](d.weight)
+            }
+        })
+        .on('click', that._props.onEdgeSelect)
+        .call(this._drag)
+    
+    this._link.exit().remove()
+}
+
+D3Network.prototype._initFisheye = function() {
+    this._fisheye = d3.fisheye.circular()
+        .radius(100)
+        .distortion(3)
+
+    var that = this
+    this._vis.on('mousemove', function() {
+        that._fisheye.focus(d3.mouse(this))
+        that._nodevis.selectAll('g.node>rect.main').each(function(d) { d.fisheye = that._fisheye(d) })
+            // .attr('x', function(d) { return d.fisheye.x })
+            // .attr('y', function(d) { return d.fisheye.y })
+            .attr("height", function(d) { return d.fisheye.z * that._props.nodeHeight })
+            .attr("width", function(d) { return d.fisheye.z * this.getAttribute('_width')})
+
+        that._nodevis.selectAll('g.node>text')
+            .style("font-size", function(d) { return d.fisheye.z * that._props.labelSizeEm + 'em' })
+
+        that._link.attr("x1", function(d) { return d.source.fisheye.x })
+            .attr("y1", function(d) { return d.source.fisheye.y })
+            .attr("x2", function(d) { return d.target.fisheye.x })
+            .attr("y2", function(d) { return d.target.fisheye.y })
+    })
+}
+
+D3Network.prototype._hide = function() {
+    this._nodevis.selectAll('g.node>rect,text')
+        .style('opacity', 0)
+    this._link
+        .style('opacity', 0)
+}
+
+D3Network.prototype._show = function() {
+    // bounding boxes to make node width fit text length
+    this._nodevis.selectAll('g.node>text')
+        .style('opacity', 1)
+        .each(function(d) {
+            d.bbox = this.getBBox()
+        })
+
+            // some nodes have 1 rectangle, some more, depending on how many groups they belong to
+            this._nodevis.selectAll('g.node>rect')
+        .attr('width', function(d) {
+            return (d.bbox.width + 12) / ((d.customGroups && d.customGroups.length) || 1)
+        })
+        .attr('_width', function(d) { // save original width because se saattaa muuttua
+            return (d.bbox.width + 12) / ((d.customGroups && d.customGroups.length) || 1)
+        })
+        .attr('x', function(d) {
+            var rectNum = +(this.getAttribute('class').match(/rect(\d)/)[1])
+            return -(d.bbox.width + 12) / 2 + (rectNum - 1) * (d.bbox.width + 12) / ((d.customGroups && d.customGroups.length) || 1)
+        })
+
+    this.showAll()
+}
+
+D3Network.prototype.showAll = function() {
+    this._nodevis.selectAll('g.node>rect.main')
+        .style('opacity', 1)
+    
+    this._link
+        .style('opacity', 1)
+}
+
+D3Network.prototype._move = function(dx, dy) {
+    dx = dx || 0
+    dy = dy || 0
+
+    this._node.attr('transform', function(d) {
+        // rounding to make the svg smaller, matters when sending large networks to server for pdf conversion
+        // TODO optional rounding
+        d.x = Math.round(100 * (d.x - dx)) / 100
+        d.y = Math.round(100 * (d.y - dy)) / 100
+        return 'translate(' + d.x + ',' + d.y + ')'
+    })
+    this._link
+        .attr('x1', function(d) {
+            return d.source.x
+        })
+        .attr('y1', function(d) {
+            return d.source.y
+        })
+        .attr('x2', function(d) {
+            return d.target.x
+        })
+        .attr('y2', function(d) {
+            return d.target.y
+        })
+}
+
+D3Network.prototype.fixNodes = function() {
+    _.each(this._force.nodes(), function(d) { d.fixed = true })
+        }
+
+D3Network.prototype.unfixNodes = function() {
+    _.each(this._force.nodes(), function(d) { d.fixed = false })
+        }
+
+D3Network.prototype._startForce = function() {
+    var that = this
+    this._startForceTime = Date.now()
+    requestAnimationFrame(function render() {
+        for (var i = 0; i < that._props.ticksPerRender; i++) {
+            that._force.tick()
+        }
+        if (that._layoutDone === true) { // don't move when initialising network for speed
+            that._move()
+            that._updateBrush()
+        }
+        // console.debug(that._force.alpha())
+        if (that._force.alpha() > that._props.alphaThresholds[that._data.elements.nodes.length < 100 ? 0 : 1]) {
+            requestAnimationFrame(render)
+        } else { // layout calculated
+            if (that._layoutDone === false) { // show network after it has loaded and laid out
+
+                //// calculate proper zoom level from the extent of nodes
+                var extent = [1000000, 0, 0, 1000000] // NESW
+                that._node.each(function(d) {
+                    extent[0] = Math.min(d.y, extent[0])
+                    extent[1] = Math.max(d.x, extent[1])
+                    extent[2] = Math.max(d.y, extent[2])
+                    extent[3] = Math.min(d.x, extent[3])
+                })
+
+                    var initialZoomScale = 0.1
+                var initialZoomTranslate = [(1 - initialZoomScale) * that._props.width / 2, (1 - initialZoomScale) * that._props.height / 2]
+                var factor = that._data.elements.nodes.length < 20 ? 0.5 : 0.85
+                var fitZoomScale = factor / (Math.max((extent[2] - extent[0]) / that._props.height, (extent[1] - extent[3]) / that._props.width))
+                var fitZoomTranslate = [(1 - fitZoomScale) * that._props.width / 2, (1 - fitZoomScale) * that._props.height / 2]
+                
+                // console.debug(initialZoomScale, initialZoomTranslate, fitZoomScale, fitZoomTranslate)
+                
+                that._zoom.scale(initialZoomScale)
+                that._zoom.translate(initialZoomTranslate)
+                that.updateZoom()
+
+                that._show()
+                d3.transition().duration(500).ease('cubic').tween('zoom', function() {
+                    var iScale = d3.interpolate(initialZoomScale, fitZoomScale)
+                    var iTranslate = d3.interpolate(initialZoomTranslate, fitZoomTranslate)
+                    return function(t) {
+                        that._zoom.scale(iScale(t))
+                        that._zoom.translate(iTranslate(t))
+                        that.updateZoom()
+                    }
+                })
+            }
+            that._layoutDone = true
+            that._force.stop()
+            that._move()
+            that._updateBrush()
+            that._props.onProgress && that._props.onProgress('done')
+        }
+    })
+}
+
+D3Network.prototype._rehash = function() {
+    this._hashNodes = {}
+    for (var n = 0, nn = this._force.nodes().length; n < nn; n++) {
+        var node = this._force.nodes()[n]
+        this._hashNodes[node.id] = n
+    }
+    for (var e = 0, ee = this._force.links().length; e < ee; e++) {
+        var si = this._hashNodes[this._force.links()[e].source.id]
+        var ti = this._hashNodes[this._force.links()[e].target.id]
+    }
+}
+
+
+D3Network.prototype.resize = function(w, h) {
+    this._props.width = w
+    this._props.height = h
+    this._vis.attr('width', w)
+    this._vis.attr('height', h)
+}
+
+D3Network.prototype.draw = function(data) {
+
+    console.debug('D3Network.draw: %d nodes, %d edges', data.elements.nodes.length, data.elements.edges.length)
+
+    var ts = Date.now()
+    this._clearData()
+    this._data = data
+    this._state.showNegatives = this._props.showNegatives || false
+    for (var n = 0, nn = data.elements.nodes.length; n < nn; n++) {
+        this._addNode(data.elements.nodes[n])
+    }
+
+    this._rehash()
+   
+    for (var e = 0, ee = data.elements.edges.length; e < ee; e++) {
+        if (this._state.showNegatives || data.elements.edges[e].data.weight == undefined || data.elements.edges[e].data.weight > 0) {
+            this._addLink(data.elements.edges[e].data)
+        }
+    }
+
+    this._rehash()
+    console.debug('D3Network.draw: nodes and links added')
+    
+    this._initScales()
+    console.debug('D3Network.draw: scales added')
+    this._initNodes()
+    console.debug('D3Network.draw: nodes initialised')
+    this._initLinks()
+    console.debug('D3Network.draw: links initialised')
+
+    // TODO state
+    // this._initFisheye()
+    
+    console.debug('D3Network.draw: initialisation %d ms', (Date.now() - ts))
+    this._hide()
+    this._layoutDone = false
+    this._props.onProgress && this._props.onProgress('calculating layout')
+    this._force.start()
+}
+
+D3Network.prototype.toggleNetwork = function(data) {
+
+    this._force.links().splice(0)
+
+    this._data = data
+
+    for (var e = 0, ee = data.elements.edges.length; e < ee; e++) {
+        if (this._state.showNegatives || data.elements.edges[e].data.weight == undefined || data.elements.edges[e].data.weight > 0) {
+            this._addLink(data.elements.edges[e].data)
+        }
+    }
+
+    this._rehash()
+
+    this._initNodes()
+    this._initLinks()
+    this.unfixNodes()
+
+    this._force.start()
+
+
+}
+
+
+D3Network.prototype.addEdges = function(edges) {
+    for (var i = 0; i < edges.length; i++){
+        this._data.elements.edges.push({data: edges[i].data})
+        this._addLink(edges[i].data)
+    }
+    this._initNodes()
+    this._initLinks()
+    this._rehash()
+    this._show()
+    this.unfixNodes()
+    this._force.start()
+
+}
+
+
+D3Network.prototype.removeEdges = function(edges) {
+
+    for (var i = 0; i < edges.length; i++){
+        var index = this._data.elements.edges.indexOf(edges[i])
+        this._force.links().splice(index, 1)
+        this._data.elements.edges.splice(index, 1)
+    }
+
+    this._rehash()
+    this._initNodes()
+    this._initLinks()
+    this.unfixNodes()
+    this._force.start()
+
+}
+
+// D3Network.prototype.updateEdges = function(edges) {
+//     this._force.links().splice(0)
+//     for (var e = 0, ee = edges.length; e < ee; e++) {
+//         if (this._state.showNegatives || edges[e].data.weight == undefined || edges[e].data.weight > 0) {
+//             this._addLink(edges[e].data)
+//         }
+//     }
+//     this._rehash()
+//     this._initNodes()
+//     this._initLinks()
+//     this.unfixNodes()
+//     this._force.start()
+// }
+
+// TODO remove
+D3Network.prototype.addNodeToDataAndNetwork = function(gene, zScores) {
+
+    console.debug('D3Network.addNodeToDataAndNetwork: Adding %s', gene.name)
+    //console.debug('zScores.length ' + zScores.length + ', nodes.length ' + this._data.elements.nodes.length)
+
+    gene.added = true
+    this._data.elements.nodes.push({data: gene})
+    this._addNode({data: gene})
+    this._rehash()
+
+    var threshold = this._threshold || this._data.threshold || 0
+    for (var i = 0, ii = zScores.length; i < ii - 1; i++) { // -1 to account for this just added gene, sorting danger here // TODO fix
+        if (Math.abs(zScores[i] >= threshold)) {
+            var edge = {source: gene.id,
+                        target: this._data.elements.nodes[i].data.id,
+                        weight: zScores[i]}
+            this._data.elements.edges.push({data: edge})
+            this._addLink(edge)
+        }
+    }
+    
+    this._initNodes()
+    this._initLinks()
+    
+    this._rehash()
+    // TODO optimize by only showing the added node
+    this._show()
+    
+    // this._data.elements.groups[2].nodes = [gene.id]
+    // exp.highlightNode(gene.id)
+    // this._onSelect()
+    
+    this.unfixNodes()
+    this._force.start()
+}
+
+//TODO assumes negative weight edges are in the end of edge list
+D3Network.prototype.toggleNegative = function(negativeEdges) {
+
+    if (!this._data) return
+
+    var that = this
+    this._state.showNegatives = !this._state.showNegatives
+    if (this._state.showNegatives) {
+        for (var e = 0, ee = this._data.elements.allEdges.length; e < ee; e++) {
+            if (this._data.elements.allEdges[e].data.weight < -(this._data.threshold)) {
+                this._addLink(this._data.elements.allEdges[e].data)
+            }
+        }
+    } else {
+        var links = this._force.links()
+        var numLinks = links.length
+        var numRemoved = 0
+        for (var i = numLinks - 1; i >= 0; i--) {
+            if (links[i].weight < -(this._data.threshold)) {
+                numRemoved++
+            } else {
+                break
+            }
+        }
+        this._force.links().splice(numLinks - numRemoved, numRemoved)
+        console.debug('D3Network.toggleNegative: removed ' + numRemoved + ' links out of ' + numLinks)
+        this._link
+            .style('stroke', function(d) {
+                return that._linkscales ? that._linkscales[0](d.weight) : that._props.linkColor || color.colors.linkDefault
+            })
+    }
+    
+    this._initLinks()
+    this.unfixNodes()
+    this._force.start()
+}
+
+D3Network.prototype.highlightNode = function(id) {
+
+    //console.debug('highlighting node', id)
+    this._brush.clear()
+
+    var connectedNodeIds = {}
+    _.each(this._force.links(), function(link) {
+        if (link.source.id === id) {
+            connectedNodeIds[link.target.id] = true
+        }
+        if (link.target.id === id) {
+            connectedNodeIds[link.source.id] = true
+        }
+    })
+        
+        this._nodevis.selectAll('g.node>rect.main')
+        .classed('hidden', true)
+        .style('opacity', 0.3)
+        .filter(function(d) {
+            return d.id === id || connectedNodeIds[d.id] === true
+        })
+        .classed('hidden', false)
+        .classed('semihidden', true)
+        .style('opacity', 0.7)
+        .filter(function(d) {
+            return d.id === id
+        })
+        .style('opacity', 1)
+
+    this._linkvis.selectAll('line.link')
+        .style('opacity', 0.3)
+        .filter(function(d) {
+            return d.source.id == id || d.target.id == id
+        })
+        .style('opacity', 1)
+}
+
+D3Network.prototype.highlightGroup = function(groupIndex) {
+
+    if (!this._data.elements.groups) return
+    
+    this._brush.clear()
+    var selectedNodeIds = {}
+    var that = this
+    this._nodevis.selectAll('g.node>rect.main')
+        .classed('hidden', true)
+        .style('opacity', 0.3)
+        .filter(function(d) {
+            if (that._data.elements.groups[groupIndex].nodes.indexOf(d.id) > -1) {
+                selectedNodeIds[d.id] = true
+                return true
+            }
+            return false
+        })
+        .classed('hidden', false)
+        .style('opacity', 1)
+    
+    this._link
+        .style('opacity', 0.3)
+        .filter(function(d) {
+            return selectedNodeIds[d.source.id] === true || selectedNodeIds[d.target.id] === true
+        })
+        .style('opacity', 1)
+}
+
+D3Network.prototype.colorBy = function(type) {
+
+    var that = this
+
+    var node2cluster = {}
+    if (type === 'cluster') {
+        var index = 0
+        for (var i = 0; i < this._data.elements.groups.length; i++) {
+            if (this._data.elements.groups[i].type === 'cluster') {
+                for (var j = 0; j < this._data.elements.groups[i].nodes.length; j++) {
+                    node2cluster[this._data.elements.groups[i].nodes[j]] = index
+                }
+                index++
+            }
+        }
+    }
+    
+    // if (type === 'prediction') {
+    //     this._nodevis.selectAll('g.node>text')
+    //         .style('fill', that._props.labelColor || color.colors.gndarkgray)
+    // }
+    this._nodevis.selectAll('g.node>text')
+        .style('fill', (type === 'prediction') ? color.colors.gndarkgray : (that._props.labelColor || color.colors.gndarkgray))
+        .filter(function(d) {
+            return type !== 'prediction' && d.added === true
+        })
+        .style('fill', color.colors.gnyellow)
+    
+    this._nodevis.selectAll('g.node>rect.main')
+        .style('fill', function(d) {
+            if (type == 'biotype') {
+                return color.biotype2color[d.biotype]
+            } else if (type == 'chr' || type == 'chromosome') {
+                return color.chr2color[d.chr]
+            } else if (type == 'cluster' && that._data.elements.groups) {
+                return color.cluster2color[node2cluster[d.id]] || color.colors.nodeDefault
+            } else if (type == 'prediction') {
+                return that._nodescale(d.zScore)
+            } else if (type == 'annotation') {
+                return d.annotated ? color.colors.gnred : color.colors.gngray
+            } else if (type == 'custom' && that._data.elements.groups) {
+                if (d.customGroups && d.customGroups.length > 0) {
+                    var rectNum = +(this.getAttribute('class').match(/rect(\d)/)[1])
+                    return color.group2color[d.customGroups[rectNum - 1]]
+                } else {
+                    return color.colors.nodeDefault
+                }
+            } else {
+                return color.colors.default
+            }
+        })
+}
+
+// TODO remove
+D3Network.prototype.removeGeneFromNetwork = function(id) {
+
+    var index = this._hashNodes[id]
+    if (index === undefined) return
+    
+    while (true) {
+        var linkRemoved = false
+        var e
+        var ee = this._force.links().length
+        for (e = 0; e < ee; e++) {
+            var lnk = this._force.links()[e]
+            if (lnk.source.id === id || lnk.target.id === id) {
+                linkRemoved = true
+                break
+            }
+        }
+        if (linkRemoved) {
+            this._force.links().splice(e, 1)
+        } else {
+            break
+        }
+    }
+
+    this._force.nodes().splice(index, 1)
+    this._data.elements.nodes.splice(index, 1)
+    this._rehash()
+
+    this._initNodes()
+    this._initLinks()
+    this.unfixNodes()
+    this._force.start()
+}
+
+D3Network.prototype._addNode = function(node) {
+    if (!node || !node.data) {
+        console.warn('D3Network._addNode: Argument must have properties: "data"')
+    }
+    this._force.nodes().push(node.data)
+    _.last(this._force.nodes()).visited = 0
+    _.last(this._force.nodes()).customGroups = node.customGroups
+}
+
+D3Network.prototype._addLink = function(data) {
+    var sourceNode = this._force.nodes()[this._hashNodes[data.source]]
+    var targetNode = this._force.nodes()[this._hashNodes[data.target]]
+    if (!sourceNode || !targetNode) {
+        console.debug('D3Network._addLink: Unknown node given: %s - %s', data.source, data.target)
+    } else {
+        this._force.links().push({
+            'source': sourceNode,
+            'target': targetNode,
+            'visited': 0,
+            'weight': data.weight
+        })
+    }
+}
+
+D3Network.prototype.updateThreshold = function(threshold){
+    this._data.threshold = threshold
+}
+
+D3Network.prototype.hide = function(){
+    d3.select('#networksvg').style('display', 'none')
+}
+
+D3Network.prototype.show = function(){
+    d3.select('#networksvg').style('display', 'block').style('opacity', 1)
+}
+
+D3Network.prototype.transparant = function(){
+    d3.select('#networksvg').style('opacity', 0)
+}
+
+//TODO remove
+D3Network.prototype.getNodeById = function(id) {
+    return this._hashNodes[id]
+}
+
+//TODO remove
+D3Network.prototype.getGeneObjectById = function(id) {
+    return this._data.elements.nodes[this._hashNodes[id]]
+}
+
+module.exports = D3Network
 
 },{"./color.js":4,"d3":60,"lodash":130}],3:[function(require,module,exports){
-var exp=module.exports;exp.assembly="GRCh37",exp.lengths={1:249250621,2:243199373,3:198022430,4:191154276,5:180915260,6:171115067,7:159138663,8:146364022,9:141213431,10:135534747,11:135006516,12:133851895,13:115169878,14:107349540,15:102531392,16:90354753,17:81195210,18:78077248,19:59128983,20:63025520,21:48129895,22:51304566,X:155270560,x:155270560,23:155270560,Y:59373566,y:59373566,24:59373566},exp.arms={1:[0,121535434,124535434,249250621],2:[0,92326171,95326171,243199373],3:[0,90504854,93504854,198022430],4:[0,49660117,52660117,191154276],5:[0,46405641,49405641,180915260],6:[0,58830166,61830166,171115067],7:[0,58054331,61054331,159138663],8:[0,43838887,46838887,146364022],9:[0,47367679,50367679,141213431],10:[0,39254935,42254935,135534747],11:[0,51644205,54644205,135006516],12:[0,34856694,37856694,133851895],13:[0,16e6,19e6,115169878],14:[0,16e6,19e6,107349540],15:[0,17e6,2e7,102531392],16:[0,35335801,38335801,90354753],17:[0,22263006,25263006,81195210],18:[0,15460898,18460898,78077248],19:[24681782,27681782,0,59128983],20:[0,26369569,29369569,63025520],21:[0,11288129,14288129,48129895],22:[0,13e6,16e6,51304566],X:[0,58632012,61632012,155270560],x:[0,58632012,61632012,155270560],23:[0,58632012,61632012,155270560],Y:[0,10104553,13104553,59373566],y:[0,10104553,13104553,59373566],24:[0,10104553,13104553,59373566]};
+var exp = module.exports
+
+exp.assembly = 'GRCh37'
+
+exp.lengths = {
+    1: 249250621,
+    2: 243199373,
+    3: 198022430,
+    4: 191154276,
+    5: 180915260,
+    6: 171115067,
+    7: 159138663,
+    8: 146364022,
+    9: 141213431,
+    10:	135534747,
+    11:	135006516,
+    12:	133851895,
+    13:	115169878,
+    14:	107349540,
+    15:	102531392,
+    16:	90354753,
+    17:	81195210,
+    18:	78077248,
+    19:	59128983,
+    20:	63025520,
+    21:	48129895,
+    22:	51304566,
+    'X': 155270560,
+    'x': 155270560,
+    23: 155270560,
+    'Y': 59373566,
+    'y': 59373566,
+    24: 59373566
+}
+
+exp.arms = {
+    1: [0, 121535434, 124535434, 249250621],
+    2: [0,92326171,95326171,243199373],
+    3: [0,90504854,93504854,198022430],
+    4: [0,49660117,52660117,191154276],
+    5: [0,46405641,49405641,180915260],
+    6: [0,58830166,61830166,171115067],
+    7: [0,58054331,61054331,159138663],
+    8: [0,43838887,46838887,146364022],
+    9: [0,47367679,50367679,141213431],
+    10:	[0,39254935,42254935,135534747],
+    11:	[0,51644205,54644205,135006516],
+    12:	[0,34856694,37856694,133851895],
+    13:	[0,16000000,19000000,115169878],
+    14:	[0,16000000,19000000,107349540],
+    15:	[0,17000000,20000000,102531392],
+    16:	[0,35335801,38335801,90354753],
+    17:	[0,22263006,25263006,81195210],
+    18:	[0,15460898,18460898,78077248],
+    19:	[24681782,27681782,0,59128983],
+    20:	[0,26369569,29369569,63025520],
+    21:	[0,11288129,14288129,48129895],
+    22:	[0,13000000,16000000,51304566],
+    'X': [0,58632012,61632012,155270560],
+    'x': [0,58632012,61632012,155270560],
+    23: [0,58632012,61632012,155270560],
+    'Y': [0,10104553,13104553,59373566],
+    'y': [0,10104553,13104553,59373566],
+    24: [0,10104553,13104553,59373566]
+}
 
 },{}],4:[function(require,module,exports){
-var exp=module.exports;exp.colors={gnyellow:"#ffe100",gnred:"#ff3c00",gngreen:"#a0d200",gnblue:"#00a0d2",gnpurple:"#7a18ec",gnorange:"#ffae00",gnpink:"#ff52d4",gndarkgray:"#4d4d4d",gngray:"#999999",gnlightgray:"#dcdcdc",gnlightergray:"#ededed",gnverylightgray:"#f8f8f8",gnblack:"#000000",gnwhite:"#ffffff",gnbluelightgray:"#6ebed7",gnredlightgray:"#ee8c6e",nodeDefault:"#4d4d4d",linkDefault:"#4d4d4d",default:"#000000",textdefault:"#000000",selected:"#ff3c00"},exp.group2color=[exp.colors.gngreen,exp.colors.gnpurple,exp.colors.gnblue,exp.colors.gnred,exp.colors.gnorange,exp.colors.gnpink,exp.colors.gndarkgray],exp.cluster2color=[exp.colors.gnblue,exp.colors.gngreen,exp.colors.gnpurple,exp.colors.gnorange,exp.colors.gnpink],exp.biotype2color={protein_coding:exp.colors.gndarkgray,pseudogene:exp.colors.gnpurple,processed_transcript:exp.colors.gngreen,antisense:exp.colors.gngreen,lincRNA:exp.colors.gngreen,polymorphic_pseudogene:exp.colors.gnpurple,IG_V_gene:exp.colors.gndarkgray,sense_intronic:exp.colors.gngreen,TR_V_gene:exp.colors.gngreen,misc_RNA:exp.colors.gnpink,snRNA:exp.colors.gnpink,miRNA:exp.colors.gnpink,IG_V_pseudogene:exp.colors.gnpurple,snoRNA:exp.colors.gnpink,rRNA:exp.colors.gnpink,sense_overlapping:exp.colors.gngreen,Mt_tRNA:exp.colors.gnpink,Mt_rRNA:exp.colors.gnpink,IG_C_gene:exp.colors.gndarkgray,IG_J_gene:exp.colors.gndarkgray,TR_J_gene:exp.colors.gndarkgray,TR_C_gene:exp.colors.gndarkgray,TR_V_pseudogene:exp.colors.gnpurple,TR_J_pseudogene:exp.colors.gnpurple,IG_D_gene:exp.colors.gndarkgray,IG_C_pseudogene:exp.colors.gnpurple,TR_D_gene:exp.colors.gndarkgray,IG_J_pseudogene:exp.colors.gnpurple,non_coding:exp.colors.gngreen,"3prime_overlapping_ncrna":exp.colors.gngreen},exp.chr2color={1:exp.colors.gndarkgray,2:exp.colors.gndarkgray,3:exp.colors.gndarkgray,4:exp.colors.gndarkgray,5:exp.colors.gndarkgray,6:exp.colors.gndarkgray,7:exp.colors.gndarkgray,8:exp.colors.gndarkgray,9:exp.colors.gndarkgray,10:exp.colors.gndarkgray,11:exp.colors.gndarkgray,12:exp.colors.gndarkgray,13:exp.colors.gndarkgray,14:exp.colors.gndarkgray,15:exp.colors.gndarkgray,16:exp.colors.gndarkgray,17:exp.colors.gndarkgray,18:exp.colors.gndarkgray,19:exp.colors.gndarkgray,20:exp.colors.gndarkgray,21:exp.colors.gndarkgray,22:exp.colors.gndarkgray,X:exp.colors.gnblue,x:exp.colors.gnblue,23:exp.colors.gnblue,Y:exp.colors.gngreen,y:exp.colors.gngreen,24:exp.colors.gngreen},exp.chr2color1={1:"#B356A2",2:"#66D748",3:"#D98C2F",4:"#75D1CC",5:"#3D2F30",6:"#648EC1",7:"#5D8A3A",8:"#D44833",9:"#CF9373",10:"#587974",11:"#786ED0",12:"#C3CCA4",13:"#802E37",14:"#7AD68D",15:"#503866",16:"#C4DC46",17:"#D64279",18:"#C07D93",19:"#CE52D6",20:"#414F27",21:"#855326",22:"#C9B8D8",X:"#C7B64",x:"#C7B64",Y:"#000000",y:"#000000"};
+var exp = module.exports
+
+exp.colors = {
+    gnyellow: '#ffe100', // rgb(255, 225, 0)
+    gnred: '#ff3c00', // rgb(255, 60, 0)
+    gngreen: '#a0d200',
+    gnblue: '#00a0d2',
+    gnpurple: '#7a18ec',
+    gnorange: '#ffae00',
+    gnpink: '#ff52d4',
+    gndarkgray: '#4d4d4d',
+    gngray: '#999999',
+    gnlightgray: '#dcdcdc',
+    gnlightergray: '#ededed',
+    gnverylightgray: '#f8f8f8',
+    gnblack: '#000000',
+    gnwhite: '#ffffff',
+    gnbluelightgray: '#6ebed7',
+    gnredlightgray: '#ee8c6e',
+    nodeDefault: '#4d4d4d',
+    linkDefault: '#4d4d4d',
+    default: '#000000',
+    textdefault: '#000000',
+    selected: '#ff3c00'
+}
+
+exp.group2color = [
+    exp.colors.gngreen,
+    exp.colors.gnpurple,
+    exp.colors.gnblue,
+    exp.colors.gnred,
+    exp.colors.gnorange,
+    exp.colors.gnpink,
+    exp.colors.gndarkgray
+]    
+
+exp.cluster2color = [
+    exp.colors.gnblue,
+    exp.colors.gngreen,
+    exp.colors.gnpurple,
+    exp.colors.gnorange,
+    exp.colors.gnpink
+]
+
+exp.biotype2color = {
+    protein_coding: exp.colors.gndarkgray,
+    pseudogene: exp.colors.gnpurple,
+    processed_transcript: exp.colors.gngreen,
+    antisense: exp.colors.gngreen,
+    lincRNA: exp.colors.gngreen,
+    polymorphic_pseudogene: exp.colors.gnpurple,
+    IG_V_gene: exp.colors.gndarkgray,
+    sense_intronic: exp.colors.gngreen,
+    TR_V_gene: exp.colors.gngreen,
+    misc_RNA: exp.colors.gnpink,
+    snRNA: exp.colors.gnpink,
+    miRNA: exp.colors.gnpink,
+    IG_V_pseudogene: exp.colors.gnpurple,
+    snoRNA: exp.colors.gnpink,
+    rRNA: exp.colors.gnpink,
+    sense_overlapping: exp.colors.gngreen,
+    Mt_tRNA: exp.colors.gnpink,
+    Mt_rRNA: exp.colors.gnpink,
+    IG_C_gene: exp.colors.gndarkgray,
+    IG_J_gene: exp.colors.gndarkgray,
+    TR_J_gene: exp.colors.gndarkgray,
+    TR_C_gene: exp.colors.gndarkgray,
+    TR_V_pseudogene: exp.colors.gnpurple,
+    TR_J_pseudogene: exp.colors.gnpurple,
+    IG_D_gene: exp.colors.gndarkgray,
+    IG_C_pseudogene: exp.colors.gnpurple,
+    TR_D_gene: exp.colors.gndarkgray,
+    IG_J_pseudogene: exp.colors.gnpurple,
+    non_coding: exp.colors.gngreen,
+    '3prime_overlapping_ncrna': exp.colors.gngreen
+}
+
+exp.chr2color = {
+    1: exp.colors.gndarkgray,
+    2: exp.colors.gndarkgray,
+    3: exp.colors.gndarkgray,
+    4: exp.colors.gndarkgray,
+    5: exp.colors.gndarkgray,
+    6: exp.colors.gndarkgray,
+    7: exp.colors.gndarkgray,
+    8: exp.colors.gndarkgray,
+    9: exp.colors.gndarkgray,
+    10: exp.colors.gndarkgray,
+    11: exp.colors.gndarkgray,
+    12: exp.colors.gndarkgray,
+    13: exp.colors.gndarkgray,
+    14: exp.colors.gndarkgray,
+    15: exp.colors.gndarkgray,
+    16: exp.colors.gndarkgray,
+    17: exp.colors.gndarkgray,
+    18: exp.colors.gndarkgray,
+    19: exp.colors.gndarkgray,
+    20: exp.colors.gndarkgray,
+    21: exp.colors.gndarkgray,
+    22: exp.colors.gndarkgray,
+    'X': exp.colors.gnblue,
+    'x': exp.colors.gnblue,
+    23: exp.colors.gnblue,
+    'Y': exp.colors.gngreen,
+    'y': exp.colors.gngreen,
+    24: exp.colors.gngreen
+}
+
+// http://tools.medialab.sciences-po.fr/iwanthue/
+exp.chr2color1 = {
+    1: '#B356A2',
+    2: '#66D748',
+    3: '#D98C2F',
+    4: '#75D1CC',
+    5: '#3D2F30',
+    6: '#648EC1',
+    7: '#5D8A3A',
+    8: '#D44833',
+    9: '#CF9373',
+    10: '#587974',
+    11: '#786ED0',
+    12: '#C3CCA4',
+    13: '#802E37',
+    14: '#7AD68D',
+    15: '#503866',
+    16: '#C4DC46',
+    17: '#D64279',
+    18: '#C07D93',
+    19: '#CE52D6',
+    20: '#414F27',
+    21: '#855326',
+    22: '#C9B8D8',
+    'X': '#C7B64',
+    'x': '#C7B64',
+    'Y': '#000000',
+    'y': '#000000'
+}
 
 },{}],5:[function(require,module,exports){
-var _=require("lodash"),exp=module.exports;exp.prettyNumber=function(e){if(!_.isNumber(e))return e;for(var t=e.toString(),r="",n=0,i=t.length-1;i>=0;i--)r+=t.substring(i,i+1),++n%3==0&&n<t.length&&(r+=",");return r.split("").reverse().join("")},exp.pValueToReadable=function(e){if(!_.isNumber(e))return NaN;var t=e;if(e<.01){t=t.toExponential(1);var r=t.indexOf("e");t=t.substring(0,r)+' <span style="font-size: 0.675em">x</span> 10<sup>'+t.substring(r+1)+"</sup>",e===Number.MIN_VALUE&&(t="< "+t)}else t=t.toPrecision(1);return t},exp.intToStr=function(e){return _.isNumber(e)?10===e?"ten":9===e?"nine":8===e?"eight":7===e?"seven":6===e?"six":5===e?"five":4===e?"four":3===e?"three":2===e?"two":1===e?"one":0===e?"zero":e+"":e},exp.intToOrdinalStr=function(e){return _.isNumber(e)?10===e?"tenth":9===e?"ninth":8===e?"eighth":7===e?"seventh":6===e?"sixth":5===e?"fifth":4===e?"fourth":3===e?"third":2===e?"second":1===e?"first":0===e?"immediately preceding what is regarded as first in a series":e<20?e+"th":(e+="",e.endsWith("1")?e+"st":e.endsWith("2")?e+"nd":e.endsWith("3")?e+"rd":e+"th"):e};
+var _ = require('lodash')
+var exp = module.exports
+
+exp.prettyNumber = function(n) {
+    if (!_.isNumber(n)) {
+        return n
+    }
+    var ugly = n.toString()
+    var pretty = ''
+    var index = 0
+    for (var i = ugly.length - 1; i >=0; i--) {
+        pretty += ugly.substring(i, i+1)
+        if (++index % 3 === 0 && index < ugly.length) {
+            pretty += ','
+        }
+    }
+    return pretty.split('').reverse().join('')
+}
+
+exp.pValueToReadable = function(p) {
+    if (!_.isNumber(p)) {
+        return NaN
+    }
+    var pReadable = p
+    if (p < 0.01) {
+        pReadable = pReadable.toExponential(1)
+        var expIndex = pReadable.indexOf('e')
+        var base = pReadable.substring(0, expIndex)
+        var exponent = pReadable.substring(expIndex + 1)
+        // TODO vertically align 'x' to middle (vertical-align, line-height, padding don't seem to work)
+        pReadable = base + ' <span style="font-size: 0.675em">x</span> 10<sup>' + exponent + '</sup>'
+        if (p === Number.MIN_VALUE) {
+            pReadable = '< ' + pReadable
+        }
+    } else {
+        pReadable = pReadable.toPrecision(1)
+    }
+    return pReadable
+}
+
+exp.intToStr = function(value) {
+    if (!_.isNumber(value)) {
+        return value
+    }
+    if (value === 10) {
+        return 'ten'
+    } else if (value === 9) {
+        return 'nine'
+    } else if (value === 8) {
+        return 'eight'
+    } else if (value === 7) {
+        return 'seven'
+    } else if (value === 6) {
+        return 'six'
+    } else if (value === 5) {
+        return 'five'
+    } else if (value === 4) {
+        return 'four'
+    } else if (value === 3) {
+        return 'three'
+    } else if (value === 2) {
+        return 'two'
+    } else if (value === 1) {
+        return 'one'
+    } else if (value === 0) {
+        return 'zero'
+    }
+    else return value + ''
+}
+
+exp.intToOrdinalStr = function(value) {
+    if (!_.isNumber(value)) {
+        return value
+    }
+    if (value === 10) {
+        return 'tenth'
+    } else if (value === 9) {
+        return 'ninth'
+    } else if (value === 8) {
+        return 'eighth'
+    } else if (value === 7) {
+        return 'seventh'
+    } else if (value === 6) {
+        return 'sixth'
+    } else if (value === 5) {
+        return 'fifth'
+    } else if (value === 4) {
+        return 'fourth'
+    } else if (value === 3) {
+        return 'third'
+    } else if (value === 2) {
+        return 'second'
+    } else if (value === 1) {
+        return 'first'
+    } else if (value === 0) {
+        return 'immediately preceding what is regarded as first in a series'
+    }
+    else if (value < 20) {
+        return value + 'th'
+    } else {
+        value = value + ''
+        if (value.endsWith('1')) {
+            return value + 'st'
+        } else if (value.endsWith('2')) {
+            return value + 'nd'
+        } else if (value.endsWith('3')) {
+            return value + 'rd'
+        } else {
+            return value + 'th'
+        }
+    }
+    return value + 'th'
+}
 
 },{"lodash":130}],6:[function(require,module,exports){
-module.exports=function(){function n(n,t,u){var e,o=n[u-1],f=t;for(e=t;e<u-1;e+=1)n[e]<=o&&(r(n,e,f),f+=1);return r(n,f,u-1),f}function r(n,r,t){var u=n[r];return n[r]=n[t],n[t]=u,n}function t(r,u,e){if(u<e){var o=n(r,u,e);t(r,u,o),t(r,o+1,e)}return r}return function(n){return t(n,0,n.length)}}();
+module.exports = (function() {
+
+    function partition(array, left, right) {
+        var cmp = array[right - 1],
+            minEnd = left,
+            maxEnd;
+        for (maxEnd = left; maxEnd < right - 1; maxEnd += 1) {
+            if (array[maxEnd] <= cmp) {
+                swap(array, maxEnd, minEnd);
+                minEnd += 1;
+            }
+        }
+        swap(array, minEnd, right - 1);
+        return minEnd;
+    }
+
+    function swap(array, i, j) {
+        var temp = array[i];
+        array[i] = array[j];
+        array[j] = temp;
+        return array;
+    }
+
+    function quickSort(array, left, right) {
+        if (left < right) {
+            var p = partition(array, left, right);
+            quickSort(array, left, p);
+            quickSort(array, p + 1, right);
+        }
+        return array;
+    }
+
+    return function(array) {
+        return quickSort(array, 0, array.length);
+    };
+}());
 
 },{}],7:[function(require,module,exports){
-var React=require("react"),About=React.createClass({displayName:"About",render:function(){return React.createElement("span",null,"about")}});module.exports=About;
+var React = require('react');
+
+var About = React.createClass({displayName: "About",
+    render: function() {
+        return (React.createElement("span", null, 'about'))
+    }
+});
+
+module.exports = About;
 
 },{"react":333}],8:[function(require,module,exports){
-var React=require("react"),ReactRouter=require("react-router"),Link=ReactRouter.Link,SVGCollection=require("./ReactComponents/SVGCollection"),color=require("../js/color"),Box=React.createClass({displayName:"Box",getInitialState:function(){return{color:color.colors.gngray}},onMouseOver:function(){this.setState({color:color.colors.gndarkgray})},onMouseOut:function(){this.setState({color:color.colors.gngray})},render:function(){return React.createElement("div",null,React.createElement(Link,{className:"nodecoration black clickable",to:this.props.url},React.createElement("div",{className:"box-sizing",style:{backgroundColor:color.colors.gnlightergray,border:"20px solid #fff",padding:"40px",width:"33.33333%",float:"left",minWidth:"350px",minHeight:"255px"}},React.createElement("h3",{style:{color:color.colors.gndarkgray}},this.props.title),React.createElement("p",{style:{color:color.colors.gndarkgray}},this.props.text),React.createElement("div",{style:{float:"right"}},React.createElement(SVGCollection.ArrowRight,{color:this.state.color,onMouseOver:this.onMouseOver,onMouseOut:this.onMouseOut}),React.createElement("b",{style:{paddingLeft:"5px"}},"CONTINUE")))))}});module.exports=Box;
+var React = require('react');
+var ReactRouter = require('react-router');
+var Link = ReactRouter.Link;
+var SVGCollection = require('./ReactComponents/SVGCollection');
+
+
+var color = require('../js/color');
+
+var Box = React.createClass({displayName: "Box",
+    getInitialState: function() {
+        return {
+            color: color.colors.gngray
+        }
+    },
+
+    onMouseOver: function() {
+        this.setState({
+            color: color.colors.gndarkgray
+        })
+    },
+
+    onMouseOut: function() {
+        this.setState({
+            color: color.colors.gngray
+        })
+    },
+
+    render: function(){
+        // padding: '40px 40px 40px 40px', margin: '10px',
+        return (
+            React.createElement("div", null, 
+                React.createElement(Link, {className: "nodecoration black clickable", to: this.props.url}, 
+                React.createElement("div", {className: "box-sizing", style: {backgroundColor: color.colors.gnlightergray, border: '20px solid #fff', padding: '40px', width: '33.33333%', float: 'left', minWidth: '350px', minHeight: '255px'}}, 
+                    React.createElement("h3", {style: {color: color.colors.gndarkgray}}, this.props.title), 
+                    React.createElement("p", {style: {color: color.colors.gndarkgray}}, this.props.text), 
+                    React.createElement("div", {style: {float: 'right'}}, 
+                            React.createElement(SVGCollection.ArrowRight, {color: this.state.color, onMouseOver: this.onMouseOver, onMouseOut: this.onMouseOut}), 
+                            React.createElement("b", {style: {paddingLeft: '5px'}}, "CONTINUE")
+                    )
+                )
+                )
+            )
+        )
+    }
+});
+
+module.exports = Box;
 
 },{"../js/color":4,"./ReactComponents/SVGCollection":45,"react":333,"react-router":164}],9:[function(require,module,exports){
-var React=require("react"),ReactRouter=require("react-router"),Link=ReactRouter.Link,SVGCollection=require("./ReactComponents/SVGCollection"),color=require("../js/color"),BoxFunctionEnrichment=React.createClass({displayName:"BoxFunctionEnrichment",getInitialState:function(){return{color:color.colors.gngray}},onMouseOver:function(){this.setState({color:color.colors.gndarkgray})},onMouseOut:function(){this.setState({color:color.colors.gngray})},render:function(){return React.createElement("div",null,React.createElement("div",{onClick:this.props.onClick,className:"box-sizing",style:{cursor:"pointer",backgroundColor:color.colors.gnlightergray,border:"20px solid #fff",padding:"40px",width:"33.33333%",float:"left",minWidth:"350px",minHeight:"255px"}},React.createElement("h3",{style:{color:color.colors.gndarkgray}},this.props.title),React.createElement("p",{style:{color:color.colors.gndarkgray}},this.props.text),React.createElement("div",{style:{float:"right"}},React.createElement(SVGCollection.ArrowRight,{color:this.state.color,onMouseOver:this.onMouseOver,onMouseOut:this.onMouseOut}),React.createElement("b",{style:{paddingLeft:"5px"}},"CONTINUE"))))}});module.exports=BoxFunctionEnrichment;
+var React = require('react');
+var ReactRouter = require('react-router');
+var Link = ReactRouter.Link;
+var SVGCollection = require('./ReactComponents/SVGCollection');
+
+
+var color = require('../js/color');
+
+var BoxFunctionEnrichment = React.createClass({displayName: "BoxFunctionEnrichment",
+    getInitialState: function() {
+        return {
+            color: color.colors.gngray
+        }
+    },
+
+    onMouseOver: function() {
+        this.setState({
+            color: color.colors.gndarkgray
+        })
+    },
+
+    onMouseOut: function() {
+        this.setState({
+            color: color.colors.gngray
+        })
+    },
+
+    render: function(){
+        // padding: '40px 40px 40px 40px', margin: '10px',
+        return (
+            React.createElement("div", null, 
+                React.createElement("div", {onClick: this.props.onClick, className: "box-sizing", style: {cursor: "pointer", backgroundColor: color.colors.gnlightergray, border: '20px solid #fff', padding: '40px', width: '33.33333%', float: 'left', minWidth: '350px', minHeight: '255px'}}, 
+                    React.createElement("h3", {style: {color: color.colors.gndarkgray}}, this.props.title), 
+                    React.createElement("p", {style: {color: color.colors.gndarkgray}}, this.props.text), 
+                    React.createElement("div", {style: {float: 'right'}}, 
+                            React.createElement(SVGCollection.ArrowRight, {color: this.state.color, onMouseOver: this.onMouseOver, onMouseOut: this.onMouseOut}), 
+                            React.createElement("b", {style: {paddingLeft: '5px'}}, "CONTINUE")
+                    )
+                )
+            )
+        )
+    }
+});
+
+module.exports = BoxFunctionEnrichment;
 
 },{"../js/color":4,"./ReactComponents/SVGCollection":45,"react":333,"react-router":164}],10:[function(require,module,exports){
-var React=require("react"),DocumentTitle=require("react-document-title"),color=require("../js/color.js"),How=React.createClass({displayName:"How",render:function(){return React.createElement(DocumentTitle,{title:"FAQ"+GN.pageTitleSuffix},React.createElement("div",{style:{backgroundColor:color.colors.gnwhite,marginTop:"10px",padding:"20px"}},React.createElement("h2",{style:{marginBottom:"10px"}},"FAQ"),React.createElement("ul",null,React.createElement("li",null,React.createElement("a",{href:"#what-is-genenetwork"},"What is GeneNetwork?")),React.createElement("li",null,React.createElement("a",{href:"#what-is-gado"},"What is GADO?")),React.createElement("li",null,React.createElement("a",{href:"#why-cant-my-term-be-used"},"Why can’t my term be used?")),React.createElement("li",null,React.createElement("a",{href:"#why-is-my-term-not-found"},"Why is my term not found?")),React.createElement("li",null,React.createElement("a",{href:"#gene-not-found"},"My favorite candidate gene for patient is not found back in the top of the results?")),React.createElement("li",null,React.createElement("a",{href:"#gene-predict-score"},"What is the gene predictability score?")),React.createElement("li",null,React.createElement("a",{href:"#how-to-cite"},"How to cite?"))),React.createElement("h3",{id:"what-is-genenetwork"},"What is GeneNetwork?"),React.createElement("p",null,"GeneNetwork uses gene co-regulation to predict pathway membership and HPO term associations. This is done by integrating 31,499 public RNA-seq sample."),React.createElement("img",{title:"GeneNetwork",style:{width:"1000px"},src:GN.urls.main+"/images/genenetwork.png"}),React.createElement("h3",{id:"what-is-gado"},"What is GADO?"),React.createElement("p",null,"GADO (GeneNetwork Assisted Diagnostic Optimization) is a method that can predict phenotypic consequences of genes when mutated, using public RNA-seq data of 31,499 samples. Using the phenotypes of a patient denoted as Human Phenotype Ontology (HPO) terms we can prioritize genes harbouring candidate mutations. This saves time interpreting identified variants and aids in the discovery of new disease-causing genes."),React.createElement("img",{title:"GeneNetwork",style:{width:"800px"},src:GN.urls.main+"/images/gado.png"}),React.createElement("h3",{id:"why-cant-my-term-be-used"},"Why can’t my term be used?"),React.createElement("p",null,"We do not have significant predictions for all HPO terms. Either because very few genes are known for a term, or because our current dataset is unable to reliable predict back the known genes for a term. In these cases, we suggest using the more generic parent terms."),React.createElement("h3",{id:"why-is-my-term-not-found"},"Why is my term not found?"),React.createElement("p",null,"At the moment we don’t support searching using the synonym names of HPO terms, this will be resolved in a future version. Try searching by the HPO number"),React.createElement("h3",{id:"gene-not-found"},"My favorite candidate gene for patient is not found back in the top of the results?"),React.createElement("p",null,"Gene expression patterns are not informative for all genes. If an expected gene is not found back this is the most likely explanation."),React.createElement("h3",{id:"gene-predict-score"},"What is the gene predictability score?"),React.createElement("p",null,"The gene predictability score is an indicator on how informative gene expression is in predicting gene functions. For details please see: ",React.createElement("a",{href:"https://www.biorxiv.org/content/early/2018/07/25/375766",target:"_blank"},"Improving the diagnostic yield of exome-sequencing, by predicting gene-phenotype associations using large-scale gene expression analysis")),React.createElement("h3",{id:"how-to-cite"},"How to cite?"),React.createElement("p",null,React.createElement("a",{href:"https://www.biorxiv.org/content/early/2018/07/25/375766",target:"_blank"},"Improving the diagnostic yield of exome-sequencing, by predicting gene-phenotype associations using large-scale gene expression analysis"))))}});module.exports=How;
+var React = require('react');
+var DocumentTitle = require('react-document-title');
+var color = require('../js/color.js');
+
+var How = React.createClass({displayName: "How",
+    render: function() {
+        return (
+            React.createElement(DocumentTitle, {title: 'FAQ' + GN.pageTitleSuffix}, 
+                React.createElement("div", {style: {backgroundColor: color.colors.gnwhite, marginTop: '10px', padding: '20px'}}, 
+                    React.createElement("h2", {style: {marginBottom: '10px'}}, "FAQ"), 
+
+                    React.createElement("ul", null, 
+                        React.createElement("li", null, React.createElement("a", {href: "#what-is-genenetwork"}, "What is GeneNetwork?")), 
+                        React.createElement("li", null, React.createElement("a", {href: "#what-is-gado"}, "What is GADO?")), 
+                        React.createElement("li", null, React.createElement("a", {href: "#why-cant-my-term-be-used"}, "Why can’t my term be used?")), 
+                        React.createElement("li", null, React.createElement("a", {href: "#why-is-my-term-not-found"}, "Why is my term not found?")), 
+                        React.createElement("li", null, React.createElement("a", {href: "#gene-not-found"}, "My favorite candidate gene for patient is not found back in the top of the results?")), 
+                        React.createElement("li", null, React.createElement("a", {href: "#gene-predict-score"}, "What is the gene predictability score?")), 
+                        React.createElement("li", null, React.createElement("a", {href: "#how-to-cite"}, "How to cite?"))
+                    ), 
+
+                    React.createElement("h3", {id: "what-is-genenetwork"}, "What is GeneNetwork?"), 
+                    React.createElement("p", null, 
+                        "GeneNetwork uses gene co-regulation to predict pathway membership and HPO term associations." + ' ' +
+                        "This is done by integrating 31,499 public RNA-seq sample."
+                    ), 
+                    React.createElement("img", {title: "GeneNetwork", style: {width: '1000px'}, src: GN.urls.main + '/images/genenetwork.png'}), 
+
+
+                    React.createElement("h3", {id: "what-is-gado"}, "What is GADO?"), 
+                    React.createElement("p", null, 
+                        "GADO (GeneNetwork Assisted Diagnostic Optimization) is a method that can predict phenotypic" + ' ' +
+                        "consequences of genes when mutated, using public RNA-seq data of 31,499 samples. Using the" + ' ' +
+                        "phenotypes of a patient denoted as Human Phenotype Ontology (HPO) terms we can prioritize genes" + ' ' +
+                        "harbouring candidate mutations. This saves time interpreting identified variants and aids in" + ' ' +
+                        "the discovery of new disease-causing genes."
+                    ), 
+                    React.createElement("img", {title: "GeneNetwork", style: {width: '800px'}, src: GN.urls.main + '/images/gado.png'}), 
+
+                    React.createElement("h3", {id: "why-cant-my-term-be-used"}, "Why can’t my term be used?"), 
+                    React.createElement("p", null, 
+                        "We do not have significant predictions for all HPO terms. Either because very few genes are" + ' ' +
+                        "known for a term, or because our current dataset is unable to reliable predict back the known" + ' ' +
+                        "genes for a term. In these cases, we suggest using the more generic parent terms."
+                    ), 
+
+                    React.createElement("h3", {id: "why-is-my-term-not-found"}, "Why is my term not found?"), 
+                    React.createElement("p", null, 
+                        "At the moment we don’t support searching using the synonym names of HPO terms, this will be" + ' ' +
+                        "resolved in a future version. Try searching by the HPO number"
+                    ), 
+
+                    React.createElement("h3", {id: "gene-not-found"}, "My favorite candidate gene for patient is not found back in the top of the results?"), 
+                    React.createElement("p", null, 
+                        "Gene expression patterns are not informative for all genes. If an expected gene is not found" + ' ' +
+                        "back this is the most likely explanation."
+                    ), 
+
+                    React.createElement("h3", {id: "gene-predict-score"}, "What is the gene predictability score?"), 
+                    React.createElement("p", null, 
+                        "The gene predictability score is an indicator on how informative gene expression is in" + ' ' +
+                        "predicting gene functions. For details please see: ", React.createElement("a", {href: "https://www.biorxiv.org/content/early/2018/07/25/375766", target: "_blank"}, "Improving the diagnostic yield of exome-sequencing, by predicting gene-phenotype" + ' ' +
+                        "associations using large-scale gene expression analysis")
+                    ), 
+
+                    React.createElement("h3", {id: "how-to-cite"}, "How to cite?"), 
+                    React.createElement("p", null, 
+                        React.createElement("a", {href: "https://www.biorxiv.org/content/early/2018/07/25/375766", target: "_blank"}, "Improving the diagnostic yield of exome-sequencing, by predicting gene-phenotype" + ' ' +
+                            "associations using large-scale gene expression analysis")
+                    )
+
+
+                )
+            )
+        );
+    }
+});
+
+module.exports = How;
 
 },{"../js/color.js":4,"react":333,"react-document-title":142}],11:[function(require,module,exports){
-"use strict";var _=require("lodash"),React=require("react"),Router=require("react-router"),DocumentTitle=require("react-document-title"),GeneHeader=require("./GeneHeader"),GeneMenu=require("./GeneMenu"),SimilarGenesTable=require("./SimilarGenesTable"),Tissues=require("./Tissues"),DownloadPanel=require("../ReactComponents/DownloadPanel"),Cookies=require("cookies-js"),color=require("../../js/color"),DataTable=require("../ReactComponents/DataTable"),Gene=React.createClass({displayName:"Gene",mixins:[Router.Navigation,Router.State],getInitialState:function(){return{topMenuSelection:"prediction",databaseSelection:"REACTOME"}},loadData:function(e){e||(e=this.props.params.geneId);var t=[{url:GN.urls.gene+"/"+e+"?verbose",name:"prediction"},{url:GN.urls.coregulation+"/"+e+"?verbose",name:"similar"}];"similar"==this.state.topMenuSelection&&t.reverse();var a=this;_.forEach(t,function(t){$.ajax({url:t.url,dataType:"json",success:function(e){this.isMounted()&&"prediction"==t.name?this.setState({gene:e.gene,celltypes:e.celltypes,prediction:e,error:null}):this.isMounted()&&"similar"==t.name&&this.setState({gene:e.gene,similar:e,error:null})}.bind(a),error:function(a,n,i){console.log(a),this.isMounted()&&"similar"!==t.name&&("Not Found"===i?this.setState({error:"Gene "+e+" not found",errorTitle:"Error "+a.status}):this.setState({error:"Please try again later ("+a.status+")",errorTitle:"Error "+a.status}))}.bind(a)})})},componentDidMount:function(){this.loadData()},componentWillReceiveProps:function(e){this.loadData(e.params.geneId)},handleTopMenuClick:function(e){Cookies.set("genetopmenu",e),this.setState({topMenuSelection:e})},handleDatabaseClick:function(e){Cookies.set("genedb",e.id),this.setState({databaseSelection:e.id})},handleShowTypeClick:function(e){Cookies.set("geneshowtype",e),this.setState({showTypeSelection:e})},download:function(){var e=document.getElementById("gn-gene-downloadform"),t=this.state.databaseSelection,a=_.filter(this.state.prediction.pathways.predicted,function(e){return e.term.database.toUpperCase()===t}),n=_.map(a,function(e){return{id:e.term.id,name:e.term.name,pValue:e.pValue,zScore:e.zScore,annotated:e.annotated}}),i=this.state.celltypes.fixed.indices,s=this.state.celltypes.values.avg,o=this.state.celltypes.values.auc,r=_.map(this.state.celltypes.fixed.header,function(e){return{tissue:e.name,samples:e.numSamples,avg:s[i[e.name]],auc:o[i[e.name]]}});e.predictions.value=JSON.stringify(n),e.tissues.value=JSON.stringify(r),e.submit()},render:function(){var e=null,t=React.createElement(GeneHeader,{loading:!0}),a="Loading"+GN.pageTitleSuffix;if(this.state.error)t=React.createElement(GeneHeader,{notFound:this.props.params.geneId}),a=this.state.errorTitle+GN.pageTitleSuffix;else{var n="prediction"==this.state.topMenuSelection?this.state.prediction:this.state.similar;if(n){var i=null;"prediction"==this.state.topMenuSelection?i=React.createElement(DataTable,{data:n,db:this.state.databaseSelection}):"similar"==this.state.topMenuSelection?i=React.createElement(SimilarGenesTable,{data:n}):"tissues"==this.state.topMenuSelection&&(i=React.createElement(Tissues,{style:{paddingBottom:"100px"},data:n,celltypes:this.state.celltypes})),a=n.gene.name+GN.pageTitleSuffix,t=React.createElement(GeneHeader,{gene:n.gene}),e=React.createElement("div",{className:"gn-gene-container-outer",style:{backgroundColor:color.colors.gnwhite,marginTop:"10px"}},React.createElement("div",{className:"gn-gene-container-inner maxwidth",style:{padding:"20px"}},React.createElement("div",null,React.createElement(GeneMenu,{data:n,onTopMenuClick:this.handleTopMenuClick,onDatabaseClick:this.handleDatabaseClick,onShowTypeClick:this.handleShowTypeClick,topMenuSelection:this.state.topMenuSelection,databaseSelection:this.state.databaseSelection,showTypeSelection:this.state.showTypeSelection}),i,React.createElement(DownloadPanel,{onClick:this.download,text:"DOWNLOAD ALL"}))),React.createElement("form",{id:"gn-gene-downloadform",method:"post",encType:"multipart/form-data",action:GN.urls.tabdelim},React.createElement("input",{type:"hidden",id:"geneId",name:"geneId",value:n.gene.id}),React.createElement("input",{type:"hidden",id:"db",name:"db",value:this.state.databaseSelection}),React.createElement("input",{type:"hidden",id:"what",name:"what",value:"geneprediction"}),React.createElement("input",{type:"hidden",id:"type",name:"type",value:this.state.topMenuSelection}),React.createElement("input",{type:"hidden",id:"predictions",name:"predictions",value:""}),React.createElement("input",{type:"hidden",id:"tissues",name:"tissues",value:""})))}}return React.createElement(DocumentTitle,{title:a},React.createElement("div",{className:"flex10"},t,e))}});module.exports=Gene;
+'use strict';
+
+var _ = require('lodash');
+var React = require('react');
+var Router = require('react-router');
+var DocumentTitle = require('react-document-title');
+
+var GeneHeader = require('./GeneHeader');
+var GeneMenu = require('./GeneMenu');
+var SimilarGenesTable = require('./SimilarGenesTable');
+var Tissues = require('./Tissues');
+var DownloadPanel = require('../ReactComponents/DownloadPanel');
+var Cookies = require('cookies-js');
+var color = require('../../js/color');
+var DataTable = require('../ReactComponents/DataTable');
+
+var Gene = React.createClass({displayName: "Gene",
+
+    mixins: [Router.Navigation, Router.State],
+
+    getInitialState: function() {
+        return {
+            topMenuSelection: 'prediction',
+            databaseSelection: 'REACTOME',
+        }
+    },
+
+    loadData: function(geneId) {
+        if (!geneId) geneId = this.props.params.geneId;
+
+        var tasks = [{url: GN.urls.gene + '/' + geneId + '?verbose',
+                      name: 'prediction'},
+                     {url: GN.urls.coregulation + '/' + geneId + '?verbose',
+                      name: 'similar'}];
+
+        if (this.state.topMenuSelection == 'similar') tasks.reverse();
+
+
+        var that = this;
+        _.forEach(tasks, function(task) {
+            $.ajax({
+                url: task.url,
+                dataType: 'json',
+                success: function(data) {
+                    if (this.isMounted() && task.name == 'prediction') {
+                        this.setState({
+                            gene: data.gene,
+                            celltypes: data.celltypes,
+                            prediction: data,
+                            error: null
+                        })
+                    } else if (this.isMounted() && task.name == 'similar') {
+                        this.setState({
+                            gene: data.gene,
+                            similar: data,
+                            error: null
+                        })
+                    }
+                }.bind(that),
+                error: function(xhr, status, err) {
+                    console.log(xhr);
+                    if (this.isMounted() && task.name !== 'similar') {
+                        if (err === 'Not Found') {
+                            this.setState({
+                                error: 'Gene ' + geneId + ' not found',
+                                errorTitle: 'Error ' + xhr.status
+                            })
+                        } else {
+                            this.setState({
+                                error: 'Please try again later (' + xhr.status + ')',
+                                errorTitle: 'Error ' + xhr.status
+                            })
+                        }
+                    }
+                }.bind(that)
+            })
+        })
+    },
+    
+    componentDidMount: function() {
+        this.loadData()
+    },
+
+    componentWillReceiveProps: function(nextProps) {
+        this.loadData(nextProps.params.geneId)
+    },
+    
+    handleTopMenuClick: function(type) {
+        Cookies.set('genetopmenu', type);
+        this.setState({
+            topMenuSelection: type
+        })
+    },
+
+    handleDatabaseClick: function(db) {
+        Cookies.set('genedb', db.id);
+        this.setState({
+            databaseSelection: db.id
+        })
+    },
+
+    handleShowTypeClick: function(type) {
+        Cookies.set('geneshowtype', type);
+        this.setState({
+            showTypeSelection: type
+        })
+    },
+
+    download: function() {
+        var form = document.getElementById('gn-gene-downloadform');
+        var databaseSelection = this.state.databaseSelection;
+        var filteredPredictions = _.filter(this.state.prediction.pathways.predicted, function(pathway){
+            return pathway.term.database.toUpperCase() === databaseSelection
+        });
+        var predictions = _.map(filteredPredictions, function(pathway) {
+                            return {
+                                id: pathway.term.id,
+                                name: pathway.term.name,
+                                pValue: pathway.pValue,
+                                zScore: pathway.zScore,
+                                annotated: pathway.annotated
+                            }
+                        });
+        var indices = this.state.celltypes.fixed.indices;
+        var avg = this.state.celltypes.values.avg;
+        var auc = this.state.celltypes.values.auc;
+        var tissues = _.map(this.state.celltypes.fixed.header, function(item){
+            return {
+                tissue: item.name,
+                samples: item.numSamples,
+                avg: avg[indices[item.name]],
+                auc: auc[indices[item.name]]
+            }
+        });
+        form['predictions'].value = JSON.stringify(predictions);
+        form['tissues'].value = JSON.stringify(tissues);
+        form.submit()
+    },
+    
+    render: function() {
+        var content = null;
+        var contentTop = React.createElement(GeneHeader, {loading: true});
+        var pageTitle = 'Loading' + GN.pageTitleSuffix;
+        
+        if (this.state.error) {
+            contentTop = React.createElement(GeneHeader, {notFound: this.props.params.geneId});
+            pageTitle = this.state.errorTitle + GN.pageTitleSuffix
+        } else {
+
+            var data = this.state.topMenuSelection == 'prediction' ? this.state.prediction : this.state.similar;
+            if (data) {
+
+                var tableContent = null;
+                if (this.state.topMenuSelection == 'prediction') {
+                    tableContent = React.createElement(DataTable, {data: data, db: this.state.databaseSelection})
+                } else if (this.state.topMenuSelection == 'similar') {
+                    tableContent = React.createElement(SimilarGenesTable, {data: data})
+                } else if (this.state.topMenuSelection == 'tissues') {
+                    tableContent = React.createElement(Tissues, {style: {paddingBottom: '100px'}, data: data, celltypes: this.state.celltypes})
+                }
+
+                pageTitle = data.gene.name + GN.pageTitleSuffix;
+                contentTop = React.createElement(GeneHeader, {gene: data.gene});
+                content = (
+                        React.createElement("div", {className: 'gn-gene-container-outer', style: {backgroundColor: color.colors.gnwhite, marginTop: '10px'}}, 
+                        React.createElement("div", {className: "gn-gene-container-inner maxwidth", style: {padding: '20px'}}, 
+                        React.createElement("div", null, 
+                        React.createElement(GeneMenu, {data: data, 
+                            onTopMenuClick: this.handleTopMenuClick, 
+                            onDatabaseClick: this.handleDatabaseClick, 
+                            onShowTypeClick: this.handleShowTypeClick, 
+                            topMenuSelection: this.state.topMenuSelection, 
+                            databaseSelection: this.state.databaseSelection, 
+                            showTypeSelection: this.state.showTypeSelection}), 
+                        tableContent, 
+                        React.createElement(DownloadPanel, {onClick: this.download, text: "DOWNLOAD ALL"})
+                        )
+                        ), 
+                        React.createElement("form", {id: "gn-gene-downloadform", method: "post", encType: "multipart/form-data", action: GN.urls.tabdelim}, 
+                        React.createElement("input", {type: "hidden", id: "geneId", name: "geneId", value: data.gene.id}), 
+                        React.createElement("input", {type: "hidden", id: "db", name: "db", value: this.state.databaseSelection}), 
+                        React.createElement("input", {type: "hidden", id: "what", name: "what", value: "geneprediction"}), 
+                        React.createElement("input", {type: "hidden", id: "type", name: "type", value: this.state.topMenuSelection}), 
+                        React.createElement("input", {type: "hidden", id: "predictions", name: "predictions", value: ""}), 
+                        React.createElement("input", {type: "hidden", id: "tissues", name: "tissues", value: ""})
+                        )
+                        )
+                )
+            }
+        }
+
+        return (
+                React.createElement(DocumentTitle, {title: pageTitle}, 
+                React.createElement("div", {className: "flex10"}, 
+                contentTop, 
+                content
+                )
+                )
+        )
+    }
+});
+
+module.exports = Gene;
 
 },{"../../js/color":4,"../ReactComponents/DataTable":32,"../ReactComponents/DownloadPanel":36,"./GeneHeader":12,"./GeneMenu":13,"./SimilarGenesTable":15,"./Tissues":16,"cookies-js":56,"lodash":130,"react":333,"react-document-title":142,"react-router":164}],12:[function(require,module,exports){
-"use strict";var React=require("react"),SVGCollection=require("../ReactComponents/SVGCollection"),color=require("../../js/color.js"),GeneHeader=React.createClass({displayName:"GeneHeader",propTypes:{gene:React.PropTypes.object,loading:React.PropTypes.bool},render:function(){if(!0===this.props.loading)return React.createElement("div",{className:"gn-gene-description-outer",style:{backgroundColor:color.colors.gnwhite,padding:"20px"}},React.createElement("div",{className:"gn-gene-description-inner hflex flexcenter maxwidth"},React.createElement("div",{className:"gn-gene-description-name"},React.createElement("span",{style:{fontWeight:"bold",fontFamily:"GG",fontSize:"1.5em",paddingRight:"10px"}},"Loading"))));if(this.props.notFound)return React.createElement("div",{className:"gn-gene-description-outer",style:{backgroundColor:color.colors.gnwhite,padding:"20px"}},React.createElement("div",{className:"gn-gene-description-inner hflex flexcenter maxwidth"},React.createElement("div",{className:"gn-gene-description-name"},React.createElement("span",{style:{fontWeight:"bold",fontFamily:"GG",fontSize:"1.5em",paddingRight:"10px"}},this.props.notFound," not found"))));var e=(this.props.gene.description||"no description").replace(/\[[^\]]+]/g,"");return React.createElement("div",{className:"gn-gene-description-outer",style:{backgroundColor:color.colors.gnwhite,padding:"20px"}},React.createElement("div",{className:"gn-gene-description-inner hflex flexcenter maxwidth"},React.createElement("div",{className:"gn-gene-description-name",style:{display:"flex"}},React.createElement("span",{style:{fontWeight:"bold",fontFamily:"GG",fontSize:"1.5em",paddingRight:"10px"}},this.props.gene.name+" "),React.createElement("div",{style:{flexGrow:1}},React.createElement("span",null,e),React.createElement("br",null),React.createElement("span",{style:{marginRight:"5px"}},"Gene predictability score: ",Math.round(100*this.props.gene.genePredScore)/100),React.createElement(SVGCollection.I,{title:"Please see the FAQ for more information.",style:{marginLeft:"5px"}}))),React.createElement("div",{className:"flex11"}),React.createElement("div",{className:"gn-gene-description-chr",style:{textAlign:"right"}},React.createElement("span",null,"chromosome ",this.props.gene.chr),React.createElement(SVGCollection.Chromosome,{chr:this.props.gene.chr,start:this.props.gene.start,stop:this.props.gene.stop,position:(this.props.gene.stop+this.props.gene.start)/2}),React.createElement("div",null,this.props.gene.biotype.replace(/_/g," ")))))}});module.exports=GeneHeader;
+'use strict';
+
+var React = require('react');
+var SVGCollection = require('../ReactComponents/SVGCollection');
+var color = require('../../js/color.js');
+
+var GeneHeader = React.createClass({displayName: "GeneHeader",
+    
+    propTypes: {
+        gene: React.PropTypes.object,
+        loading: React.PropTypes.bool
+    },
+    
+    render: function() {
+
+        if (this.props.loading === true) {
+            return (
+                React.createElement("div", {className: "gn-gene-description-outer", style: {backgroundColor: color.colors.gnwhite, padding: '20px'}}, 
+                    React.createElement("div", {className: "gn-gene-description-inner hflex flexcenter maxwidth"}, 
+                        React.createElement("div", {className: "gn-gene-description-name"}, 
+                            React.createElement("span", {style: {fontWeight: 'bold', fontFamily: 'GG', fontSize: '1.5em', paddingRight: '10px'}}, 
+                            "Loading"
+                            )
+                        )
+                    )
+                )
+            )
+        }
+        
+        if (this.props.notFound) {
+            return (
+                React.createElement("div", {className: "gn-gene-description-outer", style: {backgroundColor: color.colors.gnwhite, padding: '20px'}}, 
+                    React.createElement("div", {className: "gn-gene-description-inner hflex flexcenter maxwidth"}, 
+                        React.createElement("div", {className: "gn-gene-description-name"}, 
+                            React.createElement("span", {style: {fontWeight: 'bold', fontFamily: 'GG', fontSize: '1.5em', paddingRight: '10px'}}, 
+                            this.props.notFound, " not found"
+                            )
+                        )
+                    )
+                )
+            )
+        }
+        
+        var description = (this.props.gene.description || 'no description').replace(/\[[^\]]+]/g, '');
+        return (
+                React.createElement("div", {className: "gn-gene-description-outer", style: {backgroundColor: color.colors.gnwhite, padding: '20px'}}, 
+                    React.createElement("div", {className: "gn-gene-description-inner hflex flexcenter maxwidth"}, 
+                        React.createElement("div", {className: "gn-gene-description-name", style: {display: 'flex'}}, 
+                            React.createElement("span", {style: {fontWeight: 'bold', fontFamily: 'GG', fontSize: '1.5em', paddingRight: '10px'}}, this.props.gene.name + ' '), 
+                            React.createElement("div", {style: { flexGrow: 1}}, 
+                                React.createElement("span", null, description), React.createElement("br", null), 
+                                React.createElement("span", {style: { marginRight: '5px'}}, "Gene predictability score: ", Math.round(this.props.gene.genePredScore * 100) / 100), 
+                                React.createElement(SVGCollection.I, {title: "Please see the FAQ for more information.", style: { marginLeft: '5px'}})
+                            )
+                        ), 
+                        React.createElement("div", {className: "flex11"}), 
+                            React.createElement("div", {className: "gn-gene-description-chr", style: {textAlign: 'right'}}, 
+                                React.createElement("span", null, "chromosome ", this.props.gene.chr), 
+                                React.createElement(SVGCollection.Chromosome, {
+                                    chr: this.props.gene.chr, 
+                                    start: this.props.gene.start, 
+                                    stop: this.props.gene.stop, 
+                                    position: (this.props.gene.stop + this.props.gene.start) / 2}), 
+                                React.createElement("div", null, this.props.gene.biotype.replace(/_/g, ' ')
+                                )
+                            )
+                    )
+                )
+        )
+    }
+});
+
+module.exports = GeneHeader;
 
 },{"../../js/color.js":4,"../ReactComponents/SVGCollection":45,"react":333}],13:[function(require,module,exports){
-"use strict";var _=require("lodash"),React=require("react"),GeneOpenMenu=require("../ReactComponents/GeneOpenMenu"),SVGCollection=require("../ReactComponents/SVGCollection"),GeneMenu=React.createClass({displayName:"GeneMenu",propTypes:{data:React.PropTypes.object.isRequired,onTopMenuClick:React.PropTypes.func.isRequired,onDatabaseClick:React.PropTypes.func.isRequired,onShowTypeClick:React.PropTypes.func.isRequired,topMenuSelection:React.PropTypes.string.isRequired,databaseSelection:React.PropTypes.string.isRequired,showTypeSelection:React.PropTypes.string},render:function(){function e(e,t,n){var a=e[t];e[t]=e[n],e[n]=a}var t=this,n=null;"prediction"==this.props.topMenuSelection&&(n=_.filter(this.props.data.pathways.annotated,function(e){return e.term.database.toUpperCase()==t.props.databaseSelection}).length);var a=["button clickable selectedbutton mobilefullwidth","button clickable mobilefullwidth","button clickable mobilefullwidth"];"similar"==this.props.topMenuSelection&&e(a,0,1),"tissues"==this.props.topMenuSelection&&e(a,0,2);var l=["button clickable selectedbutton","button clickable"];"annotation"==this.props.showTypeSelection&&l.reverse(),0===n&&(l[1]="button disabled noselect");var i=_.map(this.props.data.databases,function(e){var n=e.id==t.props.databaseSelection?"button selectedbutton mobilefullwidth":"button clickable mobilefullwidth";React.createElement("span",null,e.name.toUpperCase());return 0===e.name.indexOf("GO")?React.createElement("span",{title:e.fullName,key:e.id,className:n,onClick:t.props.onDatabaseClick.bind(null,e)},React.createElement("span",null,"GO "),React.createElement("span",{style:{fontSize:"0.8em"}},e.name.toUpperCase().substring(3))):React.createElement("span",{title:e.fullName,key:e.id,className:n,onClick:t.props.onDatabaseClick.bind(null,e)},e.name.toUpperCase())});return React.createElement("table",{className:"gn-gene-menu noselect",style:{padding:"0 0 20px 0"}},React.createElement("tbody",null,React.createElement("tr",null,React.createElement("td",{style:{width:"8em"}},"SHOW"),React.createElement("td",{style:{padding:0}},React.createElement("span",{className:a[0],onClick:this.props.onTopMenuClick.bind(null,"prediction")},"PATHWAYS & PHENOTYPES"),React.createElement("span",{className:a[1],onClick:this.props.onTopMenuClick.bind(null,"similar")},"CO-REGULATED GENES"),React.createElement("span",{className:a[2],onClick:this.props.onTopMenuClick.bind(null,"tissues")},"TISSUES"))),"prediction"==this.props.topMenuSelection?React.createElement("tr",null,React.createElement("td",null,"SELECT DATABASE"),React.createElement("td",{style:{backgroundColor:"#ffffff",padding:0}},i)):null))}});module.exports=GeneMenu;
+'use strict'
+
+var _ = require('lodash')
+var React = require('react')
+var GeneOpenMenu = require('../ReactComponents/GeneOpenMenu')
+var SVGCollection = require('../ReactComponents/SVGCollection')
+
+var GeneMenu = React.createClass({displayName: "GeneMenu",
+
+    propTypes: {
+        data: React.PropTypes.object.isRequired,
+        onTopMenuClick: React.PropTypes.func.isRequired,
+        onDatabaseClick: React.PropTypes.func.isRequired,
+        onShowTypeClick: React.PropTypes.func.isRequired,
+        topMenuSelection: React.PropTypes.string.isRequired,
+        databaseSelection: React.PropTypes.string.isRequired,
+        showTypeSelection: React.PropTypes.string,
+    },
+    
+    render: function() {
+
+        function swap(list, i, j){var temp = list[i]; list[i] = list[j]; list[j] = temp}
+
+        var that = this
+        var numAnnotatedThisDatabase = null
+        if ('prediction' == this.props.topMenuSelection) {
+            numAnnotatedThisDatabase = _.filter(this.props.data.pathways.annotated, function(pathway) {
+                return pathway.term.database.toUpperCase() == that.props.databaseSelection
+            }).length
+        }
+
+        var topButtonStyles = ['button clickable selectedbutton mobilefullwidth', 'button clickable mobilefullwidth', 'button clickable mobilefullwidth']
+        if ('similar' == this.props.topMenuSelection) swap(topButtonStyles, 0, 1)
+        if ('tissues' == this.props.topMenuSelection) swap(topButtonStyles, 0, 2)
+        var databaseButtonStyles = ['button clickable selectedbutton', 'button clickable']
+        if ('annotation' == this.props.showTypeSelection) {
+            databaseButtonStyles.reverse()
+        }
+        if (numAnnotatedThisDatabase === 0) {
+            databaseButtonStyles[1] = 'button disabled noselect'
+        }
+        
+        var databaseMenuItems = _.map(this.props.data.databases, function(db) {
+            var cls = (db.id == that.props.databaseSelection) ? 'button selectedbutton mobilefullwidth' : 'button clickable mobilefullwidth'
+            var label = (React.createElement("span", null, db.name.toUpperCase()))
+            if (db.name.indexOf('GO') === 0) {
+                return (
+                        React.createElement("span", {title: db.fullName, key: db.id, className: cls, onClick: that.props.onDatabaseClick.bind(null, db)}, 
+                        React.createElement("span", null, "GO "), React.createElement("span", {style: {fontSize: '0.8em'}}, db.name.toUpperCase().substring(3))
+                        )
+                )
+            } else {
+                return (
+                        React.createElement("span", {title: db.fullName, key: db.id, className: cls, onClick: that.props.onDatabaseClick.bind(null, db)}, 
+                        db.name.toUpperCase())
+                )
+            }
+        })
+
+        return (
+                React.createElement("table", {className: "gn-gene-menu noselect", style: {padding: '0 0 20px 0'}}, 
+                React.createElement("tbody", null, 
+                React.createElement("tr", null, 
+                React.createElement("td", {style: {width: '8em'}}, "SHOW"), 
+                React.createElement("td", {style: {padding: 0}}, 
+                React.createElement("span", {className: topButtonStyles[0], onClick: this.props.onTopMenuClick.bind(null, 'prediction')}, "PATHWAYS & PHENOTYPES"), 
+                React.createElement("span", {className: topButtonStyles[1], onClick: this.props.onTopMenuClick.bind(null, 'similar')}, "CO-REGULATED GENES"), 
+                React.createElement("span", {className: topButtonStyles[2], onClick: this.props.onTopMenuClick.bind(null, 'tissues')}, "TISSUES")
+            )
+                ), 
+                this.props.topMenuSelection == 'prediction' ?
+                 (
+                         React.createElement("tr", null, 
+                         React.createElement("td", null, "SELECT DATABASE"), 
+                         React.createElement("td", {style: {backgroundColor: '#ffffff', padding: 0}}, databaseMenuItems)
+                         )
+                 ) : null
+            )
+                )
+        )
+    }
+})
+
+module.exports = GeneMenu
 
 },{"../ReactComponents/GeneOpenMenu":38,"../ReactComponents/SVGCollection":45,"lodash":130,"react":333}],14:[function(require,module,exports){
-"use strict";function HSVtoRGB(c,e,t){var s,o,r,l,i,n,a,d;switch(1===arguments.length&&(e=c.s,t=c.v,c=c.h),l=Math.floor(6*c),i=6*c-l,n=t*(1-e),a=t*(1-i*e),d=t*(1-(1-i)*e),l%6){case 0:s=t,o=d,r=n;break;case 1:s=a,o=t,r=n;break;case 2:s=n,o=t,r=d;break;case 3:s=n,o=a,r=t;break;case 4:s=d,o=n,r=t;break;case 5:s=t,o=n,r=a}return{r:Math.round(255*s),g:Math.round(255*o),b:Math.round(255*r)}}function getRGB(c){if(Math.abs(c)>1){var e=1-parseFloat(Math.abs(c))/3*.35,t=1,s=HSVtoRGB(parseFloat(c)>=0?.0389:.58,t,e);return"rgb("+s.r+","+s.g+", "+s.b+")"}var e=.7+.3*parseFloat(Math.abs(c)),t=parseFloat(Math.abs(c)),s=HSVtoRGB(parseFloat(c)>=0?.0389:.58,t,e);return"rgb("+s.r+","+s.g+", "+s.b+")"}var React=require("react"),_=require("lodash");module.exports=React.createClass({displayName:"exports",render:function(c){var e=this.props.hoverItem,t=this.props.clickedItem,s="Blood"===t||"Brain"==t;return console.log(s),console.log(t),React.createElement("svg",{version:"1.1",id:"svg3774",x:"0px",y:"0px",viewBox:"0 0 1560.5 1204","enable-background":"new 429 -206 1560.5 1204",style:{position:"absolute",top:"50%",transform:"translate(0, -50%)"}},React.createElement("g",{id:"organs",style:{transition:"all 0.5s ease"},transform:"Blood"===t||"Brain"===t?"translate(0,0)":"translate(300,0)"},React.createElement("path",{id:"body",fill:"#E3DACF",stroke:"#605C58",strokeWidth:"0.5",d:"M350.1,1078.1c-0.2,1.9,1.5,17,1,19.6c-3.5,17.8,0.8,28,8.8,32.5c0,0,11,1.5,15,3.8 s11.3,10.3,14.5,15.3s13.8,5.3,13.8,5.3l4.3,4c0,0-0.5,5.5,6.5,6.8s11,0.8,12.3,0.3s2.8-2,2.8-2s7,2.5,8.3-2l1.3-2 c0,0,4.8,0,5.3-4.8c0,0,6-0.3,4.8-6s-1-4-1-4s0.3-5.3-2-7.5s-6.5-2.8-10.8-7.3s-15.2-12.1-15.2-12.1s-17.7-30.8-17.8-31 c-0.1-0.2-0.2-0.3-0.3-0.5c-4.1-8.8-9-20.6-8-30c0,0-0.5-5.2,0.9-12.6l9.8-42c0,0,2.5-32.2,7.4-34.7c0,0,15.7-62.2,4.4-86.3 c0,0-4.9-30.7-3.4-39.8c0,0,5-37.6,5-51.6c0,0,18.9-56.2,18.9-60.6c0,0,6.5-27.4,7.9-48.3l4.2-46.4l1.4-30.2l-0.3-22.8l-2-22.8 l-3.7-18.1l-4.5-21c0,0-0.9,2.6-0.2-0.5c1.9-7.9,1-52.8,1-52.8l-1.6-23.3l1.1-23.2l5.3-39.8c0,0,8.9,9.1,13.3,29.3 c4.4,20.2,16.5,34.7,16.5,34.7l1.2,3.7c0,0,0,22.4,0,36.1s7.9,52.1,9.8,57.3c2,5.2,6.1,25.1,6.1,32l2.7,8.4c0,0,1,11.6-1,18 c0,0-7.1,9.1-13.8,15.7c0,0-8.4,15.2-11.8,22.1c0,0-8.3,14.5-10.6,14.5c0,0,0.7,8.4,12.8,2.9l9.6-9.6l1.2,10.8l6.1,31.7l3.2,12.5 c0,0,1.5,5.7,7.5,7.5l1.8,0.4c0,0-0.7,10.8,5.4,12.5c0,0,4.5,0.5,4.5-4.6l1.6-1.6c0,0,2.5,4.9,4.9,4.9c2.5,0,6.1-8.1,6.1-8.1l1-8.1 c0,0,3,1.2,4.7,1.2s5.4-3.7,5.4-3.7l9.4-35.2l2.2-30.5l-6.9-24.6c0,0,1.2-5.4-0.2-10.8c0,0,0.2-79.9,2.5-82.1c0,0,3.4-42.1-1.2-60.5 l-2.5-26.8c0,0-8.4-21.4-10.1-26.1c-1.7-4.7-9.8-43.8-13.3-53.1c-3.4-9.3-4.4-11.1-4.4-11.1v-8.1c0,0-5.2-6.9-5.2-9.6 s1.7-46.2-30.2-81.1c0,0-6.4-9.8-40.3-16.7L391,194.8l-2.2-1.2c0,0-1.2-2.7-1.2-4.2s-4.7-6.1-4.7-6.1v-34.4c0,0,6.8-3,6.8-19.5l0,0 h5.2c0,0,11.6-5.9,10.3-33.9c0,0,0-6.9-4.9-6.9c0,0-4.9-0.7-6.5,6.5c0,0,3.8-15.6,2.6-26.7c0,0-3-14.5-10.1-25.3s-24.3-17-24.3-17 s-8.1-4.4-21.6-4.4s-24.6,5.2-24.6,5.2s-20.4,12-24.1,30.2c0,0-5.4,20.4-2,36.4c0,0-5.4-3.4-8.9-3.4c0,0-7.9,3.4-3,20.7l10.1,19.4 c0,0,6.9,5.9,6.9-3.9c0,0,3.4,22.9,2.5,23.9c0,0,3,19.7,2,33c0,0,2.2,11.1-16.2,19.7c0,0-20.4,9.3-35.4,19.7s-18.7,6.1-36.1,13.3 c0,0-12.9,5.7-21.8,17.1c-6,7.7-8.6,20.5-10.7,26.7c-2.5,7.3-5.1,19.8-4.3,34.3c0.5,9.9,4.4,20.8,3.7,31c-1,13.9-7.2,25.2-9,37 c-3.3,21.2-2.5,38.9-2.5,38.9s-27.5,51.4-27.5,63.4c0,0-0.7,38.9-3,44.3l-14,46.2c0,0-1.5,12.5-19.4,14.5c0,0-24.6,12.5-38.1,29.8 l-7.4,9.6c0,0-3,10.1,13.3,2.5c0,0,4.9-0.7,8-8c0,0,8.7-0.1,11.9-5.5c0,0,4.8-1.7,4.8,4.8c0,0-3,16.2-4.3,33 c-1.3,15.8-1,31.9,1.3,39.3c0,0,2.2,3.5,4.3-0.5c0,0,0.3,15,10.5,0.5c0,0,2,15.5,12.8-2.2c0.1,0.1,0.3,6.7,7.9-0.6 c19.8-18.9,26.7-45.2,30-62.8c2.7-14.1,1.9-23.6,1.9-23.6s-1.7-14.8,3.9-20.4l35.4-71.6c0,0,10.1-25.3,10.1-45.7l7.6-12.8l1.7-21.4 c0,0,10.1-20.2,11.8-35.9l2-5.7c0,0,6.6,30.2,8.9,40.6c0,0,3,26.1,0.2,44c0,0-3.4,40.8-1.7,45.2c1.7,4.4,0,1,0,1s-6.4,34.7-7.6,51.1 c0,0-3.2,66.9,5.4,95.4c0,0,22.1,103.3,31,108.7c0,0,6.6,28,7.9,40.1l1.7,37.1c0,0,2.5,13,0.7,22.6c0,0-5.9,39.8-5.9,51.4 c0,0,6.9,54.3,15.5,76.2c0,0,11.8,46.5,11.8,62.7c0,0,0.7,19.4-9.3,26.6c0,0-16,24.8-21.4,27.5l-21.1,15.2c0,0-2.9,9.8,0,12.8 c0,0-0.4,6.7,5.4,8.9h2.2c0,0-2.5,7.1,8.4,5.3l4.4,3c0,0,4.9,1.9,8.9-3.2c0,0-0.2,5.4,4.9,5.4h8.4l9.7-9.7c0,0,9-0.1,11.9-6 c0,0,2,1.7,19.9-18.9c0,0,13.5-2,15-13.5c0,0,2.2-10.1-3.2-25.6l1.7-14.8c0,0-2.7-23.6-4.9-31.2s5.5-76.6,1.7-80.4 c0,0,4.7-55.8,1.2-69.6c-3.4-13.8-6.4-21.1-6.4-21.1s3.8-17.3,2-19.2l4.7-17.5l-0.7-48.2c0,0-2.7-74.5-0.5-76.7v-43l2.2,42.5 c0,0,2.7,53.8,0,75.7l0.7,49.4c0,0,2,19.9,4.2,26.1v15.5c0,0-4.8,14.8-4.8,17.8c0,3.1,0.6,40.7,0.6,40.7l3.4,36.9l2.2,25 c0,0,1.5,18.2,0.5,37.6C351.6,1056.3,350.6,1071.3,350.1,1078.1z"}),React.createElement("g",{id:"skin",onClick:this.props.onClick.bind(null,"Skin"),onMouseOver:this.props.onMouseOver.bind(null,"Skin"),onMouseOut:this.props.onMouseOver.bind(null,void 0)},React.createElement("path",{style:{transition:"stroke .25s ease-in-out, stroke-width .25s ease-in-out"},id:"skin_color",fill:getRGB(this.props.values.avg[this.props.fixed.indices.Skin]),stroke:"Skin"===e||"Skin"===t?"rgb(255,225,0)":"rgba(0,0,0,0.5",strokeWidth:"Skin"===e||"Skin"===t?"5":"2",d:"M346.3,774.7c0,0-0.9,24.9-1,33.2s0.9,33.2,0.9,33.2s2,19.9,4.2,26.1v15.5 c0,0-4.8,14.8-4.8,17.8c0,3.1,0.6,36.1,0.6,36.1l0.5,5.9l3.4,36.9l2.2,25c0,0,1.5,18.2,0.5,37.6c-0.7,14.8-1.7,29.8-2.2,36.6 c-0.2,1.9,1.5,17,1,19.6c-3.5,17.8,0.8,28,8.8,32.5c0,0,11,1.5,15,3.8s11.3,10.3,14.5,15.3s13.8,5.3,13.8,5.3l4.3,4 c0,0-0.5,5.5,6.5,6.8s11,0.8,12.3,0.3s2.8-2,2.8-2s7,2.5,8.3-2l1.3-2c0,0,4.8,0,5.3-4.8c0,0,6-0.3,4.8-6s-1-4-1-4s0.3-5.3-2-7.5 s-6.5-2.8-10.8-7.3s-15.2-12.1-15.2-12.1s-17.7-30.8-17.8-31c-0.1-0.2-0.2-0.3-0.3-0.5c-4.1-8.8-9-20.6-8-30c0,0-0.5-5.2,0.9-12.6 l9.8-42c0,0,23.1-96.9,11.8-121l-1.1-4.2c0,0-4.1-27.8-2.6-36.9c0,0,3.6-27.4,4.5-43.2c0.2-4.1,2.2-8.2,1.8-10c0,0-12,5.7-24.7,8.3 c-10.4,2.1-21.8-1.6-27.4-3.5c-2.8-1-7.4-3.8-11.1-7C350.4,780.1,346.3,774.7,346.3,774.7z"}),React.createElement("path",{id:"toes",opacity:"0.68",fill:"none",stroke:"#000000",d:"M429.8,1164.7c0,0,1.4-6.8-1.1-8.2c-0.1,0-4.7-0.1-6.2,0.7c-1.5,0.8-6.5-3.6-6.9-6.8c-0.2-2.1,3.1-2,5.5-1.7c1.2,0.2,2.2,0.4,2.4,0.4c0.5,0.1,5.3,3.8,5.9,6s-0.7,1.3-0.7,1.3 M421.8,1148.8c-1.1-1.9-3.9-4.1-3.9-4.1s0.6-0.6-6-10 M413.1,1146.1c0.5,0,0.9-1.5,3-1.3 M401.1,1152.5l3.1,3.1 M378.2,1136.5c0,0-1.6-3.9-7.3-7 M438.6,1160.6c0,0,0.1-1.5-0.3-2.5c-0.1-0.2-0.1-0.4-0.1-0.6c0-0.5,0.2-1.2-0.1-2c-0.2-0.6-0.7-1.2-1.5-2c-1.1-1-2.2-1.2-3-1.1c-1.1,0.2-1.8,0.8-1.8,0.8s-1.1,2,2.5,3.8s3.4-0.9,3.4-0.9 M434.1,1151.9c-0.6-0.8-4.5-3.4-4.8-3.9s-2.1-2.9-2.1-2.9 M444.4,1155.6c0,0,0.3-2-0.6-2.9s1.4-0.4-2.5-4.4c0,0-0.5-0.2-1.1-0.2c-0.9-0.1-1.8,0.2-1.2,1.7c1,2.6,1.1,2.5,1.8,2.8c0.7,0.3,1.9-0.9,2.5-0.4 M440.2,1148.1c-0.9-1.6-3.9-3.9-4.4-4l-1.6-2 M444.4,1145.3c0,0,0.4,2.3,1.4,2.9s2.1-1,2.1-1s0.3-1.6-2.4-2.9S444.4,1145.3,444.4,1145.3z M443.7,1143.8c-0.4-0.1-0.8-1-3.3-2.6l-2.6-2.6 M443.9,1138.5c0,0,1.3,2.6,2.4,2.9s0.9-0.4,0.9-0.4"}),React.createElement("path",{id:"skin_strokes",fill:"none",stroke:"#000000",d:"M355,1079.9c0.3-0.2,0.8,0.2,0.8,0.6s-0.2,0.7-0.4,1c-1.1,1.6-1.8,3.4-2.1,5.3c-0.2,1.2-0.2,2.4,0.4,3.4c1,1.6,3.3,1.9,4.3,3.4 M418.6,790.9l2.7-12.5c-27.5-40.3-74.8-10.9-74.8-10.9l-0.2,7.1"})),React.createElement("g",{id:"bone"},React.createElement("path",{id:"bone_color",fill:"#DBCBB6",stroke:"#000000",d:"M398.7,587.3c-0.3-1.3-0.6-2.5-0.9-3.8c0,0-0.8-7.7,2-7.8c2.8-0.2-0.8,2.3,8.3,2.7c9.2,0.3,8.7,29.7,8.7,29.7s1.3,9,0.2,13.7c-1.2,4.7-42.3,146.8-42.3,146.8s6,16.5,27,4.5c0,0,1.8-16.2,6.7-38c2.9-12.9,7.7-27.8,11.5-43c10.2-41.3,18.7-84.9,24-89.3c0,0,5.3-5.3,5.8-9.5s-0.1-9.9-0.1-9.9s-3-4.7-2.2-8.2s-7-6.7-10.3-5.5s-1.7,1.8-1.7,1.8s-7.5-0.2-9.3-4.2s-3.2-6.8-3.2-8s0.2-8.2-6.2-7.8l4.4-4.9c3.8-11,0.3-11.8,0.3-11.8c27.2-3.5,20-24.4,8.8-38.3c-4.2-5.2-8.2-9-11.8-11.3c-3-1.8-5.8-2.5-5.8-2.5c-9.1-0.9-17.2-0.3-23,0.5c-14.8,2.2-21,8.8-23,14.8c-1.7,5.1,0,9.6-0.8,11c-2,3.8-9.8,3-9.8,3v6.5c-16,8.2-28.3-0.3-28.3-0.3v-7.8c-5.2,5.5-14-6-14-6s-1.4-14.4-11-21s-27.3-5.4-33.5-3.8c-5.6,1.5-17.1,9-22,18.5c-6.1,11.9-5,26-5,26s4,5.3,9,8.8c3.9,2.7,8.7,3.4,10.3,5.5c1.4,1.8,1.7,8.8,3,12.5c1.3,3.8,3.5,4.3,3.5,4.3c-0.2,11.5-12,18-12,18c-2.4-7.7-7.6-6.9-11.5-3.8c-1.4,1.1-1.6,3-2.5,4.3c-1.1,1.7-2.6,2.5-2.6,2.5s0.4,6.3-0.2,8.3c-0.3,1.1-2.8,2.7-3.8,4.3c-0.9,1.3-0.3,2.8-0.3,2.8s13.6,22.2,21,54.8c4.1,18.2,8.1,38.2,14,58.8c5.5,19.3,13,39.3,16,56.5c1,5.4,0.8,10.6,1.3,15.5c1.1,11-0.8,25.2-3.5,32.8c-1.9,5.5-4.8,5.6-5.2,8.2c-2.5,18.1,0.3,22,3.2,24.1c1.8,1.3,4,3.3,4,3.3s0.5,1,0,2.8c0,0-5.2-4.3-5.5-0.5c0,0-1.9,1.1-0.6,11.1c0.1,1.5,0.6,5.5,1.3,7.4c1.5,4-0.3,7-0.5,7.8c-1.3,6.3,1.5,9,1.5,9s0.2,27.2,0.8,35.3c1.6,22.4,9.9,69.1,15,107c1.4,10.3,4,20,4.8,28.3c1.7,17.6-0.8,29.4-0.8,29.4c-0.2,1.9,2.5,1.2,2.5,1.2c-1,3.2,1,9.7,1,9.7s-1.9,1.5-5,2.8c-2,0.9-4.8,1.2-6.8,2.2c-1,0.5-2.8,3.2-3.5,3.5c-2.4,1-8.3,9.4-13.8,16.3c-4,5.1-8.2,9.2-8.2,9.2s-2.1-0.5-4.3,1c-1.4,0.9-1.3,2.6-2.7,4c-1.4,1.5-4.3,2.7-5.5,3.7c-1.5,1.2-1.9,3.1-2.2,3.2c-1.1,0.4-0.8,3.7-0.8,3.7s-1.7,0.1-2,2.3c-0.4,2.2,2.3,2.7,2.8,0.7c0.5-2-2,2.9,3-3.8c0.7-0.9,1.5-0.6,2.3-1.3c1.8-1.8,3.7-4.2,5.4-5c2.5-1.2,4.4-1.5,4.4-1.5s-1.2,1.1-3,2.3c-1.6,1.1-3.8,2.2-4.5,3c-0.7,0.7-1.7,3.5-1.7,3.5c-2.2,0.3-2.5,3.3-2.5,3.3s1-0.2-2.2,2c-3.2,2.1-2,4.1,0,5.3c2,1.2,2.7-3.8,2.7-3.8c6.2-2.2,5.2-4.7,5.2-4.7c3.7-5,10.7-7.3,10.7-7.3c-4.7,3.8-5.2,7.5-5.2,7.5c-3.3,0-3.5,4.8-3.5,4.8s-0.9,2-3.2,4.7c-2.3,2.7-0.3,5.2,1.2,5.2s3.2-2.7,3.2-2.7s0.6-5.3,2.7-5.3s3.3-2.8,3.3-2.8h1.7v1.5l-3.7,6.7c-3.1,1-3.3,5.8-1.3,6.3s2.8-3.4,4-3.7c1.2-0.4,6.5-5.2,6.5-5.2s1.5,0,2.7-1.3c1.4-1.6,2.6-4.7,4.7-6.7c3-2.9,5.6-4.9,6-5c0.8-0.4,0.3-4.7,0.3-4.7c2.6,0.6,4.3-2.2,4.3-2.2s6.7-8.9,9.5-11.3c2.6-2.2,11.5-7.3,11.5-7.3s-2.1,6.2-6.8,10.7c-3.8,3.6-10.2,5.4-11.7,7.8c-0.4,0.7-0.8,3-0.8,3s-1.6,0.3-3,2.3c-1,1.3-0.7,4-1.7,5.8c-1.2,2.1-4.1,2.9-5.3,4.3c-1.2,1.3-0.7,3.3-0.8,3.3c-0.5,0-2.3,0.8-2.3,0.8s-0.5,4.3-2.7,6s-0.7,5.3,0.5,6c1.1,0.7,2.8-2,2.8-2s-0.7-4.2,2-3.2c2.6,1,4.8-2,4.8-2c0.5-0.3,1.3-0.8,2-1.6c0.5-0.6,0.9-1.6,1.7-3.5c0.6-1.5,0.8-2.1,1.5-2.8c0.4-0.4,1-0.8,1.1-0.9c0.2-0.1,0.8-0.6,1.6-0.9c1.9-0.8,2.6,0,3.5-0.8c0.8-0.7,1.2-2.1,1.2-2.2c0.5-0.3,1.3-0.8,2.2-1.5c5.4-4.1,4.8-7.1,8.7-10.5c4.2-3.6,8.1-3.1,11.3-6.7c0,0,0.1-0.1,2.8-3.2c0.7,0.1,1.7,0.2,2.6-0.3c2-1.2,1.2-3.9,3.1-6.2c1.9-2.3,4-1,5.2-3c1.4-2.1-0.8-3.9-1-10.2c-0.1-2.2,0.1-4.1,0.3-5.5c0.3-2.5,0.7-4.6,1.2-6.5c1.6-6.2,2.9-7.9,3.5-10.7c0.7-3.1,0.1-5.2-3.2-14.7c-6.3-18.3-8.4-23.9-9-31.5c-0.1-1.1-0.2-2.6-0.4-5.3c-0.7-8-1.7-13.8-1.9-15c-0.4-2.1-2.2-14.1-2.8-57.8c-0.3-23.1-0.5-34.7,0.2-41.7c1.9-18.9,3.3-33.7,6.3-40c0.5-1,2.6-5.1,2.2-10.5c-0.1-1-0.1-0.6-0.5-3.3c-1-6.9-1.2-13-1.2-13c0.1-0.2,0.2-0.6,0.1-1c-0.5-1.8-4.4-1.4-4.8-2.8c-0.3-1,1.9-1.8,3.3-3.7c3.7-5.1-3-12.2,0-19.3c0.3-0.8,0.9-1.8,0.8-3.3c-0.1-2.3-1.7-3.7-3.3-5.8c-0.3-0.5-1.5-2.6-3.8-7c-7.3-13.9-15.8-38.5-15.8-38.5c-3-8.7-6.7-19.5-10.5-34.3c-4.2-16.4-3.5-18-7.5-33.7c-4-15.8-4.8-14.6-11.2-36.5c-6.5-22.4-11.8-45-11.8-45c0.4-2.6,1.3-4.3,2-5.5c0.9-1.5,1.7-2.1,2.3-3.7c0.7-1.9,0.6-3.7,0.5-4.3c-0.5-5.2-5.4-6.2-6.1-10.3c-0.8-5,5.3-10.6,9.8-12.9c2.9-1.5,8.2-3.2,8.3-3.2c-1.5,11.2,1.4,21.7,8.5,26.2c4.1,2.6,9,2.9,12.8,3.1c2.5,0.1,9.4,0.4,16.8-3c0,0,1.6-0.7,11.8-7.7c1.6,0.3,2.5,0,3-0.3c0.3-0.2,0.6-0.4,1-0.4c0.6,0.1,0.7,0.9,1.3,1.1c0.8,0.3,1.2-0.9,2.4-1.1c1.4-0.2,1.9,1.3,4,1.6c1.1,0.2,1.9-0.1,2.2-0.1c4.4-0.8,20.2,11.4,31.5,10c0,0,9-1.1,14.8-11.8c0.8-1.4,2.2-4.1,1.8-7.5C399.1,588.5,398.9,587.8,398.7,587.3z M323.8,594.2c-1,1.3-2.9,2.7-3.7,3.2c-1.7,0.9-7.7,1.2-7.7,1.2c-14.2-5-9.5-18.2-9.5-18.2s7.5,1.2,14.3,4.7c3.1,1.6,6.3,3.7,8.2,6.2C325.5,591.2,325.1,592.6,323.8,594.2z M305.8,1025.3c-1.2-9.1-1.7-22.9-3.8-38.3c-2.3-16.5-6.3-35-8-51.7c-2.9-28.4-3.3-51.5-3.3-51.5s0.1,0.2,0.3,0.6c1.4,3.4,7.8,19.3,9.2,28c1.7,10.1,0.7,27,2.2,46c1.3,16.4,5.8,34.2,7.2,50.3c2.4,28.1,1.5,50.8,1.5,50.8S306.9,1033.9,305.8,1025.3z M360.5,594c0,0,3.9-2.5,7.8-5.5c3.6-2.8,7.1-6.1,9.3-7.5c1.2-0.8,5.2-2.7,5.2-2.7s4.2,7.5-2.7,15c-1.4,1.6-3.5,1.8-5.3,2.3C368.1,597.6,360.5,594,360.5,594z M336.1,563.8c-1.2,4.8,1.9,4.6,1.9,4.6c-1.5,4.9,1.5,0.9,1.3,3.8c-0.3,2.8,0.2,4.2,2.8,4.5s2.1-5.2,2.1-5.2c3.1-0.2,1.3-3.7,1.3-3.7c3.2-0.1,2.5-3,2.5-3c5.4-0.5,2.3-5.1,2.3-5.1s1.6-2.1,3.9-3.3c2.1-1.1,4.8-1,6.5-3.8c1.4-2.3,0.8-6.4,1.3-9.8c0.3-2.3,1.2-4.1,2.8-5.2c1.9-1.3,4.2-0.7,6.6-1.3c0.7-0.2,1.7-0.4,2.3-0.8c0.8-0.4,1.2-1,2.3-0.9c0,0,1.4,1.1,2.9,2.8s3.2,3.9,3.7,5.1c0.6,1.3,0.7,5.8,0.7,5.8s-2.1,1.9-4.6,4.1s-5.2,4.6-5.6,6.3c-0.4,2.1,3.8,7.1,3.8,7.1s-3,1.8-6.7,4.9c-1.5,1.3-3.3,3.3-5,4.8c-3.7,3.3-7.2,7.4-10.6,9.4c-2,1.2-3.6,0.6-4.9,0s-2.4-1.1-2.5-1.3c-0.7-1.2-2,0.2-2,0.2c-0.7-2.8-3.6-0.6-3.6-0.6c-0.6-1.5-0.9-0.8-0.9-0.8c-3.9,1.3-7.2,1.9-9.7,1.2c-3.7-1.1-6-4.3-8.5-6.3c-6.2-5.1-9.3-10.5-9.3-10.5s3.2-1.4,3.3-2.4c0.3-1.9-2.1-5-4.3-7.7c-3.3-4-6.9-7.3-6.9-7.3s-0.4-6.1,0.2-8.1c0.2-0.7,0.9-2.2,1.5-3.3c1.1-1.8,2.3-3.2,2.3-3.2s1.3-0.5,2.8-0.2c1.6,0.4,3.3,1.7,4.1,2.3c1.4,0.9,3,3.7,4.3,6.8c1,2.5,1.6,5.3,3.2,7.2c2,2.3,4.4,3.6,6.4,4.6c2.5,1.3,4.3,1.9,4.3,1.9c-2.4,5.9,1.6,6.1,1.6,6.1 M356.3,551.4c-1.9,2.8-2.8-0.3-2.8-0.3C354.9,547.9,356.3,551.4,356.3,551.4z M352.8,547.5c-1.3-3.3,5.8-4,5.8-4S354.1,550.8,352.8,547.5z M354.6,539.6c1.5-3.4,5.2-1.2,5.2-1.2S353.1,543,354.6,539.6z M360.6,532.2c0,0-0.6,1.1-1,1.8c-0.4,0.8-2,1.5-2,1.5c-5.7,1.3-4.3-0.9-4.3-0.9c3.2-3.1,5.5-3.2,7.1-2.5c0.2,0.1,2.8,1.4,2.8,2.3 M331.3,551.2c0,0-0.9,3.1-2.8,0.3C328.5,551.4,329.9,547.9,331.3,551.2z M326.2,543.5c0,0,7.1,0.8,5.8,4S326.2,543.5,326.2,543.5z M325,538.4c0,0,3.7-2.3,5.2,1.2C331.7,543,325,538.4,325,538.4z M321.7,534.4c0-0.9,2.5-2.2,2.8-2.3c1.5-0.7,3.9-0.6,7.1,2.5c0,0,1.3,2.2-4.3,0.9c0,0-1.6-0.8-2-1.5s-1-1.8-1-1.8"}),React.createElement("path",{id:"bone_strokes",fill:"#DBCBB6",stroke:"#000000",d:"M321.6,848.7c0.7-2.4,8.8-2.3,8.8-2.3 M268.1,555.6c0,0-7.8,18.8,17.4,21.1c0,0,1,1.6,1,2.8s4.3-2.7,5.4-5.7 M326,590.9c0,0-1.6,3.8-5.8,6c-2.1,1.1-4.6,2.4-8.8,1.2c-12.3-3.4-8.4-18.2-8.4-18.2 M341.4,584.2c0,0,1.3-2,2.1-1.4c1.2,0.9,1.2-1.1,1.3,2.3c0.2,8,1.5,9.9,0.7,11.4c-0.1,0.3-0.1,0.3-0.3,0.5 M255.3,573.3c-1.6,0.6-3.4,0.9-5.4,0.8 M301.3,866.6c-3.2,0.5-13.6-7-14.4-18.2c-0.9-11.1,16.3-14.8,16.3-14.8s3.2-0.3,6.7,1.3c5.3,2.4,11.6,7.7,11.7,13.8c0.1,5.7-5.9,12.6-11,15.8c-3.9,2.5-7.3,2-7.3,2S304.5,865.9,301.3,866.6z M291,884.3c-3-4.9-6-9.9-9-14.8 M341.2,1093.7c0,0-3.8-1.5-5.7-2.7c-1.6-1.1-2.5-2.6-4.5-3.2c-4.4-1.3-8.7-0.2-11-1.5c-1.6-1-6.2-5-8.5-7.2c-2-1.9-1.6-3.9-1.6-3.9s0.5-10,1.1-15.5 M310.5,1077.2c-2.3,3.5-4.4,6.3-6.1,6.9 M313.3,505.4c0,0-11.6,7.6-4.1,29.9c0,0-18.3,13.8,18.5,47.5c0,0,3,3.5,12.7,0c0,0,1-0.3,1,1.6c0,0-2,8.8-0.2,12.6 M337.2,598.1c-1.7,0-2-0.3-4.6-1.5c-2.2-1.1-4.5-4.2-6.5-5.5c-1.2-0.8-5.4-5-11.5-7.5c-6.5-2.7-16.2-3.7-21.7-8.6c-2.4-2.2-3.3-6.2-3.9-9.8c-0.3-1.4-2.4-5.4-2.7-7.1c-0.5-0.6-3.7,0-8-0.5c-0.6-0.1-1.6-0.9-2.2-1c-4.9-0.5-7.7-0.8-8.3-1.4 M340,1106.3c-0.6,1.5-1.8,1.3-1.8,1.3s-2.2-0.6-5.5-2.5c-3.9-2.3-8.1-5.6-13.3-7.7c-3.2-1.4-6-0.9-8.5-1.3s-4.7-1.8-5.1-1.9 M300.7,1105.2c-4.6-5.3-6.2-1.5-6.2-1.5s-2.7,4.5-8,10c-3.8,4-8.2,7.7-10,10.2c-1.1,1.5-3.5,6.8-3.5,6.8 M317.7,1096.9c0,0,1.1,1.6-1.6,3.1s-10.2,2.3-10.2,2.3s-4,1.9-5.1,2.8c-2,1.6-3.7,5.7-6.6,9.3c-1.9,2.3-3.3,5.5-5.2,7.7c-1.2,1.4-4.1,3.1-5.2,4.2c-2.9,3-3.1,5.2-3.1,5.2 M289.5,1103.3c-0.3,0.3,0,0,0.1,0.5c0.2,1.8,1.9,4.2,1.9,4.2 M273.2,1151.9c5.3-0.4,4.6,3.1,5.9,3.4 M292.5,1137.8c-0.9-3.8-6.9-3.8-6.9-3.8s-2.2,1.6-3.4,4c-0.9,1.7-1,3.5-1.6,4.4c-0.8,1.1-3.1,2.4-4.8,4s-2.7,3.6-2.7,3.6h-0.5 M271.3,1150c0,0-0.6-2.3-1.1-2.9c-0.4-0.4-2.1-0.9-2.1-0.9 M273.3,1138.4l2.1-1.8l0.9-4.1l-1.3-1c0,0-1.5-1.4-3.8,0c-1.1,0.7-0.5,2.2-2.3,3.2 M253.5,1139.8c0,0,2.3,1.3,2.6,2.4 M322.7,1110.7c-5.5-3.5-3.9-5.3-6.6-6s-3.8,1.1-3.8,1.1s-7.9,10-13.9,16.3c-2.2,2.3-3.2,4.9-4.8,5.3c-6.1,1.3-6.8,6.6-6.8,6.6 M310.9,1106.7c0,0-2-2.7-5.1-4.4 M327,1107.5c0.6-0.8-2.1-8.9-5.1-5.1s-5.8,2.4-5.8,2.4 M336.2,1118.7c1.3-8.4-6.6-10.7-6.6-10.7c-8.2-2.3-8,6-8,6c-4.7-1.2-3.7,2.6-3.7,2.6 M298.5,1139c0,0,6.5,3,7,7.8 M330.6,1125.3c4.1-9.4-9.1-11.3-9.1-11.3 M285.5,1134c-7.2-5.3-9.3-1.4-9.3-1.4 M366.1,509.4c13.2,0.3,11.5,22.5,9.2,25.2s-9.3,2.6-9.3,2.6s-4.5,0.7-4.3,8.2s-0.7,6.1-1.3,8c-0.6,1.9-6.5,2.5-7.8,3.7c-1.4,1.2-3.7,3.2-3.7,3.2s-7.7,0.3-11.2,0c-3.5-0.4-3.3-2.7-3.3-2.7s-5.1-2-6.7-3c-1.6-0.9-4.9-3.5-5.5-5.3c-2.9-8.5-3.6-10.5-9.2-14.1c-1.8-1.1-3.7-0.1-3.7-0.1 M327.1,511.5c0,0-4.6,4.4-13.7-6.2 M416.6,551.5l-1.8,0.2c-10.8,1.5-16,17.3-16,17.3c-2.8,2.7-9.5,8.2-16.2,9.5c-3.9,0.8-12.2,8.1-19.7,13.5c-5.2,3.8-10.5,6-11.8,6.7 M375.3,534.7c1.9,0.5,2.6,2.6,3.8,3.6c9.4,7.7,0.1,27.3-4.5,29.3c-5.1,2.3-16.1,15.4-19.8,17.5c-3.7,2-6.7-0.9-8.2-1.4s-1.8,2.8-1.8,2.8 M304.6,549.5c1.4-0.4,11.6,11.9,11.7,14.5s-3.3,2.6-3.3,2.6 M376.6,565.9c0,0-5.1-5.1-3.3-8.3c1.9-3.1,9.2-7.1,9.9-9.8 M382.6,578.5c4.2,9-2.8,14.8-2.8,14.8c-11.3,6.6-19.8,0.7-19.8,0.7 M355.2,519.4c-1,3.5-4.4,5.1-4.4,5.1s-7,2.4-14.9,0.8c-7.9-1.6-7.8-6.3-7.8-6.3 M288,1154c5.7,0.8,5.1,5.8,5.1,5.8 M262.8,1145.3c-1.4-2.3-3.4-1.8-3.4-1.8 M271.1,1131.6c-0.8-3.9-3.1-3.5-3.1-3.5 M401.5,576.7c0,0,0.3-4.5,6.3-5.2s14.8-8.5,14.8-11.7 M398.8,569c-3,4,1,6.7,1,6.7"}),React.createElement("path",{id:"bonemarrow",style:{transition:"stroke .25s ease-in-out, stroke-width .25s ease-in-out"},onClick:this.props.onClick.bind(null,"Bone marrow"),onMouseOver:this.props.onMouseOver.bind(null,"Bone marrow"),onMouseOut:this.props.onMouseOver.bind(null,void 0),fill:getRGB(this.props.values.avg[this.props.fixed.indices["Bone marrow"]]),stroke:"Bone marrow"===e||"Bone marrow"===t?"rgb(255,225,0)":"rgba(0,0,0,0.5",strokeWidth:"Bone marrow"===e||"Bone marrow"===t?"5":"2",d:"M291.4,574.4c0.2-0.9-1.5-5.3-2.5-9.8c-0.8-3.7-3.1-6.5-3.1-6.5c-4,0.4-17.9-2.6-17.9-2.6c-0.3,3.3-1.4,5.1-1.4,5.1c-2.3,8.6-10.7,12.5-10.7,12.5c-2.4-7.7-7.6-6.9-11.5-3.8c-1.4,1.1-1.6,3-2.5,4.3c-1.1,1.7-2.6,2.5-2.6,2.5s0.4,6.3-0.2,8.3c-0.3,1.1-2.8,2.7-3.8,4.3c-0.9,1.3-0.3,2.8-0.3,2.8s13.6,22.2,21,54.8c4.1,18.2,8.1,38.2,14,58.8c5.5,19.3,13,39.3,16,56.5c1,5.4,0.8,10.6,1.3,15.5c1.1,11-0.8,25.2-3.5,32.8c-1.9,5.5-4.8,5.6-5.2,8.2c-2.5,18.1,0.3,22,3.2,24.1c1.8,1.3,4,3.3,4,3.3h1c0,0,1.3-8,17.4-12c0,0,1.8,0.1,4.1,1.1c4.4,2,11.6,5.4,13.3,13.4c0,0,3.3-2.1,9.4-1.9l2.8-3.5c5.7-7.8,0-19.3,0-19.3s0.8-2.4,0.8-3.3c0-2.3-1.9-3.9-3.3-5.8c-1.4-1.9-2.3-4.2-3.8-7c-5.5-10.3-12-25-15.8-38.5c-3.1-11-7.2-22.6-10.5-34.3c-3.1-11.3-4.5-22.7-7.5-33.7c-3.5-12.8-8.1-25.5-11.2-36.5c-7.4-26.6-11.8-45-11.8-45s0.7-2.9,2-5.5c0.7-1.5,2.1-2.8,2.3-3.7c0.3-1,0.5-4.3,0.5-4.3c-12-10-3.8-18.7,3.7-23.2c4.3-2.6,7.5-2.1,7.8-2.7C287.2,579.2,290.8,577.1,291.4,574.4z"})),React.createElement("path",{id:"esophagus",style:{transition:"stroke .25s ease-in-out, stroke-width .25s ease-in-out"},onClick:this.props.onClick.bind(null,"Esophagus"),onMouseOver:this.props.onMouseOver.bind(null,"Esophagus"),onMouseOut:this.props.onMouseOver.bind(null,void 0),fill:getRGB(this.props.values.avg[this.props.fixed.indices.Esophagus]),stroke:"Esophagus"===e||"Esophagus"===t?"rgb(255,225,0)":"rgba(0,0,0,0.5",strokeWidth:"Esophagus"===e||"Esophagus"===t?"5":"2",d:"M373.3,392.5c-4.5-8.5-1.6-19.5-4.5-28.3c-2.8-8.7-9.9-59.4-9.9-59.4c1.3-30.7-7.2-65-7.2-65c0.8-0.8-0.8-27.6-2.5-50.4c-0.7-10.4-0.3-19.8-1.7-25.9c-1-4.4-6.7-4-7.5-3.9c-1.1,0.1-5.3,0-5.4,6c-0.4,16.8,4.5,52.2,4.5,52.2c2.4,4.3,0.9,7.9,0.9,7.9c-3,15.4,3.5,62.8,3.5,62.8c0.4,18.8,6.3,47.4,6.3,47.4c3.9,12.6,6.2,43.7,6.2,43.7c0.6,8,1.9,16.2,3.2,24.1c0.1,0.5,0.1,0.9,0.2,1.4C361.9,398.8,366.6,393.2,373.3,392.5L373.3,392.5z"}),React.createElement("path",{id:"esophagus_line",fill:"#A8B1BA",stroke:"#000000",d:"M335.3,162.2c0,0,4,5.8,11.8,0.7"}),React.createElement("path",{style:{transition:"stroke .25s ease-in-out, stroke-width .25s ease-in-out"},id:"spleen",onClick:this.props.onClick.bind(null,"Spleen"),onMouseOver:this.props.onMouseOver.bind(null,"Spleen"),onMouseOut:this.props.onMouseOver.bind(null,void 0),fill:getRGB(this.props.values.avg[this.props.fixed.indices.Spleen]),stroke:"Spleen"===e||"Spleen"===t?"rgb(255,225,0)":"rgba(0,0,0,0.5",strokeWidth:"Spleen"===e||"Spleen"===t?"5":"2",d:"M407.8,434.9c0,1,0.1,4.4,2.5,7.1c0,0,2.2,2.4,6,3c6,1,17.1-5.4,20.8-18.5c2-7.1,1-15.5-2.7-29.5s-21-21.8-21-21.8s-19.4-11.7-21.5,12.6C389.8,412,407.8,407.3,407.8,434.9z"}),React.createElement("path",{id:"adipose_tissue",style:{transition:"stroke .25s ease-in-out, stroke-width .25s ease-in-out"},onClick:this.props.onClick.bind(null,"Adipose tissue"),onMouseOver:this.props.onMouseOver.bind(null,"Adipose tissue"),onMouseOut:this.props.onMouseOver.bind(null,void 0),fill:getRGB(this.props.values.avg[this.props.fixed.indices["Adipose tissue"]]),stroke:"Adipose tissue"===e||"Adipose tissue"===t?"rgb(255,225,0)":"rgba(0,0,0,0.5",strokeWidth:"Adipose tissue"===e||"Adipose tissue"===t?"5":"2",d:"M430.1,643.5c0.5-0.6,1.6-2.1,2.7-4.7c1.1-2.7,0.9-3.5,2-8.5c1.5-6.9,2-5.8,2-7.8c0-1.1,0-3.5,1.4-5.1c0.1-0.1,0.1-0.2,0.3-0.2c1.4-0.6,4.2,3.5,5,4.6c1.5,1.1,2.4,6.2,2,8.1c-0.6,2.8,0.4,3.5-0.2,6c-0.5,2.2-1.4,2-1.8,4.2c-0.5,2.4,0.5,3,0.5,6c0,2.9-0.9,3.4-1.5,7.2c-0.4,2.6-0.1,3.2-0.2,6.7c-0.1,4.2-0.2,8.3-1.8,12.7c-1.4,3.8-2.6,4-3.8,8.3c-0.7,2.6-0.9,4.9-1,6.2c-0.2,4.1,0.6,5.4,0.6,8.4c0,3.8-1.3,4.8-2.6,9.6c-2.7,9.7,0.9,12.4-2.3,17.3c-1.7,2.6-2.3,1.2-8.2,6.8c-3.7,3.4-4.4,4.9-7.3,7.2c-3.2,2.5-6.4,3.9-8.4,4.7c-0.6,0.1-3.8,0.4-6.7-1.9c-2.7-2.1-3.3-5-3.4-5.7c-1.5-0.2-4-0.8-6.4-2.6c-1.1-0.9-4.9-3.5-4.6-6.9c0.2-1.6,1.1-3.1,1-4.7c-0.1-1.6-1.2-3-1.8-4.4c-3.4-7.5,3.4-15.8,3-24c-0.1-2.9-1.8-4.9-1-8c0.7-3,2.8-5.4,3.1-5.8c1.8-2,2.8-2,4.3-4.2c1.6-2.2,1-2.9,2.2-4.3c2.2-2.8,5.1-1.4,9.9-3.9c3.2-1.6,2.1-2.3,6.1-4.8c4.8-2.9,6.7-2.2,9-4.8c1.7-2,0.8-2.6,3-5.8c1.2-1.8,1.9-2.2,3.3-3.6C428.5,645.4,429.3,644.6,430.1,643.5z"}),React.createElement("g",{id:"liver"},React.createElement("path",{style:{transition:"stroke .25s ease-in-out, stroke-width .25s ease-in-out"},id:"liver_color",onClick:this.props.onClick.bind(null,"Liver"),onMouseOver:this.props.onMouseOver.bind(null,"Liver"),onMouseOut:this.props.onMouseOver.bind(null,void 0),fill:getRGB(this.props.values.avg[this.props.fixed.indices.Liver]),stroke:"Liver"===e||"Liver"===t?"rgb(255,225,0)":"rgba(0,0,0,0.5",strokeWidth:"Liver"===e||"Liver"===t?"5":"2",d:"M274,460.9c8.4-2.2,15.6-5,22.7-9.7c9.9-6.4,19.3-15,27.8-22.8c3.3-3,6.7-6,11.5-7c8.9-1.8,17.8-2.8,26.4-5.4c9.9-2.9,18.8-8.2,26.8-14.1c7.1-5.2,18.5-18.7,9.3-26.7c-4.8-4.2-13.3-3.8-19.5-3.4c-8.9,0.4-17.8,1.8-26.8,1.9c-16.7,0.2-32.2-5.6-48.5-8.1c-14.2-2.2-29.1-0.3-40.3,8.1c-12.3,9.3-17.7,27.1-17.8,41.1c0,6.1,0.8,12.5,2.4,18.5c1.4,5.2,4,10.2,4.9,15.4c0.8,4.2-2.5,11.2,1.7,14.5C259.6,467,268.9,462.2,274,460.9z"}),React.createElement("path",{id:"liver_strokes",fill:"none",stroke:"#000000",strokeWidth:"0.5",d:"M281.6,456.5c-2.3,0.8-4.6,1.5-6.8,2.4c-3.7,1.5-8.5,3.6-12.6,3.5c-6.8-0.2-2.7-7.7-0.7-11.1c1.5-2.5,4-4.4,5.7-6.8c1.8-2.6,3-5.8,4-8.7c2-5.5,3-11.3,3-17.1c0.1-4.8-0.1-9.8,2-14.3c6-12.9,28-23.4,43-17c1.5,0.7,3.3,2,4.5,2.6c8.6,4,17.5,4.9,27.4,5.1c11.8,0.3,28.2,0.7,38.3-5.8c2.7-1.7,6.5-5.8,5.9-9c2.3-0.7,2.3-3.4,1.3-5.1c5.7,3,3.5,10.2,1.3,14.5c-2.9,5.9-8.3,10.8-13.9,14.6c-7,4.8-17.4,8.4-25.8,10.5c-5,1.2-10.1,2.5-15.1,3.5c-4.6,1-11.7,1.9-15.6,4.1c-4.2,2.8-7.3,7.5-10.7,10.7c-7.3,6.7-15.3,14.1-24.3,19.1C289.1,454,285.3,455.3,281.6,456.5z"}),React.createElement("path",{id:"bile_duct",fill:getRGB(this.props.values.avg[this.props.fixed.indices["Gall bladder"]]),stroke:"rgba(0,0,0,0.5)",strokeWidth:"2",d:"M316.7,462c-1.6-1.6-1-6.1-1.3-8.3c-0.4-3.2-0.5-6.4-1.2-9.6c-0.7-2.8,0.2-5.7-0.1-8.6c-0.9-8.2-1.1-16.5-1.4-24.7c-0.1-2.9,0.1-5.9,1-8.7c0.6-1.9,3.2-4.4,1.3-6c-2.9,2.1-3.4,6.5-4.4,9.7c0.4-1.1-4.2-7.6-6.3-7.9c-0.5-0.1-0.9,0.3-1,1.3c0,0.1,0,0.1,0,0.2c0.2,1.2,2.7,3,3.4,4c3.3,4.6,3.7,7.5,3,13.1c-0.2,1.8-0.4,2.8-0.9,3.3c-1.7,1.7-4.4,2.6-6.6,3.3c-1.4,0.5-4.1,0.9-5,2.1c-1.9,2.6,3,0.1,3.9-0.3c4.1-1.7,10.3-3.2,10.5,3.1c0.3,6.9,0.4,13.8,1.2,20.7c0.6,6.1,3.2,12.6-1.9,17.5c-1,0.9-4.3,1.7-4.3,3.2c0,3.7,7.1-3.2,8.4-3.7c1.4-0.5,2.9-0.8,4.3-1c0-0.6,0-1.2,0-1.8C318.2,462.9,317.2,462.6,316.7,462L316.7,462z"}),React.createElement("path",{style:{transition:"stroke .25s ease-in-out, stroke-width .25s ease-in-out"},id:"gall_bladder",onClick:this.props.onClick.bind(null,"Gall bladder"),onMouseOver:this.props.onMouseOver.bind(null,"Gall bladder"),onMouseOut:this.props.onMouseOver.bind(null,void 0),fill:getRGB(this.props.values.avg[this.props.fixed.indices["Gall bladder"]]),stroke:"Gall bladder"===e||"Gall bladder"===t?"rgb(255,225,0)":"rgba(0,0,0,0.5",strokeWidth:"Gall bladder"===e||"Gall bladder"===t?"4":"2",d:"M308,420.5c-1.3,1.4-2.9,2.1-4.7,2.6c-2,0.5-4,0.7-5.9,1.2c-4,1-7.1,3.1-10.5,5.3c-3.1,2.1-6.8,5.1-6.9,9.1c-0.1,4.3,4,5.4,7.4,3.8c3.1-1.4,4.3-4.4,5.7-7.2c2.7-5.3,9.1-11.7,15.5-11.9L308,420.5z"})),React.createElement("g",{id:"intestine",onClick:this.props.onClick.bind(null,"Intestine"),onMouseOver:this.props.onMouseOver.bind(null,"Intestine"),onMouseOut:this.props.onMouseOver.bind(null,void 0),fill:getRGB(this.props.values.avg[this.props.fixed.indices.Intestine])},React.createElement("path",{style:{transition:"stroke .25s ease-in-out, stroke-width .25s ease-in-out"},id:"small_intestine",stroke:"Intestine"===e||"Intestine"===t?"rgb(255,225,0)":"rgba(0,0,0,0.5",strokeWidth:"Intestine"===e||"Intestine"===t?"2":"1",
-d:"M392.6,512.4c0.8-1.2,2.5-1.3,4-1.6c2.2-4.1,6.6-4.2,9.7-7.3c5-4.9,3.5-19-3.8-21.7c-6.5-2.4-13.4,2-17.9,5.9c-4.1,3.6-8.8,8.4-8.6,13.8c0-1-0.1-2.3-0.4-3.2c-1.5,0.4-3,1.5-4.7,1.6c1.9-0.7,4.1-1.4,5.5-2.7c3-2.6,5-7.8,5.1-11.4c0.2-3.8-2.3-6.4-6.5-7.2c-10.7-1.9-16.1,7.7-25.6,8c-3.6,0.1-6.9-1.3-10.5-1.1c-4.4,0.2-8.3,2.3-12.2,3.9c-3.4,1.4-8,3.5-11.7,2.1c-1.3-0.5-2.7-1.2-3.9-1.8c-1.6-0.9-1.4-7.5-1.9-9.2c0.9,2.2-1.4,5.7-3.7,6c-2.5,0.4-5.4,0-8-0.4c1.7,5.1,3.4,12.9,8.5,14.6c3.4,1.1,7.3,1.8,10.8,1.8c2.1,0,4.1-0.2,6.2-0.5c1.6-0.2,3.3-0.3,4.5-1.3c0.9-0.8,1.2-1.6,2.5-2c1.6-0.5,3.4-0.6,5.1-0.8c1.8-0.2,3.8-0.2,5.6,0c2.3,0.3,4.3,1.1,6.6,1.5c1.7,0.3,3.4,0.5,5.2,0.9c1.4,0.3,4.7,1.8,5.8,0.5c0.6-0.7,0.8-1.5,1.5-2.2c0.8-0.8,1.8-1.5,2.6-2.2c2.2-1.9,4.3-3.9,6-6.1c1-1.3,0.9-3.4,0.5-5c0.4,1.2,0.2,2.5,0.8,3.7c0.3-0.8,3.5-1.1,4.4-1.5c-1.8,0.4-3.8,1.1-5.2,2.3c-1.9,1.7-3.1,4.1-4.8,6c-1.6,1.6-5.9,2.9-5.6,5.5c0.2,1.4,1.6,1.7,3,2.4c2.2,1.1,4.5,2.2,6.7,3.3c2.6,1.3,9.4,3.2,12,1.1c1.6-1.3,3.2-3.3,4.7-4.8c4-3.9,9.2-7.3,11.6-12.2c-0.4,1.8-2.8,4.4-3.8,6.2c1.9-1.4,3.7-2.5,6.2-2.8c-5.6,1.2-8.1,3.7-11.7,7.2c-1.7,1.7-3.2,3.6-4.9,5.3c-0.9,0.9-2.1,1.7-2.9,2.8c-0.7,0.9-0.5,1.6-0.6,2.6c-0.1,1.7-1.1,2.7-1.6,4.3c-1.1,3,1.7,4.5,4.4,5.6c1.5,0.6,3.1,1.1,4.5,1.8c0.6,0.3,1.6,0.7,2,1.1c0.8,0.8,0.3,1.8,0.6,2.8c0.3,1.1,1.3,2.1,1.6,3.3c0.3,1.2,0.3,2.5-0.3,3.6c-0.6,1.1-1.9,1.6-2.4,2.7c3.3,2.5,11.2,4.5,13.7,0.4c0.8-1.3,0.9-2.9,1-4.4c0.1-2,0.4-4,0.2-6c-0.1-1.4-0.4-2.9-0.6-4.3c-0.1-1.1-0.8-2.8-0.6-3.8c0.2-0.6,1.3-1.4,1.7-1.9c1-1.2,1.9-2.5,3.1-3.7c-2,1.6-4.4,4.1-4.3,6.6c0.1,2.8,0.3,5.6,0.4,8.3c0.2,3.9-0.6,7.6-2.3,11.2c-1.7,3.5-5.6,7-4.6,11c0.3-3.7,1.2-8.3,4.3-11.1c-0.9,0.8-3.8,0.7-5,0.6c-1.9-0.2-3.4-0.8-5-1.7c-2.9-1.6-5,0.1-6.2,2.6c-0.8,1.8-0.3,4.1-0.2,5.9c0.1,1.9-0.5,3.8,0.4,5.6c0.9,1.7,2.5,3.2,3.2,4.9c-0.5-0.8-1-1.6-1.5-2.4c-0.3-0.5-1.5-2.5-2.1-2.6s-0.9,0.5-1.3,0.8c-1.5,1.2-3.2,2.3-4.9,3.3c1.3-1.6,3.4-2.7,5-4.1c1.5-1.3,0.8-3.2,0.8-4.8c0-2.3,0.5-4.9,1.1-7.1c0.7-2.7,4.2-3.5,5.5-5.8c0.6-1,1.2-2.9,1-4c-0.1-0.9-2.4-3.1-2.3-3.4c0.3-2-1.3-3.6-3.2-4.4c-2.1-0.8-3.9-0.3-5.7,0.7c-3.5,2-5.2,5.8-7.3,9c-0.6,0.9-1,1.8-1.5,2.7c-0.4,0.7-1.5,2-1.4,2.9c0,0.5,0.7,1.2,1,1.6c0.6,0.9,1.1,1.9,1.4,2.9c-0.2-1-1.5-4.2-3-4.1c1.7-5,6-9.3,9.1-13.7c0.4-0.6,0.8-1.3,1.3-1.8c0.2-0.2,0.9-0.6,1-0.8c0.3-0.9-1.3-1.2-1.8-1.6c-0.7-0.6-1.2-1.6-1.3-2.4c-0.5-2.4,1.5-3.3,1.9-4.6c0.8-2.1-0.1-3.7-2.2-4.7c-1.1-0.5-2-0.6-3.1-0.7c-0.7,0-1,0.2-1.8-0.1c-2-0.7-3.9-1.9-5.7-2.9c-2-1-4.2-1.8-6.3-2.5c-3.9-1.4-8-2.5-12-3.5s-7.9-2.3-12.2-2c-2.4,0.2-7.2,1-7.8,3.6c-0.2,1,1.2,2.1,1.5,3c0.9,2.9-2.2,5.2-4.1,7.1c-2.1,2-4.2,4.1-5.3,6.7c0.9,1.2,2.9,1.3,4.4,1.5c2.5,0.4,4.7,1.7,7,2.6c4.8,2,10.5,4.4,14.1,7.9c1.3-2.3,3.1-4.1,5.4-5.7c-4.2,4.5-6.9,6-3.3,11.7c-0.5-3.8-3.2-6.9-6.7-8.8c-5.5-3.1-21.5-13.8-25.1-3.5c2.1-2.1,2.8-5.1,4.7-7.4c1.7-2.2,4.1-3.8,5.9-5.9c1.6-1.9,3.8-4.8,2.2-7.1c-1.7-2.5-4.8-1.3-7.2-1c-8.8,1.3-14.5-0.9-22.5-3.6c-7-2.4-12.5-1.8-17,3.1c-1.9,2-4.3,3.4-4.5,5.9c-0.2,2.2,0.5,4.3-0.1,6.7c-0.7,2.8-1.6,5.6-1.9,8.4c-0.5,4.1,1.6,7.8,1.4,12c-0.1,2.8-1.8,5.8-1.4,8.6c0.3,0.1,0.5,0,0.8,0.1c0.9,1.6-0.1,3.1,0.6,4.9c1.2,3.3,5,9.2,8.9,10.4c2.6,0.8,8.1,1.6,10.5-0.1c1.2-0.9,1.6-2.7,2.1-3.9c0.8-2.1,2.4-5,4.4-6.3c5.1-3.4,13-0.2,17.4-4.6c0.5-0.5,1-1.1,1.4-1.6c-0.8,1-1.9,2.1-2.3,3.2l0.1,0.1c2-0.3,4.3-0.5,6.3-0.3c-1.3,0.5-3.3,0.2-4.7,0.4c-1.1,0.2-2,0.2-3.1,0.3c-1.7,0.1-3.3,0.8-4.9,1c-1.3,0.1-2.7,0-4,0.2c-2.9,0.3-5.9,0.8-7.9,2.8c-1,1-1.3,3.5-1.9,4.8c-0.5,1-2,2.6-2.2,3.6c-1.1,5.5,6.8,11.4,11.6,13.2c6.3,2.4,8.3-2,11.8-5.6c4.4-4.6,9.6-8.1,15.5-11c2.2-1.1,2.8-1.9,2.8-4.2c0.1,0.8,0,1.8,0.4,2.5c0.9-0.2,1.9-0.1,2.8-0.2c-3.6-0.1-6.8,2.2-9.5,4c-0.9,0.6-4.1,2.2-2.5,3.3c1,0.7,2.3,0.5,3.5,0.7c1.4,0.2,2.8,0.7,4.2,1c1.6,0.4,7.1,1.5,4.9,3.5c1.5-0.4,3.2,0.1,4.6,0.3c0.8,0.1,1.8,0,2.4,0.4c0-0.6,0.4-1.9,0.6-2.6c0.6-2.3,1.8-4.5,2.9-6.6c0.6-1,3.3-3.8,4.8-3.4c-2.2,0.4-3.8,2.4-4.8,4.1c1.6-0.3,3-1.1,4.6-1.4c1.2-0.2,2.6-0.2,3.8-0.3c-2.4,0.3-4.6,0.8-7,1.5c-1.1,0.3-1.5,0.4-2,1.3c-1,1.7-1.3,3.6-2.1,5.3c-0.3,0.6-0.7,1.3-0.6,2c0.5,2.4,3.7,3.3,5.8,4.1c3.1,1.3,4.5,3.4,6.6,5.6c1.6,1.7,2.9,4.2,5.5,4.9c2.7,0.7,5.1-1,7.6-1.6c-1.9,0.8-4.4,0.6-5.9,2c-1.7,1.6-3.1,5.3-2.6,7.4c0.3-1.8,2.2-6,0.9-7.5c-0.6-0.7-2.3-1.3-3.2-2c-2.9-2.7-4.3-6.6-8.3-8.3c-1.4-0.6-3.1-0.7-4.5-1.3c-1.8-0.8-1.8-2.9-3.9-3.5c-0.7-0.2-6.3-0.3-6.4-0.1c0.2-0.4,0.7-0.7,1.2-0.8c-0.3-0.7-1.3-1.3-2.1-1.6c-3.6-1.6-9.9-2.9-13.8-1.9c-2.5,0.7-4.4,2.2-6,4c-1.5,1.7-3,3.7-4.2,5.7c-0.7,1.2-0.2,2.2,0.9,3c1.1,0.7,2.7,1.5,3.9,2c3.3,1.4,7,0.6,10.5,1c1.9,0.2,3.5,0,5.1,1c1.7,1,2.8,2.7,4,4.1c-1.4-2.2-6.5-4.9-9.4-5.2c-3.7-0.4-7.1,0.2-10.8-1c-2.7-0.9-9.7-4.9-12.2-1.7c-0.7,0.9-0.8,3.4-1.1,4.5c-0.6,1.9-1.7,4.4-1.4,6.4c0.7,3.5,6.2,6.8,9.4,8.4c1.6,0.8,3.2,1.1,4.9,1.5c1.6,0.4,3.1,0.8,4.7,0.9c2.2,0.2,4.5,0.1,6.7,0.3c1.8,0.1,3.6,0.4,5.4,0.5c2.3,0.1,4.7,0.3,6.9,0.3c0.8,0,1.6-0.3,2.4-0.4c1-0.1,2-0.1,3,0c-1.4,0.2-3.4-0.1-4.6,0.4c1.1,0.7,2,1.6,3.1,2.3c-0.9-0.6-1.6-1.3-2.6-1.8c-0.8-0.4-1.4-0.4-2.3-0.4c-3.1-0.2-6.1-0.7-9.2-0.8c-3.5-0.2-6.8-0.5-10.2-1c-6.8-1.1-14.4-3.4-17.5-9.4c-1.6-3.1,1.2-6.7,1.6-9.8c0.6-3.9-3.5-7-7.6-7.7c-1.7-0.3-4.4-1.1-6.2-0.6c-1.6,0.5-3.3,2.5-4.6,3.4c-1.4,0.9-2.7,1.6-3.7,2.9c-2.7,3.6-0.3,6.9,4.2,7.5c3.7,0.4,7.9-2.6,8.8-5.6c-0.6,1.7-2.1,2.9-3.7,4c-1.5,0.9-1.5,1-2.1,2.5c-1.2,2.9-2.4,5.3-2.5,8.6c-0.1,2.6,0.5,6.5,2.6,8.3c2.8,2.3,6.7,0.5,9.8,1.3c0.1-0.3,0.3-0.7,0.3-1c0-0.1,0.1,0.6,0.1,0.8c0-1-0.8-1.9-0.9-2.9c2.3,4.2,7,7.1,11.6,9s10.1,1.9,15.1,1.3c3.8-0.4,6.9-0.3,10.6,0c4.5,0.3,8,0.4,12.3-0.5c3.2-0.7,7.8-1.4,8.3-5.1c0.3-2.3,0.4-5.8-1.1-7.8c-1.3-1.7-3.6-2.6-4.9-4.3c-0.8,0.7-1.7,0.2-2.8,0.5c-1.3,0.3-2.3,1-3.6,1c-4,0.2-8.5-1.1-12.2-2.5c-2.8-1-5.7-1.2-8.4-2.4c-1.9-0.8-3.9-2.1-5.8-2.7c-2-0.6-4.1,0.1-6.1,0.4c1.1,0.1,2.2-0.5,3.3-0.5c-0.4-0.8-1-1.7-1.2-2.6c0.6,3.2,4.4,2.9,7,4c0.8,0.3,1.5,0.8,2.3,1.2c1.5,0.7,3.2,1,4.8,1.4c1.5,0.4,3.1,0.6,4.6,1c1.3,0.4,2.5,1.1,3.8,1.6c1.7,0.7,3.4,0.7,5.3,0.9c1.8,0.1,3.3-0.2,5.1-0.5c1.4-0.2,3.1-0.5,3.7-1.9c0.6-1.5,0.2-3.4-0.5-4.9c-1.7-3.9-5.1-9.3-9.7-11c-1.2-0.5-1.8-0.9-2.8-1.6c-1.2-0.8-1.3-0.7-2.9-0.8c-1.1-0.1-2.1-0.3-3.2-0.4c-1.3,0-2.4,0.2-3.7,0.3c1.6-0.9,3.8-0.8,5.4-0.3c-0.7-0.7-1.1-1.8-1.8-2.6c0.4,0.8,1.4,2.3,2.2,2.8c0.7,0.4,1.9,0.1,2.6,0.3c1.6,0.4,2.7,1.8,4.3,2.5c2,0.8,4.5,2,5.9,3.6s1.9,3.9,2.7,5.8c0.6,1.7,1.5,3.3,1.6,5.1c0.1,1.5,0.4,2.5,1.7,3.6c2.1,1.9,5.1,3.1,7.8,3.8c2.6,0.7,5.1,1.1,7.8,1c2.6-0.1,3.3,0,4.9-1.6c4.5-4.3,7.1-8.5,8.5-14.5c0.3-1.5-0.4-3.2-1.5-4.5c-1.4-1.7-4.4-1.6-6.3-2.6c0,0,0.1-0.2,0.1-0.3c-5.3-1.9-10.3-3.1-10.7-8.9c-0.2-2.6,0.8-5,2.2-7.2c3.3-5.3-2.9-6.8-6.8-8.8c-1.1-0.6-2.7-1.9-4.1-1.9c-2.3-0.1-4,1.8-6.1,2c-2.4,0.2-5.5-0.8-7.9-1.4c-1.8-0.4-3.3-0.8-4.8-1.7s-2.7-1.5-4.5-0.7c-2.3,1-2.5,3.8-5,5.3c-2.4,1.4-5.3,2.3-7.8,3.5c-2.7,1.3-8.5,3.3-9.5,6.1c-0.7,2-0.7,5,0.3,6.9c-1.1-2.7-0.1-5.2-0.3-7.9c-0.1-1.2-0.4-1.2-1.5-1.7c-2.2-1-4.4-1.3-6-3.2c1.2,1.6,4.8,3.3,6.9,3.7c1.3,0.2,3.7-1.1,4.9-1.5c2.7-0.9,5.2-2.5,7.7-3.7c2.8-1.4,5.9-2.2,7.5-4.8c0.9-1.5,2.1-2.6,1.5-4.4c-0.5-1.5-1.9-2.8-3.3-3.7c-1.5-1-3.2-1.8-4.9-2.3c-1.3-0.4-2.8-0.6-4.1-1c-1.2-0.4-2.2-1-3.4-1.4c-2.5-0.7-5.2-0.7-7.8-0.6c-1.2,0.1-2.5,0-3.7,0.3c-1.1,0.3-2.3,0.6-3.4,0.2c-2.3-0.8-3.3-3.7-3.5-5.7c-0.2-2.8,1-5.1,1.9-7.7c0.6-1.7,1.2-3.5,1.1-5.3c0-1.3-0.3-1.4-1.8-1.6c-1.3-0.2-2.6-0.3-3.9-0.2c-3.4,0.3-5.2,3.3-6.2,5.9c-1.3,3.3-2.3,6.4-2.8,9.8c-0.4,2.8-0.5,5.2,0.1,8c0.5,2.5,0.3,4.7,3.8,4.4c-0.7-0.2-1.5,0.2-2.3,0.1c0.8,2.2,2.2,4.5,3.4,6.5c-2.8-3.3-5-7.7-5.5-11.9c-0.4-3.1,0.3-7.2,1.4-10.2c1.4-3.9,1.2-9.2,5.7-11.5c0.3-0.4,1.1-0.9,1.8-1c-5.4,0.5-11.7-1.1-12.6-6.6c0.8,2.4,3.7,5.4,6.6,6.3c1.6,0.5,3.6,0.1,5.2,0.3c1.1,0.1,2,0.1,3.2,0.1c2.2,0,4.3,0.3,6.4-0.2c2.9-0.7,6.1-2.1,8.6-3.4c-3.1,1-5.9,2.7-8.8,3.9c-1.3,0.5-1.7,0.6-2.1,1.8c-0.5,1.4-0.5,3-0.8,4.4s-1,2.6-1.5,4c-0.9,2.8-1,6,1.1,8.4c2.3,2.6,6.2,0.3,9.7,0.2c4.6-0.1,7.5,1.7,11.5,3c2.4,0.9,5.5,1.2,7.6,2.7c2,1.4,2.8,3.4,5.2,4.5c4.9,2.3,11.1,4.7,16.7,4.4c5.8-0.3,7.3-5.5,8.3-9.7c0.6-2.5,0.8-5,1.1-7.5c0.3-2.3,1.2-4.4,1.4-6.8c0.5-5.9-3.9-6.4-9.6-8.1c-2.8-0.9-7.4-3-10.4-2.9c-1.7,0-4.7,1.5-6.6,1.9c2-0.8,4-1.6,6.1-2.2c-3.9-1.2-3.1-3.3-5.5-5.8c2.7,8,16.9,6.8,23,10.8c5.7,3.9,2.9,9.2,2,15.2c-0.4,3.2-1.1,6.6-2.2,9.6c-1.1,2.8-1.9,3.1,0.5,5c1.2,1,3,1.1,4.5,1.8c2.8,1.3,6.3,3.5,5.2,6.8c-0.7,2.1-2,4-2.4,6.3c-1.2,5.7,4,10.1,9.8,11.4c2.8,0.6,6.2,1.2,9,0.3c4-1.3,3.7-4.3,6.2-6.8c-1.3-0.9-1.9-2.4-1.9-3.9c-0.2,6,12.6-1.2,14.6-2.4c4.8-2.9,5.4-7.3,8-11.6c2.2-3.7,0.4-5-0.4-9.2c-0.8-4.4,1.4-8.6,2.1-12.9c1-6,2.1-19.5-7-20.8c-2.9-0.4-6.3,0.8-8.4,2.7c-1.2,1.1-1.6,2.5-3.1,3.3c-2.3,1.2-4.8-0.3-6.9,1c2.2-0.4,4.5-0.7,6.7-1.1"}),React.createElement("path",{style:{transition:"stroke .25s ease-in-out, stroke-width .25s ease-in-out"},id:"large_intestine_2",stroke:"Intestine"===e||"Intestine"===t?"rgb(255,225,0)":"rgba(0,0,0,0.5",strokeWidth:"Intestine"===e||"Intestine"===t?"5":"2",d:"M331.4,612.4c-4.3,7.3-3.9,12.5-2.9,20.3c2.4-0.4,2.4,5.6,4.5,5.5c1.3,6.7-2.6,8.8-2.2,15.5c0.1,1,8.2,18,5.9,17.4c1.7,0.5,2.9,0.5,4.5,0c1.4-7.4,5.3-8,6.6-15.2c0.3-1.5-1.3-17.9-5.1-15.2c11.7-8.1,4.5-12.6,2.3-21.6c8.8,5.9,14.7,9.2,26.3,7.7c19.5-2.4,33.3-4.2,42.2-23c1.1-2.4,2-5.1,3.6-7.3c1.9-2.6,4.7-4.2,5.7-7.4c0.6-1.9,0.4-3.5,1.5-5.2c0.6-0.9,1.8-1.3,2.5-2.3c2.7-3.9-0.4-6.6,0.4-10.4c0.7-3.3,4.5-4.8,4.6-9.3c0-2.3-1.7-4.8-1-7.1c0.5-1.8,2.6-3.5,3.4-5.5c1.2-2.8,1.4-5.5,0.2-8.3c-0.5-1.1-1.5-2.4-1.7-3.5c-0.2-1,0.3-1.9,0.7-3c1.1-3.2,1.4-7,0.3-10.2c-0.7-2-1.5-3.1-0.9-5.3c0.6-2.1,2.1-3.9,2-6.2c-0.1-2-2-3.6-2.3-5.4c-0.5-2.1,1.2-3.3,2-4.9c0.8-1.5,0.9-3.4,0.6-5c-0.5-3.1-3.2-4.8-1.4-7.9c2.2-3.7,4.3-7,1.8-11.2c-3-4.9-3.7-4.6-3.4-10.1c0.2-3.8,0.3-6.3-1.7-9.8c-4.1-7.3-13.2-13.4-21-8c-7.7,5.3-6.1,15.1-4.2,23c1,4.1,1.4,5.6,0.8,9.8c-0.1,0.6,0.5,18.6,4.1,16.2c-2.9,1.9-3.3,4.9-3.8,8.1c-0.8,4.9,1.4,5.3,2.3,9.2c0.5,2.4-0.2,3-0.8,5.9c-0.8,4,1.1,7.1,1.2,10.1c0.1,2.1-1.6,3.7-2.1,6.2c-0.7,3.4,1.5,4.7,1.7,7.6c0.1,1.6-2.2,13.5-2.7,14.3c-1.7,2.6-5.9,3-7.6,5.5c-2.2,3.4,0.5,7.7-1,11.1c-1.2,2.7-5.5,2.6-6.8,6.2c-1.1,3.2,0.6,7.5,0.5,10.9c-7.2-0.2-13.4,5.1-14.8,12.1c-0.3,1.7-24-5.2-26.4-5.4C341.7,600.9,335.5,605.7,331.4,612.4z"}),React.createElement("path",{style:{transition:"stroke .25s ease-in-out, stroke-width .25s ease-in-out"},id:"large_intestine_1",stroke:"Intestine"===e||"Intestine"===t?"rgb(255,225,0)":"rgba(0,0,0,0.5",strokeWidth:"Intestine"===e||"Intestine"===t?"5":"2",d:"M256.8,591.3c0.7,0.6,1.4,1.2,2.2,1.7c3.6,2.4,8.2,2,11.6,4.9c2.9,2.5,4.4,5.4,5.3,9.1c1,4.3,1.6,9,7.2,8.4c0.6-3.9-4.5-5.8-5.8-9.3c-1.9-4.9,0.4-5.6,3.3-8.6c1.4-1.5,1.5-2.9,2.4-4.7c1.1-2,3.1-3.5,4.3-5.5c2-3.3,4.1-6.9,5.1-10.8c0.7-2.7,0.2-5.1-1.1-7.5c-0.2-0.4-6.5-11.7-7.4-10.2c-0.4,0.7-1.8,2-2.6,2.7c0.6-0.9,1.4-1.1,1.9-2c0.8-1.4,0.9-3.5,0.7-5c-0.4-3.6-2.5-5.6-5-7.4c-1.3,0.3-2.6,1.2-3.8,1.8c1.3-0.8,3.2-1.4,4.1-2.6c1-1.5,1-4.4,0.8-6.2c-0.1-1.6-1-4.9-2.8-5.5c-1.4-0.5-3.3,1.1-4.4,1.7c2.7-1.3,5.1-2.6,5.9-5.7c0.5-1.9,0.4-7.1-1.7-8.1c1.3-1.5,5-5.5,2-7.2c1.4-1.6,4.3-7.8,2.3-9.7c1.8-2.4,3.5-5.1,3.3-8.2c-0.1-1.3-0.2-2.4,0.1-3.8c0-0.3,1.2-3.7,1.3-3.5c-1.1-1.4-2.4-3-3.7-4.4c4.8,5.2,8.6,6.8,15.8,5.5c-1.1,0.6-2.3,0.5-3.5,0.9c2.7,3.5,7.6,5.1,11.8,4.6c0.5-0.1,0.6-0.5,1.2-0.5c0.9,0.1,2.3,1.5,3.1,1.9c2.1,1.2,6.6,3.5,9,1.9c1.3,2.8,7.8,1.9,10.2,1.7c3-0.3,4.1-0.6,6.1-2.6c1.1,1,7.1,0.6,6.7-1.7c0.2,1.1,5.9-0.2,6.5-0.4c2.1-0.8,3.9-2.3,5.2-4.1c1.4,3.1,11,0.9,11.8-2.2c2.4,0.4,12,0.3,10.9-4c2,1.4,6.6,1.2,8.6-0.4c0.9-0.7,1.6-3.1,2.5-3.5c1.2-0.5,4.2,0.8,5.6,0.6c0.8-0.1,1.4-0.2,2-0.8c0.1-0.1-0.1-0.8,0.1-0.9c0.8-0.5,1.1,0.1,2.5,0c5.7-0.1,6.6-5.3,10.9-7c1.7-0.7,4.9,1.4,7.4,1.4c5.6,0,8.1-2.9,10.1-7.6c11.5,6.7,11.9-11.1,5.2-16.6c-6.8-5.5-26.8-7.6-30.8,2.1c-2.6-1.2-5.8-0.9-8.5-0.1c-1.5,0.5-1.8,1.7-2.9,2.6c-1.4,1.2-3.1,1.3-4.8,1.6c-2.8,0.5-4,1.3-4.7,4.1c-1.2-0.2-2.3-0.3-3.5-0.2c-0.4,0.1-3,1.2-3,1.1c0.6,0.3,1.1,0.9,1.1,1.5c-2.3-1.6-4.1-2.8-6.9-1.9c-2.3,0.7-6.6,2.7-6.2,5.7c-0.6-0.3-1-0.9-1.6-1.2c-1.4-0.7-3.4-0.3-4.9,0c-2,0.3-7,1.1-6.3,4.1c-4.2-0.1-9.9-3-13.8-0.2c0,0.1,0,0.2,0,0.3c0.8,0.4,1.6,0.9,2.3,1.5c0,0.1-0.2,0.3-0.2,0.4c-2.7-1.2-5.2-4-8.6-3c-2.2,0.7-3.5,3.3-1.1,4.4c-4.2-1.1-8-2.1-12-3.9c-2.9-1.3-5.6-1.2-8.6-1.1c-2.6,0.1-4.9-0.5-6.2-2.9c-1.1-2-1.2-4.5-3.4-5.9c-2.2-1.3-8-1.2-9.5,1.1c-0.7-1.2-4.3-2.7-5.7-3.1c-2.8-0.8-5.9,0-8.3,1.4c-2.7,1.6-4.6,3.4-5.8,6.3c-0.7,1.6-1.9,4.2-1.2,5.8c-2.3,0.4-4.2,2.8-5,4.9c-0.5,1.2-0.3,2.8-0.8,4c-0.3,0.7-0.4,0.6-1,1.2c-2.1,2-3.7,3.1-4.2,6.2c-0.2,1.2,0.2,2.9-0.1,4c-0.5,1.5-2.1,2.4-2.5,4.2c-0.3,1.2,0,2.2-0.1,3.4c0,1-0.1,2.1-0.5,2.9c-0.3,0.6-1.1,1-1.4,1.7c-1.1,2.5-0.6,10.4,3.1,10.4c-3.4-1.9-5.5,3.1-4.6,5.9c-3.2,0-4.3,6.4-4.1,8.7c0.2,2.9,2.7,7.4,6.2,7c-6.8-4.3-8.1,6.8-7.3,11.3c0.3,2,1.3,4,2.1,5.9c0.7,1.7,0.8,1.7,0.3,3.3c-1.1,2.8-1.6,4.8-0.5,7.8c0.4,1.2,1.7,4.1,3.2,4.3C249.1,577.2,250.7,585.9,256.8,591.3z"})),React.createElement("g",{id:"stomach",onClick:this.props.onClick.bind(null,"Stomach"),onMouseOver:this.props.onMouseOver.bind(null,"Stomach")},React.createElement("path",{style:{transition:"stroke .25s ease-in-out, stroke-width .25s ease-in-out"},id:"stomach_color",fill:getRGB(this.props.values.avg[this.props.fixed.indices.Stomach]),onMouseOut:this.props.onMouseOver.bind(null,void 0),stroke:"Stomach"===e||"Stomach"===t?"rgb(255,225,0)":"rgba(0,0,0,0.5",strokeWidth:"Stomach"===e||"Stomach"===t?"5":"2",d:"M423.4,389c-5.9-10.5-24.9-15.7-35.2-10.4c-3.3,1.7-6.4,3.6-9.2,6.2c-2.8,2.6-4.7,6.3-7.9,8.3c-2.3-2.6-5.3-3.4-6.3-3.7c-0.5-0.2-5.9,3.1-5.7,4.4c0.8,4.2-0.5,5.8-1,9.9c-1,8.1-4.5,18.5-13.6,19.6c-3.2,0.4-6.1-1.2-9-1.8s-5.3,0.3-7.7,2c-1.2,0.9-1.3,0.7-2.8,0.6c-5.2-0.6-11.1,0.1-14.8,4.3c-2,2.1-3.7,4.1-4.9,6.8c-0.8,1.9-1.4,3.8-2.2,5.8c-2,5.5-6.2,14.1-6.7,19.9c-0.6,8-0.5,19.8,2.4,26.2l11-2.1c-0.1-2.1-1.9-4.4-0.6-7.7c1-2.9-0.4-5.7-1.1-8.8c-1-4.7,0.5-8.9,2-13.8c1.3-4.5,6.4-8.8,10.6-10.9c5.7-2.8,7.9,1.8,11.9,4.7c3.4,2.4,7.3,3,11.2,3.8c3.9,0.7,7.3,1.8,11.4,1.8c6.7,0,13.4,0,19.7-2c2.8-0.9,5.3-1.9,8.2-2.7c6.8-1.8,15.6-5.5,21.2-10c4.4-3.6,9.3-8.1,13-12.6C424.8,417.6,429.7,400.4,423.4,389L423.4,389z"}),React.createElement("path",{id:"stomach_strokes",fill:"none",stroke:"#000000",d:"M357.5,450.7c0,0,35-3,48.3-18s16-22.3,15-28.3s2.7-8-4.3-13.7s-11.7-9-18.7-8.7s-20.3,14.3-20.3,14.3s-3.7,6.7-7,4.3c-3.3-2.3-4.7-4.7-6-0.3c-1.3,4.3-3.7,22.3-8.7,23.7s-3.3,7.3-18,4s-6.3,3.3-16,0s-17,19.3-17,19.3s-9.3,20.7-5.7,31.7c3.7,11,6.7-1,6.7-1s-3-11-1-16s3.3-14.3,6.3-16s4.3-6,10.3-5.3s7-1,12,2.7C338.5,447,344.8,450.3,357.5,450.7z"})),React.createElement("g",{id:"pancreas",onClick:this.props.onClick.bind(null,"Pancreas"),onMouseOver:this.props.onMouseOver.bind(null,"Pancreas")},React.createElement("path",{style:{transition:"stroke .25s ease-in-out, stroke-width .25s ease-in-out"},id:"pancreas_color",fill:getRGB(this.props.values.avg[this.props.fixed.indices.Pancreas]),onMouseOut:this.props.onMouseOver.bind(null,void 0),stroke:"Pancreas"===e||"Pancreas"===t?"rgb(255,225,0)":"rgba(0,0,0,0.5",strokeWidth:"Pancreas"===e||"Pancreas"===t?"5":"2",d:"M341,476.4c0.7-0.5,1.4-1.2,2-2c1.2,6.8,11.3,2.9,12.2-2c3.2,3.2,13,3.5,13-2.7c3.9,3.2,15.8,3.8,13-4c3.5,4.7,6.5,2.8,6.4-2.2c3.6,3.7,8.8-1.2,9.9-4.9c-0.9,3.1,6,1.6,7,0.8c1.4-1.1,1.3-2.7,2.2-4c0.4-0.6,2.4-2.4,2.5-2.9c1.7-6.4-5.7-9.4-10.7-6.7c0.4,0.8,1,1.3,1.7,2c-2.9-2.5-9.1,0.9-10.7-0.6c0.9,0.9,1.8,2,2.8,2.7c-2.5-2.5-7.4-2.3-10.5-1.2c1.3,0.8,2.4,1.9,3.4,2.7c-3.4-2.7-7.3-2.6-11.3-1.6c1,0.7,2.1,1.9,3.2,2.7c-2.8-3.4-7.5-3.8-11.6-3.2c0.4,1.3,0.8,2.7,1.5,3.8c-2.7-4.4-10.5-5.9-14.8-3.2c1.2,1.5,2.5,3.2,2.4,5.2c-3-5.9-9.4-8.5-15.5-5.3c1.8,1.9,3,4.8,3.6,7.2c-1.1-4.2-5.7-7.7-10-7.2c-2.1,0.3-11.5,2.8-8.3,6.2c-3.5-1.6-7.4,0.9-7,4.9c0.1,1.3,0.9,2.5,1.1,3.8c0.1,1-0.3,1.7-0.3,2.6c-0.1,1.5,0.7,2.7,1.4,4.2c1.8,4.1,7.4,3.9,10.2,0.8c-0.1,0.3,0,0.7,0,0.9c0.6-0.4,1-1.1,1.1-1.8c-0.4,1.8,4,4.6,5.2,5.3C337.9,477.6,339.6,477.4,341,476.4L341,476.4z"}),React.createElement("path",{id:"pancreas_strokes",fill:"none",stroke:"#000000",d:"M389.5,458.3c4.5-1.7,8.4-3.8,12.5-6.2c-4.1,0.7-8.7,2-12.4,4.1c-1.2,0.7-6.3,4.3-7.2,1.8c-0.3-1,0.2-3.2,0.3-4.1c-1,2.2-1.5,4.6-3.8,5.5c-3.6,1.5-1-2.6-2.4-4.3c0.2,2.9-1,4.3-3.6,5c-2.1,0.5-3.1,0.9-4.4-1c0.5,2.6-2.7,2.5-4.6,2.8c-1.6,0.2-8.8,0.8-8.4-2.2c-0.3,2.9-3.7,3.4-6,3.8c-1.8,0.3-3.5,0.6-5.4,0.3c-1.8-0.3-1.8-1.4-2.1-2.9c-0.4-1.8-1.4-3.7-2.6-5.1c0.7,0.9,1,3.4,1.4,4.5c2,5.6-8.3,3.9-11.1,3.9c-2.5,0-5,0.3-7.5,0.3c-0.6,0-1.4,0-2.2-0.2c0,0.6,0,1.2,0,1.8c4.9-0.7,10.1,0,15-0.3c1.3-0.1,3.2-0.8,4.4,0c1,0.8,1.3,2.6,0.9,3.7c1.1-0.3,1-2.7,0.8-3.7c2.6-1.1,5.9-1.1,8.6-1.4c2.8-0.3,6.5-1.1,6.7,2.9c1-1,0.6-2.2,0.4-3.4c1.8-0.8,4.8-0.3,6.7-0.6c2.2-0.4,4.4-0.9,6.7-1.4c1.4-0.3,3.1-1.3,4.6-1.2c1.9,0.2,3.1,1.8,5,2.1c0.3-1,0.2-1.9-0.3-2.8c2.9,0.7,5.8,2.2,8.6,3.2c-0.5-0.7-3.6-2.2-3.6-2.8C384.8,459.5,388.6,458.7,389.5,458.3L389.5,458.3z"})),React.createElement("g",{id:"kidneys",onClick:this.props.onClick.bind(null,"Kidney"),onMouseOver:this.props.onMouseOver.bind(null,"Kidney"),onMouseOut:this.props.onMouseOver.bind(null,void 0),fill:getRGB(this.props.values.avg[this.props.fixed.indices.Kidney]),stroke:"Kidney"===e||"Kidney"===t?"rgb(255,225,0)":"rgba(0,0,0,0.5",strokeWidth:"Kidney"===e||"Kidney"===t?"5":"2"},React.createElement("path",{style:{transition:"stroke .25s ease-in-out, stroke-width .25s ease-in-out"},id:"right_kidney",d:"M327.4,477.5c-0.6,5.7-9.1,11.7-10,8.1c-1.3,3.5-2.5,13.9-3.7,16.8c5.1-1.7,6.9,11,4.5,15.5c-2.6,4.9-9.6,11.1-17.8,9.4c-3.7-0.8-8.2-2.7-10.8-5.9c-3.8-4.6-6-8.6-5.3-17.2c-1.6-8.2,2.9-21.9,7.8-28.4c2.5-8.3,7.1-14.1,13.9-16.6c4.3-1.6,9.8-0.5,13.4,2.2C324.3,464.9,327.6,469.9,327.4,477.5z"}),React.createElement("path",{style:{transition:"stroke .25s ease-in-out, stroke-width .25s ease-in-out"},id:"left_kidney",d:"M375,455.4c3.6-2.7,9.1-3.8,13.4-2.2c6.8,2.5,11.4,8.3,13.9,16.6c4.9,6.5,9.4,20.2,7.8,28.4c0.7,8.6-1.5,12.6-5.3,17.2c-2.6,3.2-7.1,5.1-10.8,5.9c-8.2,1.7-15.2-4.5-17.8-9.4c-2.4-4.5-0.6-17.2,4.5-15.5c-1.2-2.9-2.4-13.3-3.7-16.8c-0.9,3.6-9.4-2.4-10-8.1C366.8,463.9,370.1,458.9,375,455.4z"})),React.createElement("g",{id:"blood",onClick:this.props.onClick.bind(null,"Blood"),onMouseOver:this.props.onMouseOver.bind(null,"Blood"),onMouseOut:this.props.onMouseOver.bind(null,void 0)},React.createElement("path",{id:"upper_vein_hover_area",opacity:"0.0",d:"M449.9,376.5c4.2,8.1,7,15.3,8.9,21.2c3.9,11.9,3.9,17.4,8,26.7c3.5,8,8,14.2,12.1,18.9c-1.7,20.4-0.6,36.7,0.6,47.8c2.5,22.1,6.8,33.1,12.3,64c2.9,16.6,4.7,30.2,5.7,39c-0.2,2.1-0.7,5.1-2.3,8.3c-3,6.1-7.1,7.8-11.7,12.7c-4.3,4.6-3.9,6.7-9,16.3c-2.6,5-6.8,12.1-13,20.3c2.5,1.1,4.6,1.1,6,1c6.1-0.6,11.6-6.1,14-14c0.7,11.8,2.5,25.6,6.3,40.6c2,8.1,4.4,15.5,6.9,22.3c5.4,1.7,7,3.7,7.5,5.4c0.4,1.5-0.2,2.6,0.3,5c0.4,2.1,1.3,3.6,2,4.7c4.2-0.6,8.4-1.1,12.7-1.7c1.4-1.3,3.2-3.3,4.7-6c2.8-5.2,3.1-10.1,3-12.6c3,1.9,4.4,1.7,5.2,1.3c2.1-1.2,0.7-5,2.5-11.4c1-3.6,1.8-3.7,3.7-8.3c1.7-4.4,2.4-7.9,3-11.3c2.4-13.2,1.4-33.5,1.3-35c-2.3-9.3-4.7-18.7-7-28c0.3-14.2,0.9-26,1.3-34.3c2.1-38.1,4.8-52.1,3-76c-1-13.7-3.1-24.7-4.7-31.9c0.1-5-0.1-12.3-1.3-21.1c-1.8-13.6-4.6-19-8.7-34.3c-5.7-21.3-3.4-22.1-9-42.7c-3.3-12.2-6.5-20.8-10.3-31c-4.8-12.7-11.6-29.6-21.3-49c-8.4-9.6-16.9-19.1-25.3-28.7c-6.8-4.8-13.6-9.6-20.3-14.3c-11.6-2.1-23.1-4.2-34.7-6.3c4,5.5,10.2,13.7,18.3,23.3c9.2,10.9,12.3,13.5,16,19c5,7.5,10.2,19.5,10.3,38.3C447.9,335.2,448.9,355.9,449.9,376.5z"}),React.createElement("path",{id:"upper_vein_hover_stroke",fill:"Blood"===e||"Blood"===t?"rgba(255,225,0,1)":"rgba(0,0,0,0)",d:"M402.4,232.9c1.4,1.4,3.1,1.5,6,1.6c1.4,0.1,3.1,0.1,4.7,0.4c6.2,1.3,12.7,3,18.6,6.2c16,8.6,27.9,21.7,39.3,34.4c10.6,11.7,19.4,27.3,27.7,48.9c8.4,21.7,12.8,40.8,13.5,58.5c0.3,6.3,0.3,12.4-0.1,18.1c0,0.6-0.1,1.3-0.1,2c-0.2,2.9-0.4,5.8,0.2,8.1c0.6,1.9,2.4,3.5,4.3,5.1c0.8,0.7,1.6,1.4,2.4,2.2c14,13.7,16.7,33.9,17.4,50.1c1,21.5,0.5,41.6-1.3,59.7c0,0.6-0.1,1.2-0.2,1.9c-0.1,0.6-0.1,1.1-0.2,1.7l-0.1,0.9c-0.6,5-1.1,9.3-0.7,14.1c0.1,1.8,0.3,3.7,0.5,5.5c0.3,3.6,0.7,7.3,0.7,11.1c0.3,14.1,1.9,28.4,3.5,41.7c0.6,4.4,1.3,8.8,2.1,12.8c0.3,1.6,0.8,3.1,1.3,4.8c0.6,2,1.2,4.1,1.6,6.3c0.8,4.8,0,9.6-0.8,14.3c-0.3,2.1-0.7,4-0.9,5.9c-0.3,2.7,0.1,5.4,0.5,8.4c0.4,3.1,0.9,6.2,0.6,9.6c0.1,2.1-0.4,3.7-1.1,5.5c-3,7.9-4.7,16.3-6.3,23.7c-0.1,0.4-0.1,0.7-0.2,1.1c-0.2,1.3-0.5,2.7-1.1,4l-2.7,5.9l-0.8-1.9l0.9,5l-6.7-7.6c-0.2-0.2-0.4-0.5-0.6-0.8c0,0.4,0,0.8,0,1.2s0,0.7,0.1,1c0.1,2.3,0.3,5.1-1.3,7.6l-5.1-2.3c0.4-1.3,0.3-3.2,0.2-4.9c0-0.8-0.1-1.6-0.1-2.3c-0.1-1.7,0.2-3.3,0.5-4.9c0.1-0.5,0.2-1,0.2-1.5c0.1-0.8,0.2-1.5,0.4-2.2c0.2-1.2,0.4-2.4,0.5-3.6c0.1-1.5,0-3,0-4.5c-0.1-1.6-0.2-3.4,0-5.1c0-0.9,0-1.8,0.1-2.7c0-1.5,0-3,0.2-4.5c0.1-0.8,0.2-1.3,0.4-1.9c0-0.1,0.1-0.3,0.1-0.4c-0.1,0-0.2,0-0.3,0c-0.5,0-1.1,0-1.6,0c-0.4,0-0.9,0-1.3,0h-0.1h-0.1c-0.2,0-0.3,0-0.5-0.1c0.3,2.3,0.6,4.8,0.1,7.4c-1,5.1-1.2,9.7-0.6,14.2c0.4,3,0.5,5.4,0.5,7.8c0,0.6,0,1.1,0,1.7c0,1.5-0.1,2.9,0.2,4.3c0.1,0.8,0.3,1.6,0.5,2.4c0.5,2.6,1.1,5.2,0.8,8.3l-5.6,0.4c-0.1-0.4-0.2-0.9-0.2-1.3c-0.3,1.2-0.8,2.4-1.4,3.6l-5.3-2c0.3-0.9,0.4-1.9,0.6-2.9l-1.9,0.7l-3.1,1.4l-0.1-0.1v-0.1c-0.8-1.8-0.9-3.6-1-5.1c-0.2-2.2-0.4-4.3-0.7-6.6c-0.1-0.9-0.2-1.8-0.3-2.7l-1.9,1c-0.1,0.2-0.2,0.4-0.2,0.5l-0.5-0.2l0,0l0,0l-4.8-1.6c0.1-0.8,0.1-1.3,0-1.9c-0.3-1-0.6-2-1-3.1c-0.4-0.9-0.7-1.9-1-2.9c-0.7-2.1-0.8-4.2-0.9-6.2c-0.1-1.3-0.1-2.5-0.4-3.7c-0.5-3.1-1.2-6.2-1.9-9.3c-0.4-1.6-0.7-3.2-1.1-4.7c-0.5-2.4-1-4.9-1.3-7.4c-0.3-1.8-0.1-3.5,0-5.1c0-0.5,0.1-1,0.1-1.5c0-1.1,0-2.2,0.1-3.3c0.3-2.4,0.1-4.3-0.6-6.5c-1-3,0.2-5.7,1.1-7.8c0.2-0.4,0.3-0.8,0.5-1.2c0.5-1.3,1.1-2.7,1.7-4c0.6-1.4,1.3-2.7,1.7-4.1c0.6-1.7,1.1-3.5,1.7-5.3c0.7-2.3,1.4-4.6,2.2-6.9c0.4-0.9,0.8-1.8,1.3-2.7c0.2-0.4,0.4-0.8,0.6-1.2c-0.8,0.7-1.7,1.3-2.6,1.8c-1,0.6-1.9,1.2-2.5,1.9c-1.7,1.6-2.5,4.1-3.3,6.7c-0.5,1.7-1.1,3.5-1.9,5.1c-1.8,3.7-4.2,7.2-6.5,10.6c-1.1,1.7-2.3,3.4-3.4,5.1c-2.5,4.1-6.6,9.7-12.7,10.1l-1.3-5.4c3.7-1.6,7.6-8,9.1-10.4l0.1-0.2c3.6-5.8,7.4-11.8,10.1-17.9c0.3-0.7,0.6-1.4,0.9-2.1c0.7-1.9,1.5-3.9,2.9-5.7c1.3-1.8,2.9-3,4.4-4c0.9-0.7,1.8-1.3,2.5-2c1.5-1.6,3.1-3.9,4.7-7c3.2-6.4,3.1-15.7,1.9-22.3c-0.9-5-2.3-9.9-3.7-14.8c-0.4-1.6-0.9-3.1-1.3-4.7c-0.5-1.7-1-3.3-1.4-5c-2.4-8.2-4.9-16.8-6-25.4c-0.3-2.2-0.6-4.4-0.9-6.6c-1.1-7.3-2.1-14.7-2.4-22.3c-0.2-4.6-0.5-9.4-0.9-14.1c-0.5-7-1.1-14.1-1-21.2c0.1-3.7-0.1-7.6-0.2-11.3c-0.2-6-0.4-12.2,0.2-18.3c0.1-0.5,0.1-1,0.2-1.3c0-0.2,0.1-0.3,0.1-0.5c0-0.1-0.1-0.2-0.2-0.4c-0.8-1.3-1.8-2.5-2.9-3.8c-1.1-1.4-2.3-2.8-3.3-4.4c-1.9-3-3.9-6.1-5.5-9.4c-2.7-5.3-4.7-10.4-6.3-15.4c-2.2-7.1-4-14.2-5.3-19.6c-2.1-8.3-3.5-15.6-4.6-22.9c-2-14.9-0.4-30,1.3-43.1c1.5-11.5,2.5-25.9-2.9-35.9c-6.2-11.5-19.5-21.8-32.5-25.2c-4-1-8.6-1.5-13.7-1.5 M505,695.2c0,0.4,0,0.8,0.1,1.3l0.3,3.9l0.1,0.7c0.3,3.1,0.5,6.2,1,9.2c0-1.2,0-2.3-0.1-3.4c-0.1-0.9-0.2-1.9-0.4-3c-0.1-0.8-0.2-1.5-0.3-2.3s-0.1-1.5-0.2-2.2C505.4,698.1,505.3,696.7,505,695.2C505,695.3,505,695.3,505,695.2z M529.9,669c0.1,0.3,0.2,0.6,0.2,1c0.2,1.1,0.1,2.1,0,3.1c0,0.4-0.1,0.8-0.1,1.2c0,1.5-0.1,2.9-0.2,4.3c-0.1,1.9-0.2,3.6-0.1,5.3c0,0.5,0.1,1,0.2,1.6c0.2,1.7,0.4,3.5,0.4,5.4c0.1-0.5,0.3-1,0.4-1.5c0.2-0.7,0.3-1.4,0.4-2.1c0.2-1,0.3-2.1,0.7-3.3l0.3-0.9c0.4-1.4,0.8-2.8,1.1-4.2c0.2-1.1,0.6-2.2,1.1-3.3c0.2-0.6,0.4-1.4,0.6-2.2c0.2-0.7,0.4-1.5,0.6-2.3V671c0.5-1.3,0.7-2.6,0.7-3.9c0-1.5-0.3-2.9-0.7-4.4c-0.2,0.3-0.4,0.5-0.6,0.8c-0.2,0.3-0.4,0.5-0.6,0.8c-0.6,1-1.4,2.1-2.5,3c-0.2,0.1-0.3,0.3-0.5,0.4C530.9,668.2,530.5,668.6,529.9,669C529.9,668.9,529.9,668.9,529.9,669z M490.7,650.2c-0.1,0.8-0.1,1.6-0.2,2.3v0.3c-0.3,2.4-0.3,4.9,0,7.2c0.1,1.4,0.3,2.7,0.6,4c0.2,1.1,0.4,2.2,0.5,3.3c0.3,2.2,0.8,4.5,1.3,6.8c0.5,2,0.9,4.1,1.3,6.3c0.2,1.2,0.4,2.5,0.5,3.7c0-0.6,0.1-1.3,0.1-1.9c0.1-1.6,0.2-3.2,0.1-4.7c-0.2-2.6-0.6-5.2-1.1-7.9c-0.1-0.6-0.2-1.3-0.3-1.9c-0.4-2.2-0.1-3.8,0.5-5.6c0.3-0.9,0.6-1.7,0.8-2.5c0.4-1.3,0.9-2.7,1.4-4.1c-0.4-0.6-1.2-1.4-1.6-1.8c-0.3-0.3-0.5-0.5-0.7-0.7c-0.7-0.8-1.5-1.5-2.3-2.2C491.2,650.7,490.9,650.5,490.7,650.2z M510.5,673.2c-0.3,1.7-0.5,3.5-0.6,5.5c0.2-1.3,0.4-2.6,0.5-3.8C510.6,674.4,510.6,673.8,510.5,673.2z M529.3,600.8c-0.3,0.3-0.7,0.6-1.1,0.8c-0.5,0.3-0.9,0.7-1.1,1c-0.5,0.5-0.8,1.2-1,1.8c-1.7,5.7-3.5,12-6.3,17.3c-0.3,0.6-0.7,1.3-1.1,2.1c-2.7,4.9-6.4,11.6-5.3,16.1c0.8,3.3,1.4,6.9,1.9,10.6c0.2,1.2,0.3,2.4,0.4,3.6c0.3,2.6,0.5,5.1,1.1,7.4c0.4,1.4,3.1,1.6,4.3,1.6c1,0,2.2-0.1,3.2-0.3c0.2-0.1,0.4-0.1,0.5-0.1h0.1h0.1c2.7-0.8,3.8-2.4,5.9-5.9l0.3-0.5c2.7-4.4,3.6-8.3,4.2-13.1c0.3-2.2,0.6-4.1,0.7-6.1c0.1-1,0.2-1.8,0.3-2.7c0.3-2.7,0.6-4.9-0.3-7.3c-1.5-4-2.5-7.2-3.1-10.2c-0.3-1.1-0.4-2.1-0.6-3.1c-0.1-0.9-0.3-1.7-0.5-2.5c-0.3-1-0.7-2-0.8-3.2c-0.1-0.7-0.1-1.4-0.1-2c0-0.5,0-1,0-1.4v-0.1v-0.1c0-0.5-0.1-1-0.2-1.5c0-0.3-0.1-0.6-0.1-1s-0.2-1.9-0.2-1.9C530.1,600.1,529.5,600.6,529.3,600.8z M506.9,646l-0.2,0.4c-0.9,1.7-1.9,3.4-2.1,5c-0.1,1,0.1,2.2,0.3,3.6c0.2,1,0.4,2.1,0.4,3.3c0,0.3,0,0.8,0,1.4c0,0.5,0,1.5,0.1,2.3c0.7-0.1,1.5-0.4,2.1-0.5c0.6-0.2,1.2-0.3,1.5-0.4c0.1,0,0.1,0,0.1,0c0.2-0.4,0.2-1.6,0.2-2.3v-0.5c0.1-1.9-0.5-4.2-0.9-6.3c-0.2-1-0.4-1.9-0.6-2.7c-0.1-0.8-0.3-1.7-0.4-2.6c-0.1-0.4-0.1-0.8-0.2-1.2C507.1,645.6,507,645.8,506.9,646z M498.4,646.7c1.4-2.8,2.6-5.1,3.9-7.4c5-8.8,9.1-17.8,12.4-26.8c0.1-0.4,0.3-0.8,0.5-1.3c0.3-0.8,1.3-3,1.5-4.4c-0.6,0.3-1.3,0.8-1.7,1.1s-0.8,0.6-1.2,0.8c-1.4,0.9-2.9,1.2-4.2,1.5l-0.3,0.1c-1.3,0.4-2.7,0.4-3.9,0.4c-0.9,0-1.8,0-2.5,0.2c-0.1,0.1-0.3,0.9-0.5,1.3c-0.1,0.5-0.3,1-0.5,1.5c-1.5,3.9-3,8.2-4.4,12.7c-0.2,0.7-0.5,1.4-0.7,2c-0.8,2.3-1.6,4.8-2.8,7c-0.1,0.4-0.3,0.8-0.6,1.1c-0.2,0.3-0.5,0.7-0.7,1c-0.3,0.5-1.4,1.9-1.3,2.3l0,0c0.2,0.2,0.6,0.7,0.9,0.9l0.2,0.2c0.3,0.3,0.6,0.6,0.9,0.9c0.6,0.6,1.2,1.2,1.8,1.8c0.3,0.3,0.6,0.5,0.9,0.7c0.7,0.5,1.4,1.1,2.2,2C498.3,646.6,498.4,646.7,498.4,646.7z M507.4,548.4c0,1.9-0.2,3.7-0.4,5.4c-0.1,1.3-0.3,2.4-0.4,3.6v0.1c-0.1,1.7-0.2,3.2,0,4.7c0.4,4.2,1.3,8.4,2.2,12.4c0.9,4.5,2.1,8.9,4,14.4c1,3,0.5,6.3,0.1,9l-0.1,0.4v0.2c-0.1,0.5-0.3,0.9-0.4,1.3c0.8-0.4,1.6-0.8,2.5-1.1c1.2-0.4,2.4-0.7,3.7-0.7c0.4,0,0.9,0,1.3,0.1c0.5-1.5,0.5-3.4,0.5-5.5v-1c0-9.4-2.8-19-5.6-28.2c-0.7-2.2-1.3-4.4-1.9-6.5c-0.3-1-0.9-1.8-1.6-2.9c-0.3-0.4-0.6-0.9-0.9-1.4c-0.4-0.7-0.9-1.3-1.3-2C508.5,550,507.9,549.2,507.4,548.4z M504.6,594.3c-0.1,1.2-0.4,2.4-0.7,3.4c0.7-1.1,1.2-2,1.4-2.6c0.5-1.4,0.3-3.2-0.2-5.1c-0.1,1.1-0.2,2.3-0.3,3.4C504.7,593.9,504.7,594.1,504.6,594.3L504.6,594.3z M522.1,561.2c0.2,1.3,0.6,2.6,1.1,4c0.4,1.2,0.8,2.3,1.1,3.6c0.4,1.9,0.9,3.9,1.3,5.7c0.5,1.9,1,3.9,1.4,5.9c0.6,3.3,1.2,6.7,1.7,10c0.1,0.4,0.1,0.9,0.1,1.4c0.2-0.2,0.4-0.4,0.5-0.5c0-0.4-0.1-1-0.2-1.3c0-0.3-0.1-0.6-0.1-0.8V589c-0.1-1.8-0.2-3.7-0.2-5.6c0-6.4-0.9-13.1-1.7-19.6l-0.2-1.5c-0.4-4.5-1-8.8-1.5-13.1c-0.2,0.4-0.3,0.8-0.5,1.2c-0.3,0.8-0.7,1.5-1,2.3c-1.4,2.9-2.2,5.2-2,7.7C522.1,560.7,522.1,560.9,522.1,561.2z M489,443.4c-0.3,4.5-0.5,9.1-0.6,13.6c0,1.9,0,3.8,0,5.8c0,3.7-0.1,7.6,0,11.4c0.3,7.5,1.2,15,2.1,22.2c0.7,5.5,1.4,11.2,1.9,17v0.3c0.6,7.7,1.2,15.6,3.1,22.9c0.4,1.5,0.7,3.1,1.1,4.8c0.7,3,1.3,6.3,2.3,9.2c0.3-3.8,0.1-7.7,0-11.7c-0.1-3.9-0.3-7.9,0-11.8c0.3-4.6,0.4-9.4,0.5-14c0.1-5.3,0.2-10.7,0.6-16c0.8-10,1.6-20.3,1.6-30.4c0-4.5-0.6-8.8-1.8-12.7c-0.4-1.2-0.6-2.4-0.8-3.6c-0.5-2.8-0.9-4.6-2.2-5.5c-1.6-1.1-3.2-2.1-4.8-3.1c-0.9-0.6-1.9-1.1-2.8-1.7C489.1,441.2,489.1,442.3,489,443.4z M512.5,471.2c-0.4,2-0.6,4.2-0.8,6.3c-0.2,1.7-0.3,3.4-0.5,4.9c-0.9,5.8-1.1,11.5-1.3,17.5c0,1.2-0.1,2.4-0.1,3.6c-0.1,3.7-0.3,6.9-0.7,9.9c-0.9,8-2,17.9,3,24.9c1.2,1.7,2.2,3.6,3.2,5.4c0.6,1.1,1.1,2.2,1.7,3.1c0.2-0.5,0.5-1.1,0.7-1.6c1.8-3.2,3.6-6.4,5.3-9.7l0.5-0.9c1-1.6,1.7-2.9,1.9-4.5l0.1-0.7c0.3-2.6,0.6-5.3,0.9-7.9l0.2-1.5c0.8-6.2,1.7-12.7,1.6-19.1c0-1.3,0-2.7,0-4.1c0.1-4,0.2-8.1-1.1-11.3l-0.1-0.2c-0.5-1.5-2.7-3.5-4.3-5c-0.5-0.5-1.1-1-1.5-1.5c-1.9-1.9-4-3.8-6.1-5.5c-0.3-0.3-0.7-0.7-1.2-1.1C513.6,472.2,513.1,471.7,512.5,471.2z M509.3,427.2c-0.1,0.4-0.2,0.7-0.3,0.9c-0.7,2.3-1.2,4.8-1.4,8.1c-0.3,4.1,1.1,8.6,2.3,13c0.4,1.3,0.7,2.5,1.1,3.7c0.3,1.1,0.6,2.2,0.8,3.3c0.4,1.8,0.8,3.5,1.4,5.1c0.4,1.2,1.4,2.3,3,3.5c0.7,0.6,1.6,1.1,2.4,1.6c1.3,0.8,2.6,1.7,3.7,2.7c1.3,1.1,2.4,2.3,3.5,3.4c0.3,0.3,0.6,0.6,0.9,0.9c-0.1-0.8-0.2-1.5-0.3-2.1c-0.1-2.8-0.4-5.6-0.6-8.3c-0.1-1.5-0.2-2.9-0.3-4.4c-0.3-4.9-1.3-9.9-2.9-15.7c-0.8-3-1.8-5.4-3-7.6c-1.8-3.6-4.1-6.6-6.6-8.7c-1.2-1-2.3-1.9-3.3-2.6C509.8,425,509.6,426.1,509.3,427.2z M463,317.2c-0.2,1.1-0.3,2.2-0.5,3.3c-0.4,2.9-0.9,5.6-1.1,8.4c-0.2,2.1-0.3,4.3-0.4,6.4v0.3c-0.1,3.9-0.2,8.1,0,12.1c0.1,3.1,0.7,6,1.3,9.1c0.4,2.1,0.9,4.2,1.1,6.5c0.5,4.7,1.8,9.4,3.4,14.8l1.1,3.7c2.5,8.4,4.9,16.4,8.3,24.4c3.6,8.3,9.1,15.3,18.4,23.5l1.3,1.1c0.8,0.8,1.7,1.5,2.5,2.2c0.3-2.1,0.7-4.3,1.1-6.3c0.5-2.4,0.9-4.7,1.2-7c2.6-19.7,1.7-40.8-2.6-59.5c-1.3-6.1-3.2-12.5-5.7-19.7c-5.5-15.5-11.2-31.5-22-45.1c-0.5-0.6-1.1-1.5-1.8-2.5c-2.2-3.1-4-5.4-5.4-6.7c-0.2,4.9,0.7,10,1.6,14.5c0.5,2.5,1.7,4.8,3.1,7.3c1.3,2.3,2.7,4.6,4.1,6.8c2,3.1,4,6.3,5.7,9.7l0.2,0.4c2.4,4.9,4.4,9.1,2.4,15.2l-2.4,7.3l-2.9-7.1l-0.8-2c-2.2-5.3-4.2-10.3-7.4-14.9c-0.6-1-1.3-2-1.8-3C464.3,319.2,463.6,318.2,463,317.2z"}),React.createElement("path",{style:{transition:"stroke .25s ease-in-out, stroke-width .25s ease-in-out"},id:"upper_vein_color_1_",fill:getRGB(this.props.values.avg[this.props.fixed.indices.Blood]),stroke:"Blood"===e||"Blood"===t?"rgba(0,0,0,0)":"rgb(0,0,0)",strokeWidth:"0.5",
-d:"M417.7,249.1c13.5,3.5,27.7,14.3,34.3,26.6c5.8,10.8,4.7,26,3.2,37.6c-1.8,13.9-3.2,28.3-1.3,42.3c1.1,7.8,2.6,15,4.5,22.6c1.6,6.5,3.3,13,5.3,19.4c1.6,5.2,3.7,10.2,6.1,15c1.6,3.2,3.5,6.2,5.4,9.2c1.8,2.9,4.4,5.2,6.2,8.1c1.1,1.7,0.6,2.1,0.4,4c-1,9.7,0.2,19.6,0,29.4c-0.2,11.6,1.5,23.5,1.9,35.1c0.3,9.6,2,19,3.3,28.6c1.4,10.1,4.6,20.1,7.4,30c1.8,6.5,3.9,13,5.1,19.7c1.3,7.4,1.2,17.2-2.2,24.1c-1.4,2.7-3.1,5.5-5.2,7.7c-2.1,2.1-4.8,3.3-6.6,5.7c-1.6,2.2-2.3,4.8-3.4,7.3c-2.8,6.4-6.7,12.6-10.4,18.5c-2.6,4.2-6.3,9.7-10.4,11.5c4.8-0.3,8.3-5.2,10.5-8.8c3.2-5.1,7.1-10.1,9.7-15.4c2-4,2.3-9.3,5.7-12.6c1.6-1.6,3.8-2.6,5.5-4.1c1.3-1.1,5-5.6,5.6-2.5c0.6,3.2-2.1,7-3.2,9.8c-1.5,4-2.5,8.2-3.9,12.2c-1,2.8-2.5,5.5-3.5,8.2c-0.9,2.3-2.3,4.6-1.5,7.1c0.8,2.6,1,4.8,0.7,7.6c-0.1,1-0.1,2-0.1,3.1c-0.1,2.1-0.4,4-0.1,6.1c0.3,2.4,0.8,4.8,1.3,7.2c1,4.7,2.2,9.4,3,14.1c0.6,3.3,0.2,6.5,1.2,9.6c0.6,2,1.6,4,2.1,6c0.3,1.1,0.3,2.1,0.1,3.2c0.1-0.2,0.2-0.5,0.3-0.7c0.6-2-0.6-4.3-1.2-6.2c-0.4-1.2-0.9-2.5-1.1-3.8c-0.5-3.5-0.5-7.1-1.1-10.6c-0.7-4.4-2-8.8-2.6-13.2c-0.3-2.5-0.9-4.9-1.1-7.4c-0.3-2.6-0.3-5.3,0-7.9c0.2-1.7,0.4-3.2,0.2-5c-0.1-1.1-0.5-3.3,0.5-4.1c1.2,1.1,2.1,2.6,3.2,3.7c1.4,1.4,2.9,2.6,4.3,4.1c1.1,1.2,3.7,3.4,3.1,5c-0.9,2.3-1.6,4.7-2.4,7c-0.5,1.5-0.7,2.6-0.4,4.2c0.6,3.4,1.3,6.7,1.5,10.1c0.2,3.4-0.4,6.7-0.2,10.1c0.2,3.1,1.3,6,1.5,9.1c0.1,1.5-0.7,4.1,0,5.3c-0.1-0.2,0.6-2.4,0.6-2.9c0-2.3,0.1-4.6-0.3-6.9c-0.2-1.2-0.7-2.5-0.8-3.6c-0.2-1.5,0-3.4,0.1-5c0.4-3.9,0.1-7.6-0.5-11.5c-0.4-2.7-1.5-5.3-0.7-8c0.4-1.6,0.8-3.3,1.4-4.8c0.3-0.9,0.8-2.8,1.7-3.1c1.5,1.4,0.6,3.9,0.6,5.6c0.1,2.7,0.2,5.4,0.2,8.1c0,3-0.3,6-0.1,9c0.1,1.4,0.1,2.9,0.1,4.4c0,3.4-0.2,6.7,0,10c0.2,3.7,0.5,7.4,1,11.1c0.3,2.3,0.5,4.5,0.7,6.8c0.1,1.5,0.2,2.9,0.8,4.3c-0.2-0.4,0.2-1.9,0.2-2.5c0-0.7-0.2-1.3-0.3-2c-0.5-3.4-0.8-7-1.1-10.4c-0.1-1.3-0.2-2.6-0.3-3.9c-0.2-2.9,0.1-5.6-0.1-8.5c-0.2-3.5-0.2-7.1-0.2-10.6c0-3.7-1.6-10,3.5-11.3c3.3-0.8,2,3.7,1.7,5.4c-0.6,3.8-0.7,7.7-0.6,11.5c0,1.3,0.2,2.5,0.4,3.8c0,0.4,0.1,0.8,0.1,1.2c0.3,2.3,0.5,4.5,0.8,6.8c0.3,2.2,0.4,4.3,0.6,6.4c0.2,1.8,0.6,3.6,0.7,5.4c0.2,3.8,0.2,7.7-0.8,11.4c3-5.8,1.6-12.8,0.8-18.9c-0.7-5.5-1.6-11.1-1.9-16.6c-0.2-3.5-0.1-6.9,0.6-10.3c0.4-2.1,0.4-4.6,1.9-6.2c2.8-3,3.2,2.2,3.3,4c0.2,1.7,0.6,3.4,0.3,5.2c-0.6,3.8-1.1,7.7-1.1,11.5c0,0.9,0,1.7,0,2.6c0.1,3,1,5.9,1,8.9c0,2.9,0.1,5.7,0.5,8.5c0.2,1.6,0.8,3.1,1,4.7c0.3,1.6,0.1,3.2,0.5,4.9c0.3-3.6-0.7-6.6-1.3-10c-0.4-2.2-0.2-4.3-0.2-6.5c0-2.5-0.2-4.9-0.5-7.4c-0.7-5.1-0.4-10.1,0.6-15.2c0.8-3.7-0.6-7.4-0.5-11c1.3,0.2,2.4,1.3,3.9,1.4c1.4,0,2.9,0.2,4.3,0c0.3,0,2.3-0.1,2.4-0.4c-0.4,1-0.4,2.1-0.6,3.1c-0.1,0.9-0.5,1.8-0.6,2.7c-0.2,2.4-0.1,4.8-0.2,7.2c-0.2,3.2,0.3,6.4,0.1,9.6c-0.1,2.1-0.6,4-0.9,6.1c-0.3,2-0.8,4-0.7,5.9c0,2.5,0.5,5.6-0.2,8.1c1.3-2,0.9-4.6,0.8-6.8c-0.1-1.3,0-2.6,0.2-3.8c0.3-2.1,0.9-4.2,1.1-6.3c0.2-2.5,0.4-4.9,0.4-7.4s0-5,0-7.5c0-2.4,0.3-4.8,0.8-7.1c0.1-0.5,0.4-3,0.9-3.2c0.9-0.5,1.4,3.8,1.5,4.3c0.1,2.3-0.4,4.7-0.5,6.9c-0.1,2.4,0.1,5,0.4,7.3c0.3,2.2,0.4,4.2,0.1,6.4c-0.2,2-0.8,6.3,0.6,7.9c-0.4-2.3-0.5-4.7,0-7c0.7-3.2,0.1-6.5-0.2-9.7c-0.2-3.3,0.3-6.5,0.3-9.8c0-1.3,0.3-2.7,0.1-4c-0.1-0.8-1.1-2.1-0.6-2.9c0.3-0.5,1.2-0.5,1.6-0.8c0.6-0.4,1-0.9,1.6-1.4c1.1-0.9,1.8-2.3,2.6-3.4c2-2.5,3.2-5.1,4.6-7.9c0.4,1.5,0,2.9,0.2,4.4c0.4,3.1,1.6,5.7,1.6,8.9c0,1.7-0.3,3.3-0.9,4.9c-0.5,1.5-0.7,3.2-1.3,4.7c-0.4,0.9-0.7,1.8-0.9,2.8c-0.4,1.8-0.9,3.5-1.4,5.3c-0.5,1.7-0.6,3.4-1,5.1c-0.4,1.9-1.1,3.8-1.4,5.7c-0.2,1.3-0.8,3.3-0.3,4.5c0.6-1.3,0.8-3.1,1.1-4.5c1.7-8.2,3.4-16.2,6.4-24.1c0.6-1.6,1-2.8,0.9-4.5c0.5-6.3-1.7-12.3-1.1-18.2c0.6-6.3,2.7-13.1,1.7-19.5c-0.6-3.8-2.1-7.3-2.8-11c-0.8-4.3-1.5-8.7-2.1-13c-1.7-13.9-3.2-28-3.5-42c-0.1-5.5-0.8-10.9-1.2-16.4c-0.4-5.3,0.2-10.1,0.8-15.4c0.1-1.2,0.3-2.4,0.4-3.6c2-19.5,2.2-39.7,1.3-59.3c-0.8-17-3.8-35.7-16.6-48.2c-2.6-2.6-6.3-4.8-7.4-8.5c-1-3.4-0.4-7.6-0.2-11.1c0.4-5.9,0.4-11.9,0.1-17.8c-0.8-19.8-6.2-39.2-13.3-57.6c-6.5-16.9-14.9-34.4-27.2-48c-11.6-12.8-23.2-25.5-38.6-33.8c-5.5-3-11.7-4.6-17.8-5.9c0,0-6.4-1.4-10.6-1.3s7.9,11.5,7.9,11.5S414.5,248.2,417.7,249.1z M531.7,583.5c0,1.8,0.1,3.6,0.2,5.4c0.1,0.9,0.5,2.7,0.2,3.5c-0.3,0.9-3.7,3.6-4.6,3.7c-1.9,0.1-1.3-3.5-1.6-5.2c-0.5-3.3-1.1-6.6-1.7-9.9c-0.8-3.9-1.9-7.7-2.7-11.6c-0.6-2.7-1.9-5.3-2.2-8c0-0.2-0.1-0.4-0.1-0.6c-0.3-3.3,0.8-6.2,2.2-9.2c1.1-2.4,2-4.8,3.3-7.1c0.6-1,2.9-4.4,2.6-5.5c0.7,2.6,0.5,5.5,0.8,8.2c0.6,4.9,1.2,9.8,1.7,14.8C530.7,569.1,531.7,576.4,531.7,583.5z M510.1,590c-1.7-4.9-3.1-9.6-4.1-14.7c-0.9-4.2-1.8-8.4-2.2-12.7c-0.2-1.8-0.1-3.5,0-5.3c0.2-3.2,0.8-6.3,0.8-9.6c0-2.3-1.3-8.3,0.2-9.9c1.9,4.7,5.1,9.2,7.9,13.5c1.1,1.7,2.3,3,2.9,5c3.2,11.4,7.6,23.4,7.6,35.5c0,2.9,0.2,6-1.2,8.6c-1.1,1.9-0.7,0.9-2.2,0.7c-1.3-0.2-2.7-0.1-4,0.4c-2.7,0.9-5.6,3.1-8.6,2.9c0.8,0.1,2.6-5.9,2.8-6.6C510.4,595.3,510.9,592.4,510.1,590z M531,501.1c0.1,7.1-0.9,14.1-1.8,21c-0.4,2.8-0.7,5.7-1,8.5c-0.3,2.4-1.5,4.2-2.7,6.3c-1.7,3.2-3.5,6.5-5.3,9.7c-0.9,1.7-1.4,4.1-3.2,5.1c-3.1-3.3-4.6-8-7.3-11.7c-5.5-7.7-4.5-18-3.5-26.9c0.4-3.2,0.6-6.4,0.7-9.7c0.3-7.2,0.4-14.3,1.5-21.4c0.7-4.5,0.6-10.6,2.3-14.8c1.9-0.4,4.9,3.1,6.2,4.2c2.2,1.8,4.3,3.7,6.3,5.7c2.1,2.1,5.6,4.9,6.5,7.6C531.7,489.7,530.9,495.8,531,501.1z M506.5,426.6c0.8-2.4,0.7-4.9,1.2-7.3c2.4,1,5.4,3.4,7.4,5.1c3,2.6,5.4,6,7.2,9.5c1.4,2.6,2.4,5.3,3.2,8.2c1.5,5.4,2.6,10.7,3,16.3c0.3,4.3,0.7,8.5,0.9,12.8c0.1,2.1,1.6,6.5,0,8.2c-3.4-2.3-5.8-5.5-8.9-8.2c-1.7-1.5-4-2.7-6-4.2c-1.7-1.3-3.2-2.8-3.9-4.7c-1.1-2.8-1.5-5.8-2.3-8.7c-1.5-5.6-3.9-11.8-3.5-17.6c0.2-3,0.6-5.9,1.5-8.8C506.4,426.9,506.5,426.8,506.5,426.6z M473.7,407.2c-4-9.3-6.6-18.7-9.5-28.4c-1.5-5-2.9-10.1-3.5-15.3c-0.7-5.4-2.3-10.3-2.5-15.8c-0.2-4.1-0.1-8.3,0-12.4c0.1-2.2,0.2-4.5,0.4-6.7c0.4-6,1.9-12,2.2-18c3.6,2.5,5.9,7.4,8.3,11c3.8,5.5,6,11.4,8.5,17.5c1.7-5.2-0.1-8.6-2.5-13.5c-2.8-5.7-6.6-10.8-9.7-16.4c-1.5-2.7-2.8-5.2-3.4-8.1c-1.3-6.3-2.3-13.1-1.2-19.4c3.8-0.5,9.6,9.1,11.8,11.8c11,13.8,16.7,29.6,22.5,45.9c2.3,6.6,4.3,13.2,5.8,20c4.4,19.4,5.2,40.7,2.6,60.5c-0.8,6.1-2.5,12.4-2.8,18.5c-2.8-2.1-5.3-4.4-7.9-6.7C484.7,424.6,478,417.2,473.7,407.2z M500.2,559.4c-4.5-5.6-5.7-15.3-7.4-22.1c-2-7.7-2.6-15.8-3.2-23.7c-1-13.2-3.5-26-4-39.3c-0.2-5.8,0-11.5,0-17.3c0.1-7.4,0.7-14.7,1-22.1c3.7,2.9,7.9,5,11.8,7.7c3.4,2.3,3,7.1,4.1,10.6c1.3,4.3,1.9,8.9,1.9,13.5c0,10.2-0.8,20.4-1.6,30.6c-0.7,10-0.5,20.1-1.1,30C501,537.9,503.4,549.1,500.2,559.4z M499.8,601.6c0.8-2.6,1.7-4.9,2-7.6c0-0.2,0.1-0.4,0.1-0.7c0.6-4.9,0.8-10.1,0.1-14.9c-0.5-4-1.5-8.1-1.2-12.1c1.2,1.1,1.1,3.7,1.5,5.4c0.6,2.4,1.3,4.8,1.9,7.2c1.2,4.9,5.6,12.1,3.8,17.2c-0.7,2.1-6.7,11.9-8.4,8.2C499.1,603.2,499.5,602.6,499.8,601.6z M499.5,651c-1.6,0-2.5-1.6-3.4-2.6c-0.9-1.1-1.8-1.6-2.8-2.5s-1.9-1.9-2.8-2.8c-0.6-0.6-1.6-1.5-1.8-2.4c-0.6-2.1,1.4-4.1,2.5-5.8c0.1-0.1,0.2-0.2,0.2-0.4c1.5-2.6,2.5-6.1,3.5-8.9c1.4-4.3,2.9-8.6,4.5-12.8c0.7-1.8,0.8-3.9,2.8-4.5c2.1-0.6,4.4-0.1,6.5-0.7c1.2-0.3,2.6-0.6,3.7-1.3c1.7-1,4.9-4,6.8-1.7c1.5,1.8-1.1,7-1.8,8.9c-3.4,9.4-7.7,18.6-12.6,27.3C502.8,644.2,501.1,647.6,499.5,651z M509.4,663.9c-1.1,0.2-4.7,1.3-5.7,1c-1.6-0.5-1.2-4.9-1.3-6.5c-0.1-2.4-1-4.9-0.7-7.3c0.3-2.3,1.6-4.5,2.7-6.5c1.2-2.1,2.5-3.9,3.7-5.9c1.8,2.7,1.9,6.9,2.5,10.1c0.4,2.5,1.6,6.4,1.5,9.6C512,660.9,512.1,663.4,509.4,663.9z M533.5,657.6c-2.2,3.7-3.7,6.5-7.8,7.7c-0.3,0.1-0.5,0.1-0.8,0.2c-3.5,0.7-9.8,0.9-10.9-3.3c-1-3.7-1.1-7.7-1.6-11.5c-0.4-3.4-1-6.9-1.8-10.2c-1.6-6.3,3.8-14.8,6.7-20.2c2.7-5,4.5-11.2,6.1-16.7c0.3-1.1,0.9-2.1,1.6-2.9s1.7-1.4,2.5-2.1c1-0.8,4.3-4,5.3-2.6c0.5,0.8,0.3,2.3,0.3,3.2c0.1,0.8,0.2,1.5,0.3,2.3c0.1,0.9,0.3,1.8,0.3,2.8c0.1,1.1,0,2.2,0.1,3.3c0.1,0.9,0.4,1.8,0.7,2.7c0.5,1.9,0.6,3.9,1.1,5.8c0.7,3.4,1.8,6.7,3,9.9c1.4,3.9,0.5,7.2,0.2,11.1c-0.1,2.1-0.4,4.2-0.7,6.3C537.4,648.8,536.3,653,533.5,657.6z"})),React.createElement("g",{id:"lung",onClick:this.props.onClick.bind(null,"Lung"),onMouseOver:this.props.onMouseOver.bind(null,"Lung"),onMouseOut:this.props.onMouseOver.bind(null,void 0)},React.createElement("g",{id:"right_lung",onclick:"click_label('lung')",onmouseover:"show_label('lung')",onmouseout:"hide_label()"},React.createElement("path",{id:"right_lung_color",fill:getRGB(this.props.values.avg[this.props.fixed.indices.Lung]),d:"M301.1,219.1c-5.1,0.5-14.4-0.8-31.6,23.1c-14.9,21.1-23.4,45.1-29.8,70c-2.6,11.9-9.2,42.5,0.4,84c0.1,0.4,1.6,9.7,10,10.3c0.9,0.1,38.6-22.5,54.7-18.6c4.5,2.2,14,0.3,20-7.7l0.4-17.9c0,0,5.9-47.7,2.5-56.7c0,0-8.1-34.6-9.3-39.2c-4.7-17.3,2.2-29.9,0.9-35.8C319.3,230.7,314.2,220.2,301.1,219.1L301.1,219.1z"}),React.createElement("path",{id:"right_lung_strokes",fill:"none",stroke:"#000000",strokeWidth:"0.5",d:"M242.7,301.1c0,0,14.3,59.8,42.6,76 M242.9,402.7c-2.8-2.2,33.4-23,42.6-25.4M285.3,377.2c0.1,0.1,21.2-2.5,32.9-14.8l7.4-7.8"}),React.createElement("path",{id:"right_lung_hover",style:{transition:"stroke .25s ease-in-out, stroke-width .25s ease-in-out"},fill:"rgba(0,0,0,0)",stroke:"Lung"===e||"Lung"===t?"rgb(255,225,0)":"rgba(0,0,0,0.5",strokeWidth:"Lung"===e||"Lung"===t?"5":"2",d:"M301.1,219.1c-5.1,0.5-14.4-0.8-31.6,23.1c-14.9,21.1-23.4,45.1-29.8,70c-2.6,11.9-9.2,42.5,0.4,84c0.1,0.4,1.6,9.7,10,10.3c0.9,0.1,38.6-22.5,54.7-18.6c4.5,2.2,14,0.3,20-7.7l0.4-17.9c0,0,5.9-47.7,2.5-56.7c0,0-8.1-34.6-9.3-39.2c-4.7-17.3,2.2-29.9,0.9-35.8C319.3,230.7,314.2,220.2,301.1,219.1L301.1,219.1z"})),React.createElement("g",{id:"left_lung",onclick:"click_label('lung')",onmouseover:"show_label('lung')",onmouseout:"hide_label()"},React.createElement("path",{fill:getRGB(this.props.values.avg[this.props.fixed.indices.Lung]),d:"M375.6,220.9c5.1,0.5,14.4-0.8,31.6,23.1c14.9,21.1,23.4,45.1,29.8,70c2.5,11.9,9.2,42.5-0.4,84c-0.1,0.4-1.6,9.7-10,10.3c-0.9,0.1-38.6-22.5-54.7-18.6c-4.5,2.2-14,0.3-20-7.7l-0.4-17.9c0,0-5.9-47.7-2.5-56.7c0,0,8.1-34.6,9.3-39.2c4.7-17.3-2.2-29.9-0.8-35.8C357.4,232.4,362.5,222,375.6,220.9L375.6,220.9z"}),React.createElement("path",{id:"left_lung_strokes",fill:"none",stroke:"#000000",strokeWidth:"0.5",d:"M433.8,404.5c2.8-2.2-33.4-23-42.6-25.4 M391.4,379c-0.1,0.1-21.2-2.5-32.9-14.8l-9.9-30.4"}),React.createElement("path",{id:"stroke",d:"M391.2,379.1c28.3-16.2,42.6-76,42.6-76",fill:"none",stroke:"#000000",strokeWidth:"0.5"}),React.createElement("path",{style:{transition:"stroke .25s ease-in-out, stroke-width .25s ease-in-out"},id:"left_lung_color",fill:"rgba(0,0,0,0)",stroke:"Lung"===e||"Lung"===t?"rgb(255,225,0)":"rgba(0,0,0,0.5",strokeWidth:"Lung"===e||"Lung"===t?"5":"2",d:"M375.6,220.9c5.1,0.5,14.4-0.8,31.6,23.1c14.9,21.1,23.4,45.1,29.8,70c2.5,11.9,9.2,42.5-0.4,84c-0.1,0.4-1.6,9.7-10,10.3c-0.9,0.1-38.6-22.5-54.7-18.6c-4.5,2.2-14,0.3-20-7.7l-0.4-17.9c0,0-5.9-47.7-2.5-56.7c0,0,8.1-34.6,9.3-39.2c4.7-17.3-2.2-29.9-0.8-35.8C357.4,232.4,362.5,222,375.6,220.9L375.6,220.9z"}))),React.createElement("path",{style:{transition:"stroke .25s ease-in-out, stroke-width .25s ease-in-out"},id:"thyroid",onClick:this.props.onClick.bind(null,"Thyroid"),onMouseOver:this.props.onMouseOver.bind(null,"Thyroid"),onMouseOut:this.props.onMouseOver.bind(null,void 0),fill:getRGB(this.props.values.avg[this.props.fixed.indices.Thyroid]),stroke:"Thyroid"===e||"Thyroid"===t?"rgb(255,225,0)":"rgba(0,0,0,0.5",strokeWidth:"Thyroid"===e||"Thyroid"===t?"5":"2",d:"M331.6,170.7c0.9-0.1,7.4,14.8,8.6,15.7c1.2,1,2.8,1,4.6,0s8-6,8.3-9.1s-1.6-8.6,1.2-8.6c2.2,0,5.7,8.1,6.3,12.2c1.2,7.8,0.4,9.3-3,14.5c-1.8,2.9-2.7,6-7.6,3.1s-4.3-6-5.8-6s-4.6,1-4.6,1s-3.4,4.1-5.8,3.8c-2.5-0.2-7.5-5.5-6.9-12.6C327.4,177.7,325.4,171.5,331.6,170.7L331.6,170.7z"}),React.createElement("path",{style:{transition:"stroke .25s ease-in-out, stroke-width .25s ease-in-out"},id:"heart",onClick:this.props.onClick.bind(null,"Heart"),onMouseOver:this.props.onMouseOver.bind(null,"Heart"),onMouseOut:this.props.onMouseOver.bind(null,void 0),fill:getRGB(this.props.values.avg[this.props.fixed.indices.Heart]),stroke:"Heart"===e||"Heart"===t?"rgb(255,225,0)":"rgba(0,0,0,0.5",strokeWidth:"Heart"===e||"Heart"===t?"5":"2",d:"M390.1,308.6c-3.7-4.3-8.6-10.9-14.7-11.3c-2.1-0.1-4.7,0.9-6,2.6c3.8,2.3-6.7,8-8.7,5.7c2.6,3-3.4,4.5-5.3,5c-2,0.4-3.1,0.2-5-0.3c-2.4-0.5-4.8,0.7-6.9,1.6c-9,4.1-10.6,14.1-8.1,22.9c2.1,7.1,5.4,14.6,10.8,19.8c2.9,2.8,6,3.6,9.3,5.4c3.5,1.9,6,4.1,10,5.1c5.6,1.5,10.9-0.6,16.5-0.6c2.4,0,4.6,0.9,7.1,1c3,0.1,6-0.1,8.9,0.2c7.4,0.8,15.1-8,14.9-15c-0.1-3.2-1.7-6.4-2.8-9.4c-2.1-6-5.1-11.9-8.5-17.2C398.1,318.8,394.2,313.3,390.1,308.6z"}),React.createElement("g",{id:"muscle",onClick:this.props.onClick.bind(null,"Muscle"),onMouseOver:this.props.onMouseOver.bind(null,"Muscle"),onMouseOut:this.props.onMouseOver.bind(null,void 0)},React.createElement("path",{id:"muscle_color",fill:getRGB(this.props.values.avg[this.props.fixed.indices.Muscle]),d:"M138.3,603.5l-25-17c0,0,8.4-4.4,9.3-11.6l14-46.2c2.3-5.4,3-44.3,3-44.3c0-12,27.5-63.4,27.5-63.4s-0.8-17.7,2.5-38.9c1.8-11.8,8-23.1,9-37c0.7-10.2-3.2-21.1-3.7-31c-0.8-14.5,1.8-27,4.3-34.3c2.1-6.2,4.7-19,10.7-26.7c8.9-11.4,21.8-17.1,21.8-17.1s9.5-4.6,22.6-6.1c0,0-8.6,8.9-14.6,19.5c-4.2,7.3-6.3,16-7.1,20.6c-1.4,8.2,1.7,19.5,6.1,33.1c2.8,8.7,6.8,18.2,8.6,27.5c1.4,7.3,4.1,15.4,4.9,22.3c2.5,21.9,0.4,39.3,0.4,39.3l-2,5.7c-1.7,15.7-11.8,35.9-11.8,35.9l-1.7,21.4l-7.6,12.8c0,20.4-10.1,45.7-10.1,45.7L164,585.3c-5.6,5.6-3.9,20.4-3.9,20.4s0.2,8.8-1,18.3c-0.8,6.8-2.5,13.8-3.8,18.7c-0.9,3.3-0.6,4.7-1.3,4.8c-1.9,0.4-2.6-0.2-4-2.5c-2.7-4.5-6.2-13-8-22.3c-1-5.2,0-12.8-1.7-17.2C139.9,604.4,139.1,604.2,138.3,603.5"}),React.createElement("path",{id:"muscle_strokes",fill:"none",stroke:"#000000",d:"M228.6,337.8c1.4,10.1-0.5,29.7-7.7,47c-7.5,18-20.5,33.7-29.5,44.7c-17.7,21.5-24.5-8.6-24.5-8.6 M233.3,230.3c-6.5,7.1-18.6,22.6-20.5,38 M178.1,349.8c14.8-23.5,13.7-17,26.5-29.3s9.7-30.8,9.7-30.8 M212.5,235.7c-23,17.2-23.2,44.2-21.5,65c1.3,16,2.7,28.7,2.7,28.7 M196.1,424.5c1.6,2.4,3.5,4.3,5.5,5.7c0.3,0.2,0.5,0.3,0.8,0.5c7.6,4.9,16.1,3.5,16.1,3.5 M202.4,430.7c0,0-10.9,24.8-27.4,55c-7.1,12.9-16.3,24.2-23.5,38.3c-8.9,17.6-15.1,38.1-16.5,55.2c0,0,2.8,0.7,6.6,2c5.9,2.1,14.3,6,18.6,11.6 M171.8,491.7c12.3-5.7,37.3-23.3,37.3-23.3 M151.1,585.2c0,0,4.5-18.8,13.7-38c8-16.8,20.4-33.6,23.8-43.5c2.1-6.2,6.2-25.3,6.2-25.3 M179.5,487.8c0,0-2.7,12-9.3,26c-7,14.9-18,32.1-21.2,41c-2.2,6.4-6.7,26.2-6.7,26.2"}),React.createElement("path",{style:{transition:"stroke .25s ease-in-out, stroke-width .25s ease-in-out"},id:"muscle_hover",fill:"rgba(0,0,0,0)",stroke:"Muscle"===e||"Muscle"===t?"rgb(255,225,0)":"rgba(0,0,0,0.5",strokeWidth:"Muscle"===e||"Muscle"===t?"5":"2",d:"M138.3,603.5l-25-17c0,0,8.4-4.4,9.3-11.6l14-46.2c2.3-5.4,3-44.3,3-44.3c0-12,27.5-63.4,27.5-63.4s-0.8-17.7,2.5-38.9c1.8-11.8,8-23.1,9-37c0.7-10.2-3.2-21.1-3.7-31c-0.8-14.5,1.8-27,4.3-34.3c2.1-6.2,4.7-19,10.7-26.7c8.9-11.4,21.8-17.1,21.8-17.1s9.5-4.6,22.6-6.1c0,0-8.6,8.9-14.6,19.5c-4.2,7.3-6.3,16-7.1,20.6c-1.4,8.2,1.7,19.5,6.1,33.1c2.8,8.7,6.8,18.2,8.6,27.5c1.4,7.3,4.1,15.4,4.9,22.3c2.5,21.9,0.4,39.3,0.4,39.3l-2,5.7c-1.7,15.7-11.8,35.9-11.8,35.9l-1.7,21.4l-7.6,12.8c0,20.4-10.1,45.7-10.1,45.7L164,585.3c-5.6,5.6-3.9,20.4-3.9,20.4s0.2,8.8-1,18.3c-0.8,6.8-2.5,13.8-3.8,18.7c-0.9,3.3-0.6,4.7-1.3,4.8c-1.9,0.4-2.6-0.2-4-2.5c-2.7-4.5-6.2-13-8-22.3c-1-5.2,0-12.8-1.7-17.2C139.9,604.4,139.1,604.2,138.3,603.5"})),React.createElement("g",{id:"thymus",onClick:this.props.onClick.bind(null,"Thymus"),onMouseOver:this.props.onMouseOver.bind(null,"Thymus"),onMouseOut:this.props.onMouseOver.bind(null,void 0)},React.createElement("path",{style:{transition:"stroke .25s ease-in-out, stroke-width .25s ease-in-out"},id:"thymus_color",fill:getRGB(this.props.values.avg[this.props.fixed.indices.Thymus]),stroke:"Thymus"===e||"Thymus"===t?"rgb(255,225,0)":"rgba(0,0,0,0.5)",strokeWidth:"Thymus"===e||"Thymus"===t?"5":"2",d:"M334.5,239.9c0,0-0.3-7.6-5.8-5.8s-4.3,20-6.7,20s-3-2.7-6.1,0c-1.8,1.6-0.6,24.3,5.8,25.8s17.3-3.9,20-2.1s10,2.7,10.9,3.9s3,12.1,12.1,10s3-23.7,1.2-24.6s-6.7-10-9.7-11.8s-3.6-5.8-6.4-10.6c-2.7-4.9-3.6-7.2-4.6-9.1C342.4,229.9,334.5,239.9,334.5,239.9L334.5,239.9z"}),React.createElement("path",{id:"thymus_stroke",fill:"none",stroke:"#000000",strokeWidth:"0.5",d:"M345.4,269.4c0,0-15.2-17.9-10.9-29.5"})),React.createElement("g",{id:"adrenal_glands",onClick:this.props.onClick.bind(null,"Adrenal gland"),onMouseOver:this.props.onMouseOver.bind(null,"Adrenal gland"),onMouseOut:this.props.onMouseOver.bind(null,void 0),fill:getRGB(this.props.values.avg[this.props.fixed.indices["Adrenal gland"]]),stroke:"Adrenal gland"===e||"Adrenal gland"===t?"rgb(255,255,0)":"rgba(0,0,0,0.5)",strokeWidth:"Adrenal gland"===e||"Adrenal gland"===t?"5":"2"},React.createElement("path",{style:{transition:"stroke .25s ease-in-out, stroke-width .25s ease-in-out"},id:"left_adrenal_gland",d:"M368.5,459.1c0,0,13.6-4.7,21.3-2.6s1.2-10.6-7.6-11.7C373.4,443.7,368.5,459.1,368.5,459.1z"}),React.createElement("path",{style:{transition:"stroke .25s ease-in-out, stroke-width .25s ease-in-out"},id:"right_adrenal_gland",d:"M301.2,460.8c0,0,14.5-2.1,21,3.7c6.5,5.8,1.2-16.4-2.2-17.2C316.6,446.4,301.7,454.8,301.2,460.8z"})),React.createElement("path",{id:"bladder",style:{transition:"stroke .25s ease-in-out, stroke-width .25s ease-in-out"},onClick:this.props.onClick.bind(null,"Bladder"),onMouseOver:this.props.onMouseOver.bind(null,"Bladder"),onMouseOut:this.props.onMouseOver.bind(null,void 0),fill:getRGB(this.props.values.avg[this.props.fixed.indices.Bladder]),stroke:"Bladder"===e||"Bladder"===t?"rgb(255,225,0)":"rgba(0,0,0,0.5",strokeWidth:"Bladder"===e||"Bladder"===t?"5":"2",d:"M365.8,643.6c0-6.1-8.5-9.7-21-9.8l0,0c-0.1,0-0.1,0-0.2,0s-0.1,0-0.2,0l0,0c-12.6,0.1-21,3.7-21,9.8c0,5.5,6,15.1,16.7,17c0.6,1,1.4,5.8,1.4,8.6h2.9l0,0h0.2h0.2l0,0h2.9c0-2.8,0.8-7.6,1.4-8.6C359.8,658.7,365.8,649.1,365.8,643.6L365.8,643.6z"}),React.createElement("path",{id:"brain",style:{transition:"stroke .25s ease-in-out, stroke-width .25s ease-in-out"},onClick:this.props.onClick.bind(null,"Brain"),onMouseOver:this.props.onMouseOver.bind(null,"Brain"),onMouseOut:this.props.onMouseOver.bind(null,void 0),fill:getRGB(this.props.values.avg[this.props.fixed.indices.Brain]),stroke:"Brain"===e||"Brain"===t?"rgb(255,225,0)":"rgba(0,0,0,0.5",strokeWidth:"Brain"===e||"Brain"===t?"5":"2",d:"M346.3,126.9c0.3-0.9,0.6-1.8,1-2.6c1.8-2,3.7-4.3,5.9-5.7c5,6.6,15.3-3.6,11.2-9.5c2.9,5.5,12.5,4.1,16.6,0.7c4.5-3.7,3.7-16.2,6.6-18.1c-0.8,0.5-1.8,0.8-2.5,1.3c3.5-2.7,6.3-8.5,3.8-12.8c-0.7-1.3-1.5-1.7-2.3-1.5c0.2-0.6,0.3-1.2,0-1.7c4.2-5,4.8-9.9-0.3-14.6c1.7-2.4,0.7-6.9-1.1-9.1c-1.2-1.4-3.2-1.8-4-3.5s0.4-3.1-0.1-4.5c-1.2-3.7-6.1-4.3-8.8-5.9c-2.1-1.3-3.3-2.3-5.9-2.8c-2.1-0.4-4.7,0.3-6.7-0.3c-4.8-1.4-5.7-4.7-11.8-2.7c-2.5,0.8-3.9,2.5-4.6,4.6c-0.4-1.3-1.1-2.5-2.1-3.3c-2.9-2.3-13.2-3-14.2,1.8c-2.9-1.1-5.9-0.3-8.5,1c-2.3,1.1-5.1,4.7-7.2,5.4c-1.4,0.4-2.4-1-4.1-0.4s-2.8,3.3-3.5,4.8c-1.5,3.1-2.5,6.5-3.3,9.8c-1.4,5.8-5.5,8.7-2.2,15.7c0.6,1.3,1.8,3,3.3,4.6c-1.2-0.7-2.4-0.9-3.6-0.1c-4.5,3,1.3,12.8,3.5,15.3c-0.2-0.2-2.2,8-1.9,9.4c0.9,3.6,3.6,6.2,6.6,8c3.7,2.3,8.9,4,13.9,4.1c-0.6,5.7,8.5,7.5,12.6,5.9c2,2.9,4.8,5.7,5.4,9.4 M309.4,82.5c-0.1,0-0.2,0-0.3,0C309.2,82.4,309.3,82.4,309.4,82.5z M309.6,82.5c0.2,0,0.5,0,0.7,0C310.1,82.5,309.9,82.5,309.6,82.5z M330.4,115c0.1,1.4,0.7,2.8,1.5,4C330.9,118,330.4,116.6,330.4,115z M323.8,114c4.1-0.6,7.8-2.6,10-6.6C333.2,111.2,328.1,113.8,323.8,114z M347.6,123.7c1.6-3.5,3.7-7.1,4.2-10.9C351.3,116.7,349.6,120.5,347.6,123.7z M380.9,83.8c-0.7,0.6-1.4,1-2.1,1.1C379.4,84.7,380.1,84.3,380.9,83.8z"})),React.createElement("g",{id:"brain_tissues",style:"Brain"===t?{visibility:"visible",opacity:"1",transition:"all .5s ease-in-out"}:{visibility:"hidden",opacity:"0",transition:"all .5s ease-in-out"},transform:"Brain"===t?"translate(-50,0)":s?"translate(140,-20) scale(0.18, 0.18)":"translate(400,-20) scale(0.18, 0.18)"},React.createElement("path",{id:"brain_color_1_",fill:"#B5B5B5",stroke:"#000000",strokeWidth:"2",d:"M942.7,697.7c-0.9-1.9-1.8-3.8-2.6-5.7c-2.6-5.9-4.8-12-6.5-18.2s-2.1-13.1-4.1-19.1c-5.7,3.5-13.4-0.8-18.7-3c-9-3.7-18.8-4.9-28.4-6.5c-2.3-0.4-4.6-0.8-6.7-1.6c0,0-9.5-3.5-13.1-9.5c-0.4-0.7-4.2-0.1-8-1c-4.4-1-8.8-3.4-8.8-3.4c-7.6-2.3-14-7.3-19.6-12.9c-5.6-5.6-9.6-11.8-16.2-16.1c-2.7-1.8-5.4-3.6-8.2-5.3c-1.9-1.3-3.9-2.5-5.6-4.1c-1.6-1.5-3-3.3-4.4-5.1c-3.1-4.1-6.3-8.2-8.8-12.7c-1.5-2.7-2.8-5.5-3.8-8.3c-2.8-7.7-4-16-3.3-24.2c0.3-4.4-3.4-8.7-5.1-12.7c-4.5-10.5-2.4-22.7,0.7-33.7c-4-6.2-5-16.1-1.3-22.5c2.4-4,6.5-7.3,11.1-7.5c-1.4-7.2,1.6-16.2,7.2-20.9c-1.6-1.5-0.3-4.5,0.5-6.5c2.4-5.7,5.2-11.3,9-16.1c4.2-5.4,9.6-9.7,14.9-14c3.3-2.7,6.6-5.3,9.9-8c4.1-12.5,12.1-23.8,24-29.5c1.5-0.7,3.2-1.5,3.7-3.1c2.2-7.1,11.2-11.7,17.4-15.6c5.7-3.6,12-6,18.3-8.4c17.6-6.6,35.2-13.3,53.7-16.6c3.9-0.7,7.7-1.3,11.5-2.5c8-2.6,14.8-8.2,22.8-11c7.9-2.8,17.3-2.1,25.6-1.1c5-3.1,11.9-3.4,17.7-4c13-1.2,26-2.5,39.1-3.7c2.8-0.3,5.7-0.5,8.5-0.8c3.2-0.3,6.4-0.6,9.7-0.5c3.8,0.1,7.5,0.8,11.3,0.8c6.2,0.1,12.3-1.5,18.5-1.9s12.9,0.3,17.7,4.3c-0.7-0.1-1.3-0.2-2-0.4c3.4,1.3,8.5-0.2,11.8-1.7c8.6-3.7,18.4-0.5,27.7,0.3c6,0.5,12.1,0,18.1,0.9c9.1,1.4,17.6,6.1,23.4,13.2c1.8-3.2,6.4-5.1,10.1-5.3c3.7-0.2,7.3,0.8,10.8,1.9c5.5,1.6,11,3.2,16.5,4.7c1.5,0.4,2.9,0.8,4.3,1.4c3.5,1.5,6.6,4,8.7,7.2c3.6-1.8,8.8-0.4,12.5,1.2c4.3,1.8,8.7,3.6,13,5.4c7.3,3,14.7,6.1,21.1,10.7c4.5,3.1,8.4,6.9,11.8,11.3c0.3,0.4,0.6,0.8,0.5,1.3s-0.9,0.7-1,0.2c2.3-1.2,5.6-1.2,8.1-0.5c1.7,0.4,3.3,1.3,4.9,2.2c4.5,2.5,9,5,13.5,7.5c1.3,0.7,2.5,1.4,3.6,2.3c3,2.5,4.5,6.3,5.9,9.9c6.5-0.9,12.5,3.4,16.5,8.5s7.3,11.1,12.7,14.8c5.7,3.9,13.3,4.7,18.3,9.5c2.2,2.1,3.7,4.7,5.7,7c2.9,3.3,6.7,5.6,9.6,8.9c3.5,4,5.4,9.3,5.3,14.6c2.9,1.4,6.2,2.6,9,4.1c1,0.5,1.9,1,2.7,1.7c1.8,1.6,2.4,4.3,4,6.1c2.2,2.6,6,3.3,8.6,5.5c3.8,3.3,4.3,9,4.4,14c-0.2,0.3,0.2,0.3,0,0c-0.4,4.8,3.4,8.8,6.3,12.6c6.1,7.9,7.4,18.4,7.1,28.4c8.4,5.1,11.4,15.4,14.3,24.7c0.7,2.1,1.3,4.3,1.4,6.5c0.1,1.7-0.2,3.4-0.4,5.1c-0.8,5.1-1.5,10.2-2.3,15.3c0.4-0.3-0.5,0.7-0.1,0.4c1.3,3.9,2.6,7.9,3.9,11.8c1,3,2,6,1.9,9.1c-0.1,1.8-0.5,3.5-1,5.2c-1.3,4.5-3.5,8.8-7.1,11.8c2.6,7.3,2.3,15.8,1.3,23.5c-0.4,3.2-0.9,6.5-2.7,9.2c-1.7,2.7-5,4.7-8.2,3.9c-0.9,3.3,0.1,6.7,0.3,10c0.2,4-0.7,8.1-3,11.4s-6.2,5.5-10.2,5.5l-12.5,2.7c5.6,12.4,11.2,26.4,6.4,39.1c-2.1,5.5-6,10.1-9.8,14.6c-6.1,7.2-12.2,14.4-19.7,20.1c-3.5,2.7-7.3,5-11,7.5c-13.3,9.1-25.1,20.8-39.7,27.7c-17.4,8.2-37.2,8.9-56.5,9.5l-23.2,1.2c11.1,28.7,16.4,59.3,22.9,89.3c1.1,5.2,2.3,10.5,4.7,15.3c2.2,4.5,5.6,9,5,14c-13.2-3.6-26.5-7.2-39.7-10.8c-1.5-0.4-3-0.8-4.2-1.8c-1.4-1.1-2.2-2.7-3-4.2c-2.8-5.5-5.6-11.1-7-17.1c-1-4.3-1.3-8.8-2.9-13c-2.5-6.7-7.9-11.9-11.2-18.3c-1.8-3.5-2.9-7.3-4.4-10.9c-3.6-8.7-9.5-16.3-15.3-23.7c-3-3.8-6-7.7-9.7-10.9c-6.5-5.7-14.6-9.1-22.2-13.2c-10.5-5.6-20.3-12.4-29.1-20.4l-11-2.4c-11.6-3.1-19.5-13.6-26.4-23.4c-4.5-6.4-6.9-11.2-11.4-17.6l-2-1.5c-2,1.5-4,3-6.2,4.1c-2.4,1.2-5,1.8-7.6,2.4c-4.2,1-8.3,2-12.5,3c-2.9,0.7-5.8,1.4-8.7,1.6c-3.5,0.2-7-0.3-10.6-0.6c-6.4-0.6-12.8-0.6-19.1,0c-3.6,0.3-7.2,0.9-10.2,2.9c-1.5,1-2.7,2.3-4.4,3c-1.6,0.7-3.4,0.6-5.2,0.5c-9.6-0.5-19.2-2.5-28.2-5.8c-7.9,0.5-17.4-0.3-24.8-3.2c-2.4-0.9-4.7-2.2-6.9-3.5c-7.1-4.1-14.6-8.5-18.5-15.7L942.7,697.7z"}),React.createElement("path",{id:"cerebellum",fill:getRGB(this.props.values.avg[this.props.fixed.indices.Cerebellum]),d:"M1431,671.1c5.6,12.4,11.2,26.4,6.4,39.1c-2.1,5.5-6,10.1-9.8,14.6c-6.1,7.2-12.2,14.4-19.7,20.1c-3.5,2.7-7.3,5-11,7.5c-13.3,9.1-25.1,20.8-39.7,27.7c-17.4,8.2-37.2,8.9-56.5,9.5l-23.2,1.2c0,0-26.5-11.1-35.5-20.1c0,0-24.5-21.4-27.8-29.9c0,0-5.1,2.8-9.3,0.5c0,0-2.1-2.3-2.3-5.6c0,0,3.8-4.3,3.6-5.5c0,0-22.9-10-27.9-16.2c-5-6.3-9.5-7.7-18.5-22.3c0,0,35.8-5.1,40.5-6.3c4.7-1.2,23.2-6,27.5-10.8c0,0,9.7-8,13.4-8.6c3.7-0.6,12.1-0.2,16,0c3.8,0.2,14-0.2,22-2.3c0,0,14.6-7.7,25.1-9.1c0,0,5.2-0.6,17.1,1.7c0,0,8.9-0.2,12.6,0.6c3.7,0.8,5.3,1.9,7,3.2c0,0,4,1.4,13.1,0.9c9-0.5,13.4,0,19.3,2.1c5.9,2.1,15.3-1.6,15.3-1.6s9-4.2,14-2.6c5,1.5,11.5,3.7,14.2,5.8c2.7,2.2,12.5,4.9,12.5,4.9L1431,671.1z"}),React.createElement("path",{id:"occipital_lobe",fill:getRGB(this.props.values.avg[this.props.fixed.indices["Occipital lobe"]]),d:"M1413.9,442.1c2.9,1.4,6.2,2.6,9,4.1c1,0.5,1.9,1,2.7,1.7c1.8,1.6,2.4,4.3,4,6.1c2.2,2.6,6,3.3,8.6,5.5c3.8,3.3,4.3,9,4.4,14c-0.2,0.3,0.2,0.3,0,0c-0.4,4.8,3.4,8.8,6.3,12.6c6.1,7.9,7.4,18.4,7.1,28.4c8.4,5.1,11.4,15.4,14.3,24.7c0.7,2.1,1.3,4.3,1.4,6.5c0.1,1.7-0.2,3.4-0.4,5.1c-0.8,5.1-1.5,10.2-2.3,15.3c0.4-0.3-0.5,0.7-0.1,0.4c1.3,3.9,2.6,7.9,3.9,11.8c1,3,2,6,1.9,9.1c-0.1,1.8-0.5,3.5-1,5.2c-1.3,4.5-3.5,8.8-7.1,11.8c2.6,7.3,2.3,15.8,1.3,23.5c-0.4,3.2-0.9,6.5-2.7,9.2c-1.7,2.7-5,4.7-8.2,3.9c-0.9,3.3,0.1,6.7,0.3,10c0.2,4-0.7,8.1-3,11.4s-6.2,5.5-10.2,5.5l-12.5,2.7c0,0-13.1-5-15.4-5.9c-2.3-0.9-12.1-7.6-18.8-5.7c-6.7,1.9-10.5,3.3-10.5,3.3s-5.9,3.1-13.3,1c-7.4-2.1-9.3-2.7-12.5-2.8s-2.6-0.1-2.6-0.1s-1.6-16.1-3.5-18.2c-1.8-2.1-0.7-2.1-7.6-4.9c0,0-8-2.2-9.8-3.1c-1.8-0.9-13-7-15.4-19.1c-2.4-12.1,1.4-20,1.4-20s5.9-9.7,14.3-11.7c0,0,0.7-3.2,9.4-8.9c8.7-5.7,16.9-12.3,16.9-12.3s4.4-2.8,5.2-2.7s-8.3-2.3-6.6-7.2c1.7-4.9,13.6-28.8,13.6-28.8l8.6-17c0,0,3.5-5.7-0.6-10.9c0,0-4.9-3.7-5.3-12s1.6-14.7,4.3-19.4c2.7-4.7,5.2-8.2,5.2-8.2s7-0.9,10.1-3.6c0,0,9.2-6,12.8-9.1L1413.9,442.1z"}),React.createElement("path",{id:"temporal_lobe",fill:getRGB(this.props.values.avg[this.props.fixed.indices["Temporal lobe"]]),d:"M1111.1,719.9c-2,1.5-4,3-6.2,4.1c-2.4,1.2-5,1.8-7.6,2.4c-4.2,1-8.3,2-12.5,3c-2.9,0.7-5.8,1.4-8.7,1.6c-3.5,0.2-7-0.3-10.6-0.6c-6.4-0.6-12.8-0.6-19.1,0c-3.6,0.3-7.2,0.9-10.2,2.9c-1.5,1-2.7,2.3-4.4,3c-1.6,0.7-3.4,0.6-5.2,0.5c-9.6-0.5-19.2-2.5-28.2-5.8c-7.9,0.5-17.4-0.3-24.8-3.2c-2.4-0.9-4.7-2.2-6.9-3.5c-7.1-4.1-14.6-8.5-18.5-15.7l-5.3-10.9c-0.9-1.9-1.8-3.8-2.6-5.7c-2.6-5.9-4.8-12-6.5-18.2s-2.1-13.1-4.1-19.1c0,0-4.6-11.9,1.1-20.3c0,0,4.5-4,5.6-5.9c1-1.9,3.2-5.8,2.1-11.6c-1-5.8-3-13.3-3-13.3s-2.9-8.6,3.7-12.4c6.5-3.8,23.7-11.7,23.7-11.7s7.8-4.2,17.8-3.7s12.8-4.1,12.8-4.1l6.1-12.1c0,0,8.4-17.4,20-17.7c0,0,7.4-0.9,10.5,2.7c3.1,3.6,3.9,20.3,3.9,20.3s8.1-0.8,17.6-9.1c9.6-8.3,21.7-7.8,21.7-7.8s10.1-0.4,18.5,6.5c8.4,7,6.8,6,11.4,8s10.1,3.2,15.6,10.3c0,0-1.7-7.4,20-16.9c1.6-0.7,4.7-4,10-5.3s11.6-1.7,20.6-0.2s18.2-4.7,18.2-4.7s5.6-5.3,9.9-10.3s16.2-19.3,27.6-21.4c11.4-2.1,16.7-6.7,16.7-6.7s19.8-10.7,37,3.6c17.2,14.3,11.4,9.7,11.4,9.7s3.5,3.6,10.7,1.7c7.2-1.9,13.1-14.4,13.1-14.4s7.9,13.4,18.1,15.5c10.2,2.1,13.2-0.2,19.9-0.1c6.7,0.1,19.7-1.3,24.6-0.3c0,0-13.1,25.6-13.5,27.9c-0.4,2.2-2.2,5.9,5.4,8.5c0,0-19.7,13.8-21.3,14.9c-1.6,1.1-8.4,5.7-9.4,9.1c0,0-6.8,0.9-14.3,11.7c0,0-10.2,25,13.1,38.7c0,0,6.7,3,11.8,3.9c5,1,7.2,4.7,8.3,10.8c1.1,6.1,1.7,11.8,1.7,11.8s-15.8,3.3-20.8-2.7c0,0-6.9-2.1-12.4-1.1c0,0-12.2-0.8-15.3-2c-3.2-1.2-11.6,0-26.9,7.6c0,0-10.3,5.1-27.6,3.9c-17.3-1.2-17.1,0.7-17.1,0.7s-13.9,11.6-20,12.7c0,0-12.2,6.1-27.9,8.2c-15.7,2.1-30.5,4.1-30.5,4.1s-12.8,1.5-20.3,8.4c-7.5,6.8-11.8,12.5-19.1,15.8c-7.3,3.2-7.6,3.4-7.6,3.4L1111.1,719.9z"}),React.createElement("path",{id:"temporal_gyrus",fill:getRGB(this.props.values.avg[this.props.fixed.indices["Temporal gyrus"]]),d:"M997.3,603.9c1.7-0.6,3.2-1.6,5-1.7c39.3-2,80.8,12.9,117.1-2.4c10.9-4.6,20.9-11.8,32.5-14c19.3-3.6,38.8,7.3,58.3,5.2c11.7-1.3,22.5-7.2,34.2-8.6c11.7-1.3,26,4.7,27,16.4c1,11.8-11.4,19.8-22.1,24.9c-19.6,9.4-39.6,18.9-61.1,22.2c-12.1,1.9-24.4,1.7-36.4,4.1c-13.9,2.7-26.9,8.8-40.9,11.1c-7,1.2-14.2,1.4-20.9,3.6c-13.4,4.4-22.9,16-34.7,23.6c-9.1,5.9-19.8,9.5-30.6,10.4c-7.7,0.6-15.4-0.2-22.9-1.7c-3.8-0.8-7.8-1.8-10.7-4.4c-7.5-6.6-4.4-18.5-5-28.5c-0.8-14.1-10-29.3-2.5-41.2C983.5,623.1,992.3,605.6,997.3,603.9z"}),React.createElement("path",{id:"parietal_lobe",fill:"#B5B5B5",d:"M1122.4,305.1c-0.7-0.1,6.5-0.6,9.8-2c8.6-3.7,18.4-0.5,27.7,0.3c6,0.5,12.1,0,18.1,0.9c9.1,1.4,17.6,6.1,23.4,13.2c1.8-3.2,6.4-5.1,10.1-5.3c3.7-0.2,7.3,0.8,10.8,1.9c5.5,1.6,11,3.2,16.5,4.7c1.5,0.4,2.9,0.8,4.3,1.4c3.5,1.5,6.6,4,8.7,7.2c3.6-1.8,8.8-0.4,12.5,1.2c4.3,1.8,8.7,3.6,13,5.4c7.3,3,14.7,6.1,21.1,10.7c4.5,3.1,8.4,6.9,11.8,11.3c0.3,0.4,0.6,0.8,0.5,1.3s-0.9,0.7-1,0.2c2.3-1.2,5.6-1.2,8.1-0.5c1.7,0.4,3.3,1.3,4.9,2.2c4.5,2.5,9,5,13.5,7.5c1.3,0.7,2.5,1.4,3.6,2.3c3,2.5,4.5,6.3,5.9,9.9c6.5-0.9,12.5,3.4,16.5,8.5s7.3,11.1,12.7,14.8c5.7,3.9,13.3,4.7,18.3,9.5c2.2,2.1,3.7,4.7,5.7,7c2.9,3.3,6.7,5.6,9.6,8.9c3.5,4,5.4,9.3,5.3,14.6c0,0-3.5,2-7,4.7c-5.2,3.9-11.7,8.9-18.2,9.2c0,0-17.6,21.8-5.8,38.2c0,0,6.4,3.5,2,12.2l-8.2,16.6c0,0-10.9-1.3-24.6,0.3s-22.7-0.7-22.7-0.7s-11.1-4.4-15.3-14.7c0,0-7.9,13.7-14.2,14.7s-11.7-3.4-11.7-3.4l-10-8.8c0,0-9.7-8.2-23.1-6.8c0,0-11.2,1.8-18,6.2s-11.1,4-11.1,4s-10.9,3.2-18.2,10.8s-16.3,17.9-16.3,17.9s-3.5,4.7-13,7.7c0,0-5.6,1.3-18.6-0.5s-18,5.1-18,5.1s-13.9,6-17.6,9.8s-4.6,4-5.3,8.4c0,0-1.6-5.8-17.3-10.5c0,0-7.2-3.9-10-8.2c0,0-8.4-6.6-19.8-6.2c0,0-11.5,0.7-20.4,8.3c0,0-8.6,7.6-16.7,8.3l-0.6-0.3c0,0-0.7-16.6-3.6-20c0,0,3.8-14.4,24-16c0,0-20-8.5,2.5-29.8c0,0,8.4-4.7,10.8-9s2.1-12,2.1-12s0.6-6.1,0.3-14.8c-0.4-11.9-1.6-28-1.7-33.2c-0.2-9,4.7-19.6,15.1-24.4c10.4-4.8,28,3.9,28,3.9l3.8,2.6c0,0-0.8-2.7-2.3-6.5c-2.1-5.5-5.1-13.2-4-18.5c1.9-8.8,0.7-8.1,4.8-15.1s5.6-12.8,4.9-19.8s-0.7-13.8-2.4-21.3c-1.7-7.5-3.5-14.4-0.7-19.7c2.8-5.2,5.4-5.2,5.4-5.2L1122.4,305.1z"}),React.createElement("path",{id:"frontal_lobe",fill:getRGB(this.props.values.avg[this.props.fixed.indices["Frontal lobe"]]),d:"M1122.5,305c-4.8-4-11.5-4.8-17.7-4.3s-12.3,2-18.5,1.9c-3.8-0.1-7.5-0.7-11.3-0.8c-3.2-0.1-6.5,0.2-9.7,0.5c-2.8,0.3-5.7,0.5-8.5,0.8c-13,1.2-26,2.5-39.1,3.7c-5.8,0.6-12.7,0.9-17.7,4c-8.3-1-17.7-1.8-25.6,1.1c-8,2.8-14.8,8.4-22.8,11c-3.7,1.2-7.6,1.8-11.5,2.5c-18.5,3.4-36.1,10-53.7,16.6c-6.3,2.4-12.6,4.8-18.3,8.4c-6.2,4-15.3,8.6-17.4,15.6c-0.5,1.6-2.2,2.4-3.7,3.1c-11.9,5.7-19.8,17-24,29.5c-3.3,2.7-6.6,5.3-9.9,8c-5.3,4.3-10.7,8.6-14.9,14c-3.8,4.9-6.6,10.4-9,16.1c-0.8,2-2.1,5-0.5,6.5c-5.6,4.7-8.6,13.7-7.2,20.9c-4.7,0.2-8.8,3.5-11.1,7.5c-3.7,6.4-2.8,16.3,1.3,22.5c-3.1,11-5.2,23.2-0.7,33.7c1.7,4,5.5,8.4,5.1,12.7c-0.6,8.2,0.5,16.5,3.3,24.2c1.1,2.9,2.3,5.7,3.8,8.3c2.5,4.5,5.7,8.6,8.8,12.7c1.4,1.8,2.7,3.6,4.4,5.1c1.7,1.6,3.6,2.8,5.6,4.1c2.7,1.8,5.4,3.6,8.2,5.3c6.6,4.3,10.6,10.5,16.2,16.1c5.6,5.6,12,10.6,19.6,12.9c0,0,4.4,2.4,8.8,3.4c3.8,0.9,7.6,0.3,8,1c3.5,6,13.1,9.5,13.1,9.5c2.2,0.8,4.4,1.2,6.7,1.6c9.6,1.6,19.4,2.9,28.4,6.5c5.4,2.2,13,6.5,18.7,3c0,0-3.2-9.8-1.8-13.9c1.4-4.1,4.2-7.6,5.2-8.5c1-0.8,4.7-3.6,5.2-8.9c0,0,0.8-2.5,0-7.7s-2.5-10.5-2.5-10.5s-1.9-6.1,1.1-11.2c3-5.1,28.4-15.2,28.4-15.2s5.9-3,14.1-2.7s12.7-2.9,12.7-2.9s3.8-3.6,8-14.5c0,0,5.9-9,11.6-13.8c5.8-4.7,14.9-2,14.9-2s2.4,0.4,3.4,1.9c0,0,2.1-6.4,6.6-9.7c4.5-3.2,8.3-6,16.4-6.7h1.8c0,0-6.6-2.4-7.1-5.9s-2.4-2-0.6-10.6c0,0,2-8.1,13.5-15.7c0,0,5.7-3.2,7.6-7.8c1.9-4.6,1.9-25.5,1.9-25.5s-2.8-33.3-1.3-38.7c0,0,1.7-11.4,10.3-16.6s16.6-3.2,16.6-3.2s11.5,2.1,14.7,4.4c3.2,2.3,5,2.9,5,2.9s-2.4-6.1-2.7-7.3c-0.3-1.2-3.4-9.1-3.8-11.6s0.1-12.1,4.4-20.5c4.3-8.5,5.8-10.2,5.3-16.1s0.8-13.5-1.5-21.5c-2.2-8-3.7-16.5-3-19.9c0.4-2,1.9-5.3,4.1-7.4C1119.5,306,1121.6,305.4,1122.5,305"}),React.createElement("path",{id:"prefrontal_cortex",fill:getRGB(this.props.values.avg[this.props.fixed.indices["Prefrontal cortex"]]),d:"M806.9,478.3c-9.9,14.5-12.5,33.7-6.8,50.3c5.2,15.3,16.6,27.7,22.6,42.6c2.6,6.5,4.3,13.7,9.5,18.2c3.8,3.3,8.8,4.6,13.6,5.9c9.1,2.4,18.3,4.8,27.4,7.2c5.6,1.5,11.4,2.9,17.1,2.3c5.7-0.6,11.6-4,13.4-9.5c1.2-3.4,0.7-7.1,1.1-10.7c1.4-13,13.8-21.9,25.8-27c12-5.1,25.4-8.5,34.6-17.7c9.3-9.3,12.6-22.8,15.6-35.6c4-17.3,7.5-37.1-3.1-51.3c-4.8-6.4-11.8-10.7-17.5-16.3c-8.4-8.2-13.7-19-18.5-29.6c-3.2-7.1-6.4-14.3-10.7-20.9c-10.1-15.4-29.6-26.8-47.1-20.7c-7.8,2.7-14.2,8.6-19.7,14.7c-15,16.6-25.9,36.4-36.6,56c-2.7,5-5.4,10-8.2,14.9c-5,9.2-10,18.4-14.5,27.8"}),React.createElement("path",{id:"brain_strokes",fill:"none",stroke:"#000000",
-d:"M1110.4,719.8c7.8-2.2,15-6.2,20.9-11.6c3.9-3.6,7.3-7.8,11.7-10.8c5.6-3.7,12.5-5.1,19.1-6.1c12.2-1.9,24.4-2.9,36.4-5.6c12-2.6,23.9-7,33.5-14.6c2.5-2,4.9-4.2,8-5.2c2-0.7,4.2-0.7,6.3-0.7c8.8,0.2,17.8,2,26.4,0.2c10.9-2.2,20.3-9.7,31.3-11c7.8-0.9,15.8,2.3,23.6,2.1c3.5-0.1,7.3-0.3,10.4,1.4c1.1,0.6,2,1.4,3.1,2c4.1,2.2,9.1,1,13.7,0.5c4.9-0.5,9.9,0,14.5,1.4c2.3,0.7,4.6,1.6,7,1.9c8.2,1,15.7-5.6,23.9-5.2c5.1,0.2,9.7,3.1,14.3,5.4c4.9,2.4,10.2,4.1,15.4,5.8 M1208.8,731.3c9.7,18.5,24.1,34.2,41.7,45.4c8.2,5.2,16.6,10.5,26,12.7 M1161.6,764.5c7.2-1.1,13.6-5.2,19.5-9.5c5.7-4.1,11.3-8.5,16.7-13.1c2-1.8,4.2-3.7,4.8-6.4c1.6-1.7,2.8-3.2,3.7-5.3 M1202.6,735.7c-0.3,1.7,0.6,3.3,1.5,4.7c0.2,0.3,0.4,0.7,0.8,0.9c0.4,0.3,0.8,0.4,1.3,0.5c1.5,0.4,3.1,0.4,4.6,0.3c0.9-0.1,1.9-0.4,2.3-1.3c0.4,0.1,0.9-0.4,1.1-0.7 M1159.8,691.7c0,0,12,23.6,39.9,35.8c3.6,1.6,6.9,3.8,10.8,3.5c3.9-0.4,7.6-1.9,11.2-3.4c5.1-2.1,10.1-4.3,15.2-6.4 M998.2,562.5c-0.6,1.4-1.2,2.8-1.8,4.2c-0.8,1.8-1.6,3.7-2.9,5.1c-2.3,2.5-5.8,3.6-9.1,3.9c-3.4,0.3-6.8,0.1-10.1,0.5c-5.5,0.7-10.7,3.1-15.7,5.5c-5.1,2.5-10.3,4.9-15.4,7.4c-1.7,0.8-3.5,1.7-4.8,3c-2.5,2.6-3.2,6.5-2.9,10.1c0.3,3.6,1.6,7,2.5,10.5c1.3,5.7,1.3,12.2-2.2,16.8c-1.9,2.4-4.5,4.2-6.2,6.7c-3.2,5.1-1.5,11.6,0.3,17.3 M1012.6,623.2c8.3-6,9.9-17.7,15-26.6c2.3-4,5.4-7.6,6.6-12c0.8-3,0.8-6.1,0.6-9.2c-0.4-8-1.4-15.9-2.4-23.8c-0.4-2.9-0.9-6.1-3.2-7.8c-1.5-1.1-3.5-1.3-5.4-1.5c-2.8-0.3-5.7-0.6-8.3,0.3c-3,1-5.3,3.4-7.5,5.8c-3.2,3.5-6.5,7-8.4,11.3c-2,4.6-2.5,9.7-4.5,14.3c-3.1,7-9.5,11.8-15.7,16.3 M986.1,671.6c0.7,5.9,1.4,11.7,2.1,17.6c0.1,1.1,0.3,2.2,0.8,3.2c1.1,2.1,3.5,3.1,5.8,3.5c2.4,0.5,5,0.5,7.4,0.1c1.1-0.2,2.1-0.4,3.2-0.2c2.4,0.6,3.7,3.5,6.1,4.2 M1013,649.5c0.6-3.3,0.6-6.7-0.5-9.9c-1.1-3.2-3.5-5.9-6.6-7.1c-2.4-0.9-5-0.9-7.5-0.9c-4.3,0-8.6,0-12.9,0c-1.5,0-3,0-4.3,0.5c-4.2,1.5-5.4,6.7-6.1,11c-0.7,4.4-1.8,9.5-5.9,11.2 M1015.5,630.6c-1.3,1-2.3,2.2-2.9,3.7c-0.4,0.9-1.2,1.7-1.4,2.6 M1117.5,679.5c-0.4,0.1-0.7-0.3-0.9-0.7c-5.5-10.9-17.2-17.1-28.4-22c-4.7-2.1-9.5-4.1-14.5-4.9c-14.6-2.5-29.1,4.8-44,5c-6.3,0.1-13.4-1.7-16.7-7v-0.7 M1092.4,698.9c-1.7-3.7-3.8-7.8-7.7-8.9c-2.9-0.9-6.1,0.2-9.1,0.5c-6.6,0.7-13.2-2.3-19.9-1.6c-5.4,0.6-10.5,3.8-13.5,8.3c-2.1,3.1-1.5,4.3-5.4,5.1c-3.3,0.7-7,0.5-10.3,0.1 M1085.9,690.3c0.9-0.8,2.4-1.3,3.3-2.1c1.2-1.1,2.4-2.2,3.6-3.4 M1038.8,701.7c1.8-0.9,4.3-1.6,6.1-2.5 M959.9,692.7c0.6,2.3,1.2,5.4,1.8,7.7c0.8,3,1.6,6.1,3.5,8.6c2.5,3.5,6.7,5.4,10.6,7.2c2.6,1.2,5.2,2.3,7.8,3.5 M940.1,675.3c1.4,1.9,2.7,3.9,4.1,5.8c1.5,2.1,3,4.3,5,5.9c1.8,1.5,3.9,2.6,6,3.6c2.6,1.3,5.6,2.6,8.4,1.8 M1142,690.2c-1.5-3.6-3.2-7.1-5.1-10.5c-0.7-1.2-1.4-2.4-2.4-3.3c-1.1-0.9-2.5-1.2-3.9-1.5c-5-1.2-10.1-2.5-15.1-3.7c-1.6-0.4-3.7-0.8-5.4-1.1 M1146.2,685.7c6.3-0.5,12.8-1,19,0.3c2.1,0.4,4.1,1.1,6.2,1.4c3.8,0.6,7.7,0,11.6-0.5c6-0.8,12-1.6,17.7-3.6c4.8-1.7,9.3-4.3,13.8-6.9c7-4,14-8.1,19.7-13.7c2.5-2.4,4.8-5.7,3.8-9c-0.7-2.3-2.9-3.9-4.9-5.2c-8.5-5.6-17.6-11.4-27.8-11.9 M1165.9,654.2c0-0.3-0.4,0.2-0.2,0.3c0.3,0.1,0.5-0.3,0.6-0.5c1.4-3.2,4-5.7,6.5-8.1c0.5-0.4,0.9-0.9,1.1-1.5c0.1-0.4,0.1-0.9,0.1-1.3c-0.3-3.4-1.8-6.7-4.2-9.1c-0.6-0.6-1.6-1.1-2-0.4c-4.3-1.6-7.9-4.2-12.3-5.8c-7.2-2.7-14.6-5.4-22.2-4.4c-2.8,0.3-5.6,1.2-8.5,1.3c-2.7,0.1-5.5-0.4-8.2-0.9c-7.7-1.6-15.3-3.7-22.8-6.2c-2.4-0.8-4.9-1.7-7.4-1.9c-6.8-0.6-13.1,3.3-18.8,7 M1054.8,602.3c5.4,1.6,11.1,2.3,16.7,1.9c0.9-0.1,1.9-0.2,2.8-0.5c1-0.4,1.8-1.2,2.6-1.9c3.6-3.5,6.4-7.8,8.4-12.5 M1174,642.1c4.1,0,7.6,4.6,11.5,5.8c1.1,0.3,2.3,0.4,3.4,0.4c1.4,0.1,2.9,0.1,4.3,0.2 M1225.7,593.9c-4-0.9-8-1.9-12-2.8c-2.4-0.6-4.9-1.1-7.3-0.6c-1.5,0.3-2.9,1-4.3,1.8c-8.8,4.6-17.2,9.9-25.3,15.7c-3,2.1-6,4.5-7.4,7.9c-2.2,5.5,0.5,11.7,0,17.6 M1075.1,603.7c-0.1,0.9,0.2,1.8,0.5,2.6c1.4,3.7,4,7,7.3,9.2 M1120.7,581.8c0.8-2.6,0.2-5.6-1.2-8c-1.4-2.4-3.5-4.3-5.7-5.9c-4.2-3-9.3-3.7-13.5-6.4c-4.1-2.6-6.9-6.8-11.4-9.2c-4.8-2.5-10.1-4.3-15.5-4.3c-7.8-0.1-15.3,3.3-21.7,7.8c-5.3,3.7-10.6,8.5-17.1,8.6 M1177.3,571.4c-2.7,1.4-4.4,4.2-7.1,5.7c-4.5,2.5-10.6,1-14.6,4.3c-2.3,1.9-3.3,5.2-2.7,8.2 M1104,571.9c-0.3-3.4-1.4-6.7-3.3-9.5 M1110.5,508.2c0.8,0,1.5,0,2.3,0c-5.3-0.4-11.2-0.6-15.5,2.6c-2.6,2-4.2,5-6.4,7.3c-1.6,1.8-3.6,3.1-5.7,4.4c-5.2,3.2-10.9,5.6-17,6c-5.7,0.5-11.4-0.8-17.1-0.2c-8.9,1-17.1,6.8-20.8,14.9 M1166.5,506.6c-3.2-6.7-10.6-10.7-18-11.8c-7.4-1-14.9,0.4-22.2,1.8c-4.3,0.8-9.3,2.1-11.3,6c-0.9,1.8-3,3.3-2.7,5.3 M1142,554.2c-0.2,0-0.1-0.5,0.1-0.4c0.2,0,0.3,0.4,0.2,0.6s-0.4,0.3-0.6,0.4c-5.1,2.1-10.1,4.6-14.7,7.7c-3.5,2.3-7,5.1-8.3,9.1 M1214.5,591.9c4.1-5.2,11.7-5.4,18-7.1c10.3-2.7,19.3-10.3,23.5-20.2c2.3-5.3,3.8-11.9,9-14.3c5.1-2.4,11.5,0.2,16.5-2.4 M859.7,624.2c0.6,3,1.7,6,3.1,8.7 M1139.9,543.9c0.3,3.7,1.1,7.3,2.4,10.8 M912.8,632.1c-2.1-0.4-4.2-0.8-6.3-1.3c-2.6-0.5-5.4-1.1-7.5-2.8c-2.3-1.8-3.4-4.7-4.7-7.3c-1.6-3.3-3.7-6.4-6.7-8.4s-7.2-2.6-10.3-0.7 M1281.5,513.6c-5.2-5.6-14.1-10.1-21.7-10.2c-7.7-0.1-15.2,2.3-21.9,5.9c-1.8,1-3.6,2-5.5,2.7c-2.1,0.8-4.4,1.2-6.6,1.8c-11.7,3.2-20.7,12.4-28.4,21.7c-4.6,5.5-9.4,11.5-16.2,13.9c-6.2,2.2-13.1,1-19.7,0.4c-6.6-0.6-13.9-0.2-18.8,4.3 M1263.9,535.4c0.6,0.2,0.7,0.9,0.7,1.5c0.1,4.2,0.7,8.4,1.9,12.4 M1276.9,587.2c-4.2,0.1-8.3-0.9-11.9-3c-1.6-0.9-3.1-2-4.7-2.9c-5.4-2.7-11.7-1.8-17.6-0.9 M1283.8,578.8c3.6-1.9,6.7-4.8,8.8-8.2c2.2-3.6,3.6-8,7-10.5 M1229.2,620.5c12.5,5.2,27.2,4.5,39.2-1.7c2.9-1.5,5.6-3.3,8.6-4.5c7.3-3.1,15.5-2.9,23.1-4.7c9.6-2.3,18.3-7.9,24.3-15.7c3.1-4,8.8-9.8,13.6-11.1 M1263.2,635c1.1,1.9,2.3,3.9,3.9,5.4c2.4,2.3,5.7,3.5,8.9,4.6c3.2,1.1,6.4,2.2,9.7,2.6c2.1,0.3,4.3,0.3,6.4,0.5c3,0.3,5.9,0.9,8.7,1.9 M1306,646.2c2.5-1.7,5-3.4,7.5-5.1c6.4-4.3,13.8-8.9,21.4-7.4c1.7,0.3,3.4-0.4,5-1.2c4.4-2.4,8.4-5.4,12-8.9c0.3-0.3,0.6-0.4,0.8-0.7 M1338.1,633.2c-0.3,0.6,0.1,1.4,0.7,1.7l1.8,0.8c1,1.1,2.8,0.9,4.3,1.1c1.8,0.2,3.4,0.9,5,1.6c1.9,0.9,3.9,1.8,4.9,3.6c0.4,0.7,0.6,1.4,0.8,2.2c1.3,4.9,2.3,10,2.7,15.1 M847,612.9c-0.9-3.5-4.5-5.5-7.8-6.8c-9.6-4-19.9-6.5-30.3-7.3 M933.1,626.4c-2.4-4.3-5.2-8.9-9.8-10.5c-1.6-0.6-3.4-0.7-5-1.2c-7.9-2.3-12.1-10.6-18.1-16.1c-4.4-4.1-10-6.8-14.6-10.7c-2.3-2-4.4-4.3-6.6-6.5c-7.3-7.1-16.1-12.6-25.7-16c-2.2-0.8-4.4-1.4-6.8-1.5c-3.6-0.1-7,1.3-10.5,1.9c-8.8,1.4-17.6-2.6-25.5-6.7c-4.6-2.4-9.2-4.9-13.1-8.4c-4.5-4-8.5-9.3-14.4-10.4c-2.5-0.5-5.2,0-7.1,1.6 M799.2,574.3c1.6,1.8,3.1,3.7,4.7,5.5c1.4,1.6,2.8,3.3,3.5,5.3c0.4,1.2,0.6,2.4,1,3.5c1.4,4.1,5.5,6.7,9.4,8.7c0.5,0.2,1.4,0.1,1.1-0.4 M842.3,564c2.4-5.9,3.3-12.4,2.7-18.7 M771.4,494.5c2.2,2.6,6.4,5.1,9.8,5.5 M809.4,527.4c2.6-4.2,7-6.9,10.1-10.7c3.6-4.2,5.5-9.9,5.1-15.4s-3.1-10.9-7.4-14.4c-2.1-1.8-4.6-3.1-7-4.3c-6-3.1-11.9-6.3-17.9-9.4c-3.8-2-8.8-6.4-11.1-10 M929.7,455.3c-1.5,5.1-2.2,10.3-2.1,15.6c3.8-2.4,8.5-3.4,13-2.5 M822.2,399.9c4.1,0.5,8.7,0.9,11.9-1.7c1.6-1.3,2.6-3.1,4.3-4.2 M927.5,470.9c-1.9,3.1-6.8,3.5-10,5.2c-1.9,1-3.5,2.5-5.2,3.9c-1.9,1.7-3.9,3.5-5.8,5.2c-1,0.9-2,2.4-1.1,3.3c0.3,0.3,0.7,0.4,1.1,0.6c1.5,0.6,2.7,2.1,3,3.7 M910.5,532.9c0-1.6,0-3.1,0-4.7 M905.2,486.9c-6.5,0.9-12.5,4.9-15.8,10.5s-3.8,12.9-1.3,18.9c1.2,2.9,3.1,5.7,5.8,7.3c3.4,2.1,7.6,2.2,11.4,3.3c2,0.6,4,1.4,6.1,1.4c4.2,0,7.7-3.1,10.8-6 M910.6,532.6c-1.7,7.4-2.3,15.6,1.1,22.4c0.9,1.9,2.1,3.6,2.9,5.5c1.6,3.4,2.1,7.2,3.9,10.6c0.3,0.6,0.8,1.3,1.5,1.5c0.6,0.2,1.2,0,1.7-0.2c2.9-0.9,6-1.3,9.1-1.1 M845.5,529.2c2.3-1.2,4.9,1,6.2,3.3c1.3,2.4,2.1,5.2,2.2,8c3.7-2.4,5.7-6.6,9-9.5c2.5-2.2,5.6-3.6,8.7-4.9c4.5-2,9.1-4,13.6-5.9c0.9-0.4,3.2-1.6,4.1-2.1 M834.8,515.7c-1.3-1.1-2.1-2.7-3.4-4c-2-2-5.2-2.7-7.9-1.8 M881.5,552c1.6,0.7,3.3,1.4,4.9,2.1c-0.7-1.5-1.1-3.2-1.2-4.9 M788.5,443.6c3.2,1.5,7.9,2.5,11.3,1.5c4.3-1.2,7.8-4.8,12.2-5.9c1.1-0.3,2.2-0.3,3.2-0.8s1.9-1.4,1.9-2.5 M817.2,433.9c-0.1,2.7,0.7,5.3,1.5,7.8c0.4,1.4,0.9,2.8,1.8,3.9c0.7,0.9,1.6,1.6,2.5,2.3c3.8,2.8,7.9,5.5,12.5,6.2c0.8,0.1,1.9,0.4,1.8,1.3 M950.5,526.6c0.4-0.2,0.8-0.4,1.1-0.6c-8.7,6.1-12.5,18.4-8.8,28.3c0.7,2,1.7,3.9,2.3,5.9c0.6,2.1,0.6,4.3,1.1,6.4c1.7,7.5,9.2,13.1,16.8,12.8 M987.9,544.2c-0.9-4.7-0.6-9.5,0.8-14c-1.6,0-3.2,0.1-4.8,0.1c-0.8,0-1.6,0-2.4-0.1c-0.7-0.1-1.3-0.3-1.9-0.6 M1024.5,412.6c3.2,2.4,5,6.1,7.3,9.3c1,1.3,2.5,2.6,4,2.1c1.4-0.5,1.8-2.1,2.2-3.5c1.7-5,6.1-8.5,10.4-11.5c-0.3,0-0.6,0-1-0.1 M1068.9,482.5c0.2,0,0.3,0.4,0.3,0.6c0,3.5-1.4,7-3.9,9.5c-1.9,1.9-4.3,3.1-6.5,4.6c-3.7,2.5-6.8,5.8-9.2,9.6c-2.1,3.5-3.6,7.5-3.2,11.5s3.1,8,7,9.1 M1115.2,411.7c-3.9-4-10.8-5.6-16.3-6.7c-4.7-1-9.7-1.8-14.3-0.4c-1.6,0.5-3.2,1.3-4.6,2.2c-6.1,3.9-10.4,10.6-11.4,17.8c-0.4,2.8-0.3,5.7-0.2,8.6c1,19.6,3.5,39.3-0.7,58.6c-0.6,2.6-0.9,5.6-3,7.3 M989,529.5c7.5-4.5,8.8-15.1,15.3-21c1.7-1.6,3.9-2.9,4.7-5.1c0.3-0.7,0.3-1.5,0.6-2.3c0.4-1,1.1-1.8,1.8-2.5c3.1-3.1,6.7-5.7,10.7-7.5c-0.5,0.1-0.9,0.3-1.4,0.4c0.3,0.7-0.3-1.4-0.4-2.1c-0.6-4.2-1.8-8.3-2.3-12.5c-0.4-4.2,0-8.7,2.3-12.3c0.7-1.1,1.6-2.1,2.2-3.2c0.5-1,0.8-2.2,1.1-3.4c1.2-5.2,2.1-10.7,5.4-14.7c2.4-2.9,6.2-5.3,6.4-9.1c0.2-3.2-1-7.4,0.3-10.4 M991.4,413.4c0.4-0.5,0.8-0.9,1.2-1.4c-2.6,2.4-5.3,4.8-7.3,7.8s-3.3,6.5-2.8,10.1c0.2,1.4,0.6,2.8,0.6,4.3c0,4.2-3.7,7.7-4,11.8c-0.2,2.9,1.4,5.7,1.4,8.6c0,4.2-3.2,7.8-4.5,11.8c-1.7,5.3-0.2,11.5-3.1,16.2c-1.8,2.9-5,4.6-7.9,6.4c-5.8,3.5-11.2,7.6-16.1,12.3c-2.7,2.6-5.3,5.5-6.7,9c-0.8,2.2-1.2,4.5-1.2,6.8c0,5,1.9,10.9,4.8,14.9 M981.4,484.2c-0.6-1.4-2.1-2.2-3.7-2.4c-1.6-0.2-3,0.2-4.5,0.6 M859.8,450.9c2.7-3.5-0.2-8.4-0.9-12.8c-0.4-2.8,0.1-5.6,0.5-8.4c1.1-7.3,1.5-14.8,1.2-22.2c-0.2-5.1-0.7-10.2-2.5-15c-2.1-5.7-5.9-11-6.6-17 M946.5,420.5c1.5,3,0.3,6.8,1.4,10c1.3,3.6,5.3,5.6,9.1,5.6c3.8,0,7.4-1.6,10.9-3.3c3.4-1.7,6.8-3.6,10.6-4.2 M947.9,430.5c0.5-0.8-1.3-2.4-2.2-2.8c-2.9-1.3-5.9-2.7-8.8-4c-1-0.5-2.1-0.9-3.2-1.2c-1.1-0.3-2.3-0.3-3.4-0.3c-2.5-0.1-4.9,0.8-6.8,2.6c-12.8,2.7-21.9,15.8-34.9,17.3c-9.7,1.2-20.4-4.4-29,0.4 M1058.9,389c-5.4-6-12.6-10-19.7-13.8c-2.6-1.4-5.2-2.8-7.9-3.8c-7.2-2.6-15-2.2-22.6-1.8c-3.9,0.2-8,0.5-11.3,2.5c-2.5,1.5-4.3,3.8-6.1,6.1c-7.8,9.8-16.1,19.6-27.1,25.7 M1069.4,390.9c0.3-1.9,0.6-3.7,0.7-5.6c0.2-5.5-1.5-11.9-6.3-14.8c-2.8-1.7-4.3-4.9-5.4-8.1c-1-2.9-1.8-5.8-2.4-8.8 M1088.8,309.6c-8.1,1.7-16.2,3.5-24.3,5.2c-5.4,1.2-11,2.4-15.8,5.1c-6.5,3.6-11.4,9.6-16,15.5 M898.1,387.5c5.1-7.3,13.6-11.7,22.4-13.6c2.6-0.5,5.2-0.9,7.8-1.1c2.4-0.2,6.7,0.6,8.8-0.3c3.1-1.3,4.3-8.4,7.4-11.4c1.7-1.6,3.7-3,5.3-4.6c2.1-2.1,3.5-4.8,5.3-7.1c1.8-2.4,4-4.6,6.9-5.3c4.1-1,8.1,1.2,11.7,3.3 M882.7,367c1.9,0.4,3.9,0,5.7,0.7c1,0.4,1.9,1.1,2.6,1.8c5.7,5.4,8.5,13.7,7.1,21.4 M834.8,454.3c1.3,3.9,2.7,7.9,4,11.8c1.3,3.8,3.5,8.3,7.5,8.4c1.2,0,2.8-0.3,3.5,0.7c0.4,0.6,0.3,1.3,0.2,2c-0.2,3.4,2,6.5,4.8,8.5c2.8,1.9,6.1,2.9,9.3,3.9c1,0.3,2.2,0.7,2.8,1.5c0.5,0.6,0.7,1.4,1.1,2.1c1,1.6,3,2.2,4.9,2.6c4.5,0.8,9.1,0.9,13.6,0.1 M947.3,377.1c-2.5-2.9-6.3-4.7-10.1-4.8 M966.6,332.6c-2.3,3.4-3.4,7.5-3.4,11.6 M999.7,311.5c3,4.9,6.4,10.1,11.6,12.6c4,1.9,8.7,2,12.6,4.2c2.8,1.6,4.8,4.1,6.8,6.6 M1030.8,334.4c-0.2,0.5,0.5,1.1,1.1,1s1-0.5,1.5-0.9 M1121.4,304.8c-4.1,2.4-6.9,6.8-7.4,11.5c-0.4,3.8,0.7,7.6,1.6,11.3c2.3,9.5,3.3,19.4,2.9,29.2c-0.1,2.4-0.3,4.8-1,7c-0.7,2.1-1.9,4.1-3,6c-4.9,8.8-7.6,19.5-4.1,28.9c0.9,2.4,2.2,4.7,2.8,7.2c0.5,2,0.6,4.2,2,5.7c1.9,2.1,5.2,1.9,8.1,1.5c5.3-0.9,10.6-2.1,15.8-3.7 M1101.1,508.9c3.3-1.4,5.3-5.6,6.3-9c0.8-2.8,2.2-5.5,2.9-8.4c0.5-2.3,0.6-4.8,0.6-7.2c0-5.6,0-11.2-0.2-16.7 M1131.8,453.8c-6.2,1.7-11.8,5.9-15.1,11.4 M1204.2,472.6c-8-2-17.2,3.1-19.7,11c-0.4,1.3-0.7,2.8-1.5,3.9c-0.7,1-1.8,1.7-2.8,2.3c-3.2,2-6.3,4.1-8.8,6.9c-2.5,2.7-4.5,6.2-4.8,9.9 M1110.5,467.9c0.5-1.6-0.7-3.1-1.9-4.2c-2.1-2-4.1-4-6.2-6 M1196.3,472.6c0.9-3.2,1.2-6.7,0.8-10 M1251.6,327.6c-7.3,9.8,1.2,25.4-5.9,35.4c-2.5,3.6-6.6,5.6-10.5,7.7c-4.3,2.3-8.5,4.7-12.6,7.3c-3.1,1.9-6.2,4-8.3,7c-1.9,2.7-2.9,5.9-3.9,9.1c-1.4,4.6-2.8,9.1-4.2,13.7c-1.1,3.7-2.2,7.5-1.3,11.3c1.2,4.7,5.5,8.1,6.6,12.9c1.4,5.8-2.3,12-0.4,17.6c1.3,3.9,5.1,6.5,8.6,8.7 M1178.8,438.9c-3-1.1-6.5-0.9-9.4,0.5c-1,0.5-1.9,1.1-2.5,2c-0.7,1.1-0.8,2.4-1.2,3.5c-1.1,2.8-4.1,4.3-6.3,6.3c-3.3,2.9-5.4,7.3-5.6,11.7 M1158,400.4c-7.2,0.7-13.4,5.1-19.2,9.3 M1110.2,465.8c2.2,0.7,4.8,0.2,6.7-1.1 M1166.8,441.6c-1.3-7.3-5.9-13.9-12.3-17.6c-0.8-0.5-1.7-0.9-2.4-1.6c-0.8-0.8-1.3-1.8-1.8-2.7c-2.6-4.6-7.1-8.1-12.2-9.6 M1116.9,464.6c3.1,3.6,7.9,6.6,12.6,6.2 M1148.3,372.5c4.2,6.5,7,13.8,8.2,21.4c0.4,2.6,0.7,5.2,1.9,7.5c1,1.9,2.5,3.4,4.1,4.7c9,6.9,21.5,6.4,32.8,5.6c3.5-0.3,8.2-1.7,10.9-3.9 M1164.6,337.7c-3.5-0.8-7-1.7-10.5-2.5c-2.5-0.6-5-1.2-7.5-1.1c-2.5,0.1-5.1,1.2-6.6,3.2 M1167.4,345.6c5.3,2.9,9.8,7.4,12.8,12.6c1.4,2.3,2.9,5.2,5.6,5.4c0.6-6.2,5.6-11.8,11.7-13c5.2-1,10.5,0.7,15.7,0.3c4.4-0.4,8.7-2.4,11.7-5.6 M1200.8,327.2c0.5-3.1,0.5-6.2,0-9.3 M1253.2,381.6c-0.4,1.9,1,3.6,2,5.2c1.2,2,1.8,4.3,1.9,6.6c0,0.7,0,1.4,0.3,2.1c0.3,0.7,0.9,1.2,1.6,1.1c3-3.5,7.5-5.6,12.1-5.7 M1233.1,412c0.3-0.2,0.7-0.1,1.1,0c3,1.2,6,2.3,9,3.5c1.4,0.5,2.8,1.1,4,1.8c2.3,1.4,4,3.5,5.7,5.5c7.1,8.4,14.2,16.8,21.3,25.3c2.7,3.2,5.5,6.5,7,10.4c2.2,5.6,1.6,11.8,1,17.7c-0.6,6.2-1.3,12.4-3.8,18.1c-1,2.2-2.3,4.4-2.7,6.9c-0.9,5.9,4,11,8.5,14.9c4.4,3.9,9.9,8.1,15.5,6.5c2.5-0.7,4.5-2.4,6.4-4.2c6.6-6.6,11-15.3,12.4-24.4 M1296.9,400.5c-2.4-1.6-4.3-3.8-5.6-6.4c-1.4,2.6-3.2,5-5.4,7 M1258.9,396.5c-0.4,4.1-4.7,7.3-7.3,10.4c-2.6,3.2-4.2,7-3.5,11 M1309,358c-4.4,4.8-11.7,7.3-13.7,13.5c-1,3.1-0.4,6.5-0.7,9.8c-0.2,2.6-0.9,5.2-2.1,7.5c-0.8,1.6-1.1,3.5-1.2,5.3 M1269.7,442.6c-1.4-2-1.8-6.8-0.6-9.1c1.1-2.2,3-4,5-5.5c14.8-11.3,35.2-13.1,50-24.4c8.2-6.3,14.2-15.1,19.9-23.7 M1320.4,450.8c-6.2,6-10.9,13.5-13.4,21.7 M1313.9,507.9c2.5,4.9,6.3,9.2,10.8,12.3c1.8,1.3,3.8,2.3,6,2.9c2.4,0.6,4.9,0.6,7.3,0.5c4.6-0.1,9.2-0.2,13.9-0.3 M1308.4,439.4c3,3.2,6,6.4,9.1,9.6c1,1,1.9,2,3.1,2.8c2.2,1.5,5,1.9,7.7,1.9c10.3,0.2,20-4.1,29.4-8.2c4.4-2,8-4.6,12.5-6.6 M1332,523.4c-0.2,3.4,1.8,7.7,4.9,9.2 M1373.6,420.9c0.2,3.9-0.4,7.9-1.8,11.5c-1,2.7-2.5,5.6-1.3,8.3c0.5,1,1.3,1.9,2.1,2.7c3.4,3.3,6.8,6.6,10.2,10c0.9,0.8,1.8,1.7,2.9,2.2c1.4,0.6,3,0.5,4.6,0.2c8.7-1.6,15.7-7.8,22.2-13.8 M1251.4,471.9c0.8,7-6.8,12.4-7.2,19.5c-0.1,1.3,0.1,2.7,0.3,4c0.4,2.3,1.1,4.5,2.4,6.4c1.1,1.5,2.8,2.7,4.6,2.4 M1110.5,536.9c1.2,1.3,3.2,1.6,4.9,1.2c1.7-0.4,3.3-1.3,4.8-2.2 M1209.7,519.8c2.5-2.2,3.5-5.7,3.9-9s0.5-6.8,1.9-9.8c0.8-1.8,1.9-3.3,2.6-5.2c0.9-2.5,0.6-5.2,0.4-7.8c-0.1-1.3-0.3-2.7-1.1-3.7c-0.7-0.8-1.8-1.2-2.7-1.8c-4.2-2.6-5.6-8.9-10.4-10 M1209.9,519.6c-0.1-0.2-0.4,0-0.5,0.2c-0.7,1.3-1.3,2.7-1.8,4.1 M1227.2,474.9c-2-0.1-3.7,1.4-5,2.8c-1.9,2.1-3.4,4.6-4.6,7.2 M1354.9,642.2c2.9,1.5,6.1,2.9,9.3,2.3c3.1-0.6,5.7-2.9,8.9-3.1c1.2-0.1,2.7,0,3.2-1.1 M1396.2,659.2c3.5-1.7,5.8-5.2,7-8.9s1.4-7.6,1.5-11.5c0.2-4.2,0.3-8.5-0.4-12.6c-1.1-5.8-4.1-11.1-7-16.3c-0.4-0.7-0.8-1.3-1.4-1.8c-0.8-0.6-1.9-0.8-2.9-1c-2.8-0.4-5.6-0.9-8.4-1.3c-1.2-0.2-2.5-0.4-3.5-1c-0.9-0.6-1.7-1.4-2.4-2.2c-2.6-3.1-5.3-6.3-7.9-9.4 M1337.4,591.4c-1.5-3-0.7-6.7,1.2-9.5s4.6-4.8,7.4-6.8c5.3-3.8,10.6-7.6,15.9-11.5c2.7-1.9,5.4-3.9,8.6-4.6c1.7-0.4,3.5-0.4,5.3-0.1c1.4,0.2,2.8,0.6,3.9,1.5c3.5,2.9,1.5,8.7,3.6,12.7c1.4,2.6,4.3,4.1,7.2,4.7c2.9,0.6,5.9,0.7,8.8,1.5c10.3,2.8,16.3,13.8,25.9,18.6c6.5,3.2,14.4,3.3,20.9,0.1c1.6-0.8,3.3-1.9,4-3.5c0.5-1.1,0.5-2.3,0.4-3.5c-0.4-6.6-3.4-13.1-8.3-17.6s-11.5-7.1-18.1-7.1 M1447.8,624.9c-4.4,3.9-9,8-14.7,9.6c-4.8,1.3-9.8,0.7-14.7,1.6c-5.7,1.1-10.9,4.5-14.3,9.3 M1433.7,613.2c0.3-4,0.2-8.9-0.2-12.8 M1447.7,562.1c-2,1.3-4.1,2.7-5.5,4.6c-1.4,1.9-1.1,4.6-0.1,6.8 M1378.9,602.9c-3.9,1.5-8.9,2.7-13,2.7 M1467.3,567.8c-1.4-2.4-2.4-5.1-3.3-7.7c-1.6-4.9-2.9-9.9-5-14.6c-2-4.5-5.3-9.7-10-11.7c-1.9,6.2-14.1,11.5-19.6,13.7c-7.7,3.1-16.1,4.6-24.4,4.2c-5-0.2-10.2-1.1-15.1,0c-4.9,1.1-9.6,5.2-9.4,10.3 M1388.5,455.9c-6.3,7.9-10.4,19.2-9.4,29.3c0.3,3.3,1.2,6.7,3.6,9c0.8,0.7,1.7,1.3,2.4,2.1c2.6,3.1,0.9,7.7-0.9,11.2c-6.4,12.9-12.8,25.9-19.3,38.8c-1.2,2.4-2.4,4.9-2.2,7.5c0.2,2.6,4,5.6,6.7,5.6 M1399.8,537.2c0.6-3.7-1.1-7.6-4.2-9.7 M1420.6,465.8c3,2.3,5.8,5.1,9.2,6.9s7.7,2.4,10.9,0.3 M1449.1,533.8c1.7-2.6,0.6-5.2,1.4-8.2c1.2-4.6,5-8.6,4.4-13.3 M1430.1,500.2c-3.3,5.2-3.9,12.1-1.5,17.8c0.9,2.1,2.2,4.1,3,6.3 M1428.1,516.6c-1.8,0.6-4.1,0.1-5.5,1.4c-1.5,1.5-3.9,1.3-6.1,1.4c-5.6,0.1-11.2,2.4-15,6.5c-1.3,1.4-2.4,3.1-2.9,5 M1404,523.6c3.4-5.5,5.6-12.8,8.2-18.7c3-6.6,2.1-14.2,1.1-21.4 M1346.8,483.2c0.1,1.7,0.1,3.3,0.1,5c2.7,0.6,5.7-0.4,7.5-2.4 M1330.8,553.2c-0.3,1.1-1.5,1.6-2.6,1.7c-1.1,0.1-2.2-0.2-3.3,0c-0.2,0-0.5,0.1-0.7,0.3c-0.2,0.3-0.1,0.6-0.1,0.9c0.3,1.9-0.2,3.9-1.4,5.3"}),React.createElement("g",{id:"cerebellum"},React.createElement("title",null,"Number of samples: ",_.find(_.find(this.props.fixed.header,function(c){return"Brain"==c.name}).children,function(c){return"Cerebellum"==c.name}).numAnnotated,", average: ",this.props.values.avg[this.props.fixed.indices.Cerebellum],", AUC: ",this.props.values.auc[this.props.fixed.indices.Cerebellum]),React.createElement("path",{style:{transition:"stroke .25s ease-in-out, stroke-width .25s ease-in-out"},id:"cerebellum_highlight",onMouseOver:this.props.onMouseOver.bind(null,"Cerebellum"),fill:"rgba(0,0,0,0)",stroke:"Cerebellum"===e||"Cerebellum"===t?"rgb(255,225,0)":"rgba(0,0,0,0.5",strokeWidth:"Cerebellum"===e||"Cerebellum"===t?"5":"0",d:"M1431,671.1c5.6,12.4,11.2,26.4,6.4,39.1c-2.1,5.5-6,10.1-9.8,14.6c-6.1,7.2-12.2,14.4-19.7,20.1c-3.5,2.7-7.3,5-11,7.5c-13.3,9.1-25.1,20.8-39.7,27.7c-17.4,8.2-37.2,8.9-56.5,9.5l-23.2,1.2c0,0-26.5-11.1-35.5-20.1c0,0-24.5-21.4-27.8-29.9c0,0-5.1,2.8-9.3,0.5c0,0-2.1-2.3-2.3-5.6c0,0,3.8-4.3,3.6-5.5c0,0-22.9-10-27.9-16.2c-5-6.3-9.5-7.7-18.5-22.3c0,0,35.8-5.1,40.5-6.3c4.7-1.2,23.2-6,27.5-10.8c0,0,9.7-8,13.4-8.6c3.7-0.6,12.1-0.2,16,0c3.8,0.2,14-0.2,22-2.3c0,0,14.6-7.7,25.1-9.1c0,0,5.2-0.6,17.1,1.7c0,0,8.9-0.2,12.6,0.6c3.7,0.8,5.3,1.9,7,3.2c0,0,4,1.4,13.1,0.9c9-0.5,13.4,0,19.3,2.1c5.9,2.1,15.3-1.6,15.3-1.6s9-4.2,14-2.6c5,1.5,11.5,3.7,14.2,5.8c2.7,2.2,12.5,4.9,12.5,4.9L1431,671.1z"}),React.createElement("path",{id:"cerebellum_strokes",onMouseOver:this.props.onMouseOver.bind(null,"Cerebellum"),opacity:"0.5",fill:"none",stroke:"#000000",d:"M1403.2,750.4c-13.3,8.3-48-7-48-7s-22-12-54.1-9.9s-58.2-8.4-58.2-8.4s-12,0.8-14.6-18.8s21.2-38,21.2-38 M1174.2,692.2c-10,9.3-5.4,14.4-5.4,14.4 M1183.8,690.9c-14.9,9.2-9.6,21.6-9.6,21.6 M1192,689.6c-19.7,17.2-10.1,29.3-10.1,29.3 M1195.7,689.6c-13,11.7-5,34.8-5,34.8 M1200.9,688.4c-12.8,29,1.8,42.5,1.8,42.5 M1206.4,686.3c-10.5,28.2,8,46.5,8,46.5 M1214.4,683.7c-12.3,23.5,7.6,46.4,7.6,46.4 M1224.2,679.2c-19,29.5,3.9,48.3,3.9,48.3 M1241.4,668.4c-35.3,31.3-9.5,56.8-9.5,56.8 M1413.9,666.2c0,0-21,10.8-93.5,6.5s-91.6,36.9-91.6,36.9 M1426.1,670.9c0,0-51.5,15.5-106.7,8.3s-88.9,36-88.9,36 M1431.9,675.4c0,0-36.1,23.6-96.4,12.5c-68.1-12.6-101.6,32.8-101.6,32.8 M1397.4,661.4c0,0-1.8,1.8-11.8,5.1s-38,1.9-38,1.9s-23.8-4.3-62.5,0s-57.1,33.3-57.1,33.3 M1335.5,659.4c-25.7-0.8-45.9,2.4-45.9,2.4 M1259.9,668.6c-14.5,3.7-24.7,15.1-24.7,15.1 M1434.1,683.7c-4,8.8-46,15.8-46,15.8s-12.8,3-66.8-5.2c-54.1-8.2-79.9,30.2-79.9,30.2 M1438.3,692.2c-6.3,5.5-21.4,11.1-21.4,11.1c-30.8,7.4-53.8,3.3-53.8,3.3s-17.3-3.2-55-6.5c-37.8-3.2-59.9,26.9-59.9,26.9 M1257.7,729.6c0,0,14.2-28.5,59.5-21.2s68.9,6.4,70,6.7s39.6,0.4,52.4-13.4 M1263.7,730.9c0,0,23.8-18.9,57.7-15.8c33.8,3,64.1,7.2,64.1,7.2s35.4,3.5,51.7-8.5 M1427.9,727c-13.8,8.1-31.7,1.9-33.2,2.6s-28.3-5.2-65-7.2s-53.1,10.5-54,10.4 M1419.2,736.9c-6.2,4.3-26.8,0-26.8,0s-25-3.5-45.3-6s-51.5,2.9-51.5,2.9 M1338.2,737.1c0,0,31.2,3.2,43.9,7.6c12.7,4.4,28.9,0,28.9,0 M1211.7,739.9c-6-0.3-6.6,4-6.6,4 M1210.4,736.3c-3.5-1.6-7.7,3.6-7.7,3.6 M1212.9,733.8c0,0,34.7,39.1,63.8,35.3c6.9-0.9,13.2,1.4,18.9,3c18.4,5.2,29.8,18,29.8,18 M1219.8,730.9c5.4,13.3,15.3,17.5,15.3,17.5s24.2,12.5,41.6,13.6c17.3,1.1,46.4,5,46.4,5s15.5,2.1,30-7.9s25.9-8,25.9-8 M1219.8,750.8c0,0,8.6,6.9,10.6,8.6s24.7,16.5,40.1,16.3s17.6,1,17.6,1c23.8,6.8,24.6,13.5,24.6,13.5 M1303.4,791.4c-5.3-8.5-12.8-7.8-15.8-8.8s-9.8,0-18.5,0s-26.3-8.9-26.3-8.9 M1289.5,791.9c-9.1-4.8-25.8-5-25.8-5 M1329.7,767.2c0,0-5.8,18.4,13.6,19.7 M1336.1,765.4c0,0-8.9,14.5,11.1,20 M1339.8,765.4c0,0-2.6,21.5,22.6,14.2 M1345.3,763.4c0,0,0.1,19.7,23.9,11.8 M1350.4,760.9c0,0,1.9,17.9,25.8,9.6 M1357.4,756.5c0,0-0.4,17.7,21.6,11.8 M1363.3,753.7c0,0,1.5,17.5,22.8,9.2 M1328.9,789.4c-1-3.3-3.5-6.8-3.5-6.8c-10.5-15.1-36.4-19.6-36.4-19.6 M1328.9,776.2c-3.7-6.7-14.9-10.4-14.9-10.4 M1331.1,781.1l3,7 M1225.9,728.4c0,0,16.8,29.9,66,30.1c0,0,26.2,1.1,33.4,0s28.7,0,28.7,0 M1230.5,726.5c0,0,20.2,23,43.7,24.3c23.5,1.4,20,4.5,48.3,1.3s37.3,3.2,37.3,3.2 M1237.1,723.6c0,0,16.5,18,30.5,20.2s32.8,5.1,34.8,5.2s22.4-2.8,33.7-2.4c11.3,0.4,32.2,5.4,32.2,5.4s8.1,10.7,26.3,4.4 M1252.9,728.4c0,0,3.5,8.8,33.8,11.5s34.8,1.2,34.8,1.2s14.7-4.2,33.7,2.3"}),React.createElement("text",{style:{cursor:"default"},fontSize:"35px",transform:"matrix(1 0 0 1 1359.9347 846.6549)",onMouseOver:this.props.onMouseOver.bind(null,"Cerebellum"),onMouseOut:this.props.onMouseOver.bind(null,void 0)},"Cerebellum")),React.createElement("g",{id:"occipital lobe"},React.createElement("title",null,"Number of samples: ",_.find(_.find(this.props.fixed.header,function(c){return"Brain"==c.name}).children,function(c){return"Occipital lobe"==c.name}).numAnnotated,", average: ",this.props.values.avg[this.props.fixed.indices["Occipital lobe"]],", AUC: ",this.props.values.auc[this.props.fixed.indices["Occipital lobe"]]),React.createElement("path",{style:{transition:"stroke .25s ease-in-out, stroke-width .25s ease-in-out"},id:"occipital_lobe_highlight",onMouseOver:this.props.onMouseOver.bind(null,"Occipital lobe"),fill:"rgba(0,0,0,0)",stroke:"Occipital lobe"===e||"Occipital lobe"===t?"rgb(255,225,0)":"rgba(0,0,0,0.5",strokeWidth:"Occipital lobe"===e||"Occipital lobe"===t?"5":"0",d:"M1414.1,444.6c2.9,1.4,6.2,2.6,9,4.1c1,0.5,1.9,1,2.7,1.7c1.8,1.6,2.4,4.3,4,6.1c2.2,2.6,6,3.3,8.6,5.5c3.8,3.3,4.3,9,4.4,14c-0.2,0.3,0.2,0.3,0,0c-0.4,4.8,3.4,8.8,6.3,12.6c6.1,7.9,7.4,18.4,7.1,28.4c8.4,5.1,11.4,15.4,14.3,24.7c0.7,2.1,1.3,4.3,1.4,6.5c0.1,1.7-0.2,3.4-0.4,5.1c-0.8,5.1-1.5,10.2-2.3,15.3c0.4-0.3-0.5,0.7-0.1,0.4c1.3,3.9,2.6,7.9,3.9,11.8c1,3,2,6,1.9,9.1c-0.1,1.8-0.5,3.5-1,5.2c-1.3,4.5-3.5,8.8-7.1,11.8c2.6,7.3,2.3,15.8,1.3,23.5c-0.4,3.2-0.9,6.5-2.7,9.2c-1.7,2.7-5,4.7-8.2,3.9c-0.9,3.3,0.1,6.7,0.3,10c0.2,4-0.7,8.1-3,11.4s-6.2,5.5-10.2,5.5l-12.5,2.7c0,0-13.1-5-15.4-5.9s-12.1-7.6-18.8-5.7c-6.7,1.9-10.5,3.3-10.5,3.3s-5.9,3.1-13.3,1s-9.3-2.7-12.5-2.8s-2.6-0.1-2.6-0.1s-1.6-16.1-3.5-18.2c-1.8-2.1-0.7-2.1-7.6-4.9c0,0-8-2.2-9.8-3.1c-1.8-0.9-13-7-15.4-19.1s1.4-20,1.4-20s5.9-9.7,14.3-11.7c0,0,0.7-3.2,9.4-8.9c8.7-5.7,16.9-12.3,16.9-12.3s4.4-2.8,5.2-2.7s-8.3-2.3-6.6-7.2c1.7-4.9,13.6-28.8,13.6-28.8l8.6-17c0,0,3.5-5.7-0.6-10.9c0,0-4.9-3.7-5.3-12s1.6-14.7,4.3-19.4c2.7-4.7,5.2-8.2,5.2-8.2s7-0.9,10.1-3.6c0,0,9.2-6,12.8-9.1L1414.1,444.6z"}),React.createElement("text",{style:{cursor:"default"},fontSize:"35px",transform:"matrix(1 0 0 1 1377.2399 336.7896)",onMouseOver:this.props.onMouseOver.bind(null,"Occipital lobe"),onMouseOut:this.props.onMouseOver.bind(null,void 0)},"Occipital lobe")),React.createElement("g",{id:"temporal lobe"},React.createElement("title",null,"Number of samples: ",_.find(_.find(this.props.fixed.header,function(c){return"Brain"==c.name}).children,function(c){return"Temporal lobe"==c.name}).numAnnotated,", average: ",this.props.values.avg[this.props.fixed.indices["Temporal lobe"]],", AUC: ",this.props.values.auc[this.props.fixed.indices["Temporal lobe"]]),React.createElement("path",{style:{transition:"stroke .25s ease-in-out, stroke-width .25s ease-in-out"},id:"temporal_lobe_highlight",onMouseOver:this.props.onMouseOver.bind(null,"Temporal lobe"),fill:"rgba(0,0,0,0)",stroke:"Temporal lobe"===e||"Temporal lobe"===t?"rgb(255,225,0)":"rgba(0,0,0,0.5",strokeWidth:"Temporal lobe"===e||"Temporal lobe"===t?"5":"0",d:"M1111.3,722.4c-2,1.5-4,3-6.2,4.1c-2.4,1.2-5,1.8-7.6,2.4c-4.2,1-8.3,2-12.5,3c-2.9,0.7-5.8,1.4-8.7,1.6c-3.5,0.2-7-0.3-10.6-0.6c-6.4-0.6-12.8-0.6-19.1,0c-3.6,0.3-7.2,0.9-10.2,2.9c-1.5,1-2.7,2.3-4.4,3c-1.6,0.7-3.4,0.6-5.2,0.5c-9.6-0.5-19.2-2.5-28.2-5.8c-7.9,0.5-17.4-0.3-24.8-3.2c-2.4-0.9-4.7-2.2-6.9-3.5c-7.1-4.1-14.6-8.5-18.5-15.7l-5.3-10.9c-0.9-1.9-1.8-3.8-2.6-5.7c-2.6-5.9-4.8-12-6.5-18.2s-2.1-13.1-4.1-19.1c0,0-4.6-11.9,1.1-20.3c0,0,4.5-4,5.6-5.9c1-1.9,3.2-5.8,2.1-11.6c-1-5.8-3-13.3-3-13.3s-2.9-8.6,3.7-12.4c6.5-3.8,23.7-11.7,23.7-11.7s7.8-4.2,17.8-3.7s12.8-4.1,12.8-4.1l6.1-12.1c0,0,8.4-17.4,20-17.7c0,0,7.4-0.9,10.5,2.7c3.1,3.6,3.9,20.3,3.9,20.3s8.1-0.8,17.6-9.1c9.6-8.3,21.7-7.8,21.7-7.8s10.1-0.4,18.5,6.5c8.4,7,6.8,6,11.4,8s10.1,3.2,15.6,10.3c0,0-1.7-7.4,20-16.9c1.6-0.7,4.7-4,10-5.3s11.6-1.7,20.6-0.2s18.2-4.7,18.2-4.7s5.6-5.3,9.9-10.3s16.2-19.3,27.6-21.4c11.4-2.1,16.7-6.7,16.7-6.7s19.8-10.7,37,3.6s11.4,9.7,11.4,9.7s3.5,3.6,10.7,1.7c7.2-1.9,13.1-14.4,13.1-14.4s7.9,13.4,18.1,15.5c10.2,2.1,13.2-0.2,19.9-0.1c6.7,0.1,19.7-1.3,24.6-0.3c0,0-13.1,25.6-13.5,27.9c-0.4,2.2-2.2,5.9,5.4,8.5c0,0-19.7,13.8-21.3,14.9c-1.6,1.1-8.4,5.7-9.4,9.1c0,0-6.8,0.9-14.3,11.7c0,0-10.2,25,13.1,38.7c0,0,6.7,3,11.8,3.9c5,1,7.2,4.7,8.3,10.8c1.1,6.1,1.7,11.8,1.7,11.8s-15.8,3.3-20.8-2.7c0,0-6.9-2.1-12.4-1.1c0,0-12.2-0.8-15.3-2c-3.2-1.2-11.6,0-26.9,7.6c0,0-10.3,5.1-27.6,3.9c-17.3-1.2-17.1,0.7-17.1,0.7s-13.9,11.6-20,12.7c0,0-12.2,6.1-27.9,8.2c-15.7,2.1-30.5,4.1-30.5,4.1s-12.8,1.5-20.3,8.4c-7.5,6.8-11.8,12.5-19.1,15.8c-7.3,3.2-7.6,3.4-7.6,3.4L1111.3,722.4z"}),React.createElement("text",{style:{cursor:"default"},fontSize:"35px",transform:"matrix(1 0 0 1 933.9652 828.9044)",onMouseOver:this.props.onMouseOver.bind(null,"Temporal lobe"),onMouseOut:this.props.onMouseOver.bind(null,void 0)},"Temporal lobe")),React.createElement("g",{id:"temporal gyrus"},React.createElement("title",null,"Number of samples: ",_.find(_.find(this.props.fixed.header,function(c){return"Brain"==c.name}).children,function(c){return"Temporal gyrus"==c.name}).numAnnotated,", average: ",this.props.values.avg[this.props.fixed.indices["Temporal gyrus"]],", AUC: ",this.props.values.auc[this.props.fixed.indices["Temporal gyrus"]]),React.createElement("path",{style:{transition:"stroke .25s ease-in-out, stroke-width .25s ease-in-out"},id:"temporal_gyrus",onMouseOver:this.props.onMouseOver.bind(null,"Temporal gyrus"),fill:"rgba(0,0,0,0)",stroke:"Temporal gyrus"===e||"Temporal gyrus"===t?"rgb(255,225,0)":"rgba(0,0,0,0.5",strokeWidth:"Temporal gyrus"===e||"Temporal gyrus"===t?"5":"0",d:"M997.5,606.4c1.7-0.6,3.2-1.6,5-1.7c39.3-2,80.8,12.9,117.1-2.4c10.9-4.6,20.9-11.8,32.5-14c19.3-3.6,38.8,7.3,58.3,5.2c11.7-1.3,22.5-7.2,34.2-8.6c11.7-1.3,26,4.7,27,16.4c1,11.8-11.4,19.8-22.1,24.9c-19.6,9.4-39.6,18.9-61.1,22.2c-12.1,1.9-24.4,1.7-36.4,4.1c-13.9,2.7-26.9,8.8-40.9,11.1c-7,1.2-14.2,1.4-20.9,3.6c-13.4,4.4-22.9,16-34.7,23.6c-9.1,5.9-19.8,9.5-30.6,10.4c-7.7,0.6-15.4-0.2-22.9-1.7c-3.8-0.8-7.8-1.8-10.7-4.4c-7.5-6.6-4.4-18.5-5-28.5c-0.8-14.1-10-29.3-2.5-41.2C983.7,625.6,992.5,608.1,997.5,606.4z"}),React.createElement("text",{style:{cursor:"default"},fontSize:"35px",transform:"matrix(1 0 0 1 730.8944 765.5699)",onMouseOver:this.props.onMouseOver.bind(null,"Temporal gyrus"),onMouseOut:this.props.onMouseOver.bind(null,void 0)},"Temporal gyrus")),React.createElement("g",{id:"parietal lobe"},React.createElement("path",{id:"parietal_lobe_highlight",fill:"rgba(0,0,0,0)",stroke:"rgba(0,0,0,0.5)",strokeWidth:"0",d:"M1122.6,307.6c-0.7-0.1,6.5-0.6,9.8-2c8.6-3.7,18.4-0.5,27.7,0.3c6,0.5,12.1,0,18.1,0.9c9.1,1.4,17.6,6.1,23.4,13.2c1.8-3.2,6.4-5.1,10.1-5.3c3.7-0.2,7.3,0.8,10.8,1.9c5.5,1.6,11,3.2,16.5,4.7c1.5,0.4,2.9,0.8,4.3,1.4c3.5,1.5,6.6,4,8.7,7.2c3.6-1.8,8.8-0.4,12.5,1.2c4.3,1.8,8.7,3.6,13,5.4c7.3,3,14.7,6.1,21.1,10.7c4.5,3.1,8.4,6.9,11.8,11.3c0.3,0.4,0.6,0.8,0.5,1.3s-0.9,0.7-1,0.2c2.3-1.2,5.6-1.2,8.1-0.5c1.7,0.4,3.3,1.3,4.9,2.2c4.5,2.5,9,5,13.5,7.5c1.3,0.7,2.5,1.4,3.6,2.3c3,2.5,4.5,6.3,5.9,9.9c6.5-0.9,12.5,3.4,16.5,8.5s7.3,11.1,12.7,14.8c5.7,3.9,13.3,4.7,18.3,9.5c2.2,2.1,3.7,4.7,5.7,7c2.9,3.3,6.7,5.6,9.6,8.9c3.5,4,5.4,9.3,5.3,14.6c0,0-3.5,2-7,4.7c-5.2,3.9-11.7,8.9-18.2,9.2c0,0-17.6,21.8-5.8,38.2c0,0,6.4,3.5,2,12.2l-8.2,16.6c0,0-10.9-1.3-24.6,0.3s-22.7-0.7-22.7-0.7s-11.1-4.4-15.3-14.7c0,0-7.9,13.7-14.2,14.7s-11.7-3.4-11.7-3.4l-10-8.8c0,0-9.7-8.2-23.1-6.8c0,0-11.2,1.8-18,6.2s-11.1,4-11.1,4s-10.9,3.2-18.2,10.8s-16.3,17.9-16.3,17.9s-3.5,4.7-13,7.7c0,0-5.6,1.3-18.6-0.5s-18,5.1-18,5.1s-13.9,6-17.6,9.8s-4.6,4-5.3,8.4c0,0-1.6-5.8-17.3-10.5c0,0-7.2-3.9-10-8.2c0,0-8.4-6.6-19.8-6.2c0,0-11.5,0.7-20.4,8.3c0,0-8.6,7.6-16.7,8.3l-0.6-0.3c0,0-0.7-16.6-3.6-20c0,0,3.8-14.4,24-16c0,0-20-8.5,2.5-29.8c0,0,8.4-4.7,10.8-9s2.1-12,2.1-12s0.6-6.1,0.3-14.8c-0.4-11.9-1.6-28-1.7-33.2c-0.2-9,4.7-19.6,15.1-24.4s28,3.9,28,3.9l3.8,2.6c0,0-0.8-2.7-2.3-6.5c-2.1-5.5-5.1-13.2-4-18.5c1.9-8.8,0.7-8.1,4.8-15.1s5.6-12.8,4.9-19.8s-0.7-13.8-2.4-21.3c-1.7-7.5-3.5-14.4-0.7-19.7c2.8-5.2,5.4-5.2,5.4-5.2L1122.6,307.6z"})),React.createElement("g",{id:"frontal lobe"},React.createElement("title",null,"Number of samples: ",_.find(_.find(this.props.fixed.header,function(c){return"Brain"==c.name}).children,function(c){return"Frontal lobe"==c.name}).numAnnotated,", average: ",this.props.values.avg[this.props.fixed.indices["Frontal lobe"]],", AUC: ",this.props.values.auc[this.props.fixed.indices["Frontal lobe"]]),React.createElement("path",{style:{transition:"stroke .25s ease-in-out, stroke-width .25s ease-in-out"},id:"frontal_lobe_highlight",onMouseOver:this.props.onMouseOver.bind(null,"Frontal lobe"),fill:"rgba(0,0,0,0)",stroke:"Frontal lobe"===e||"Frontal lobe"===t?"rgb(255,225,0)":"rgba(0,0,0,0.5",strokeWidth:"Frontal lobe"===e||"Frontal lobe"===t?"5":"0",d:"M1122.7,307.5c-4.8-4-11.5-4.8-17.7-4.3s-12.3,2-18.5,1.9c-3.8-0.1-7.5-0.7-11.3-0.8c-3.2-0.1-6.5,0.2-9.7,0.5c-2.8,0.3-5.7,0.5-8.5,0.8c-13,1.2-26,2.5-39.1,3.7c-5.8,0.6-12.7,0.9-17.7,4c-8.3-1-17.7-1.8-25.6,1.1c-8,2.8-14.8,8.4-22.8,11c-3.7,1.2-7.6,1.8-11.5,2.5c-18.5,3.4-36.1,10-53.7,16.6c-6.3,2.4-12.6,4.8-18.3,8.4c-6.2,4-15.3,8.6-17.4,15.6c-0.5,1.6-2.2,2.4-3.7,3.1c-11.9,5.7-19.8,17-24,29.5c-3.3,2.7-6.6,5.3-9.9,8c-5.3,4.3-10.7,8.6-14.9,14c-3.8,4.9-6.6,10.4-9,16.1c-0.8,2-2.1,5-0.5,6.5c-5.6,4.7-8.6,13.7-7.2,20.9c-4.7,0.2-8.8,3.5-11.1,7.5c-3.7,6.4-2.8,16.3,1.3,22.5c-3.1,11-5.2,23.2-0.7,33.7c1.7,4,5.5,8.4,5.1,12.7c-0.6,8.2,0.5,16.5,3.3,24.2c1.1,2.9,2.3,5.7,3.8,8.3c2.5,4.5,5.7,8.6,8.8,12.7c1.4,1.8,2.7,3.6,4.4,5.1c1.7,1.6,3.6,2.8,5.6,4.1c2.7,1.8,5.4,3.6,8.2,5.3c6.6,4.3,10.6,10.5,16.2,16.1c5.6,5.6,12,10.6,19.6,12.9c0,0,4.4,2.4,8.8,3.4c3.8,0.9,7.6,0.3,8,1c3.5,6,13.1,9.5,13.1,9.5c2.2,0.8,4.4,1.2,6.7,1.6c9.6,1.6,19.4,2.9,28.4,6.5c5.4,2.2,13,6.5,18.7,3c0,0-3.2-9.8-1.8-13.9c1.4-4.1,4.2-7.6,5.2-8.5c1-0.8,4.7-3.6,5.2-8.9c0,0,0.8-2.5,0-7.7s-2.5-10.5-2.5-10.5s-1.9-6.1,1.1-11.2c3-5.1,28.4-15.2,28.4-15.2s5.9-3,14.1-2.7s12.7-2.9,12.7-2.9s3.8-3.6,8-14.5c0,0,5.9-9,11.6-13.8c5.8-4.7,14.9-2,14.9-2s2.4,0.4,3.4,1.9c0,0,2.1-6.4,6.6-9.7c4.5-3.2,8.3-6,16.4-6.7h1.8c0,0-6.6-2.4-7.1-5.9s-2.4-2-0.6-10.6c0,0,2-8.1,13.5-15.7c0,0,5.7-3.2,7.6-7.8c1.9-4.6,1.9-25.5,1.9-25.5s-2.8-33.3-1.3-38.7c0,0,1.7-11.4,10.3-16.6s16.6-3.2,16.6-3.2s11.5,2.1,14.7,4.4s5,2.9,5,2.9s-2.4-6.1-2.7-7.3c-0.3-1.2-3.4-9.1-3.8-11.6s0.1-12.1,4.4-20.5c4.3-8.5,5.8-10.2,5.3-16.1s0.8-13.5-1.5-21.5c-2.2-8-3.7-16.5-3-19.9c0.4-2,1.9-5.3,4.1-7.4C1119.7,308.5,1121.8,307.9,1122.7,307.5"}),React.createElement("text",{style:{cursor:"default"},fontSize:"35px",transform:"matrix(1 0 0 1 936.9847 179.9883)",onMouseOver:this.props.onMouseOver.bind(null,"Frontal lobe"),onMouseOut:this.props.onMouseOver.bind(null,void 0)},"Frontal lobe")),React.createElement("g",{id:"prefrontal cortex"},React.createElement("title",null,"Number of samples: ",_.find(_.find(this.props.fixed.header,function(c){return"Brain"==c.name}).children,function(c){return"Prefrontal cortex"==c.name}).numAnnotated,", average: ",this.props.values.avg[this.props.fixed.indices["Prefrontal cortex"]],", AUC: ",this.props.values.auc[this.props.fixed.indices["Prefrontal cortex"]]),React.createElement("path",{style:{transition:"stroke .25s ease-in-out, stroke-width .25s ease-in-out"},id:"prefrontal_cortex_highlight",onMouseOver:this.props.onMouseOver.bind(null,"Prefrontal cortex"),fill:"rgba(0,0,0,0)",stroke:"Prefrontal cortex"===e||"Prefrontal cortex"===t?"rgb(255,225,0)":"rgba(0,0,0,0.5",strokeWidth:"Prefrontal cortex"===e||"Prefrontal cortex"===t?"5":"0",d:"M807.1,480.8c-9.9,14.5-12.5,33.7-6.8,50.3c5.2,15.3,16.6,27.7,22.6,42.6c2.6,6.5,4.3,13.7,9.5,18.2c3.8,3.3,8.8,4.6,13.6,5.9c9.1,2.4,18.3,4.8,27.4,7.2c5.6,1.5,11.4,2.9,17.1,2.3c5.7-0.6,11.6-4,13.4-9.5c1.2-3.4,0.7-7.1,1.1-10.7c1.4-13,13.8-21.9,25.8-27s25.4-8.5,34.6-17.7c9.3-9.3,12.6-22.8,15.6-35.6c4-17.3,7.5-37.1-3.1-51.3c-4.8-6.4-11.8-10.7-17.5-16.3c-8.4-8.2-13.7-19-18.5-29.6c-3.2-7.1-6.4-14.3-10.7-20.9c-10.1-15.4-29.6-26.8-47.1-20.7c-7.8,2.7-14.2,8.6-19.7,14.7c-15,16.6-25.9,36.4-36.6,56c-2.7,5-5.4,10-8.2,14.9c-5,9.2-10,18.4-14.5,27.8"}),React.createElement("text",{style:{
-cursor:"default"},fontSize:"35px",transform:"matrix(1 0 0 1 697.8964 267.1014)",onMouseOver:this.props.onMouseOver.bind(null,"Prefrontal cortex"),onMouseOut:this.props.onMouseOver.bind(null,void 0)},"Prefrontal cortex")),React.createElement("g",{id:"lines",fill:"none",stroke:"#000000"},React.createElement("line",{x1:"798",y1:"278.2",x2:"851.7",y2:"426.5"}),React.createElement("line",{x1:"1013.9",y1:"194.2",x2:"1013.6",y2:"320.4"}),React.createElement("line",{x1:"1448.9",y1:"348.7",x2:"1427.9",y2:"486.7"}),React.createElement("line",{x1:"1448",y1:"800.4",x2:"1393.7",y2:"741.5"}),React.createElement("line",{x1:"1018.4",y1:"801.7",x2:"1025.6",y2:"728.4"}),React.createElement("line",{x1:"836.9",y1:"737.2",x2:"992.9",y2:"661.8"}))),React.createElement("g",{id:"blood_cells",transform:"Blood"===t?"translate(0,0)":s?"translate(150,200) scale(0.4, 0.4)":"translate(450,200) scale(0.4, 0.4)",style:"Blood"===t?{visibility:"visible",opacity:"1",transition:"all .5s ease-in-out"}:{visibility:"hidden",opacity:"0",transition:"all .5s ease-in-out"}},React.createElement("g",{id:"B-cell",onMouseOver:this.props.onMouseOver.bind(null,"B-cell"),onMouseOut:this.props.onMouseOver.bind(null,void 0)},React.createElement("title",null,"Number of samples: ",_.find(_.find(this.props.fixed.header,function(c){return"Blood"==c.name}).children,function(c){return"B-cell"==c.name}).numAnnotated,", average: ",this.props.values.avg[this.props.fixed.indices["B-cell"]],", AUC: ",this.props.values.auc[this.props.fixed.indices["B-cell"]]),React.createElement("path",{style:{transition:"stroke .25s ease-in-out, stroke-width .25s ease-in-out"},id:"b_cell_color",fill:getRGB(this.props.values.avg[this.props.fixed.indices["B-cell"]]),stroke:"B-cell"===e||"B-cell"===t?"rgb(255,225,0)":"rgba(0,0,0,0.5",strokeWidth:"B-cell"===e||"B-cell"===t?"5":"2",d:"M723.6,199.8c0,0,3.7,54.2,33,54.8s38,3.1,59.2-11.2s26.5-46.6,22.1-59.8c-4.8-14.4-21-26.1-31.8-28c-6.2-1.1-16.3-8.7-28.3-10c-7.5-0.8-12.4-3-18.7-0.2c-5.5,2.4-12.3,9.5-17.4,13.3C730.7,166.9,719.9,176.9,723.6,199.8z"}),React.createElement("path",{id:"b_cell_strokes",opacity:"0.2",stroke:"#000000",strokeWidth:"2",d:"M757.2,230.3c0,0,18.1,9.3,26.2-3.7s-8.1-17.4-8.1-17.4s-4.7-1.2-5.9-2.2c-1.2-0.9-15-6.9-19.9,3.7s0,14,0,14S751.6,228.2,757.2,230.3z"}),React.createElement("g",{id:"b_cell_receptors"},React.createElement("polygon",{id:"b_cell_receptor1",fill:"#000000",opacity:"0.6",points:"728.3,182.7 717.9,179.3 704.5,180.5 702.3,177.4 716.1,175.7 712,162.4 715.7,162.6 719.5,175.1 730,179.7"}),React.createElement("polygon",{id:"b_cell_receptor2",fill:"#000000",opacity:"0.6",points:"812.9,158.2 818.6,147.8 820,133.3 823.7,131.5 822.8,146.6 837.8,144.9 836.8,148.8 822.8,150.4 816.8,160.6 "})),React.createElement("text",{fontSize:"35px",className:"clickable",transform:"matrix(1 0 0 1 883.8381 206.1467)",onMouseOver:this.props.onMouseOver.bind(null,"B-cell"),onMouseOut:this.props.onMouseOver.bind(null,void 0)},"B-cell")),React.createElement("g",{id:"T-cell",onMouseOver:this.props.onMouseOver.bind(null,"T-cell"),onMouseOut:this.props.onMouseOver.bind(null,void 0)},React.createElement("title",null,"Number of samples: ",_.find(_.find(this.props.fixed.header,function(c){return"Blood"==c.name}).children,function(c){return"T-cell"==c.name}).numAnnotated,", average: ",this.props.values.avg[this.props.fixed.indices["T-cell"]],", AUC: ",this.props.values.auc[this.props.fixed.indices["T-cell"]]),React.createElement("path",{style:{transition:"stroke .25s ease-in-out, stroke-width .25s ease-in-out"},id:"t_cell_color",fill:getRGB(this.props.values.avg[this.props.fixed.indices["T-cell"]]),stroke:"T-cell"===e||"T-cell"===t?"rgb(255,225,0)":"rgba(0,0,0,0.5",strokeWidth:"T-cell"===e||"T-cell"===t?"5":"2",d:"M834.3,322.3c-5.2,8.8-10.5,31.8,3.3,49.7c6.5,8.4,30.5,28.6,53.6,30.5c26.3,2.2,51.7-14.9,58.6-24.3c2-2.8,15.7-29.1,9-49.9c-5.8-17.9-31.1-30.8-41.1-32.7c-18.7-3.6-48-1.9-66.1,6.8C840.3,307.7,835.3,320.5,834.3,322.3z"}),React.createElement("path",{id:"t_cell_strokes",opacity:"0.2",stroke:"#000000",strokeWidth:"2",d:"M868.8,345c0,0,17.8,0,24.3-7.2s2.4-12.8-2.8-15.6c-5.3-2.8-20.6-0.3-24,2.2s-14.6,4.4-11.5,12.1C857.9,344.4,868.8,345,868.8,345z"}),React.createElement("g",{id:"t_cell_receptors"},React.createElement("path",{id:"t_cell_receptor",fill:"#000000",opacity:"0.6",d:"M928.3,302.8l9.2-14c0,0,1.3-0.3,1.7-0.1c0.4,0.2,1.2,1.6,1.2,1.6l-9.2,14.3L928.3,302.8z"}),React.createElement("path",{id:"t_cell_receptor",fill:"#000000",opacity:"0.6",d:"M833.2,337.5l-17.3-7.5c0,0-0.6-1.5-0.5-2s1.4-1.7,1.4-1.7l17.7,7.5L833.2,337.5z"}),React.createElement("path",{id:"t_cell_receptor",fill:"#000000",opacity:"0.6",d:"M957.7,345.3l14.1-0.3c0,0,1,0.8,1.1,1.2s-0.3,1.6-0.3,1.6l-14.4,0.5L957.7,345.3z"})),React.createElement("text",{fontSize:"35px",className:"clickable",transform:"matrix(1 0 0 1 1005.453 349.7471)",onMouseOver:this.props.onMouseOver.bind(null,"T-cell"),onMouseOut:this.props.onMouseOver.bind(null,void 0)},"T-cell")),React.createElement("g",{id:"NK-cell",onMouseOver:this.props.onMouseOver.bind(null,"NK-cell"),onMouseOut:this.props.onMouseOver.bind(null,void 0)},React.createElement("title",null,"Number of samples: ",_.find(_.find(this.props.fixed.header,function(c){return"Blood"==c.name}).children,function(c){return"NK-cell"==c.name}).numAnnotated,", average: ",this.props.values.avg[this.props.fixed.indices["NK-cell"]],", AUC: ",this.props.values.auc[this.props.fixed.indices["NK-cell"]]),React.createElement("path",{style:{transition:"stroke .25s ease-in-out, stroke-width .25s ease-in-out"},id:"nk_cell_color",fill:getRGB(this.props.values.avg[this.props.fixed.indices["NK-cell"]]),stroke:"NK-cell"===e||"NK-cell"===t?"rgb(255,225,0)":"rgba(0,0,0,0.5",strokeWidth:"NK-cell"===e||"NK-cell"===t?"5":"2",d:"M944.7,693.5c-1.9-14.7-0.9-26.7-4.8-35.9c-11.7-27.5-34.3-32.7-47.1-33.5c-3.3-0.2-13.9,0.2-23.8,6.7c-5.5,3.6-9.9,11.6-14.7,16.3c-4.4,4.2-18,13.9-18.7,30.3c-0.5,10,2.8,16.2,5.4,26.2c2.1,8.2,2.2,16.8,4.6,24.1c2.5,8,7.2,14.3,9.1,16.1c4.1,3.9,27.6,13.1,47.9,8.8C927.2,747.5,949,725.8,944.7,693.5z"}),React.createElement("path",{id:"nk_cell_nucleus",opacity:"0.2",stroke:"#000000",strokeWidth:"2",d:"M919.2,671.6c-1.4,4.6-0.6,8.2-1.6,10.7c-2.1,5.1-7.5,8-12.6,6.7c-4.1-1-7.8-5.7-9.9-6.7c-4.1-1.9-11.7-1.3-13.4-5.9c-2.1-5.7-2.2-22,4.8-28.9c7.5-7.4,22.3-5.2,24.9-3.5C919,648.8,923.1,658.8,919.2,671.6z"}),React.createElement("g",{id:"granules",opacity:"0.2"},React.createElement("path",{stroke:"#000000",strokeWidth:"0.5",d:"M890.3,708.8c0,0,3.2,4.8,4.8,0C896.8,704,887.9,705.6,890.3,708.8z"}),React.createElement("path",{stroke:"#000000",strokeWidth:"0.5",d:"M906.1,718.7c0,0,3.5,1.3,3.2-1.9C909.1,713.6,902.4,715,906.1,718.7z"}),React.createElement("path",{stroke:"#000000",strokeWidth:"0.5",d:"M916.6,696.5c0,0-2.1,4.6,1.3,4.3C921.4,700.5,921.9,695.7,916.6,696.5z"}),React.createElement("path",{stroke:"#000000",strokeWidth:"0.5",d:"M927.6,710.9c0,0,3.2,2.1,3.7-1.3C931.8,706.1,924.3,708.8,927.6,710.9z"}),React.createElement("path",{stroke:"#000000",strokeWidth:"0.5",d:"M920.6,721.7c0,0,2.4,4.8,4.8,0C927.8,716.8,919.5,720.3,920.6,721.7z"}),React.createElement("path",{stroke:"#000000",strokeWidth:"0.5",d:"M901.8,731.8c0,0-2.4,2.7,1.3,2.9C906.9,735,906.7,728.9,901.8,731.8z"}),React.createElement("path",{stroke:"#000000",strokeWidth:"0.5",d:"M886,729.2c0,0,1.6,5.1,5.4,1.9C895.1,727.8,885.8,725.1,886,729.2z"}),React.createElement("path",{stroke:"#000000",strokeWidth:"0.5",d:"M878.8,717c0,0-2.8,4.1,1.7,3.3S879.2,713.9,878.8,717z"}),React.createElement("path",{stroke:"#000000",strokeWidth:"0.5",d:"M907.2,704.5c4.6-1.6-4.6-4-3.8-1.9C903.4,702.6,902.6,706.1,907.2,704.5z"}),React.createElement("path",{stroke:"#000000",strokeWidth:"0.5",d:"M878,742c0,0,4.9,2.7,4.2-2.9C881.5,733.4,876.3,743.3,878,742z"}),React.createElement("path",{stroke:"#000000",strokeWidth:"0.5",d:"M865.7,727.1c0,0,1.3,3.9,4.8,0C874,723.3,864.3,723.3,865.7,727.1z"}),React.createElement("path",{stroke:"#000000",strokeWidth:"0.5",d:"M860.1,677.5c0,0,9.6-0.8,1.6-6.2C853.6,665.9,856.5,678.4,860.1,677.5z"}),React.createElement("path",{stroke:"#000000",strokeWidth:"0.5",d:"M860.7,698.6c0,0,3.9,3,4.9-4C866.5,687.6,854.1,698.3,860.7,698.6z"}),React.createElement("path",{stroke:"#000000",strokeWidth:"0.5",d:"M880,699.2c0,0,1.1-6.5-2-3.5C873.4,700.1,880,699.2,880,699.2z"}),React.createElement("path",{stroke:"#000000",strokeWidth:"0.5",d:"M870,707.9c0,0,4,2.6,4.3-2.2C874.5,701,866.6,707.6,870,707.9z"}),React.createElement("path",{stroke:"#000000",strokeWidth:"0.5",d:"M854.7,716.1c0,0,2,3.2,6,0C864.6,712.8,852.7,712.8,854.7,716.1z"})),React.createElement("text",{fontSize:"35px",className:"clickable",transform:"matrix(1 0 0 1 987.4189 692.1923)",onMouseOver:this.props.onMouseOver.bind(null,"NK-cell"),onMouseOut:this.props.onMouseOver.bind(null,void 0)},"NK-cell")),React.createElement("g",{id:"erythroblast",onMouseOver:this.props.onMouseOver.bind(null,"Erythroblast"),onMouseOut:this.props.onMouseOver.bind(null,void 0)},React.createElement("title",null,"Number of samples: ",_.find(_.find(this.props.fixed.header,function(c){return"Blood"==c.name}).children,function(c){return"Erythroblast"==c.name}).numAnnotated,", average: ",this.props.values.avg[this.props.fixed.indices.Erythroblast],", AUC: ",this.props.values.auc[this.props.fixed.indices.Erythroblast]),React.createElement("path",{style:{transition:"stroke .25s ease-in-out, stroke-width .25s ease-in-out"},id:"erythroblast_color",fill:getRGB(this.props.values.avg[this.props.fixed.indices["T-cell"]]),stroke:"Erythroblast"===e||"Erythroblast"===t?"rgb(255,225,0)":"rgba(0,0,0,0.5",strokeWidth:"Erythroblast"===e||"Erythroblast"===t?"5":"2",d:"M838.2,563.1c8.7-4.7,24.2-21.3,27.4-44c3.4-24-13.9-51.3-38.8-60c-13.2-4.6-52.6-6.2-77.6,7.8c-7.9,4.4-21.6,17.5-26.9,34.3c-4.7,15-1.6,33.5,1.3,41.4c5.7,15.5,13.1,28.1,27.4,34.6s35.7,3.2,53.8-1.8C822.2,570.5,836.4,564.1,838.2,563.1z"}),React.createElement("path",{id:"erythroblast_nucleus",opacity:"0.2",stroke:"#000000",strokeWidth:"2",d:"M783,556.8c0,0-15,3.2-24.3-6.3s-9.5-32.1-9.5-32.1s0.7-6.8,2.9-14.8c1.3-4.7,1.8-9.8,6.9-14.2c13.6-11.6,19.7-11.6,19.7-11.6s5.7-2.9,13.6-3.5c3.4-0.2,7.1,1.9,11,1.7c7.7-0.3,15.5-1.5,22.6,1.7c18.8,8.7,24,14.5,19.7,34.4c-1.9,8.7-6.6,21-15.9,26c-2.5,1.4-6.1,4.6-10.4,5.5c-4.6,1-9.8-0.3-14.5,1.4c-5.4,2.1-8.6,7.4-12.4,9.5C787.7,557.5,783,556.8,783,556.8z"}),React.createElement("text",{fontSize:"35px",className:"clickable",transform:"matrix(1 0 0 1 906.463 529.7457)",onMouseOver:this.props.onMouseOver.bind(null,"Erythroblast"),onMouseOut:this.props.onMouseOver.bind(null,void 0)},"Erythroblast")),React.createElement("g",{id:"monocyte",onMouseOver:this.props.onMouseOver.bind(null,"Monocyte"),onMouseOut:this.props.onMouseOver.bind(null,void 0)},React.createElement("title",null,"Number of samples: ",_.find(_.find(this.props.fixed.header,function(c){return"Blood"==c.name}).children,function(c){return"Monocyte"==c.name}).numAnnotated,", average: ",this.props.values.avg[this.props.fixed.indices.Monocyte],", AUC: ",this.props.values.auc[this.props.fixed.indices.Monocyte]),React.createElement("path",{style:{transition:"stroke .25s ease-in-out, stroke-width .25s ease-in-out"},id:"monocyte_color",fill:getRGB(this.props.values.avg[this.props.fixed.indices.Monocyte]),stroke:"Monocyte"===e||"Monocyte"===t?"rgb(255,225,0)":"rgba(0,0,0,0.5",strokeWidth:"Monocyte"===e||"Monocyte"===t?"5":"2",d:"M785.3,913.1c0,0,52.6-0.7,59.9-47.3c7.4-46.5-45.4-61.3-45.4-61.3s-44-23.6-62.4,17.7c-18.5,41.3-24.4,53.9,0,75.3C761.9,919,785.3,913.1,785.3,913.1z"}),React.createElement("path",{id:"monocyte_nucleus",opacity:"0.2",stroke:"#000000",d:"M813.8,831c16.6,3,14.4,28.1,10,32.9c-4.4,4.8-17.7,18.1-31,10.7c-7.8-4.3-4.8-15.7-7.3-20.3c-1.7-3.2-9.2-1.4-11.9,1.1c-2.4,2.2-6.1,4.3-10.1,5.8c-3.3,1.3-8.5,2.4-13.9,1.2c-6-1.3-12-5.1-12.6-7.1c-1.4-5,1.4-13.4,3.2-17c1.8-3.5,7.6-6,11.8-11.8c2.1-2.9,4.2-13.5,10.1-16.5c2.8-1.5,11.4-4.7,19.7-0.4c5.2,2.7,10,8.6,15.3,12.9C802.8,827.2,808.9,830.1,813.8,831z"}),React.createElement("text",{fontSize:"35px",className:"clickable",transform:"matrix(1 0 0 1 880.2762 867.9855)",onMouseOver:this.props.onMouseOver.bind(null,"Monocyte"),onMouseOut:this.props.onMouseOver.bind(null,void 0)},"Monocyte")),React.createElement("g",{id:"granulocyte",onMouseOver:this.props.onMouseOver.bind(null,"Granulocyte"),onMouseOut:this.props.onMouseOver.bind(null,void 0)},React.createElement("title",null,"Number of samples: ",_.find(_.find(this.props.fixed.header,function(c){return"Blood"==c.name}).children,function(c){return"Granulocyte"==c.name}).numAnnotated,", average: ",this.props.values.avg[this.props.fixed.indices.Granulocyte],", AUC: ",this.props.values.auc[this.props.fixed.indices.Granulocyte]),React.createElement("path",{style:{transition:"stroke .25s ease-in-out, stroke-width .25s ease-in-out"},id:"granulocyte_color",fill:getRGB(this.props.values.avg[this.props.fixed.indices.Granulocyte]),stroke:"Granulocyte"===e||"Granulocyte"===t?"rgb(255,225,0)":"rgba(0,0,0,0.5",strokeWidth:"Granulocyte"===e||"Granulocyte"===t?"5":"2",d:"M979.1,1014.5c1.2,13.5-8.1,41-27.2,52.6c-16.4,10-42.2,5.2-49.5,5.6c-11.9,0.6-20.3,6-30.8,4.1c-23.1-4.2-35-17-40.2-26.4c-4.8-8.8-12.8-49.1,5-73.4c17.2-23.4,60-31,73.7-28.7c6.6,1.1,33.7,6.6,49.1,20.6C974.6,983,978.3,1005.4,979.1,1014.5z"}),React.createElement("path",{id:"granulocyte_nucleus",opacity:"0.2",stroke:"#000000",strokeWidth:"0.5",d:"M886.1,1025.3c0.5-4.7,1.4-10,1.6-13.3c0.3-4.6,0.4-10.2,2.3-11.9c3.9-3.4,10.9,1.5,10.3,9.8c-0.5,6.1-1.7,16.1,0.5,23.8c1,3.5,10,14.9,21,11.7c7.3-2.1,31.7-15.3,31.8-26.4c0-4.4-3.7-14.2-9.1-17.1c-2.1-1.1-8.2-2.2-13.3,0c-3.8,1.7-6.3,6.9-10.3,6.1c-1.8-0.3-5-5.5-9.3-7.9c-4.6-2.6-10.2-2.4-13.1-3.7c-7.5-3.4-12-10.4-11.3-12.5c0,0,12.1,6.7,20.6,4.1c7.7-2.3,11.9-13.9,11.9-15.9c0-6-7.1-12.5-16.4-13.4c-6.3-0.6-18.3-2.4-22.9,3.2c-3.1,3.7-6,9.5-5.8,14.7c0,0.7,0.4,3.6,2.6,7c3.8,5.9,9.9,13.8,5.8,16.4c-6,3.8-21-2.6-31.8-1.4c-9.1,1-14.7,9.3-14.9,14c-0.2,6,7.7,9.4,15.8,13.6C865.8,1033,884.6,1040.5,886.1,1025.3z"}),React.createElement("text",{fontSize:"35px",className:"clickable",transform:"matrix(1 0 0 1 1017.7397 1027.427)",onMouseOver:this.props.onMouseOver.bind(null,"Granulocyte"),onMouseOut:this.props.onMouseOver.bind(null,void 0)},"Granulocyte"))))}});
+'use strict'
+
+var React = require('react')
+var _ = require('lodash')
+
+/* accepts parameters
+ * h  Object = {h:x, s:y, v:z}
+ * OR 
+ * h, s, v
+*/
+function HSVtoRGB(h, s, v) {
+    var r, g, b, i, f, p, q, t;
+    if (arguments.length === 1) {
+        s = h.s, v = h.v, h = h.h;
+    }
+    i = Math.floor(h * 6);
+    f = h * 6 - i;
+    p = v * (1 - s);
+    q = v * (1 - f * s);
+    t = v * (1 - (1 - f) * s);
+    switch (i % 6) {
+        case 0: r = v, g = t, b = p; break;
+        case 1: r = q, g = v, b = p; break;
+        case 2: r = p, g = v, b = t; break;
+        case 3: r = p, g = q, b = v; break;
+        case 4: r = t, g = p, b = v; break;
+        case 5: r = v, g = p, b = q; break;
+    }
+    return {
+        r: Math.round(r * 255),
+        g: Math.round(g * 255),
+        b: Math.round(b * 255)
+    };
+}
+
+/*
+ * This function takes an average expression value and returns the RGB values associated with it. If the
+ * avg is below 0 (below the average of all samples), a blue hue is given, and if the avg is above 0, a
+ * red hue is given. Furthermore, saturation and value scale up with the avg if the avg is between 0 and 
+ * (-)1. For example: if the avg is 0, the returned color has no saturation and a value of 30 (= gray), 
+ * and if the avg is (-)1, the color is fully saturated and has a value of 0. When the avg is between (-)1
+ * and (-)3, the value scales up with the avg. For example: if the avg is (-)1, the returned color has a
+ * value of 100, and if the avg is (-)3, the color value is 65 (more towards black).
+ */
+function getRGB(avg){
+	if (Math.abs(avg) > 1){
+		var v = 1 - ((parseFloat(Math.abs(avg))/3)*0.35)
+		var s = 1
+		var colors = HSVtoRGB((parseFloat(avg) >= 0 ? 0.0389 : 0.58), s, v)
+		return 'rgb(' + colors.r + ',' + colors.g + ', ' + colors.b + ')'
+	} else {
+		var v = 0.7 + (parseFloat(Math.abs(avg))*0.3)
+		var s = parseFloat(Math.abs(avg))
+		var colors = HSVtoRGB((parseFloat(avg) >= 0 ? 0.0389 : 0.58), s, v)
+		return 'rgb(' + colors.r + ',' + colors.g + ', ' + colors.b + ')'
+	}
+}
+
+module.exports = React.createClass({displayName: "exports",
+
+	render: function(mouseEvent) {
+
+		var hoverName = this.props.hoverItem
+		var clickedItem = this.props.clickedItem
+		var subtissueSelected = clickedItem === 'Blood' || clickedItem == 'Brain' ? true : false
+		console.log(subtissueSelected)
+		console.log(clickedItem)
+
+		return (
+			React.createElement("svg", {version: "1.1", id: "svg3774", x: "0px", y: "0px", viewBox: "0 0 1560.5 1204", "enable-background": "new 429 -206 1560.5 1204", style: {position: 'absolute', top: '50%', transform: 'translate(0, -50%)'}}, 
+				
+				React.createElement("g", {id: "organs", style: {transition: 'all 0.5s ease'}, transform: clickedItem === "Blood" || clickedItem === "Brain" ? "translate(0,0)" : "translate(300,0)"}, 
+					React.createElement("path", {id: "body", fill: "#E3DACF", stroke: "#605C58", strokeWidth: "0.5", d: "M350.1,1078.1c-0.2,1.9,1.5,17,1,19.6c-3.5,17.8,0.8,28,8.8,32.5c0,0,11,1.5,15,3.8 s11.3,10.3,14.5,15.3s13.8,5.3,13.8,5.3l4.3,4c0,0-0.5,5.5,6.5,6.8s11,0.8,12.3,0.3s2.8-2,2.8-2s7,2.5,8.3-2l1.3-2 c0,0,4.8,0,5.3-4.8c0,0,6-0.3,4.8-6s-1-4-1-4s0.3-5.3-2-7.5s-6.5-2.8-10.8-7.3s-15.2-12.1-15.2-12.1s-17.7-30.8-17.8-31 c-0.1-0.2-0.2-0.3-0.3-0.5c-4.1-8.8-9-20.6-8-30c0,0-0.5-5.2,0.9-12.6l9.8-42c0,0,2.5-32.2,7.4-34.7c0,0,15.7-62.2,4.4-86.3 c0,0-4.9-30.7-3.4-39.8c0,0,5-37.6,5-51.6c0,0,18.9-56.2,18.9-60.6c0,0,6.5-27.4,7.9-48.3l4.2-46.4l1.4-30.2l-0.3-22.8l-2-22.8 l-3.7-18.1l-4.5-21c0,0-0.9,2.6-0.2-0.5c1.9-7.9,1-52.8,1-52.8l-1.6-23.3l1.1-23.2l5.3-39.8c0,0,8.9,9.1,13.3,29.3 c4.4,20.2,16.5,34.7,16.5,34.7l1.2,3.7c0,0,0,22.4,0,36.1s7.9,52.1,9.8,57.3c2,5.2,6.1,25.1,6.1,32l2.7,8.4c0,0,1,11.6-1,18 c0,0-7.1,9.1-13.8,15.7c0,0-8.4,15.2-11.8,22.1c0,0-8.3,14.5-10.6,14.5c0,0,0.7,8.4,12.8,2.9l9.6-9.6l1.2,10.8l6.1,31.7l3.2,12.5 c0,0,1.5,5.7,7.5,7.5l1.8,0.4c0,0-0.7,10.8,5.4,12.5c0,0,4.5,0.5,4.5-4.6l1.6-1.6c0,0,2.5,4.9,4.9,4.9c2.5,0,6.1-8.1,6.1-8.1l1-8.1 c0,0,3,1.2,4.7,1.2s5.4-3.7,5.4-3.7l9.4-35.2l2.2-30.5l-6.9-24.6c0,0,1.2-5.4-0.2-10.8c0,0,0.2-79.9,2.5-82.1c0,0,3.4-42.1-1.2-60.5 l-2.5-26.8c0,0-8.4-21.4-10.1-26.1c-1.7-4.7-9.8-43.8-13.3-53.1c-3.4-9.3-4.4-11.1-4.4-11.1v-8.1c0,0-5.2-6.9-5.2-9.6 s1.7-46.2-30.2-81.1c0,0-6.4-9.8-40.3-16.7L391,194.8l-2.2-1.2c0,0-1.2-2.7-1.2-4.2s-4.7-6.1-4.7-6.1v-34.4c0,0,6.8-3,6.8-19.5l0,0 h5.2c0,0,11.6-5.9,10.3-33.9c0,0,0-6.9-4.9-6.9c0,0-4.9-0.7-6.5,6.5c0,0,3.8-15.6,2.6-26.7c0,0-3-14.5-10.1-25.3s-24.3-17-24.3-17 s-8.1-4.4-21.6-4.4s-24.6,5.2-24.6,5.2s-20.4,12-24.1,30.2c0,0-5.4,20.4-2,36.4c0,0-5.4-3.4-8.9-3.4c0,0-7.9,3.4-3,20.7l10.1,19.4 c0,0,6.9,5.9,6.9-3.9c0,0,3.4,22.9,2.5,23.9c0,0,3,19.7,2,33c0,0,2.2,11.1-16.2,19.7c0,0-20.4,9.3-35.4,19.7s-18.7,6.1-36.1,13.3 c0,0-12.9,5.7-21.8,17.1c-6,7.7-8.6,20.5-10.7,26.7c-2.5,7.3-5.1,19.8-4.3,34.3c0.5,9.9,4.4,20.8,3.7,31c-1,13.9-7.2,25.2-9,37 c-3.3,21.2-2.5,38.9-2.5,38.9s-27.5,51.4-27.5,63.4c0,0-0.7,38.9-3,44.3l-14,46.2c0,0-1.5,12.5-19.4,14.5c0,0-24.6,12.5-38.1,29.8 l-7.4,9.6c0,0-3,10.1,13.3,2.5c0,0,4.9-0.7,8-8c0,0,8.7-0.1,11.9-5.5c0,0,4.8-1.7,4.8,4.8c0,0-3,16.2-4.3,33 c-1.3,15.8-1,31.9,1.3,39.3c0,0,2.2,3.5,4.3-0.5c0,0,0.3,15,10.5,0.5c0,0,2,15.5,12.8-2.2c0.1,0.1,0.3,6.7,7.9-0.6 c19.8-18.9,26.7-45.2,30-62.8c2.7-14.1,1.9-23.6,1.9-23.6s-1.7-14.8,3.9-20.4l35.4-71.6c0,0,10.1-25.3,10.1-45.7l7.6-12.8l1.7-21.4 c0,0,10.1-20.2,11.8-35.9l2-5.7c0,0,6.6,30.2,8.9,40.6c0,0,3,26.1,0.2,44c0,0-3.4,40.8-1.7,45.2c1.7,4.4,0,1,0,1s-6.4,34.7-7.6,51.1 c0,0-3.2,66.9,5.4,95.4c0,0,22.1,103.3,31,108.7c0,0,6.6,28,7.9,40.1l1.7,37.1c0,0,2.5,13,0.7,22.6c0,0-5.9,39.8-5.9,51.4 c0,0,6.9,54.3,15.5,76.2c0,0,11.8,46.5,11.8,62.7c0,0,0.7,19.4-9.3,26.6c0,0-16,24.8-21.4,27.5l-21.1,15.2c0,0-2.9,9.8,0,12.8 c0,0-0.4,6.7,5.4,8.9h2.2c0,0-2.5,7.1,8.4,5.3l4.4,3c0,0,4.9,1.9,8.9-3.2c0,0-0.2,5.4,4.9,5.4h8.4l9.7-9.7c0,0,9-0.1,11.9-6 c0,0,2,1.7,19.9-18.9c0,0,13.5-2,15-13.5c0,0,2.2-10.1-3.2-25.6l1.7-14.8c0,0-2.7-23.6-4.9-31.2s5.5-76.6,1.7-80.4 c0,0,4.7-55.8,1.2-69.6c-3.4-13.8-6.4-21.1-6.4-21.1s3.8-17.3,2-19.2l4.7-17.5l-0.7-48.2c0,0-2.7-74.5-0.5-76.7v-43l2.2,42.5 c0,0,2.7,53.8,0,75.7l0.7,49.4c0,0,2,19.9,4.2,26.1v15.5c0,0-4.8,14.8-4.8,17.8c0,3.1,0.6,40.7,0.6,40.7l3.4,36.9l2.2,25 c0,0,1.5,18.2,0.5,37.6C351.6,1056.3,350.6,1071.3,350.1,1078.1z"}), 
+				
+					React.createElement("g", {id: "skin", onClick: this.props.onClick.bind(null, 'Skin'), onMouseOver: this.props.onMouseOver.bind(null, 'Skin'), onMouseOut: this.props.onMouseOver.bind(null, undefined)}, 
+						React.createElement("path", {style: {transition: 'stroke .25s ease-in-out, stroke-width .25s ease-in-out'}, id: "skin_color", fill: getRGB(this.props.values.avg[this.props.fixed.indices.Skin]), stroke: hoverName === 'Skin' || clickedItem === 'Skin' ? "rgb(255,225,0)" : "rgba(0,0,0,0.5", strokeWidth: hoverName === "Skin" || clickedItem === 'Skin' ? "5" : "2", d: "M346.3,774.7c0,0-0.9,24.9-1,33.2s0.9,33.2,0.9,33.2s2,19.9,4.2,26.1v15.5 c0,0-4.8,14.8-4.8,17.8c0,3.1,0.6,36.1,0.6,36.1l0.5,5.9l3.4,36.9l2.2,25c0,0,1.5,18.2,0.5,37.6c-0.7,14.8-1.7,29.8-2.2,36.6 c-0.2,1.9,1.5,17,1,19.6c-3.5,17.8,0.8,28,8.8,32.5c0,0,11,1.5,15,3.8s11.3,10.3,14.5,15.3s13.8,5.3,13.8,5.3l4.3,4 c0,0-0.5,5.5,6.5,6.8s11,0.8,12.3,0.3s2.8-2,2.8-2s7,2.5,8.3-2l1.3-2c0,0,4.8,0,5.3-4.8c0,0,6-0.3,4.8-6s-1-4-1-4s0.3-5.3-2-7.5 s-6.5-2.8-10.8-7.3s-15.2-12.1-15.2-12.1s-17.7-30.8-17.8-31c-0.1-0.2-0.2-0.3-0.3-0.5c-4.1-8.8-9-20.6-8-30c0,0-0.5-5.2,0.9-12.6 l9.8-42c0,0,23.1-96.9,11.8-121l-1.1-4.2c0,0-4.1-27.8-2.6-36.9c0,0,3.6-27.4,4.5-43.2c0.2-4.1,2.2-8.2,1.8-10c0,0-12,5.7-24.7,8.3 c-10.4,2.1-21.8-1.6-27.4-3.5c-2.8-1-7.4-3.8-11.1-7C350.4,780.1,346.3,774.7,346.3,774.7z"}), 
+						React.createElement("path", {id: "toes", opacity: "0.68", fill: "none", stroke: "#000000", d: "M429.8,1164.7c0,0,1.4-6.8-1.1-8.2c-0.1,0-4.7-0.1-6.2,0.7c-1.5,0.8-6.5-3.6-6.9-6.8c-0.2-2.1,3.1-2,5.5-1.7c1.2,0.2,2.2,0.4,2.4,0.4c0.5,0.1,5.3,3.8,5.9,6s-0.7,1.3-0.7,1.3 M421.8,1148.8c-1.1-1.9-3.9-4.1-3.9-4.1s0.6-0.6-6-10 M413.1,1146.1c0.5,0,0.9-1.5,3-1.3 M401.1,1152.5l3.1,3.1 M378.2,1136.5c0,0-1.6-3.9-7.3-7 M438.6,1160.6c0,0,0.1-1.5-0.3-2.5c-0.1-0.2-0.1-0.4-0.1-0.6c0-0.5,0.2-1.2-0.1-2c-0.2-0.6-0.7-1.2-1.5-2c-1.1-1-2.2-1.2-3-1.1c-1.1,0.2-1.8,0.8-1.8,0.8s-1.1,2,2.5,3.8s3.4-0.9,3.4-0.9 M434.1,1151.9c-0.6-0.8-4.5-3.4-4.8-3.9s-2.1-2.9-2.1-2.9 M444.4,1155.6c0,0,0.3-2-0.6-2.9s1.4-0.4-2.5-4.4c0,0-0.5-0.2-1.1-0.2c-0.9-0.1-1.8,0.2-1.2,1.7c1,2.6,1.1,2.5,1.8,2.8c0.7,0.3,1.9-0.9,2.5-0.4 M440.2,1148.1c-0.9-1.6-3.9-3.9-4.4-4l-1.6-2 M444.4,1145.3c0,0,0.4,2.3,1.4,2.9s2.1-1,2.1-1s0.3-1.6-2.4-2.9S444.4,1145.3,444.4,1145.3z M443.7,1143.8c-0.4-0.1-0.8-1-3.3-2.6l-2.6-2.6 M443.9,1138.5c0,0,1.3,2.6,2.4,2.9s0.9-0.4,0.9-0.4"}), 
+						React.createElement("path", {id: "skin_strokes", fill: "none", stroke: "#000000", d: "M355,1079.9c0.3-0.2,0.8,0.2,0.8,0.6s-0.2,0.7-0.4,1c-1.1,1.6-1.8,3.4-2.1,5.3c-0.2,1.2-0.2,2.4,0.4,3.4c1,1.6,3.3,1.9,4.3,3.4 M418.6,790.9l2.7-12.5c-27.5-40.3-74.8-10.9-74.8-10.9l-0.2,7.1"})
+					), 
+
+					React.createElement("g", {id: "bone"}, 
+						React.createElement("path", {id: "bone_color", fill: "#DBCBB6", stroke: "#000000", d: "M398.7,587.3c-0.3-1.3-0.6-2.5-0.9-3.8c0,0-0.8-7.7,2-7.8c2.8-0.2-0.8,2.3,8.3,2.7c9.2,0.3,8.7,29.7,8.7,29.7s1.3,9,0.2,13.7c-1.2,4.7-42.3,146.8-42.3,146.8s6,16.5,27,4.5c0,0,1.8-16.2,6.7-38c2.9-12.9,7.7-27.8,11.5-43c10.2-41.3,18.7-84.9,24-89.3c0,0,5.3-5.3,5.8-9.5s-0.1-9.9-0.1-9.9s-3-4.7-2.2-8.2s-7-6.7-10.3-5.5s-1.7,1.8-1.7,1.8s-7.5-0.2-9.3-4.2s-3.2-6.8-3.2-8s0.2-8.2-6.2-7.8l4.4-4.9c3.8-11,0.3-11.8,0.3-11.8c27.2-3.5,20-24.4,8.8-38.3c-4.2-5.2-8.2-9-11.8-11.3c-3-1.8-5.8-2.5-5.8-2.5c-9.1-0.9-17.2-0.3-23,0.5c-14.8,2.2-21,8.8-23,14.8c-1.7,5.1,0,9.6-0.8,11c-2,3.8-9.8,3-9.8,3v6.5c-16,8.2-28.3-0.3-28.3-0.3v-7.8c-5.2,5.5-14-6-14-6s-1.4-14.4-11-21s-27.3-5.4-33.5-3.8c-5.6,1.5-17.1,9-22,18.5c-6.1,11.9-5,26-5,26s4,5.3,9,8.8c3.9,2.7,8.7,3.4,10.3,5.5c1.4,1.8,1.7,8.8,3,12.5c1.3,3.8,3.5,4.3,3.5,4.3c-0.2,11.5-12,18-12,18c-2.4-7.7-7.6-6.9-11.5-3.8c-1.4,1.1-1.6,3-2.5,4.3c-1.1,1.7-2.6,2.5-2.6,2.5s0.4,6.3-0.2,8.3c-0.3,1.1-2.8,2.7-3.8,4.3c-0.9,1.3-0.3,2.8-0.3,2.8s13.6,22.2,21,54.8c4.1,18.2,8.1,38.2,14,58.8c5.5,19.3,13,39.3,16,56.5c1,5.4,0.8,10.6,1.3,15.5c1.1,11-0.8,25.2-3.5,32.8c-1.9,5.5-4.8,5.6-5.2,8.2c-2.5,18.1,0.3,22,3.2,24.1c1.8,1.3,4,3.3,4,3.3s0.5,1,0,2.8c0,0-5.2-4.3-5.5-0.5c0,0-1.9,1.1-0.6,11.1c0.1,1.5,0.6,5.5,1.3,7.4c1.5,4-0.3,7-0.5,7.8c-1.3,6.3,1.5,9,1.5,9s0.2,27.2,0.8,35.3c1.6,22.4,9.9,69.1,15,107c1.4,10.3,4,20,4.8,28.3c1.7,17.6-0.8,29.4-0.8,29.4c-0.2,1.9,2.5,1.2,2.5,1.2c-1,3.2,1,9.7,1,9.7s-1.9,1.5-5,2.8c-2,0.9-4.8,1.2-6.8,2.2c-1,0.5-2.8,3.2-3.5,3.5c-2.4,1-8.3,9.4-13.8,16.3c-4,5.1-8.2,9.2-8.2,9.2s-2.1-0.5-4.3,1c-1.4,0.9-1.3,2.6-2.7,4c-1.4,1.5-4.3,2.7-5.5,3.7c-1.5,1.2-1.9,3.1-2.2,3.2c-1.1,0.4-0.8,3.7-0.8,3.7s-1.7,0.1-2,2.3c-0.4,2.2,2.3,2.7,2.8,0.7c0.5-2-2,2.9,3-3.8c0.7-0.9,1.5-0.6,2.3-1.3c1.8-1.8,3.7-4.2,5.4-5c2.5-1.2,4.4-1.5,4.4-1.5s-1.2,1.1-3,2.3c-1.6,1.1-3.8,2.2-4.5,3c-0.7,0.7-1.7,3.5-1.7,3.5c-2.2,0.3-2.5,3.3-2.5,3.3s1-0.2-2.2,2c-3.2,2.1-2,4.1,0,5.3c2,1.2,2.7-3.8,2.7-3.8c6.2-2.2,5.2-4.7,5.2-4.7c3.7-5,10.7-7.3,10.7-7.3c-4.7,3.8-5.2,7.5-5.2,7.5c-3.3,0-3.5,4.8-3.5,4.8s-0.9,2-3.2,4.7c-2.3,2.7-0.3,5.2,1.2,5.2s3.2-2.7,3.2-2.7s0.6-5.3,2.7-5.3s3.3-2.8,3.3-2.8h1.7v1.5l-3.7,6.7c-3.1,1-3.3,5.8-1.3,6.3s2.8-3.4,4-3.7c1.2-0.4,6.5-5.2,6.5-5.2s1.5,0,2.7-1.3c1.4-1.6,2.6-4.7,4.7-6.7c3-2.9,5.6-4.9,6-5c0.8-0.4,0.3-4.7,0.3-4.7c2.6,0.6,4.3-2.2,4.3-2.2s6.7-8.9,9.5-11.3c2.6-2.2,11.5-7.3,11.5-7.3s-2.1,6.2-6.8,10.7c-3.8,3.6-10.2,5.4-11.7,7.8c-0.4,0.7-0.8,3-0.8,3s-1.6,0.3-3,2.3c-1,1.3-0.7,4-1.7,5.8c-1.2,2.1-4.1,2.9-5.3,4.3c-1.2,1.3-0.7,3.3-0.8,3.3c-0.5,0-2.3,0.8-2.3,0.8s-0.5,4.3-2.7,6s-0.7,5.3,0.5,6c1.1,0.7,2.8-2,2.8-2s-0.7-4.2,2-3.2c2.6,1,4.8-2,4.8-2c0.5-0.3,1.3-0.8,2-1.6c0.5-0.6,0.9-1.6,1.7-3.5c0.6-1.5,0.8-2.1,1.5-2.8c0.4-0.4,1-0.8,1.1-0.9c0.2-0.1,0.8-0.6,1.6-0.9c1.9-0.8,2.6,0,3.5-0.8c0.8-0.7,1.2-2.1,1.2-2.2c0.5-0.3,1.3-0.8,2.2-1.5c5.4-4.1,4.8-7.1,8.7-10.5c4.2-3.6,8.1-3.1,11.3-6.7c0,0,0.1-0.1,2.8-3.2c0.7,0.1,1.7,0.2,2.6-0.3c2-1.2,1.2-3.9,3.1-6.2c1.9-2.3,4-1,5.2-3c1.4-2.1-0.8-3.9-1-10.2c-0.1-2.2,0.1-4.1,0.3-5.5c0.3-2.5,0.7-4.6,1.2-6.5c1.6-6.2,2.9-7.9,3.5-10.7c0.7-3.1,0.1-5.2-3.2-14.7c-6.3-18.3-8.4-23.9-9-31.5c-0.1-1.1-0.2-2.6-0.4-5.3c-0.7-8-1.7-13.8-1.9-15c-0.4-2.1-2.2-14.1-2.8-57.8c-0.3-23.1-0.5-34.7,0.2-41.7c1.9-18.9,3.3-33.7,6.3-40c0.5-1,2.6-5.1,2.2-10.5c-0.1-1-0.1-0.6-0.5-3.3c-1-6.9-1.2-13-1.2-13c0.1-0.2,0.2-0.6,0.1-1c-0.5-1.8-4.4-1.4-4.8-2.8c-0.3-1,1.9-1.8,3.3-3.7c3.7-5.1-3-12.2,0-19.3c0.3-0.8,0.9-1.8,0.8-3.3c-0.1-2.3-1.7-3.7-3.3-5.8c-0.3-0.5-1.5-2.6-3.8-7c-7.3-13.9-15.8-38.5-15.8-38.5c-3-8.7-6.7-19.5-10.5-34.3c-4.2-16.4-3.5-18-7.5-33.7c-4-15.8-4.8-14.6-11.2-36.5c-6.5-22.4-11.8-45-11.8-45c0.4-2.6,1.3-4.3,2-5.5c0.9-1.5,1.7-2.1,2.3-3.7c0.7-1.9,0.6-3.7,0.5-4.3c-0.5-5.2-5.4-6.2-6.1-10.3c-0.8-5,5.3-10.6,9.8-12.9c2.9-1.5,8.2-3.2,8.3-3.2c-1.5,11.2,1.4,21.7,8.5,26.2c4.1,2.6,9,2.9,12.8,3.1c2.5,0.1,9.4,0.4,16.8-3c0,0,1.6-0.7,11.8-7.7c1.6,0.3,2.5,0,3-0.3c0.3-0.2,0.6-0.4,1-0.4c0.6,0.1,0.7,0.9,1.3,1.1c0.8,0.3,1.2-0.9,2.4-1.1c1.4-0.2,1.9,1.3,4,1.6c1.1,0.2,1.9-0.1,2.2-0.1c4.4-0.8,20.2,11.4,31.5,10c0,0,9-1.1,14.8-11.8c0.8-1.4,2.2-4.1,1.8-7.5C399.1,588.5,398.9,587.8,398.7,587.3z M323.8,594.2c-1,1.3-2.9,2.7-3.7,3.2c-1.7,0.9-7.7,1.2-7.7,1.2c-14.2-5-9.5-18.2-9.5-18.2s7.5,1.2,14.3,4.7c3.1,1.6,6.3,3.7,8.2,6.2C325.5,591.2,325.1,592.6,323.8,594.2z M305.8,1025.3c-1.2-9.1-1.7-22.9-3.8-38.3c-2.3-16.5-6.3-35-8-51.7c-2.9-28.4-3.3-51.5-3.3-51.5s0.1,0.2,0.3,0.6c1.4,3.4,7.8,19.3,9.2,28c1.7,10.1,0.7,27,2.2,46c1.3,16.4,5.8,34.2,7.2,50.3c2.4,28.1,1.5,50.8,1.5,50.8S306.9,1033.9,305.8,1025.3z M360.5,594c0,0,3.9-2.5,7.8-5.5c3.6-2.8,7.1-6.1,9.3-7.5c1.2-0.8,5.2-2.7,5.2-2.7s4.2,7.5-2.7,15c-1.4,1.6-3.5,1.8-5.3,2.3C368.1,597.6,360.5,594,360.5,594z M336.1,563.8c-1.2,4.8,1.9,4.6,1.9,4.6c-1.5,4.9,1.5,0.9,1.3,3.8c-0.3,2.8,0.2,4.2,2.8,4.5s2.1-5.2,2.1-5.2c3.1-0.2,1.3-3.7,1.3-3.7c3.2-0.1,2.5-3,2.5-3c5.4-0.5,2.3-5.1,2.3-5.1s1.6-2.1,3.9-3.3c2.1-1.1,4.8-1,6.5-3.8c1.4-2.3,0.8-6.4,1.3-9.8c0.3-2.3,1.2-4.1,2.8-5.2c1.9-1.3,4.2-0.7,6.6-1.3c0.7-0.2,1.7-0.4,2.3-0.8c0.8-0.4,1.2-1,2.3-0.9c0,0,1.4,1.1,2.9,2.8s3.2,3.9,3.7,5.1c0.6,1.3,0.7,5.8,0.7,5.8s-2.1,1.9-4.6,4.1s-5.2,4.6-5.6,6.3c-0.4,2.1,3.8,7.1,3.8,7.1s-3,1.8-6.7,4.9c-1.5,1.3-3.3,3.3-5,4.8c-3.7,3.3-7.2,7.4-10.6,9.4c-2,1.2-3.6,0.6-4.9,0s-2.4-1.1-2.5-1.3c-0.7-1.2-2,0.2-2,0.2c-0.7-2.8-3.6-0.6-3.6-0.6c-0.6-1.5-0.9-0.8-0.9-0.8c-3.9,1.3-7.2,1.9-9.7,1.2c-3.7-1.1-6-4.3-8.5-6.3c-6.2-5.1-9.3-10.5-9.3-10.5s3.2-1.4,3.3-2.4c0.3-1.9-2.1-5-4.3-7.7c-3.3-4-6.9-7.3-6.9-7.3s-0.4-6.1,0.2-8.1c0.2-0.7,0.9-2.2,1.5-3.3c1.1-1.8,2.3-3.2,2.3-3.2s1.3-0.5,2.8-0.2c1.6,0.4,3.3,1.7,4.1,2.3c1.4,0.9,3,3.7,4.3,6.8c1,2.5,1.6,5.3,3.2,7.2c2,2.3,4.4,3.6,6.4,4.6c2.5,1.3,4.3,1.9,4.3,1.9c-2.4,5.9,1.6,6.1,1.6,6.1 M356.3,551.4c-1.9,2.8-2.8-0.3-2.8-0.3C354.9,547.9,356.3,551.4,356.3,551.4z M352.8,547.5c-1.3-3.3,5.8-4,5.8-4S354.1,550.8,352.8,547.5z M354.6,539.6c1.5-3.4,5.2-1.2,5.2-1.2S353.1,543,354.6,539.6z M360.6,532.2c0,0-0.6,1.1-1,1.8c-0.4,0.8-2,1.5-2,1.5c-5.7,1.3-4.3-0.9-4.3-0.9c3.2-3.1,5.5-3.2,7.1-2.5c0.2,0.1,2.8,1.4,2.8,2.3 M331.3,551.2c0,0-0.9,3.1-2.8,0.3C328.5,551.4,329.9,547.9,331.3,551.2z M326.2,543.5c0,0,7.1,0.8,5.8,4S326.2,543.5,326.2,543.5z M325,538.4c0,0,3.7-2.3,5.2,1.2C331.7,543,325,538.4,325,538.4z M321.7,534.4c0-0.9,2.5-2.2,2.8-2.3c1.5-0.7,3.9-0.6,7.1,2.5c0,0,1.3,2.2-4.3,0.9c0,0-1.6-0.8-2-1.5s-1-1.8-1-1.8"}), 
+						React.createElement("path", {id: "bone_strokes", fill: "#DBCBB6", stroke: "#000000", d: "M321.6,848.7c0.7-2.4,8.8-2.3,8.8-2.3 M268.1,555.6c0,0-7.8,18.8,17.4,21.1c0,0,1,1.6,1,2.8s4.3-2.7,5.4-5.7 M326,590.9c0,0-1.6,3.8-5.8,6c-2.1,1.1-4.6,2.4-8.8,1.2c-12.3-3.4-8.4-18.2-8.4-18.2 M341.4,584.2c0,0,1.3-2,2.1-1.4c1.2,0.9,1.2-1.1,1.3,2.3c0.2,8,1.5,9.9,0.7,11.4c-0.1,0.3-0.1,0.3-0.3,0.5 M255.3,573.3c-1.6,0.6-3.4,0.9-5.4,0.8 M301.3,866.6c-3.2,0.5-13.6-7-14.4-18.2c-0.9-11.1,16.3-14.8,16.3-14.8s3.2-0.3,6.7,1.3c5.3,2.4,11.6,7.7,11.7,13.8c0.1,5.7-5.9,12.6-11,15.8c-3.9,2.5-7.3,2-7.3,2S304.5,865.9,301.3,866.6z M291,884.3c-3-4.9-6-9.9-9-14.8 M341.2,1093.7c0,0-3.8-1.5-5.7-2.7c-1.6-1.1-2.5-2.6-4.5-3.2c-4.4-1.3-8.7-0.2-11-1.5c-1.6-1-6.2-5-8.5-7.2c-2-1.9-1.6-3.9-1.6-3.9s0.5-10,1.1-15.5 M310.5,1077.2c-2.3,3.5-4.4,6.3-6.1,6.9 M313.3,505.4c0,0-11.6,7.6-4.1,29.9c0,0-18.3,13.8,18.5,47.5c0,0,3,3.5,12.7,0c0,0,1-0.3,1,1.6c0,0-2,8.8-0.2,12.6 M337.2,598.1c-1.7,0-2-0.3-4.6-1.5c-2.2-1.1-4.5-4.2-6.5-5.5c-1.2-0.8-5.4-5-11.5-7.5c-6.5-2.7-16.2-3.7-21.7-8.6c-2.4-2.2-3.3-6.2-3.9-9.8c-0.3-1.4-2.4-5.4-2.7-7.1c-0.5-0.6-3.7,0-8-0.5c-0.6-0.1-1.6-0.9-2.2-1c-4.9-0.5-7.7-0.8-8.3-1.4 M340,1106.3c-0.6,1.5-1.8,1.3-1.8,1.3s-2.2-0.6-5.5-2.5c-3.9-2.3-8.1-5.6-13.3-7.7c-3.2-1.4-6-0.9-8.5-1.3s-4.7-1.8-5.1-1.9 M300.7,1105.2c-4.6-5.3-6.2-1.5-6.2-1.5s-2.7,4.5-8,10c-3.8,4-8.2,7.7-10,10.2c-1.1,1.5-3.5,6.8-3.5,6.8 M317.7,1096.9c0,0,1.1,1.6-1.6,3.1s-10.2,2.3-10.2,2.3s-4,1.9-5.1,2.8c-2,1.6-3.7,5.7-6.6,9.3c-1.9,2.3-3.3,5.5-5.2,7.7c-1.2,1.4-4.1,3.1-5.2,4.2c-2.9,3-3.1,5.2-3.1,5.2 M289.5,1103.3c-0.3,0.3,0,0,0.1,0.5c0.2,1.8,1.9,4.2,1.9,4.2 M273.2,1151.9c5.3-0.4,4.6,3.1,5.9,3.4 M292.5,1137.8c-0.9-3.8-6.9-3.8-6.9-3.8s-2.2,1.6-3.4,4c-0.9,1.7-1,3.5-1.6,4.4c-0.8,1.1-3.1,2.4-4.8,4s-2.7,3.6-2.7,3.6h-0.5 M271.3,1150c0,0-0.6-2.3-1.1-2.9c-0.4-0.4-2.1-0.9-2.1-0.9 M273.3,1138.4l2.1-1.8l0.9-4.1l-1.3-1c0,0-1.5-1.4-3.8,0c-1.1,0.7-0.5,2.2-2.3,3.2 M253.5,1139.8c0,0,2.3,1.3,2.6,2.4 M322.7,1110.7c-5.5-3.5-3.9-5.3-6.6-6s-3.8,1.1-3.8,1.1s-7.9,10-13.9,16.3c-2.2,2.3-3.2,4.9-4.8,5.3c-6.1,1.3-6.8,6.6-6.8,6.6 M310.9,1106.7c0,0-2-2.7-5.1-4.4 M327,1107.5c0.6-0.8-2.1-8.9-5.1-5.1s-5.8,2.4-5.8,2.4 M336.2,1118.7c1.3-8.4-6.6-10.7-6.6-10.7c-8.2-2.3-8,6-8,6c-4.7-1.2-3.7,2.6-3.7,2.6 M298.5,1139c0,0,6.5,3,7,7.8 M330.6,1125.3c4.1-9.4-9.1-11.3-9.1-11.3 M285.5,1134c-7.2-5.3-9.3-1.4-9.3-1.4 M366.1,509.4c13.2,0.3,11.5,22.5,9.2,25.2s-9.3,2.6-9.3,2.6s-4.5,0.7-4.3,8.2s-0.7,6.1-1.3,8c-0.6,1.9-6.5,2.5-7.8,3.7c-1.4,1.2-3.7,3.2-3.7,3.2s-7.7,0.3-11.2,0c-3.5-0.4-3.3-2.7-3.3-2.7s-5.1-2-6.7-3c-1.6-0.9-4.9-3.5-5.5-5.3c-2.9-8.5-3.6-10.5-9.2-14.1c-1.8-1.1-3.7-0.1-3.7-0.1 M327.1,511.5c0,0-4.6,4.4-13.7-6.2 M416.6,551.5l-1.8,0.2c-10.8,1.5-16,17.3-16,17.3c-2.8,2.7-9.5,8.2-16.2,9.5c-3.9,0.8-12.2,8.1-19.7,13.5c-5.2,3.8-10.5,6-11.8,6.7 M375.3,534.7c1.9,0.5,2.6,2.6,3.8,3.6c9.4,7.7,0.1,27.3-4.5,29.3c-5.1,2.3-16.1,15.4-19.8,17.5c-3.7,2-6.7-0.9-8.2-1.4s-1.8,2.8-1.8,2.8 M304.6,549.5c1.4-0.4,11.6,11.9,11.7,14.5s-3.3,2.6-3.3,2.6 M376.6,565.9c0,0-5.1-5.1-3.3-8.3c1.9-3.1,9.2-7.1,9.9-9.8 M382.6,578.5c4.2,9-2.8,14.8-2.8,14.8c-11.3,6.6-19.8,0.7-19.8,0.7 M355.2,519.4c-1,3.5-4.4,5.1-4.4,5.1s-7,2.4-14.9,0.8c-7.9-1.6-7.8-6.3-7.8-6.3 M288,1154c5.7,0.8,5.1,5.8,5.1,5.8 M262.8,1145.3c-1.4-2.3-3.4-1.8-3.4-1.8 M271.1,1131.6c-0.8-3.9-3.1-3.5-3.1-3.5 M401.5,576.7c0,0,0.3-4.5,6.3-5.2s14.8-8.5,14.8-11.7 M398.8,569c-3,4,1,6.7,1,6.7"}), 
+						React.createElement("path", {id: "bonemarrow", style: {transition: 'stroke .25s ease-in-out, stroke-width .25s ease-in-out'}, onClick: this.props.onClick.bind(null, 'Bone marrow'), onMouseOver: this.props.onMouseOver.bind(null, 'Bone marrow'), onMouseOut: this.props.onMouseOver.bind(null, undefined), fill: getRGB(this.props.values.avg[this.props.fixed.indices["Bone marrow"]]), stroke: hoverName === 'Bone marrow' || clickedItem === 'Bone marrow' ? "rgb(255,225,0)" : "rgba(0,0,0,0.5", strokeWidth: hoverName === "Bone marrow" || clickedItem === 'Bone marrow'  ? "5" : "2", d: "M291.4,574.4c0.2-0.9-1.5-5.3-2.5-9.8c-0.8-3.7-3.1-6.5-3.1-6.5c-4,0.4-17.9-2.6-17.9-2.6c-0.3,3.3-1.4,5.1-1.4,5.1c-2.3,8.6-10.7,12.5-10.7,12.5c-2.4-7.7-7.6-6.9-11.5-3.8c-1.4,1.1-1.6,3-2.5,4.3c-1.1,1.7-2.6,2.5-2.6,2.5s0.4,6.3-0.2,8.3c-0.3,1.1-2.8,2.7-3.8,4.3c-0.9,1.3-0.3,2.8-0.3,2.8s13.6,22.2,21,54.8c4.1,18.2,8.1,38.2,14,58.8c5.5,19.3,13,39.3,16,56.5c1,5.4,0.8,10.6,1.3,15.5c1.1,11-0.8,25.2-3.5,32.8c-1.9,5.5-4.8,5.6-5.2,8.2c-2.5,18.1,0.3,22,3.2,24.1c1.8,1.3,4,3.3,4,3.3h1c0,0,1.3-8,17.4-12c0,0,1.8,0.1,4.1,1.1c4.4,2,11.6,5.4,13.3,13.4c0,0,3.3-2.1,9.4-1.9l2.8-3.5c5.7-7.8,0-19.3,0-19.3s0.8-2.4,0.8-3.3c0-2.3-1.9-3.9-3.3-5.8c-1.4-1.9-2.3-4.2-3.8-7c-5.5-10.3-12-25-15.8-38.5c-3.1-11-7.2-22.6-10.5-34.3c-3.1-11.3-4.5-22.7-7.5-33.7c-3.5-12.8-8.1-25.5-11.2-36.5c-7.4-26.6-11.8-45-11.8-45s0.7-2.9,2-5.5c0.7-1.5,2.1-2.8,2.3-3.7c0.3-1,0.5-4.3,0.5-4.3c-12-10-3.8-18.7,3.7-23.2c4.3-2.6,7.5-2.1,7.8-2.7C287.2,579.2,290.8,577.1,291.4,574.4z"})
+					), 
+
+					React.createElement("path", {id: "esophagus", style: {transition: 'stroke .25s ease-in-out, stroke-width .25s ease-in-out'}, onClick: this.props.onClick.bind(null, 'Esophagus'), onMouseOver: this.props.onMouseOver.bind(null, 'Esophagus'), onMouseOut: this.props.onMouseOver.bind(null, undefined), fill: getRGB(this.props.values.avg[this.props.fixed.indices['Esophagus']]), stroke: hoverName === 'Esophagus' || clickedItem === 'Esophagus' ? "rgb(255,225,0)" : "rgba(0,0,0,0.5", strokeWidth: hoverName === "Esophagus" || clickedItem === 'Esophagus'  ? "5" : "2", d: "M373.3,392.5c-4.5-8.5-1.6-19.5-4.5-28.3c-2.8-8.7-9.9-59.4-9.9-59.4c1.3-30.7-7.2-65-7.2-65c0.8-0.8-0.8-27.6-2.5-50.4c-0.7-10.4-0.3-19.8-1.7-25.9c-1-4.4-6.7-4-7.5-3.9c-1.1,0.1-5.3,0-5.4,6c-0.4,16.8,4.5,52.2,4.5,52.2c2.4,4.3,0.9,7.9,0.9,7.9c-3,15.4,3.5,62.8,3.5,62.8c0.4,18.8,6.3,47.4,6.3,47.4c3.9,12.6,6.2,43.7,6.2,43.7c0.6,8,1.9,16.2,3.2,24.1c0.1,0.5,0.1,0.9,0.2,1.4C361.9,398.8,366.6,393.2,373.3,392.5L373.3,392.5z"}), 
+					React.createElement("path", {id: "esophagus_line", fill: "#A8B1BA", stroke: "#000000", d: "M335.3,162.2c0,0,4,5.8,11.8,0.7"}), 
+
+					React.createElement("path", {style: {transition: 'stroke .25s ease-in-out, stroke-width .25s ease-in-out'}, id: "spleen", onClick: this.props.onClick.bind(null, 'Spleen'), onMouseOver: this.props.onMouseOver.bind(null, 'Spleen'), onMouseOut: this.props.onMouseOver.bind(null, undefined), fill: getRGB(this.props.values.avg[this.props.fixed.indices.Spleen]), stroke: hoverName === 'Spleen' || clickedItem === 'Spleen' ? "rgb(255,225,0)" : "rgba(0,0,0,0.5", strokeWidth: hoverName === "Spleen" || clickedItem === 'Spleen'  ? "5" : "2", d: "M407.8,434.9c0,1,0.1,4.4,2.5,7.1c0,0,2.2,2.4,6,3c6,1,17.1-5.4,20.8-18.5c2-7.1,1-15.5-2.7-29.5s-21-21.8-21-21.8s-19.4-11.7-21.5,12.6C389.8,412,407.8,407.3,407.8,434.9z"}), 
+					
+					React.createElement("path", {id: "adipose_tissue", style: {transition: 'stroke .25s ease-in-out, stroke-width .25s ease-in-out'}, onClick: this.props.onClick.bind(null, 'Adipose tissue'), onMouseOver: this.props.onMouseOver.bind(null, 'Adipose tissue'), onMouseOut: this.props.onMouseOver.bind(null, undefined), fill: getRGB(this.props.values.avg[this.props.fixed.indices['Adipose tissue']]), stroke: hoverName === 'Adipose tissue' || clickedItem === 'Adipose tissue' ? "rgb(255,225,0)" : "rgba(0,0,0,0.5", strokeWidth: hoverName === "Adipose tissue" || clickedItem === 'Adipose tissue'  ? "5" : "2", d: "M430.1,643.5c0.5-0.6,1.6-2.1,2.7-4.7c1.1-2.7,0.9-3.5,2-8.5c1.5-6.9,2-5.8,2-7.8c0-1.1,0-3.5,1.4-5.1c0.1-0.1,0.1-0.2,0.3-0.2c1.4-0.6,4.2,3.5,5,4.6c1.5,1.1,2.4,6.2,2,8.1c-0.6,2.8,0.4,3.5-0.2,6c-0.5,2.2-1.4,2-1.8,4.2c-0.5,2.4,0.5,3,0.5,6c0,2.9-0.9,3.4-1.5,7.2c-0.4,2.6-0.1,3.2-0.2,6.7c-0.1,4.2-0.2,8.3-1.8,12.7c-1.4,3.8-2.6,4-3.8,8.3c-0.7,2.6-0.9,4.9-1,6.2c-0.2,4.1,0.6,5.4,0.6,8.4c0,3.8-1.3,4.8-2.6,9.6c-2.7,9.7,0.9,12.4-2.3,17.3c-1.7,2.6-2.3,1.2-8.2,6.8c-3.7,3.4-4.4,4.9-7.3,7.2c-3.2,2.5-6.4,3.9-8.4,4.7c-0.6,0.1-3.8,0.4-6.7-1.9c-2.7-2.1-3.3-5-3.4-5.7c-1.5-0.2-4-0.8-6.4-2.6c-1.1-0.9-4.9-3.5-4.6-6.9c0.2-1.6,1.1-3.1,1-4.7c-0.1-1.6-1.2-3-1.8-4.4c-3.4-7.5,3.4-15.8,3-24c-0.1-2.9-1.8-4.9-1-8c0.7-3,2.8-5.4,3.1-5.8c1.8-2,2.8-2,4.3-4.2c1.6-2.2,1-2.9,2.2-4.3c2.2-2.8,5.1-1.4,9.9-3.9c3.2-1.6,2.1-2.3,6.1-4.8c4.8-2.9,6.7-2.2,9-4.8c1.7-2,0.8-2.6,3-5.8c1.2-1.8,1.9-2.2,3.3-3.6C428.5,645.4,429.3,644.6,430.1,643.5z"}), 
+
+					React.createElement("g", {id: "liver"}, 
+						React.createElement("path", {style: {transition: 'stroke .25s ease-in-out, stroke-width .25s ease-in-out'}, id: "liver_color", onClick: this.props.onClick.bind(null, 'Liver'), onMouseOver: this.props.onMouseOver.bind(null, 'Liver'), onMouseOut: this.props.onMouseOver.bind(null, undefined), fill: getRGB(this.props.values.avg[this.props.fixed.indices.Liver]), stroke: hoverName === 'Liver' || clickedItem === 'Liver' ? "rgb(255,225,0)" : "rgba(0,0,0,0.5", strokeWidth: hoverName === "Liver" || clickedItem === 'Liver'  ? "5" : "2", d: "M274,460.9c8.4-2.2,15.6-5,22.7-9.7c9.9-6.4,19.3-15,27.8-22.8c3.3-3,6.7-6,11.5-7c8.9-1.8,17.8-2.8,26.4-5.4c9.9-2.9,18.8-8.2,26.8-14.1c7.1-5.2,18.5-18.7,9.3-26.7c-4.8-4.2-13.3-3.8-19.5-3.4c-8.9,0.4-17.8,1.8-26.8,1.9c-16.7,0.2-32.2-5.6-48.5-8.1c-14.2-2.2-29.1-0.3-40.3,8.1c-12.3,9.3-17.7,27.1-17.8,41.1c0,6.1,0.8,12.5,2.4,18.5c1.4,5.2,4,10.2,4.9,15.4c0.8,4.2-2.5,11.2,1.7,14.5C259.6,467,268.9,462.2,274,460.9z"}), 
+						React.createElement("path", {id: "liver_strokes", fill: "none", stroke: "#000000", strokeWidth: "0.5", d: "M281.6,456.5c-2.3,0.8-4.6,1.5-6.8,2.4c-3.7,1.5-8.5,3.6-12.6,3.5c-6.8-0.2-2.7-7.7-0.7-11.1c1.5-2.5,4-4.4,5.7-6.8c1.8-2.6,3-5.8,4-8.7c2-5.5,3-11.3,3-17.1c0.1-4.8-0.1-9.8,2-14.3c6-12.9,28-23.4,43-17c1.5,0.7,3.3,2,4.5,2.6c8.6,4,17.5,4.9,27.4,5.1c11.8,0.3,28.2,0.7,38.3-5.8c2.7-1.7,6.5-5.8,5.9-9c2.3-0.7,2.3-3.4,1.3-5.1c5.7,3,3.5,10.2,1.3,14.5c-2.9,5.9-8.3,10.8-13.9,14.6c-7,4.8-17.4,8.4-25.8,10.5c-5,1.2-10.1,2.5-15.1,3.5c-4.6,1-11.7,1.9-15.6,4.1c-4.2,2.8-7.3,7.5-10.7,10.7c-7.3,6.7-15.3,14.1-24.3,19.1C289.1,454,285.3,455.3,281.6,456.5z"}), 
+						React.createElement("path", {id: "bile_duct", fill: getRGB(this.props.values.avg[this.props.fixed.indices['Gall bladder']]), stroke: "rgba(0,0,0,0.5)", strokeWidth: "2", d: "M316.7,462c-1.6-1.6-1-6.1-1.3-8.3c-0.4-3.2-0.5-6.4-1.2-9.6c-0.7-2.8,0.2-5.7-0.1-8.6c-0.9-8.2-1.1-16.5-1.4-24.7c-0.1-2.9,0.1-5.9,1-8.7c0.6-1.9,3.2-4.4,1.3-6c-2.9,2.1-3.4,6.5-4.4,9.7c0.4-1.1-4.2-7.6-6.3-7.9c-0.5-0.1-0.9,0.3-1,1.3c0,0.1,0,0.1,0,0.2c0.2,1.2,2.7,3,3.4,4c3.3,4.6,3.7,7.5,3,13.1c-0.2,1.8-0.4,2.8-0.9,3.3c-1.7,1.7-4.4,2.6-6.6,3.3c-1.4,0.5-4.1,0.9-5,2.1c-1.9,2.6,3,0.1,3.9-0.3c4.1-1.7,10.3-3.2,10.5,3.1c0.3,6.9,0.4,13.8,1.2,20.7c0.6,6.1,3.2,12.6-1.9,17.5c-1,0.9-4.3,1.7-4.3,3.2c0,3.7,7.1-3.2,8.4-3.7c1.4-0.5,2.9-0.8,4.3-1c0-0.6,0-1.2,0-1.8C318.2,462.9,317.2,462.6,316.7,462L316.7,462z"}), 
+						React.createElement("path", {style: {transition: 'stroke .25s ease-in-out, stroke-width .25s ease-in-out'}, id: "gall_bladder", onClick: this.props.onClick.bind(null, 'Gall bladder'), onMouseOver: this.props.onMouseOver.bind(null, 'Gall bladder'), onMouseOut: this.props.onMouseOver.bind(null, undefined), fill: getRGB(this.props.values.avg[this.props.fixed.indices['Gall bladder']]), stroke: hoverName === 'Gall bladder' || clickedItem === 'Gall bladder' ? "rgb(255,225,0)" : "rgba(0,0,0,0.5", strokeWidth: hoverName === "Gall bladder" || clickedItem === 'Gall bladder' ? "4" : "2", d: "M308,420.5c-1.3,1.4-2.9,2.1-4.7,2.6c-2,0.5-4,0.7-5.9,1.2c-4,1-7.1,3.1-10.5,5.3c-3.1,2.1-6.8,5.1-6.9,9.1c-0.1,4.3,4,5.4,7.4,3.8c3.1-1.4,4.3-4.4,5.7-7.2c2.7-5.3,9.1-11.7,15.5-11.9L308,420.5z"})
+					), 
+
+					React.createElement("g", {id: "intestine", onClick: this.props.onClick.bind(null, 'Intestine'), onMouseOver: this.props.onMouseOver.bind(null, 'Intestine'), onMouseOut: this.props.onMouseOver.bind(null, undefined), fill: getRGB(this.props.values.avg[this.props.fixed.indices.Intestine])}, 
+						React.createElement("path", {style: {transition: 'stroke .25s ease-in-out, stroke-width .25s ease-in-out'}, id: "small_intestine", stroke: hoverName === 'Intestine' || clickedItem === 'Intestine' ? "rgb(255,225,0)" : "rgba(0,0,0,0.5", strokeWidth: hoverName === "Intestine" || clickedItem === 'Intestine' ? "2" : "1", d: "M392.6,512.4c0.8-1.2,2.5-1.3,4-1.6c2.2-4.1,6.6-4.2,9.7-7.3c5-4.9,3.5-19-3.8-21.7c-6.5-2.4-13.4,2-17.9,5.9c-4.1,3.6-8.8,8.4-8.6,13.8c0-1-0.1-2.3-0.4-3.2c-1.5,0.4-3,1.5-4.7,1.6c1.9-0.7,4.1-1.4,5.5-2.7c3-2.6,5-7.8,5.1-11.4c0.2-3.8-2.3-6.4-6.5-7.2c-10.7-1.9-16.1,7.7-25.6,8c-3.6,0.1-6.9-1.3-10.5-1.1c-4.4,0.2-8.3,2.3-12.2,3.9c-3.4,1.4-8,3.5-11.7,2.1c-1.3-0.5-2.7-1.2-3.9-1.8c-1.6-0.9-1.4-7.5-1.9-9.2c0.9,2.2-1.4,5.7-3.7,6c-2.5,0.4-5.4,0-8-0.4c1.7,5.1,3.4,12.9,8.5,14.6c3.4,1.1,7.3,1.8,10.8,1.8c2.1,0,4.1-0.2,6.2-0.5c1.6-0.2,3.3-0.3,4.5-1.3c0.9-0.8,1.2-1.6,2.5-2c1.6-0.5,3.4-0.6,5.1-0.8c1.8-0.2,3.8-0.2,5.6,0c2.3,0.3,4.3,1.1,6.6,1.5c1.7,0.3,3.4,0.5,5.2,0.9c1.4,0.3,4.7,1.8,5.8,0.5c0.6-0.7,0.8-1.5,1.5-2.2c0.8-0.8,1.8-1.5,2.6-2.2c2.2-1.9,4.3-3.9,6-6.1c1-1.3,0.9-3.4,0.5-5c0.4,1.2,0.2,2.5,0.8,3.7c0.3-0.8,3.5-1.1,4.4-1.5c-1.8,0.4-3.8,1.1-5.2,2.3c-1.9,1.7-3.1,4.1-4.8,6c-1.6,1.6-5.9,2.9-5.6,5.5c0.2,1.4,1.6,1.7,3,2.4c2.2,1.1,4.5,2.2,6.7,3.3c2.6,1.3,9.4,3.2,12,1.1c1.6-1.3,3.2-3.3,4.7-4.8c4-3.9,9.2-7.3,11.6-12.2c-0.4,1.8-2.8,4.4-3.8,6.2c1.9-1.4,3.7-2.5,6.2-2.8c-5.6,1.2-8.1,3.7-11.7,7.2c-1.7,1.7-3.2,3.6-4.9,5.3c-0.9,0.9-2.1,1.7-2.9,2.8c-0.7,0.9-0.5,1.6-0.6,2.6c-0.1,1.7-1.1,2.7-1.6,4.3c-1.1,3,1.7,4.5,4.4,5.6c1.5,0.6,3.1,1.1,4.5,1.8c0.6,0.3,1.6,0.7,2,1.1c0.8,0.8,0.3,1.8,0.6,2.8c0.3,1.1,1.3,2.1,1.6,3.3c0.3,1.2,0.3,2.5-0.3,3.6c-0.6,1.1-1.9,1.6-2.4,2.7c3.3,2.5,11.2,4.5,13.7,0.4c0.8-1.3,0.9-2.9,1-4.4c0.1-2,0.4-4,0.2-6c-0.1-1.4-0.4-2.9-0.6-4.3c-0.1-1.1-0.8-2.8-0.6-3.8c0.2-0.6,1.3-1.4,1.7-1.9c1-1.2,1.9-2.5,3.1-3.7c-2,1.6-4.4,4.1-4.3,6.6c0.1,2.8,0.3,5.6,0.4,8.3c0.2,3.9-0.6,7.6-2.3,11.2c-1.7,3.5-5.6,7-4.6,11c0.3-3.7,1.2-8.3,4.3-11.1c-0.9,0.8-3.8,0.7-5,0.6c-1.9-0.2-3.4-0.8-5-1.7c-2.9-1.6-5,0.1-6.2,2.6c-0.8,1.8-0.3,4.1-0.2,5.9c0.1,1.9-0.5,3.8,0.4,5.6c0.9,1.7,2.5,3.2,3.2,4.9c-0.5-0.8-1-1.6-1.5-2.4c-0.3-0.5-1.5-2.5-2.1-2.6s-0.9,0.5-1.3,0.8c-1.5,1.2-3.2,2.3-4.9,3.3c1.3-1.6,3.4-2.7,5-4.1c1.5-1.3,0.8-3.2,0.8-4.8c0-2.3,0.5-4.9,1.1-7.1c0.7-2.7,4.2-3.5,5.5-5.8c0.6-1,1.2-2.9,1-4c-0.1-0.9-2.4-3.1-2.3-3.4c0.3-2-1.3-3.6-3.2-4.4c-2.1-0.8-3.9-0.3-5.7,0.7c-3.5,2-5.2,5.8-7.3,9c-0.6,0.9-1,1.8-1.5,2.7c-0.4,0.7-1.5,2-1.4,2.9c0,0.5,0.7,1.2,1,1.6c0.6,0.9,1.1,1.9,1.4,2.9c-0.2-1-1.5-4.2-3-4.1c1.7-5,6-9.3,9.1-13.7c0.4-0.6,0.8-1.3,1.3-1.8c0.2-0.2,0.9-0.6,1-0.8c0.3-0.9-1.3-1.2-1.8-1.6c-0.7-0.6-1.2-1.6-1.3-2.4c-0.5-2.4,1.5-3.3,1.9-4.6c0.8-2.1-0.1-3.7-2.2-4.7c-1.1-0.5-2-0.6-3.1-0.7c-0.7,0-1,0.2-1.8-0.1c-2-0.7-3.9-1.9-5.7-2.9c-2-1-4.2-1.8-6.3-2.5c-3.9-1.4-8-2.5-12-3.5s-7.9-2.3-12.2-2c-2.4,0.2-7.2,1-7.8,3.6c-0.2,1,1.2,2.1,1.5,3c0.9,2.9-2.2,5.2-4.1,7.1c-2.1,2-4.2,4.1-5.3,6.7c0.9,1.2,2.9,1.3,4.4,1.5c2.5,0.4,4.7,1.7,7,2.6c4.8,2,10.5,4.4,14.1,7.9c1.3-2.3,3.1-4.1,5.4-5.7c-4.2,4.5-6.9,6-3.3,11.7c-0.5-3.8-3.2-6.9-6.7-8.8c-5.5-3.1-21.5-13.8-25.1-3.5c2.1-2.1,2.8-5.1,4.7-7.4c1.7-2.2,4.1-3.8,5.9-5.9c1.6-1.9,3.8-4.8,2.2-7.1c-1.7-2.5-4.8-1.3-7.2-1c-8.8,1.3-14.5-0.9-22.5-3.6c-7-2.4-12.5-1.8-17,3.1c-1.9,2-4.3,3.4-4.5,5.9c-0.2,2.2,0.5,4.3-0.1,6.7c-0.7,2.8-1.6,5.6-1.9,8.4c-0.5,4.1,1.6,7.8,1.4,12c-0.1,2.8-1.8,5.8-1.4,8.6c0.3,0.1,0.5,0,0.8,0.1c0.9,1.6-0.1,3.1,0.6,4.9c1.2,3.3,5,9.2,8.9,10.4c2.6,0.8,8.1,1.6,10.5-0.1c1.2-0.9,1.6-2.7,2.1-3.9c0.8-2.1,2.4-5,4.4-6.3c5.1-3.4,13-0.2,17.4-4.6c0.5-0.5,1-1.1,1.4-1.6c-0.8,1-1.9,2.1-2.3,3.2l0.1,0.1c2-0.3,4.3-0.5,6.3-0.3c-1.3,0.5-3.3,0.2-4.7,0.4c-1.1,0.2-2,0.2-3.1,0.3c-1.7,0.1-3.3,0.8-4.9,1c-1.3,0.1-2.7,0-4,0.2c-2.9,0.3-5.9,0.8-7.9,2.8c-1,1-1.3,3.5-1.9,4.8c-0.5,1-2,2.6-2.2,3.6c-1.1,5.5,6.8,11.4,11.6,13.2c6.3,2.4,8.3-2,11.8-5.6c4.4-4.6,9.6-8.1,15.5-11c2.2-1.1,2.8-1.9,2.8-4.2c0.1,0.8,0,1.8,0.4,2.5c0.9-0.2,1.9-0.1,2.8-0.2c-3.6-0.1-6.8,2.2-9.5,4c-0.9,0.6-4.1,2.2-2.5,3.3c1,0.7,2.3,0.5,3.5,0.7c1.4,0.2,2.8,0.7,4.2,1c1.6,0.4,7.1,1.5,4.9,3.5c1.5-0.4,3.2,0.1,4.6,0.3c0.8,0.1,1.8,0,2.4,0.4c0-0.6,0.4-1.9,0.6-2.6c0.6-2.3,1.8-4.5,2.9-6.6c0.6-1,3.3-3.8,4.8-3.4c-2.2,0.4-3.8,2.4-4.8,4.1c1.6-0.3,3-1.1,4.6-1.4c1.2-0.2,2.6-0.2,3.8-0.3c-2.4,0.3-4.6,0.8-7,1.5c-1.1,0.3-1.5,0.4-2,1.3c-1,1.7-1.3,3.6-2.1,5.3c-0.3,0.6-0.7,1.3-0.6,2c0.5,2.4,3.7,3.3,5.8,4.1c3.1,1.3,4.5,3.4,6.6,5.6c1.6,1.7,2.9,4.2,5.5,4.9c2.7,0.7,5.1-1,7.6-1.6c-1.9,0.8-4.4,0.6-5.9,2c-1.7,1.6-3.1,5.3-2.6,7.4c0.3-1.8,2.2-6,0.9-7.5c-0.6-0.7-2.3-1.3-3.2-2c-2.9-2.7-4.3-6.6-8.3-8.3c-1.4-0.6-3.1-0.7-4.5-1.3c-1.8-0.8-1.8-2.9-3.9-3.5c-0.7-0.2-6.3-0.3-6.4-0.1c0.2-0.4,0.7-0.7,1.2-0.8c-0.3-0.7-1.3-1.3-2.1-1.6c-3.6-1.6-9.9-2.9-13.8-1.9c-2.5,0.7-4.4,2.2-6,4c-1.5,1.7-3,3.7-4.2,5.7c-0.7,1.2-0.2,2.2,0.9,3c1.1,0.7,2.7,1.5,3.9,2c3.3,1.4,7,0.6,10.5,1c1.9,0.2,3.5,0,5.1,1c1.7,1,2.8,2.7,4,4.1c-1.4-2.2-6.5-4.9-9.4-5.2c-3.7-0.4-7.1,0.2-10.8-1c-2.7-0.9-9.7-4.9-12.2-1.7c-0.7,0.9-0.8,3.4-1.1,4.5c-0.6,1.9-1.7,4.4-1.4,6.4c0.7,3.5,6.2,6.8,9.4,8.4c1.6,0.8,3.2,1.1,4.9,1.5c1.6,0.4,3.1,0.8,4.7,0.9c2.2,0.2,4.5,0.1,6.7,0.3c1.8,0.1,3.6,0.4,5.4,0.5c2.3,0.1,4.7,0.3,6.9,0.3c0.8,0,1.6-0.3,2.4-0.4c1-0.1,2-0.1,3,0c-1.4,0.2-3.4-0.1-4.6,0.4c1.1,0.7,2,1.6,3.1,2.3c-0.9-0.6-1.6-1.3-2.6-1.8c-0.8-0.4-1.4-0.4-2.3-0.4c-3.1-0.2-6.1-0.7-9.2-0.8c-3.5-0.2-6.8-0.5-10.2-1c-6.8-1.1-14.4-3.4-17.5-9.4c-1.6-3.1,1.2-6.7,1.6-9.8c0.6-3.9-3.5-7-7.6-7.7c-1.7-0.3-4.4-1.1-6.2-0.6c-1.6,0.5-3.3,2.5-4.6,3.4c-1.4,0.9-2.7,1.6-3.7,2.9c-2.7,3.6-0.3,6.9,4.2,7.5c3.7,0.4,7.9-2.6,8.8-5.6c-0.6,1.7-2.1,2.9-3.7,4c-1.5,0.9-1.5,1-2.1,2.5c-1.2,2.9-2.4,5.3-2.5,8.6c-0.1,2.6,0.5,6.5,2.6,8.3c2.8,2.3,6.7,0.5,9.8,1.3c0.1-0.3,0.3-0.7,0.3-1c0-0.1,0.1,0.6,0.1,0.8c0-1-0.8-1.9-0.9-2.9c2.3,4.2,7,7.1,11.6,9s10.1,1.9,15.1,1.3c3.8-0.4,6.9-0.3,10.6,0c4.5,0.3,8,0.4,12.3-0.5c3.2-0.7,7.8-1.4,8.3-5.1c0.3-2.3,0.4-5.8-1.1-7.8c-1.3-1.7-3.6-2.6-4.9-4.3c-0.8,0.7-1.7,0.2-2.8,0.5c-1.3,0.3-2.3,1-3.6,1c-4,0.2-8.5-1.1-12.2-2.5c-2.8-1-5.7-1.2-8.4-2.4c-1.9-0.8-3.9-2.1-5.8-2.7c-2-0.6-4.1,0.1-6.1,0.4c1.1,0.1,2.2-0.5,3.3-0.5c-0.4-0.8-1-1.7-1.2-2.6c0.6,3.2,4.4,2.9,7,4c0.8,0.3,1.5,0.8,2.3,1.2c1.5,0.7,3.2,1,4.8,1.4c1.5,0.4,3.1,0.6,4.6,1c1.3,0.4,2.5,1.1,3.8,1.6c1.7,0.7,3.4,0.7,5.3,0.9c1.8,0.1,3.3-0.2,5.1-0.5c1.4-0.2,3.1-0.5,3.7-1.9c0.6-1.5,0.2-3.4-0.5-4.9c-1.7-3.9-5.1-9.3-9.7-11c-1.2-0.5-1.8-0.9-2.8-1.6c-1.2-0.8-1.3-0.7-2.9-0.8c-1.1-0.1-2.1-0.3-3.2-0.4c-1.3,0-2.4,0.2-3.7,0.3c1.6-0.9,3.8-0.8,5.4-0.3c-0.7-0.7-1.1-1.8-1.8-2.6c0.4,0.8,1.4,2.3,2.2,2.8c0.7,0.4,1.9,0.1,2.6,0.3c1.6,0.4,2.7,1.8,4.3,2.5c2,0.8,4.5,2,5.9,3.6s1.9,3.9,2.7,5.8c0.6,1.7,1.5,3.3,1.6,5.1c0.1,1.5,0.4,2.5,1.7,3.6c2.1,1.9,5.1,3.1,7.8,3.8c2.6,0.7,5.1,1.1,7.8,1c2.6-0.1,3.3,0,4.9-1.6c4.5-4.3,7.1-8.5,8.5-14.5c0.3-1.5-0.4-3.2-1.5-4.5c-1.4-1.7-4.4-1.6-6.3-2.6c0,0,0.1-0.2,0.1-0.3c-5.3-1.9-10.3-3.1-10.7-8.9c-0.2-2.6,0.8-5,2.2-7.2c3.3-5.3-2.9-6.8-6.8-8.8c-1.1-0.6-2.7-1.9-4.1-1.9c-2.3-0.1-4,1.8-6.1,2c-2.4,0.2-5.5-0.8-7.9-1.4c-1.8-0.4-3.3-0.8-4.8-1.7s-2.7-1.5-4.5-0.7c-2.3,1-2.5,3.8-5,5.3c-2.4,1.4-5.3,2.3-7.8,3.5c-2.7,1.3-8.5,3.3-9.5,6.1c-0.7,2-0.7,5,0.3,6.9c-1.1-2.7-0.1-5.2-0.3-7.9c-0.1-1.2-0.4-1.2-1.5-1.7c-2.2-1-4.4-1.3-6-3.2c1.2,1.6,4.8,3.3,6.9,3.7c1.3,0.2,3.7-1.1,4.9-1.5c2.7-0.9,5.2-2.5,7.7-3.7c2.8-1.4,5.9-2.2,7.5-4.8c0.9-1.5,2.1-2.6,1.5-4.4c-0.5-1.5-1.9-2.8-3.3-3.7c-1.5-1-3.2-1.8-4.9-2.3c-1.3-0.4-2.8-0.6-4.1-1c-1.2-0.4-2.2-1-3.4-1.4c-2.5-0.7-5.2-0.7-7.8-0.6c-1.2,0.1-2.5,0-3.7,0.3c-1.1,0.3-2.3,0.6-3.4,0.2c-2.3-0.8-3.3-3.7-3.5-5.7c-0.2-2.8,1-5.1,1.9-7.7c0.6-1.7,1.2-3.5,1.1-5.3c0-1.3-0.3-1.4-1.8-1.6c-1.3-0.2-2.6-0.3-3.9-0.2c-3.4,0.3-5.2,3.3-6.2,5.9c-1.3,3.3-2.3,6.4-2.8,9.8c-0.4,2.8-0.5,5.2,0.1,8c0.5,2.5,0.3,4.7,3.8,4.4c-0.7-0.2-1.5,0.2-2.3,0.1c0.8,2.2,2.2,4.5,3.4,6.5c-2.8-3.3-5-7.7-5.5-11.9c-0.4-3.1,0.3-7.2,1.4-10.2c1.4-3.9,1.2-9.2,5.7-11.5c0.3-0.4,1.1-0.9,1.8-1c-5.4,0.5-11.7-1.1-12.6-6.6c0.8,2.4,3.7,5.4,6.6,6.3c1.6,0.5,3.6,0.1,5.2,0.3c1.1,0.1,2,0.1,3.2,0.1c2.2,0,4.3,0.3,6.4-0.2c2.9-0.7,6.1-2.1,8.6-3.4c-3.1,1-5.9,2.7-8.8,3.9c-1.3,0.5-1.7,0.6-2.1,1.8c-0.5,1.4-0.5,3-0.8,4.4s-1,2.6-1.5,4c-0.9,2.8-1,6,1.1,8.4c2.3,2.6,6.2,0.3,9.7,0.2c4.6-0.1,7.5,1.7,11.5,3c2.4,0.9,5.5,1.2,7.6,2.7c2,1.4,2.8,3.4,5.2,4.5c4.9,2.3,11.1,4.7,16.7,4.4c5.8-0.3,7.3-5.5,8.3-9.7c0.6-2.5,0.8-5,1.1-7.5c0.3-2.3,1.2-4.4,1.4-6.8c0.5-5.9-3.9-6.4-9.6-8.1c-2.8-0.9-7.4-3-10.4-2.9c-1.7,0-4.7,1.5-6.6,1.9c2-0.8,4-1.6,6.1-2.2c-3.9-1.2-3.1-3.3-5.5-5.8c2.7,8,16.9,6.8,23,10.8c5.7,3.9,2.9,9.2,2,15.2c-0.4,3.2-1.1,6.6-2.2,9.6c-1.1,2.8-1.9,3.1,0.5,5c1.2,1,3,1.1,4.5,1.8c2.8,1.3,6.3,3.5,5.2,6.8c-0.7,2.1-2,4-2.4,6.3c-1.2,5.7,4,10.1,9.8,11.4c2.8,0.6,6.2,1.2,9,0.3c4-1.3,3.7-4.3,6.2-6.8c-1.3-0.9-1.9-2.4-1.9-3.9c-0.2,6,12.6-1.2,14.6-2.4c4.8-2.9,5.4-7.3,8-11.6c2.2-3.7,0.4-5-0.4-9.2c-0.8-4.4,1.4-8.6,2.1-12.9c1-6,2.1-19.5-7-20.8c-2.9-0.4-6.3,0.8-8.4,2.7c-1.2,1.1-1.6,2.5-3.1,3.3c-2.3,1.2-4.8-0.3-6.9,1c2.2-0.4,4.5-0.7,6.7-1.1"}), 
+						React.createElement("path", {style: {transition: 'stroke .25s ease-in-out, stroke-width .25s ease-in-out'}, id: "large_intestine_2", stroke: hoverName === 'Intestine' || clickedItem === 'Intestine' ? "rgb(255,225,0)" : "rgba(0,0,0,0.5", strokeWidth: hoverName === "Intestine" || clickedItem === 'Intestine' ? "5" : "2", d: "M331.4,612.4c-4.3,7.3-3.9,12.5-2.9,20.3c2.4-0.4,2.4,5.6,4.5,5.5c1.3,6.7-2.6,8.8-2.2,15.5c0.1,1,8.2,18,5.9,17.4c1.7,0.5,2.9,0.5,4.5,0c1.4-7.4,5.3-8,6.6-15.2c0.3-1.5-1.3-17.9-5.1-15.2c11.7-8.1,4.5-12.6,2.3-21.6c8.8,5.9,14.7,9.2,26.3,7.7c19.5-2.4,33.3-4.2,42.2-23c1.1-2.4,2-5.1,3.6-7.3c1.9-2.6,4.7-4.2,5.7-7.4c0.6-1.9,0.4-3.5,1.5-5.2c0.6-0.9,1.8-1.3,2.5-2.3c2.7-3.9-0.4-6.6,0.4-10.4c0.7-3.3,4.5-4.8,4.6-9.3c0-2.3-1.7-4.8-1-7.1c0.5-1.8,2.6-3.5,3.4-5.5c1.2-2.8,1.4-5.5,0.2-8.3c-0.5-1.1-1.5-2.4-1.7-3.5c-0.2-1,0.3-1.9,0.7-3c1.1-3.2,1.4-7,0.3-10.2c-0.7-2-1.5-3.1-0.9-5.3c0.6-2.1,2.1-3.9,2-6.2c-0.1-2-2-3.6-2.3-5.4c-0.5-2.1,1.2-3.3,2-4.9c0.8-1.5,0.9-3.4,0.6-5c-0.5-3.1-3.2-4.8-1.4-7.9c2.2-3.7,4.3-7,1.8-11.2c-3-4.9-3.7-4.6-3.4-10.1c0.2-3.8,0.3-6.3-1.7-9.8c-4.1-7.3-13.2-13.4-21-8c-7.7,5.3-6.1,15.1-4.2,23c1,4.1,1.4,5.6,0.8,9.8c-0.1,0.6,0.5,18.6,4.1,16.2c-2.9,1.9-3.3,4.9-3.8,8.1c-0.8,4.9,1.4,5.3,2.3,9.2c0.5,2.4-0.2,3-0.8,5.9c-0.8,4,1.1,7.1,1.2,10.1c0.1,2.1-1.6,3.7-2.1,6.2c-0.7,3.4,1.5,4.7,1.7,7.6c0.1,1.6-2.2,13.5-2.7,14.3c-1.7,2.6-5.9,3-7.6,5.5c-2.2,3.4,0.5,7.7-1,11.1c-1.2,2.7-5.5,2.6-6.8,6.2c-1.1,3.2,0.6,7.5,0.5,10.9c-7.2-0.2-13.4,5.1-14.8,12.1c-0.3,1.7-24-5.2-26.4-5.4C341.7,600.9,335.5,605.7,331.4,612.4z"}), 
+						React.createElement("path", {style: {transition: 'stroke .25s ease-in-out, stroke-width .25s ease-in-out'}, id: "large_intestine_1", stroke: hoverName === 'Intestine' || clickedItem === 'Intestine' ? "rgb(255,225,0)" : "rgba(0,0,0,0.5", strokeWidth: hoverName === "Intestine" || clickedItem === 'Intestine' ? "5" : "2", d: "M256.8,591.3c0.7,0.6,1.4,1.2,2.2,1.7c3.6,2.4,8.2,2,11.6,4.9c2.9,2.5,4.4,5.4,5.3,9.1c1,4.3,1.6,9,7.2,8.4c0.6-3.9-4.5-5.8-5.8-9.3c-1.9-4.9,0.4-5.6,3.3-8.6c1.4-1.5,1.5-2.9,2.4-4.7c1.1-2,3.1-3.5,4.3-5.5c2-3.3,4.1-6.9,5.1-10.8c0.7-2.7,0.2-5.1-1.1-7.5c-0.2-0.4-6.5-11.7-7.4-10.2c-0.4,0.7-1.8,2-2.6,2.7c0.6-0.9,1.4-1.1,1.9-2c0.8-1.4,0.9-3.5,0.7-5c-0.4-3.6-2.5-5.6-5-7.4c-1.3,0.3-2.6,1.2-3.8,1.8c1.3-0.8,3.2-1.4,4.1-2.6c1-1.5,1-4.4,0.8-6.2c-0.1-1.6-1-4.9-2.8-5.5c-1.4-0.5-3.3,1.1-4.4,1.7c2.7-1.3,5.1-2.6,5.9-5.7c0.5-1.9,0.4-7.1-1.7-8.1c1.3-1.5,5-5.5,2-7.2c1.4-1.6,4.3-7.8,2.3-9.7c1.8-2.4,3.5-5.1,3.3-8.2c-0.1-1.3-0.2-2.4,0.1-3.8c0-0.3,1.2-3.7,1.3-3.5c-1.1-1.4-2.4-3-3.7-4.4c4.8,5.2,8.6,6.8,15.8,5.5c-1.1,0.6-2.3,0.5-3.5,0.9c2.7,3.5,7.6,5.1,11.8,4.6c0.5-0.1,0.6-0.5,1.2-0.5c0.9,0.1,2.3,1.5,3.1,1.9c2.1,1.2,6.6,3.5,9,1.9c1.3,2.8,7.8,1.9,10.2,1.7c3-0.3,4.1-0.6,6.1-2.6c1.1,1,7.1,0.6,6.7-1.7c0.2,1.1,5.9-0.2,6.5-0.4c2.1-0.8,3.9-2.3,5.2-4.1c1.4,3.1,11,0.9,11.8-2.2c2.4,0.4,12,0.3,10.9-4c2,1.4,6.6,1.2,8.6-0.4c0.9-0.7,1.6-3.1,2.5-3.5c1.2-0.5,4.2,0.8,5.6,0.6c0.8-0.1,1.4-0.2,2-0.8c0.1-0.1-0.1-0.8,0.1-0.9c0.8-0.5,1.1,0.1,2.5,0c5.7-0.1,6.6-5.3,10.9-7c1.7-0.7,4.9,1.4,7.4,1.4c5.6,0,8.1-2.9,10.1-7.6c11.5,6.7,11.9-11.1,5.2-16.6c-6.8-5.5-26.8-7.6-30.8,2.1c-2.6-1.2-5.8-0.9-8.5-0.1c-1.5,0.5-1.8,1.7-2.9,2.6c-1.4,1.2-3.1,1.3-4.8,1.6c-2.8,0.5-4,1.3-4.7,4.1c-1.2-0.2-2.3-0.3-3.5-0.2c-0.4,0.1-3,1.2-3,1.1c0.6,0.3,1.1,0.9,1.1,1.5c-2.3-1.6-4.1-2.8-6.9-1.9c-2.3,0.7-6.6,2.7-6.2,5.7c-0.6-0.3-1-0.9-1.6-1.2c-1.4-0.7-3.4-0.3-4.9,0c-2,0.3-7,1.1-6.3,4.1c-4.2-0.1-9.9-3-13.8-0.2c0,0.1,0,0.2,0,0.3c0.8,0.4,1.6,0.9,2.3,1.5c0,0.1-0.2,0.3-0.2,0.4c-2.7-1.2-5.2-4-8.6-3c-2.2,0.7-3.5,3.3-1.1,4.4c-4.2-1.1-8-2.1-12-3.9c-2.9-1.3-5.6-1.2-8.6-1.1c-2.6,0.1-4.9-0.5-6.2-2.9c-1.1-2-1.2-4.5-3.4-5.9c-2.2-1.3-8-1.2-9.5,1.1c-0.7-1.2-4.3-2.7-5.7-3.1c-2.8-0.8-5.9,0-8.3,1.4c-2.7,1.6-4.6,3.4-5.8,6.3c-0.7,1.6-1.9,4.2-1.2,5.8c-2.3,0.4-4.2,2.8-5,4.9c-0.5,1.2-0.3,2.8-0.8,4c-0.3,0.7-0.4,0.6-1,1.2c-2.1,2-3.7,3.1-4.2,6.2c-0.2,1.2,0.2,2.9-0.1,4c-0.5,1.5-2.1,2.4-2.5,4.2c-0.3,1.2,0,2.2-0.1,3.4c0,1-0.1,2.1-0.5,2.9c-0.3,0.6-1.1,1-1.4,1.7c-1.1,2.5-0.6,10.4,3.1,10.4c-3.4-1.9-5.5,3.1-4.6,5.9c-3.2,0-4.3,6.4-4.1,8.7c0.2,2.9,2.7,7.4,6.2,7c-6.8-4.3-8.1,6.8-7.3,11.3c0.3,2,1.3,4,2.1,5.9c0.7,1.7,0.8,1.7,0.3,3.3c-1.1,2.8-1.6,4.8-0.5,7.8c0.4,1.2,1.7,4.1,3.2,4.3C249.1,577.2,250.7,585.9,256.8,591.3z"})
+					), 
+
+					React.createElement("g", {id: "stomach", onClick: this.props.onClick.bind(null, 'Stomach'), onMouseOver: this.props.onMouseOver.bind(null, 'Stomach')}, 
+						React.createElement("path", {style: {transition: 'stroke .25s ease-in-out, stroke-width .25s ease-in-out'}, id: "stomach_color", fill: getRGB(this.props.values.avg[this.props.fixed.indices.Stomach]), onMouseOut: this.props.onMouseOver.bind(null, undefined), stroke: hoverName === 'Stomach' || clickedItem === 'Stomach' ? "rgb(255,225,0)" : "rgba(0,0,0,0.5", strokeWidth: hoverName === "Stomach" || clickedItem === 'Stomach' ? "5" : "2", d: "M423.4,389c-5.9-10.5-24.9-15.7-35.2-10.4c-3.3,1.7-6.4,3.6-9.2,6.2c-2.8,2.6-4.7,6.3-7.9,8.3c-2.3-2.6-5.3-3.4-6.3-3.7c-0.5-0.2-5.9,3.1-5.7,4.4c0.8,4.2-0.5,5.8-1,9.9c-1,8.1-4.5,18.5-13.6,19.6c-3.2,0.4-6.1-1.2-9-1.8s-5.3,0.3-7.7,2c-1.2,0.9-1.3,0.7-2.8,0.6c-5.2-0.6-11.1,0.1-14.8,4.3c-2,2.1-3.7,4.1-4.9,6.8c-0.8,1.9-1.4,3.8-2.2,5.8c-2,5.5-6.2,14.1-6.7,19.9c-0.6,8-0.5,19.8,2.4,26.2l11-2.1c-0.1-2.1-1.9-4.4-0.6-7.7c1-2.9-0.4-5.7-1.1-8.8c-1-4.7,0.5-8.9,2-13.8c1.3-4.5,6.4-8.8,10.6-10.9c5.7-2.8,7.9,1.8,11.9,4.7c3.4,2.4,7.3,3,11.2,3.8c3.9,0.7,7.3,1.8,11.4,1.8c6.7,0,13.4,0,19.7-2c2.8-0.9,5.3-1.9,8.2-2.7c6.8-1.8,15.6-5.5,21.2-10c4.4-3.6,9.3-8.1,13-12.6C424.8,417.6,429.7,400.4,423.4,389L423.4,389z"}), 
+						React.createElement("path", {id: "stomach_strokes", fill: "none", stroke: "#000000", d: "M357.5,450.7c0,0,35-3,48.3-18s16-22.3,15-28.3s2.7-8-4.3-13.7s-11.7-9-18.7-8.7s-20.3,14.3-20.3,14.3s-3.7,6.7-7,4.3c-3.3-2.3-4.7-4.7-6-0.3c-1.3,4.3-3.7,22.3-8.7,23.7s-3.3,7.3-18,4s-6.3,3.3-16,0s-17,19.3-17,19.3s-9.3,20.7-5.7,31.7c3.7,11,6.7-1,6.7-1s-3-11-1-16s3.3-14.3,6.3-16s4.3-6,10.3-5.3s7-1,12,2.7C338.5,447,344.8,450.3,357.5,450.7z"})
+					), 
+
+					React.createElement("g", {id: "pancreas", onClick: this.props.onClick.bind(null, 'Pancreas'), onMouseOver: this.props.onMouseOver.bind(null, 'Pancreas')}, 
+						React.createElement("path", {style: {transition: 'stroke .25s ease-in-out, stroke-width .25s ease-in-out'}, id: "pancreas_color", fill: getRGB(this.props.values.avg[this.props.fixed.indices.Pancreas]), onMouseOut: this.props.onMouseOver.bind(null, undefined), stroke: hoverName === 'Pancreas' || clickedItem === 'Pancreas' ? "rgb(255,225,0)" : "rgba(0,0,0,0.5", strokeWidth: hoverName === "Pancreas" || clickedItem === 'Pancreas' ? "5" : "2", d: "M341,476.4c0.7-0.5,1.4-1.2,2-2c1.2,6.8,11.3,2.9,12.2-2c3.2,3.2,13,3.5,13-2.7c3.9,3.2,15.8,3.8,13-4c3.5,4.7,6.5,2.8,6.4-2.2c3.6,3.7,8.8-1.2,9.9-4.9c-0.9,3.1,6,1.6,7,0.8c1.4-1.1,1.3-2.7,2.2-4c0.4-0.6,2.4-2.4,2.5-2.9c1.7-6.4-5.7-9.4-10.7-6.7c0.4,0.8,1,1.3,1.7,2c-2.9-2.5-9.1,0.9-10.7-0.6c0.9,0.9,1.8,2,2.8,2.7c-2.5-2.5-7.4-2.3-10.5-1.2c1.3,0.8,2.4,1.9,3.4,2.7c-3.4-2.7-7.3-2.6-11.3-1.6c1,0.7,2.1,1.9,3.2,2.7c-2.8-3.4-7.5-3.8-11.6-3.2c0.4,1.3,0.8,2.7,1.5,3.8c-2.7-4.4-10.5-5.9-14.8-3.2c1.2,1.5,2.5,3.2,2.4,5.2c-3-5.9-9.4-8.5-15.5-5.3c1.8,1.9,3,4.8,3.6,7.2c-1.1-4.2-5.7-7.7-10-7.2c-2.1,0.3-11.5,2.8-8.3,6.2c-3.5-1.6-7.4,0.9-7,4.9c0.1,1.3,0.9,2.5,1.1,3.8c0.1,1-0.3,1.7-0.3,2.6c-0.1,1.5,0.7,2.7,1.4,4.2c1.8,4.1,7.4,3.9,10.2,0.8c-0.1,0.3,0,0.7,0,0.9c0.6-0.4,1-1.1,1.1-1.8c-0.4,1.8,4,4.6,5.2,5.3C337.9,477.6,339.6,477.4,341,476.4L341,476.4z"}), 
+						React.createElement("path", {id: "pancreas_strokes", fill: "none", stroke: "#000000", d: "M389.5,458.3c4.5-1.7,8.4-3.8,12.5-6.2c-4.1,0.7-8.7,2-12.4,4.1c-1.2,0.7-6.3,4.3-7.2,1.8c-0.3-1,0.2-3.2,0.3-4.1c-1,2.2-1.5,4.6-3.8,5.5c-3.6,1.5-1-2.6-2.4-4.3c0.2,2.9-1,4.3-3.6,5c-2.1,0.5-3.1,0.9-4.4-1c0.5,2.6-2.7,2.5-4.6,2.8c-1.6,0.2-8.8,0.8-8.4-2.2c-0.3,2.9-3.7,3.4-6,3.8c-1.8,0.3-3.5,0.6-5.4,0.3c-1.8-0.3-1.8-1.4-2.1-2.9c-0.4-1.8-1.4-3.7-2.6-5.1c0.7,0.9,1,3.4,1.4,4.5c2,5.6-8.3,3.9-11.1,3.9c-2.5,0-5,0.3-7.5,0.3c-0.6,0-1.4,0-2.2-0.2c0,0.6,0,1.2,0,1.8c4.9-0.7,10.1,0,15-0.3c1.3-0.1,3.2-0.8,4.4,0c1,0.8,1.3,2.6,0.9,3.7c1.1-0.3,1-2.7,0.8-3.7c2.6-1.1,5.9-1.1,8.6-1.4c2.8-0.3,6.5-1.1,6.7,2.9c1-1,0.6-2.2,0.4-3.4c1.8-0.8,4.8-0.3,6.7-0.6c2.2-0.4,4.4-0.9,6.7-1.4c1.4-0.3,3.1-1.3,4.6-1.2c1.9,0.2,3.1,1.8,5,2.1c0.3-1,0.2-1.9-0.3-2.8c2.9,0.7,5.8,2.2,8.6,3.2c-0.5-0.7-3.6-2.2-3.6-2.8C384.8,459.5,388.6,458.7,389.5,458.3L389.5,458.3z"})
+					), 
+
+					React.createElement("g", {id: "kidneys", onClick: this.props.onClick.bind(null, 'Kidney'), onMouseOver: this.props.onMouseOver.bind(null, 'Kidney'), onMouseOut: this.props.onMouseOver.bind(null, undefined), fill: getRGB(this.props.values.avg[this.props.fixed.indices.Kidney]), stroke: hoverName === 'Kidney' || clickedItem === 'Kidney' ? "rgb(255,225,0)" : "rgba(0,0,0,0.5", strokeWidth: hoverName === "Kidney" || clickedItem === 'Kidney' ? "5" : "2"}, 
+						React.createElement("path", {style: {transition: 'stroke .25s ease-in-out, stroke-width .25s ease-in-out'}, id: "right_kidney", d: "M327.4,477.5c-0.6,5.7-9.1,11.7-10,8.1c-1.3,3.5-2.5,13.9-3.7,16.8c5.1-1.7,6.9,11,4.5,15.5c-2.6,4.9-9.6,11.1-17.8,9.4c-3.7-0.8-8.2-2.7-10.8-5.9c-3.8-4.6-6-8.6-5.3-17.2c-1.6-8.2,2.9-21.9,7.8-28.4c2.5-8.3,7.1-14.1,13.9-16.6c4.3-1.6,9.8-0.5,13.4,2.2C324.3,464.9,327.6,469.9,327.4,477.5z"}), 
+						React.createElement("path", {style: {transition: 'stroke .25s ease-in-out, stroke-width .25s ease-in-out'}, id: "left_kidney", d: "M375,455.4c3.6-2.7,9.1-3.8,13.4-2.2c6.8,2.5,11.4,8.3,13.9,16.6c4.9,6.5,9.4,20.2,7.8,28.4c0.7,8.6-1.5,12.6-5.3,17.2c-2.6,3.2-7.1,5.1-10.8,5.9c-8.2,1.7-15.2-4.5-17.8-9.4c-2.4-4.5-0.6-17.2,4.5-15.5c-1.2-2.9-2.4-13.3-3.7-16.8c-0.9,3.6-9.4-2.4-10-8.1C366.8,463.9,370.1,458.9,375,455.4z"})
+					), 
+
+					React.createElement("g", {id: "blood", onClick: this.props.onClick.bind(null, 'Blood'), onMouseOver: this.props.onMouseOver.bind(null, 'Blood'), onMouseOut: this.props.onMouseOver.bind(null, undefined)}, 
+						React.createElement("path", {id: "upper_vein_hover_area", opacity: "0.0", d: "M449.9,376.5c4.2,8.1,7,15.3,8.9,21.2c3.9,11.9,3.9,17.4,8,26.7c3.5,8,8,14.2,12.1,18.9c-1.7,20.4-0.6,36.7,0.6,47.8c2.5,22.1,6.8,33.1,12.3,64c2.9,16.6,4.7,30.2,5.7,39c-0.2,2.1-0.7,5.1-2.3,8.3c-3,6.1-7.1,7.8-11.7,12.7c-4.3,4.6-3.9,6.7-9,16.3c-2.6,5-6.8,12.1-13,20.3c2.5,1.1,4.6,1.1,6,1c6.1-0.6,11.6-6.1,14-14c0.7,11.8,2.5,25.6,6.3,40.6c2,8.1,4.4,15.5,6.9,22.3c5.4,1.7,7,3.7,7.5,5.4c0.4,1.5-0.2,2.6,0.3,5c0.4,2.1,1.3,3.6,2,4.7c4.2-0.6,8.4-1.1,12.7-1.7c1.4-1.3,3.2-3.3,4.7-6c2.8-5.2,3.1-10.1,3-12.6c3,1.9,4.4,1.7,5.2,1.3c2.1-1.2,0.7-5,2.5-11.4c1-3.6,1.8-3.7,3.7-8.3c1.7-4.4,2.4-7.9,3-11.3c2.4-13.2,1.4-33.5,1.3-35c-2.3-9.3-4.7-18.7-7-28c0.3-14.2,0.9-26,1.3-34.3c2.1-38.1,4.8-52.1,3-76c-1-13.7-3.1-24.7-4.7-31.9c0.1-5-0.1-12.3-1.3-21.1c-1.8-13.6-4.6-19-8.7-34.3c-5.7-21.3-3.4-22.1-9-42.7c-3.3-12.2-6.5-20.8-10.3-31c-4.8-12.7-11.6-29.6-21.3-49c-8.4-9.6-16.9-19.1-25.3-28.7c-6.8-4.8-13.6-9.6-20.3-14.3c-11.6-2.1-23.1-4.2-34.7-6.3c4,5.5,10.2,13.7,18.3,23.3c9.2,10.9,12.3,13.5,16,19c5,7.5,10.2,19.5,10.3,38.3C447.9,335.2,448.9,355.9,449.9,376.5z"}), 
+						React.createElement("path", {id: "upper_vein_hover_stroke", fill: hoverName === "Blood" || clickedItem === 'Blood' ? "rgba(255,225,0,1)" : "rgba(0,0,0,0)", d: "M402.4,232.9c1.4,1.4,3.1,1.5,6,1.6c1.4,0.1,3.1,0.1,4.7,0.4c6.2,1.3,12.7,3,18.6,6.2c16,8.6,27.9,21.7,39.3,34.4c10.6,11.7,19.4,27.3,27.7,48.9c8.4,21.7,12.8,40.8,13.5,58.5c0.3,6.3,0.3,12.4-0.1,18.1c0,0.6-0.1,1.3-0.1,2c-0.2,2.9-0.4,5.8,0.2,8.1c0.6,1.9,2.4,3.5,4.3,5.1c0.8,0.7,1.6,1.4,2.4,2.2c14,13.7,16.7,33.9,17.4,50.1c1,21.5,0.5,41.6-1.3,59.7c0,0.6-0.1,1.2-0.2,1.9c-0.1,0.6-0.1,1.1-0.2,1.7l-0.1,0.9c-0.6,5-1.1,9.3-0.7,14.1c0.1,1.8,0.3,3.7,0.5,5.5c0.3,3.6,0.7,7.3,0.7,11.1c0.3,14.1,1.9,28.4,3.5,41.7c0.6,4.4,1.3,8.8,2.1,12.8c0.3,1.6,0.8,3.1,1.3,4.8c0.6,2,1.2,4.1,1.6,6.3c0.8,4.8,0,9.6-0.8,14.3c-0.3,2.1-0.7,4-0.9,5.9c-0.3,2.7,0.1,5.4,0.5,8.4c0.4,3.1,0.9,6.2,0.6,9.6c0.1,2.1-0.4,3.7-1.1,5.5c-3,7.9-4.7,16.3-6.3,23.7c-0.1,0.4-0.1,0.7-0.2,1.1c-0.2,1.3-0.5,2.7-1.1,4l-2.7,5.9l-0.8-1.9l0.9,5l-6.7-7.6c-0.2-0.2-0.4-0.5-0.6-0.8c0,0.4,0,0.8,0,1.2s0,0.7,0.1,1c0.1,2.3,0.3,5.1-1.3,7.6l-5.1-2.3c0.4-1.3,0.3-3.2,0.2-4.9c0-0.8-0.1-1.6-0.1-2.3c-0.1-1.7,0.2-3.3,0.5-4.9c0.1-0.5,0.2-1,0.2-1.5c0.1-0.8,0.2-1.5,0.4-2.2c0.2-1.2,0.4-2.4,0.5-3.6c0.1-1.5,0-3,0-4.5c-0.1-1.6-0.2-3.4,0-5.1c0-0.9,0-1.8,0.1-2.7c0-1.5,0-3,0.2-4.5c0.1-0.8,0.2-1.3,0.4-1.9c0-0.1,0.1-0.3,0.1-0.4c-0.1,0-0.2,0-0.3,0c-0.5,0-1.1,0-1.6,0c-0.4,0-0.9,0-1.3,0h-0.1h-0.1c-0.2,0-0.3,0-0.5-0.1c0.3,2.3,0.6,4.8,0.1,7.4c-1,5.1-1.2,9.7-0.6,14.2c0.4,3,0.5,5.4,0.5,7.8c0,0.6,0,1.1,0,1.7c0,1.5-0.1,2.9,0.2,4.3c0.1,0.8,0.3,1.6,0.5,2.4c0.5,2.6,1.1,5.2,0.8,8.3l-5.6,0.4c-0.1-0.4-0.2-0.9-0.2-1.3c-0.3,1.2-0.8,2.4-1.4,3.6l-5.3-2c0.3-0.9,0.4-1.9,0.6-2.9l-1.9,0.7l-3.1,1.4l-0.1-0.1v-0.1c-0.8-1.8-0.9-3.6-1-5.1c-0.2-2.2-0.4-4.3-0.7-6.6c-0.1-0.9-0.2-1.8-0.3-2.7l-1.9,1c-0.1,0.2-0.2,0.4-0.2,0.5l-0.5-0.2l0,0l0,0l-4.8-1.6c0.1-0.8,0.1-1.3,0-1.9c-0.3-1-0.6-2-1-3.1c-0.4-0.9-0.7-1.9-1-2.9c-0.7-2.1-0.8-4.2-0.9-6.2c-0.1-1.3-0.1-2.5-0.4-3.7c-0.5-3.1-1.2-6.2-1.9-9.3c-0.4-1.6-0.7-3.2-1.1-4.7c-0.5-2.4-1-4.9-1.3-7.4c-0.3-1.8-0.1-3.5,0-5.1c0-0.5,0.1-1,0.1-1.5c0-1.1,0-2.2,0.1-3.3c0.3-2.4,0.1-4.3-0.6-6.5c-1-3,0.2-5.7,1.1-7.8c0.2-0.4,0.3-0.8,0.5-1.2c0.5-1.3,1.1-2.7,1.7-4c0.6-1.4,1.3-2.7,1.7-4.1c0.6-1.7,1.1-3.5,1.7-5.3c0.7-2.3,1.4-4.6,2.2-6.9c0.4-0.9,0.8-1.8,1.3-2.7c0.2-0.4,0.4-0.8,0.6-1.2c-0.8,0.7-1.7,1.3-2.6,1.8c-1,0.6-1.9,1.2-2.5,1.9c-1.7,1.6-2.5,4.1-3.3,6.7c-0.5,1.7-1.1,3.5-1.9,5.1c-1.8,3.7-4.2,7.2-6.5,10.6c-1.1,1.7-2.3,3.4-3.4,5.1c-2.5,4.1-6.6,9.7-12.7,10.1l-1.3-5.4c3.7-1.6,7.6-8,9.1-10.4l0.1-0.2c3.6-5.8,7.4-11.8,10.1-17.9c0.3-0.7,0.6-1.4,0.9-2.1c0.7-1.9,1.5-3.9,2.9-5.7c1.3-1.8,2.9-3,4.4-4c0.9-0.7,1.8-1.3,2.5-2c1.5-1.6,3.1-3.9,4.7-7c3.2-6.4,3.1-15.7,1.9-22.3c-0.9-5-2.3-9.9-3.7-14.8c-0.4-1.6-0.9-3.1-1.3-4.7c-0.5-1.7-1-3.3-1.4-5c-2.4-8.2-4.9-16.8-6-25.4c-0.3-2.2-0.6-4.4-0.9-6.6c-1.1-7.3-2.1-14.7-2.4-22.3c-0.2-4.6-0.5-9.4-0.9-14.1c-0.5-7-1.1-14.1-1-21.2c0.1-3.7-0.1-7.6-0.2-11.3c-0.2-6-0.4-12.2,0.2-18.3c0.1-0.5,0.1-1,0.2-1.3c0-0.2,0.1-0.3,0.1-0.5c0-0.1-0.1-0.2-0.2-0.4c-0.8-1.3-1.8-2.5-2.9-3.8c-1.1-1.4-2.3-2.8-3.3-4.4c-1.9-3-3.9-6.1-5.5-9.4c-2.7-5.3-4.7-10.4-6.3-15.4c-2.2-7.1-4-14.2-5.3-19.6c-2.1-8.3-3.5-15.6-4.6-22.9c-2-14.9-0.4-30,1.3-43.1c1.5-11.5,2.5-25.9-2.9-35.9c-6.2-11.5-19.5-21.8-32.5-25.2c-4-1-8.6-1.5-13.7-1.5 M505,695.2c0,0.4,0,0.8,0.1,1.3l0.3,3.9l0.1,0.7c0.3,3.1,0.5,6.2,1,9.2c0-1.2,0-2.3-0.1-3.4c-0.1-0.9-0.2-1.9-0.4-3c-0.1-0.8-0.2-1.5-0.3-2.3s-0.1-1.5-0.2-2.2C505.4,698.1,505.3,696.7,505,695.2C505,695.3,505,695.3,505,695.2z M529.9,669c0.1,0.3,0.2,0.6,0.2,1c0.2,1.1,0.1,2.1,0,3.1c0,0.4-0.1,0.8-0.1,1.2c0,1.5-0.1,2.9-0.2,4.3c-0.1,1.9-0.2,3.6-0.1,5.3c0,0.5,0.1,1,0.2,1.6c0.2,1.7,0.4,3.5,0.4,5.4c0.1-0.5,0.3-1,0.4-1.5c0.2-0.7,0.3-1.4,0.4-2.1c0.2-1,0.3-2.1,0.7-3.3l0.3-0.9c0.4-1.4,0.8-2.8,1.1-4.2c0.2-1.1,0.6-2.2,1.1-3.3c0.2-0.6,0.4-1.4,0.6-2.2c0.2-0.7,0.4-1.5,0.6-2.3V671c0.5-1.3,0.7-2.6,0.7-3.9c0-1.5-0.3-2.9-0.7-4.4c-0.2,0.3-0.4,0.5-0.6,0.8c-0.2,0.3-0.4,0.5-0.6,0.8c-0.6,1-1.4,2.1-2.5,3c-0.2,0.1-0.3,0.3-0.5,0.4C530.9,668.2,530.5,668.6,529.9,669C529.9,668.9,529.9,668.9,529.9,669z M490.7,650.2c-0.1,0.8-0.1,1.6-0.2,2.3v0.3c-0.3,2.4-0.3,4.9,0,7.2c0.1,1.4,0.3,2.7,0.6,4c0.2,1.1,0.4,2.2,0.5,3.3c0.3,2.2,0.8,4.5,1.3,6.8c0.5,2,0.9,4.1,1.3,6.3c0.2,1.2,0.4,2.5,0.5,3.7c0-0.6,0.1-1.3,0.1-1.9c0.1-1.6,0.2-3.2,0.1-4.7c-0.2-2.6-0.6-5.2-1.1-7.9c-0.1-0.6-0.2-1.3-0.3-1.9c-0.4-2.2-0.1-3.8,0.5-5.6c0.3-0.9,0.6-1.7,0.8-2.5c0.4-1.3,0.9-2.7,1.4-4.1c-0.4-0.6-1.2-1.4-1.6-1.8c-0.3-0.3-0.5-0.5-0.7-0.7c-0.7-0.8-1.5-1.5-2.3-2.2C491.2,650.7,490.9,650.5,490.7,650.2z M510.5,673.2c-0.3,1.7-0.5,3.5-0.6,5.5c0.2-1.3,0.4-2.6,0.5-3.8C510.6,674.4,510.6,673.8,510.5,673.2z M529.3,600.8c-0.3,0.3-0.7,0.6-1.1,0.8c-0.5,0.3-0.9,0.7-1.1,1c-0.5,0.5-0.8,1.2-1,1.8c-1.7,5.7-3.5,12-6.3,17.3c-0.3,0.6-0.7,1.3-1.1,2.1c-2.7,4.9-6.4,11.6-5.3,16.1c0.8,3.3,1.4,6.9,1.9,10.6c0.2,1.2,0.3,2.4,0.4,3.6c0.3,2.6,0.5,5.1,1.1,7.4c0.4,1.4,3.1,1.6,4.3,1.6c1,0,2.2-0.1,3.2-0.3c0.2-0.1,0.4-0.1,0.5-0.1h0.1h0.1c2.7-0.8,3.8-2.4,5.9-5.9l0.3-0.5c2.7-4.4,3.6-8.3,4.2-13.1c0.3-2.2,0.6-4.1,0.7-6.1c0.1-1,0.2-1.8,0.3-2.7c0.3-2.7,0.6-4.9-0.3-7.3c-1.5-4-2.5-7.2-3.1-10.2c-0.3-1.1-0.4-2.1-0.6-3.1c-0.1-0.9-0.3-1.7-0.5-2.5c-0.3-1-0.7-2-0.8-3.2c-0.1-0.7-0.1-1.4-0.1-2c0-0.5,0-1,0-1.4v-0.1v-0.1c0-0.5-0.1-1-0.2-1.5c0-0.3-0.1-0.6-0.1-1s-0.2-1.9-0.2-1.9C530.1,600.1,529.5,600.6,529.3,600.8z M506.9,646l-0.2,0.4c-0.9,1.7-1.9,3.4-2.1,5c-0.1,1,0.1,2.2,0.3,3.6c0.2,1,0.4,2.1,0.4,3.3c0,0.3,0,0.8,0,1.4c0,0.5,0,1.5,0.1,2.3c0.7-0.1,1.5-0.4,2.1-0.5c0.6-0.2,1.2-0.3,1.5-0.4c0.1,0,0.1,0,0.1,0c0.2-0.4,0.2-1.6,0.2-2.3v-0.5c0.1-1.9-0.5-4.2-0.9-6.3c-0.2-1-0.4-1.9-0.6-2.7c-0.1-0.8-0.3-1.7-0.4-2.6c-0.1-0.4-0.1-0.8-0.2-1.2C507.1,645.6,507,645.8,506.9,646z M498.4,646.7c1.4-2.8,2.6-5.1,3.9-7.4c5-8.8,9.1-17.8,12.4-26.8c0.1-0.4,0.3-0.8,0.5-1.3c0.3-0.8,1.3-3,1.5-4.4c-0.6,0.3-1.3,0.8-1.7,1.1s-0.8,0.6-1.2,0.8c-1.4,0.9-2.9,1.2-4.2,1.5l-0.3,0.1c-1.3,0.4-2.7,0.4-3.9,0.4c-0.9,0-1.8,0-2.5,0.2c-0.1,0.1-0.3,0.9-0.5,1.3c-0.1,0.5-0.3,1-0.5,1.5c-1.5,3.9-3,8.2-4.4,12.7c-0.2,0.7-0.5,1.4-0.7,2c-0.8,2.3-1.6,4.8-2.8,7c-0.1,0.4-0.3,0.8-0.6,1.1c-0.2,0.3-0.5,0.7-0.7,1c-0.3,0.5-1.4,1.9-1.3,2.3l0,0c0.2,0.2,0.6,0.7,0.9,0.9l0.2,0.2c0.3,0.3,0.6,0.6,0.9,0.9c0.6,0.6,1.2,1.2,1.8,1.8c0.3,0.3,0.6,0.5,0.9,0.7c0.7,0.5,1.4,1.1,2.2,2C498.3,646.6,498.4,646.7,498.4,646.7z M507.4,548.4c0,1.9-0.2,3.7-0.4,5.4c-0.1,1.3-0.3,2.4-0.4,3.6v0.1c-0.1,1.7-0.2,3.2,0,4.7c0.4,4.2,1.3,8.4,2.2,12.4c0.9,4.5,2.1,8.9,4,14.4c1,3,0.5,6.3,0.1,9l-0.1,0.4v0.2c-0.1,0.5-0.3,0.9-0.4,1.3c0.8-0.4,1.6-0.8,2.5-1.1c1.2-0.4,2.4-0.7,3.7-0.7c0.4,0,0.9,0,1.3,0.1c0.5-1.5,0.5-3.4,0.5-5.5v-1c0-9.4-2.8-19-5.6-28.2c-0.7-2.2-1.3-4.4-1.9-6.5c-0.3-1-0.9-1.8-1.6-2.9c-0.3-0.4-0.6-0.9-0.9-1.4c-0.4-0.7-0.9-1.3-1.3-2C508.5,550,507.9,549.2,507.4,548.4z M504.6,594.3c-0.1,1.2-0.4,2.4-0.7,3.4c0.7-1.1,1.2-2,1.4-2.6c0.5-1.4,0.3-3.2-0.2-5.1c-0.1,1.1-0.2,2.3-0.3,3.4C504.7,593.9,504.7,594.1,504.6,594.3L504.6,594.3z M522.1,561.2c0.2,1.3,0.6,2.6,1.1,4c0.4,1.2,0.8,2.3,1.1,3.6c0.4,1.9,0.9,3.9,1.3,5.7c0.5,1.9,1,3.9,1.4,5.9c0.6,3.3,1.2,6.7,1.7,10c0.1,0.4,0.1,0.9,0.1,1.4c0.2-0.2,0.4-0.4,0.5-0.5c0-0.4-0.1-1-0.2-1.3c0-0.3-0.1-0.6-0.1-0.8V589c-0.1-1.8-0.2-3.7-0.2-5.6c0-6.4-0.9-13.1-1.7-19.6l-0.2-1.5c-0.4-4.5-1-8.8-1.5-13.1c-0.2,0.4-0.3,0.8-0.5,1.2c-0.3,0.8-0.7,1.5-1,2.3c-1.4,2.9-2.2,5.2-2,7.7C522.1,560.7,522.1,560.9,522.1,561.2z M489,443.4c-0.3,4.5-0.5,9.1-0.6,13.6c0,1.9,0,3.8,0,5.8c0,3.7-0.1,7.6,0,11.4c0.3,7.5,1.2,15,2.1,22.2c0.7,5.5,1.4,11.2,1.9,17v0.3c0.6,7.7,1.2,15.6,3.1,22.9c0.4,1.5,0.7,3.1,1.1,4.8c0.7,3,1.3,6.3,2.3,9.2c0.3-3.8,0.1-7.7,0-11.7c-0.1-3.9-0.3-7.9,0-11.8c0.3-4.6,0.4-9.4,0.5-14c0.1-5.3,0.2-10.7,0.6-16c0.8-10,1.6-20.3,1.6-30.4c0-4.5-0.6-8.8-1.8-12.7c-0.4-1.2-0.6-2.4-0.8-3.6c-0.5-2.8-0.9-4.6-2.2-5.5c-1.6-1.1-3.2-2.1-4.8-3.1c-0.9-0.6-1.9-1.1-2.8-1.7C489.1,441.2,489.1,442.3,489,443.4z M512.5,471.2c-0.4,2-0.6,4.2-0.8,6.3c-0.2,1.7-0.3,3.4-0.5,4.9c-0.9,5.8-1.1,11.5-1.3,17.5c0,1.2-0.1,2.4-0.1,3.6c-0.1,3.7-0.3,6.9-0.7,9.9c-0.9,8-2,17.9,3,24.9c1.2,1.7,2.2,3.6,3.2,5.4c0.6,1.1,1.1,2.2,1.7,3.1c0.2-0.5,0.5-1.1,0.7-1.6c1.8-3.2,3.6-6.4,5.3-9.7l0.5-0.9c1-1.6,1.7-2.9,1.9-4.5l0.1-0.7c0.3-2.6,0.6-5.3,0.9-7.9l0.2-1.5c0.8-6.2,1.7-12.7,1.6-19.1c0-1.3,0-2.7,0-4.1c0.1-4,0.2-8.1-1.1-11.3l-0.1-0.2c-0.5-1.5-2.7-3.5-4.3-5c-0.5-0.5-1.1-1-1.5-1.5c-1.9-1.9-4-3.8-6.1-5.5c-0.3-0.3-0.7-0.7-1.2-1.1C513.6,472.2,513.1,471.7,512.5,471.2z M509.3,427.2c-0.1,0.4-0.2,0.7-0.3,0.9c-0.7,2.3-1.2,4.8-1.4,8.1c-0.3,4.1,1.1,8.6,2.3,13c0.4,1.3,0.7,2.5,1.1,3.7c0.3,1.1,0.6,2.2,0.8,3.3c0.4,1.8,0.8,3.5,1.4,5.1c0.4,1.2,1.4,2.3,3,3.5c0.7,0.6,1.6,1.1,2.4,1.6c1.3,0.8,2.6,1.7,3.7,2.7c1.3,1.1,2.4,2.3,3.5,3.4c0.3,0.3,0.6,0.6,0.9,0.9c-0.1-0.8-0.2-1.5-0.3-2.1c-0.1-2.8-0.4-5.6-0.6-8.3c-0.1-1.5-0.2-2.9-0.3-4.4c-0.3-4.9-1.3-9.9-2.9-15.7c-0.8-3-1.8-5.4-3-7.6c-1.8-3.6-4.1-6.6-6.6-8.7c-1.2-1-2.3-1.9-3.3-2.6C509.8,425,509.6,426.1,509.3,427.2z M463,317.2c-0.2,1.1-0.3,2.2-0.5,3.3c-0.4,2.9-0.9,5.6-1.1,8.4c-0.2,2.1-0.3,4.3-0.4,6.4v0.3c-0.1,3.9-0.2,8.1,0,12.1c0.1,3.1,0.7,6,1.3,9.1c0.4,2.1,0.9,4.2,1.1,6.5c0.5,4.7,1.8,9.4,3.4,14.8l1.1,3.7c2.5,8.4,4.9,16.4,8.3,24.4c3.6,8.3,9.1,15.3,18.4,23.5l1.3,1.1c0.8,0.8,1.7,1.5,2.5,2.2c0.3-2.1,0.7-4.3,1.1-6.3c0.5-2.4,0.9-4.7,1.2-7c2.6-19.7,1.7-40.8-2.6-59.5c-1.3-6.1-3.2-12.5-5.7-19.7c-5.5-15.5-11.2-31.5-22-45.1c-0.5-0.6-1.1-1.5-1.8-2.5c-2.2-3.1-4-5.4-5.4-6.7c-0.2,4.9,0.7,10,1.6,14.5c0.5,2.5,1.7,4.8,3.1,7.3c1.3,2.3,2.7,4.6,4.1,6.8c2,3.1,4,6.3,5.7,9.7l0.2,0.4c2.4,4.9,4.4,9.1,2.4,15.2l-2.4,7.3l-2.9-7.1l-0.8-2c-2.2-5.3-4.2-10.3-7.4-14.9c-0.6-1-1.3-2-1.8-3C464.3,319.2,463.6,318.2,463,317.2z"}), 
+						React.createElement("path", {style: {transition: 'stroke .25s ease-in-out, stroke-width .25s ease-in-out'}, id: "upper_vein_color_1_", fill: getRGB(this.props.values.avg[this.props.fixed.indices.Blood]), stroke: hoverName === "Blood" || clickedItem === 'Blood' ? "rgba(0,0,0,0)" : "rgb(0,0,0)", strokeWidth: "0.5", d: "M417.7,249.1c13.5,3.5,27.7,14.3,34.3,26.6c5.8,10.8,4.7,26,3.2,37.6c-1.8,13.9-3.2,28.3-1.3,42.3c1.1,7.8,2.6,15,4.5,22.6c1.6,6.5,3.3,13,5.3,19.4c1.6,5.2,3.7,10.2,6.1,15c1.6,3.2,3.5,6.2,5.4,9.2c1.8,2.9,4.4,5.2,6.2,8.1c1.1,1.7,0.6,2.1,0.4,4c-1,9.7,0.2,19.6,0,29.4c-0.2,11.6,1.5,23.5,1.9,35.1c0.3,9.6,2,19,3.3,28.6c1.4,10.1,4.6,20.1,7.4,30c1.8,6.5,3.9,13,5.1,19.7c1.3,7.4,1.2,17.2-2.2,24.1c-1.4,2.7-3.1,5.5-5.2,7.7c-2.1,2.1-4.8,3.3-6.6,5.7c-1.6,2.2-2.3,4.8-3.4,7.3c-2.8,6.4-6.7,12.6-10.4,18.5c-2.6,4.2-6.3,9.7-10.4,11.5c4.8-0.3,8.3-5.2,10.5-8.8c3.2-5.1,7.1-10.1,9.7-15.4c2-4,2.3-9.3,5.7-12.6c1.6-1.6,3.8-2.6,5.5-4.1c1.3-1.1,5-5.6,5.6-2.5c0.6,3.2-2.1,7-3.2,9.8c-1.5,4-2.5,8.2-3.9,12.2c-1,2.8-2.5,5.5-3.5,8.2c-0.9,2.3-2.3,4.6-1.5,7.1c0.8,2.6,1,4.8,0.7,7.6c-0.1,1-0.1,2-0.1,3.1c-0.1,2.1-0.4,4-0.1,6.1c0.3,2.4,0.8,4.8,1.3,7.2c1,4.7,2.2,9.4,3,14.1c0.6,3.3,0.2,6.5,1.2,9.6c0.6,2,1.6,4,2.1,6c0.3,1.1,0.3,2.1,0.1,3.2c0.1-0.2,0.2-0.5,0.3-0.7c0.6-2-0.6-4.3-1.2-6.2c-0.4-1.2-0.9-2.5-1.1-3.8c-0.5-3.5-0.5-7.1-1.1-10.6c-0.7-4.4-2-8.8-2.6-13.2c-0.3-2.5-0.9-4.9-1.1-7.4c-0.3-2.6-0.3-5.3,0-7.9c0.2-1.7,0.4-3.2,0.2-5c-0.1-1.1-0.5-3.3,0.5-4.1c1.2,1.1,2.1,2.6,3.2,3.7c1.4,1.4,2.9,2.6,4.3,4.1c1.1,1.2,3.7,3.4,3.1,5c-0.9,2.3-1.6,4.7-2.4,7c-0.5,1.5-0.7,2.6-0.4,4.2c0.6,3.4,1.3,6.7,1.5,10.1c0.2,3.4-0.4,6.7-0.2,10.1c0.2,3.1,1.3,6,1.5,9.1c0.1,1.5-0.7,4.1,0,5.3c-0.1-0.2,0.6-2.4,0.6-2.9c0-2.3,0.1-4.6-0.3-6.9c-0.2-1.2-0.7-2.5-0.8-3.6c-0.2-1.5,0-3.4,0.1-5c0.4-3.9,0.1-7.6-0.5-11.5c-0.4-2.7-1.5-5.3-0.7-8c0.4-1.6,0.8-3.3,1.4-4.8c0.3-0.9,0.8-2.8,1.7-3.1c1.5,1.4,0.6,3.9,0.6,5.6c0.1,2.7,0.2,5.4,0.2,8.1c0,3-0.3,6-0.1,9c0.1,1.4,0.1,2.9,0.1,4.4c0,3.4-0.2,6.7,0,10c0.2,3.7,0.5,7.4,1,11.1c0.3,2.3,0.5,4.5,0.7,6.8c0.1,1.5,0.2,2.9,0.8,4.3c-0.2-0.4,0.2-1.9,0.2-2.5c0-0.7-0.2-1.3-0.3-2c-0.5-3.4-0.8-7-1.1-10.4c-0.1-1.3-0.2-2.6-0.3-3.9c-0.2-2.9,0.1-5.6-0.1-8.5c-0.2-3.5-0.2-7.1-0.2-10.6c0-3.7-1.6-10,3.5-11.3c3.3-0.8,2,3.7,1.7,5.4c-0.6,3.8-0.7,7.7-0.6,11.5c0,1.3,0.2,2.5,0.4,3.8c0,0.4,0.1,0.8,0.1,1.2c0.3,2.3,0.5,4.5,0.8,6.8c0.3,2.2,0.4,4.3,0.6,6.4c0.2,1.8,0.6,3.6,0.7,5.4c0.2,3.8,0.2,7.7-0.8,11.4c3-5.8,1.6-12.8,0.8-18.9c-0.7-5.5-1.6-11.1-1.9-16.6c-0.2-3.5-0.1-6.9,0.6-10.3c0.4-2.1,0.4-4.6,1.9-6.2c2.8-3,3.2,2.2,3.3,4c0.2,1.7,0.6,3.4,0.3,5.2c-0.6,3.8-1.1,7.7-1.1,11.5c0,0.9,0,1.7,0,2.6c0.1,3,1,5.9,1,8.9c0,2.9,0.1,5.7,0.5,8.5c0.2,1.6,0.8,3.1,1,4.7c0.3,1.6,0.1,3.2,0.5,4.9c0.3-3.6-0.7-6.6-1.3-10c-0.4-2.2-0.2-4.3-0.2-6.5c0-2.5-0.2-4.9-0.5-7.4c-0.7-5.1-0.4-10.1,0.6-15.2c0.8-3.7-0.6-7.4-0.5-11c1.3,0.2,2.4,1.3,3.9,1.4c1.4,0,2.9,0.2,4.3,0c0.3,0,2.3-0.1,2.4-0.4c-0.4,1-0.4,2.1-0.6,3.1c-0.1,0.9-0.5,1.8-0.6,2.7c-0.2,2.4-0.1,4.8-0.2,7.2c-0.2,3.2,0.3,6.4,0.1,9.6c-0.1,2.1-0.6,4-0.9,6.1c-0.3,2-0.8,4-0.7,5.9c0,2.5,0.5,5.6-0.2,8.1c1.3-2,0.9-4.6,0.8-6.8c-0.1-1.3,0-2.6,0.2-3.8c0.3-2.1,0.9-4.2,1.1-6.3c0.2-2.5,0.4-4.9,0.4-7.4s0-5,0-7.5c0-2.4,0.3-4.8,0.8-7.1c0.1-0.5,0.4-3,0.9-3.2c0.9-0.5,1.4,3.8,1.5,4.3c0.1,2.3-0.4,4.7-0.5,6.9c-0.1,2.4,0.1,5,0.4,7.3c0.3,2.2,0.4,4.2,0.1,6.4c-0.2,2-0.8,6.3,0.6,7.9c-0.4-2.3-0.5-4.7,0-7c0.7-3.2,0.1-6.5-0.2-9.7c-0.2-3.3,0.3-6.5,0.3-9.8c0-1.3,0.3-2.7,0.1-4c-0.1-0.8-1.1-2.1-0.6-2.9c0.3-0.5,1.2-0.5,1.6-0.8c0.6-0.4,1-0.9,1.6-1.4c1.1-0.9,1.8-2.3,2.6-3.4c2-2.5,3.2-5.1,4.6-7.9c0.4,1.5,0,2.9,0.2,4.4c0.4,3.1,1.6,5.7,1.6,8.9c0,1.7-0.3,3.3-0.9,4.9c-0.5,1.5-0.7,3.2-1.3,4.7c-0.4,0.9-0.7,1.8-0.9,2.8c-0.4,1.8-0.9,3.5-1.4,5.3c-0.5,1.7-0.6,3.4-1,5.1c-0.4,1.9-1.1,3.8-1.4,5.7c-0.2,1.3-0.8,3.3-0.3,4.5c0.6-1.3,0.8-3.1,1.1-4.5c1.7-8.2,3.4-16.2,6.4-24.1c0.6-1.6,1-2.8,0.9-4.5c0.5-6.3-1.7-12.3-1.1-18.2c0.6-6.3,2.7-13.1,1.7-19.5c-0.6-3.8-2.1-7.3-2.8-11c-0.8-4.3-1.5-8.7-2.1-13c-1.7-13.9-3.2-28-3.5-42c-0.1-5.5-0.8-10.9-1.2-16.4c-0.4-5.3,0.2-10.1,0.8-15.4c0.1-1.2,0.3-2.4,0.4-3.6c2-19.5,2.2-39.7,1.3-59.3c-0.8-17-3.8-35.7-16.6-48.2c-2.6-2.6-6.3-4.8-7.4-8.5c-1-3.4-0.4-7.6-0.2-11.1c0.4-5.9,0.4-11.9,0.1-17.8c-0.8-19.8-6.2-39.2-13.3-57.6c-6.5-16.9-14.9-34.4-27.2-48c-11.6-12.8-23.2-25.5-38.6-33.8c-5.5-3-11.7-4.6-17.8-5.9c0,0-6.4-1.4-10.6-1.3s7.9,11.5,7.9,11.5S414.5,248.2,417.7,249.1z M531.7,583.5c0,1.8,0.1,3.6,0.2,5.4c0.1,0.9,0.5,2.7,0.2,3.5c-0.3,0.9-3.7,3.6-4.6,3.7c-1.9,0.1-1.3-3.5-1.6-5.2c-0.5-3.3-1.1-6.6-1.7-9.9c-0.8-3.9-1.9-7.7-2.7-11.6c-0.6-2.7-1.9-5.3-2.2-8c0-0.2-0.1-0.4-0.1-0.6c-0.3-3.3,0.8-6.2,2.2-9.2c1.1-2.4,2-4.8,3.3-7.1c0.6-1,2.9-4.4,2.6-5.5c0.7,2.6,0.5,5.5,0.8,8.2c0.6,4.9,1.2,9.8,1.7,14.8C530.7,569.1,531.7,576.4,531.7,583.5z M510.1,590c-1.7-4.9-3.1-9.6-4.1-14.7c-0.9-4.2-1.8-8.4-2.2-12.7c-0.2-1.8-0.1-3.5,0-5.3c0.2-3.2,0.8-6.3,0.8-9.6c0-2.3-1.3-8.3,0.2-9.9c1.9,4.7,5.1,9.2,7.9,13.5c1.1,1.7,2.3,3,2.9,5c3.2,11.4,7.6,23.4,7.6,35.5c0,2.9,0.2,6-1.2,8.6c-1.1,1.9-0.7,0.9-2.2,0.7c-1.3-0.2-2.7-0.1-4,0.4c-2.7,0.9-5.6,3.1-8.6,2.9c0.8,0.1,2.6-5.9,2.8-6.6C510.4,595.3,510.9,592.4,510.1,590z M531,501.1c0.1,7.1-0.9,14.1-1.8,21c-0.4,2.8-0.7,5.7-1,8.5c-0.3,2.4-1.5,4.2-2.7,6.3c-1.7,3.2-3.5,6.5-5.3,9.7c-0.9,1.7-1.4,4.1-3.2,5.1c-3.1-3.3-4.6-8-7.3-11.7c-5.5-7.7-4.5-18-3.5-26.9c0.4-3.2,0.6-6.4,0.7-9.7c0.3-7.2,0.4-14.3,1.5-21.4c0.7-4.5,0.6-10.6,2.3-14.8c1.9-0.4,4.9,3.1,6.2,4.2c2.2,1.8,4.3,3.7,6.3,5.7c2.1,2.1,5.6,4.9,6.5,7.6C531.7,489.7,530.9,495.8,531,501.1z M506.5,426.6c0.8-2.4,0.7-4.9,1.2-7.3c2.4,1,5.4,3.4,7.4,5.1c3,2.6,5.4,6,7.2,9.5c1.4,2.6,2.4,5.3,3.2,8.2c1.5,5.4,2.6,10.7,3,16.3c0.3,4.3,0.7,8.5,0.9,12.8c0.1,2.1,1.6,6.5,0,8.2c-3.4-2.3-5.8-5.5-8.9-8.2c-1.7-1.5-4-2.7-6-4.2c-1.7-1.3-3.2-2.8-3.9-4.7c-1.1-2.8-1.5-5.8-2.3-8.7c-1.5-5.6-3.9-11.8-3.5-17.6c0.2-3,0.6-5.9,1.5-8.8C506.4,426.9,506.5,426.8,506.5,426.6z M473.7,407.2c-4-9.3-6.6-18.7-9.5-28.4c-1.5-5-2.9-10.1-3.5-15.3c-0.7-5.4-2.3-10.3-2.5-15.8c-0.2-4.1-0.1-8.3,0-12.4c0.1-2.2,0.2-4.5,0.4-6.7c0.4-6,1.9-12,2.2-18c3.6,2.5,5.9,7.4,8.3,11c3.8,5.5,6,11.4,8.5,17.5c1.7-5.2-0.1-8.6-2.5-13.5c-2.8-5.7-6.6-10.8-9.7-16.4c-1.5-2.7-2.8-5.2-3.4-8.1c-1.3-6.3-2.3-13.1-1.2-19.4c3.8-0.5,9.6,9.1,11.8,11.8c11,13.8,16.7,29.6,22.5,45.9c2.3,6.6,4.3,13.2,5.8,20c4.4,19.4,5.2,40.7,2.6,60.5c-0.8,6.1-2.5,12.4-2.8,18.5c-2.8-2.1-5.3-4.4-7.9-6.7C484.7,424.6,478,417.2,473.7,407.2z M500.2,559.4c-4.5-5.6-5.7-15.3-7.4-22.1c-2-7.7-2.6-15.8-3.2-23.7c-1-13.2-3.5-26-4-39.3c-0.2-5.8,0-11.5,0-17.3c0.1-7.4,0.7-14.7,1-22.1c3.7,2.9,7.9,5,11.8,7.7c3.4,2.3,3,7.1,4.1,10.6c1.3,4.3,1.9,8.9,1.9,13.5c0,10.2-0.8,20.4-1.6,30.6c-0.7,10-0.5,20.1-1.1,30C501,537.9,503.4,549.1,500.2,559.4z M499.8,601.6c0.8-2.6,1.7-4.9,2-7.6c0-0.2,0.1-0.4,0.1-0.7c0.6-4.9,0.8-10.1,0.1-14.9c-0.5-4-1.5-8.1-1.2-12.1c1.2,1.1,1.1,3.7,1.5,5.4c0.6,2.4,1.3,4.8,1.9,7.2c1.2,4.9,5.6,12.1,3.8,17.2c-0.7,2.1-6.7,11.9-8.4,8.2C499.1,603.2,499.5,602.6,499.8,601.6z M499.5,651c-1.6,0-2.5-1.6-3.4-2.6c-0.9-1.1-1.8-1.6-2.8-2.5s-1.9-1.9-2.8-2.8c-0.6-0.6-1.6-1.5-1.8-2.4c-0.6-2.1,1.4-4.1,2.5-5.8c0.1-0.1,0.2-0.2,0.2-0.4c1.5-2.6,2.5-6.1,3.5-8.9c1.4-4.3,2.9-8.6,4.5-12.8c0.7-1.8,0.8-3.9,2.8-4.5c2.1-0.6,4.4-0.1,6.5-0.7c1.2-0.3,2.6-0.6,3.7-1.3c1.7-1,4.9-4,6.8-1.7c1.5,1.8-1.1,7-1.8,8.9c-3.4,9.4-7.7,18.6-12.6,27.3C502.8,644.2,501.1,647.6,499.5,651z M509.4,663.9c-1.1,0.2-4.7,1.3-5.7,1c-1.6-0.5-1.2-4.9-1.3-6.5c-0.1-2.4-1-4.9-0.7-7.3c0.3-2.3,1.6-4.5,2.7-6.5c1.2-2.1,2.5-3.9,3.7-5.9c1.8,2.7,1.9,6.9,2.5,10.1c0.4,2.5,1.6,6.4,1.5,9.6C512,660.9,512.1,663.4,509.4,663.9z M533.5,657.6c-2.2,3.7-3.7,6.5-7.8,7.7c-0.3,0.1-0.5,0.1-0.8,0.2c-3.5,0.7-9.8,0.9-10.9-3.3c-1-3.7-1.1-7.7-1.6-11.5c-0.4-3.4-1-6.9-1.8-10.2c-1.6-6.3,3.8-14.8,6.7-20.2c2.7-5,4.5-11.2,6.1-16.7c0.3-1.1,0.9-2.1,1.6-2.9s1.7-1.4,2.5-2.1c1-0.8,4.3-4,5.3-2.6c0.5,0.8,0.3,2.3,0.3,3.2c0.1,0.8,0.2,1.5,0.3,2.3c0.1,0.9,0.3,1.8,0.3,2.8c0.1,1.1,0,2.2,0.1,3.3c0.1,0.9,0.4,1.8,0.7,2.7c0.5,1.9,0.6,3.9,1.1,5.8c0.7,3.4,1.8,6.7,3,9.9c1.4,3.9,0.5,7.2,0.2,11.1c-0.1,2.1-0.4,4.2-0.7,6.3C537.4,648.8,536.3,653,533.5,657.6z"})
+					), 
+
+					React.createElement("g", {id: "lung", onClick: this.props.onClick.bind(null, 'Lung'), onMouseOver: this.props.onMouseOver.bind(null, 'Lung'), onMouseOut: this.props.onMouseOver.bind(null, undefined)}, 
+						React.createElement("g", {id: "right_lung", onclick: "click_label('lung')", onmouseover: "show_label('lung')", onmouseout: "hide_label()"}, 
+							React.createElement("path", {id: "right_lung_color", fill: getRGB(this.props.values.avg[this.props.fixed.indices.Lung]), d: "M301.1,219.1c-5.1,0.5-14.4-0.8-31.6,23.1c-14.9,21.1-23.4,45.1-29.8,70c-2.6,11.9-9.2,42.5,0.4,84c0.1,0.4,1.6,9.7,10,10.3c0.9,0.1,38.6-22.5,54.7-18.6c4.5,2.2,14,0.3,20-7.7l0.4-17.9c0,0,5.9-47.7,2.5-56.7c0,0-8.1-34.6-9.3-39.2c-4.7-17.3,2.2-29.9,0.9-35.8C319.3,230.7,314.2,220.2,301.1,219.1L301.1,219.1z"}), 
+							React.createElement("path", {id: "right_lung_strokes", fill: "none", stroke: "#000000", strokeWidth: "0.5", d: "M242.7,301.1c0,0,14.3,59.8,42.6,76 M242.9,402.7c-2.8-2.2,33.4-23,42.6-25.4M285.3,377.2c0.1,0.1,21.2-2.5,32.9-14.8l7.4-7.8"}), 
+							React.createElement("path", {id: "right_lung_hover", style: {transition: 'stroke .25s ease-in-out, stroke-width .25s ease-in-out'}, fill: "rgba(0,0,0,0)", stroke: hoverName === 'Lung' || clickedItem === 'Lung' ? "rgb(255,225,0)" : "rgba(0,0,0,0.5", strokeWidth: hoverName === "Lung" || clickedItem === 'Lung' ? "5" : "2", d: "M301.1,219.1c-5.1,0.5-14.4-0.8-31.6,23.1c-14.9,21.1-23.4,45.1-29.8,70c-2.6,11.9-9.2,42.5,0.4,84c0.1,0.4,1.6,9.7,10,10.3c0.9,0.1,38.6-22.5,54.7-18.6c4.5,2.2,14,0.3,20-7.7l0.4-17.9c0,0,5.9-47.7,2.5-56.7c0,0-8.1-34.6-9.3-39.2c-4.7-17.3,2.2-29.9,0.9-35.8C319.3,230.7,314.2,220.2,301.1,219.1L301.1,219.1z"})
+						), 
+						React.createElement("g", {id: "left_lung", onclick: "click_label('lung')", onmouseover: "show_label('lung')", onmouseout: "hide_label()"}, 
+							React.createElement("path", {fill: getRGB(this.props.values.avg[this.props.fixed.indices.Lung]), d: "M375.6,220.9c5.1,0.5,14.4-0.8,31.6,23.1c14.9,21.1,23.4,45.1,29.8,70c2.5,11.9,9.2,42.5-0.4,84c-0.1,0.4-1.6,9.7-10,10.3c-0.9,0.1-38.6-22.5-54.7-18.6c-4.5,2.2-14,0.3-20-7.7l-0.4-17.9c0,0-5.9-47.7-2.5-56.7c0,0,8.1-34.6,9.3-39.2c4.7-17.3-2.2-29.9-0.8-35.8C357.4,232.4,362.5,222,375.6,220.9L375.6,220.9z"}), 
+							React.createElement("path", {id: "left_lung_strokes", fill: "none", stroke: "#000000", strokeWidth: "0.5", d: "M433.8,404.5c2.8-2.2-33.4-23-42.6-25.4 M391.4,379c-0.1,0.1-21.2-2.5-32.9-14.8l-9.9-30.4"}), 
+							React.createElement("path", {id: "stroke", d: "M391.2,379.1c28.3-16.2,42.6-76,42.6-76", fill: "none", stroke: "#000000", strokeWidth: "0.5"}), 
+							React.createElement("path", {style: {transition: 'stroke .25s ease-in-out, stroke-width .25s ease-in-out'}, id: "left_lung_color", fill: "rgba(0,0,0,0)", stroke: hoverName === 'Lung' || clickedItem === 'Lung' ? "rgb(255,225,0)" : "rgba(0,0,0,0.5", strokeWidth: hoverName === "Lung" || clickedItem === 'Lung' ? "5" : "2", d: "M375.6,220.9c5.1,0.5,14.4-0.8,31.6,23.1c14.9,21.1,23.4,45.1,29.8,70c2.5,11.9,9.2,42.5-0.4,84c-0.1,0.4-1.6,9.7-10,10.3c-0.9,0.1-38.6-22.5-54.7-18.6c-4.5,2.2-14,0.3-20-7.7l-0.4-17.9c0,0-5.9-47.7-2.5-56.7c0,0,8.1-34.6,9.3-39.2c4.7-17.3-2.2-29.9-0.8-35.8C357.4,232.4,362.5,222,375.6,220.9L375.6,220.9z"})
+						)
+					), 
+
+					React.createElement("path", {style: {transition: 'stroke .25s ease-in-out, stroke-width .25s ease-in-out'}, id: "thyroid", onClick: this.props.onClick.bind(null, 'Thyroid'), onMouseOver: this.props.onMouseOver.bind(null, 'Thyroid'), onMouseOut: this.props.onMouseOver.bind(null, undefined), fill: getRGB(this.props.values.avg[this.props.fixed.indices.Thyroid]), stroke: hoverName === 'Thyroid' || clickedItem === 'Thyroid' ? "rgb(255,225,0)" : "rgba(0,0,0,0.5", strokeWidth: hoverName === "Thyroid" || clickedItem === 'Thyroid' ? "5" : "2", d: "M331.6,170.7c0.9-0.1,7.4,14.8,8.6,15.7c1.2,1,2.8,1,4.6,0s8-6,8.3-9.1s-1.6-8.6,1.2-8.6c2.2,0,5.7,8.1,6.3,12.2c1.2,7.8,0.4,9.3-3,14.5c-1.8,2.9-2.7,6-7.6,3.1s-4.3-6-5.8-6s-4.6,1-4.6,1s-3.4,4.1-5.8,3.8c-2.5-0.2-7.5-5.5-6.9-12.6C327.4,177.7,325.4,171.5,331.6,170.7L331.6,170.7z"}), 
+					React.createElement("path", {style: {transition: 'stroke .25s ease-in-out, stroke-width .25s ease-in-out'}, id: "heart", onClick: this.props.onClick.bind(null, 'Heart'), onMouseOver: this.props.onMouseOver.bind(null, 'Heart'), onMouseOut: this.props.onMouseOver.bind(null, undefined), fill: getRGB(this.props.values.avg[this.props.fixed.indices.Heart]), stroke: hoverName === 'Heart' || clickedItem === 'Heart' ? "rgb(255,225,0)" : "rgba(0,0,0,0.5", strokeWidth: hoverName === "Heart" || clickedItem === 'Heart' ? "5" : "2", d: "M390.1,308.6c-3.7-4.3-8.6-10.9-14.7-11.3c-2.1-0.1-4.7,0.9-6,2.6c3.8,2.3-6.7,8-8.7,5.7c2.6,3-3.4,4.5-5.3,5c-2,0.4-3.1,0.2-5-0.3c-2.4-0.5-4.8,0.7-6.9,1.6c-9,4.1-10.6,14.1-8.1,22.9c2.1,7.1,5.4,14.6,10.8,19.8c2.9,2.8,6,3.6,9.3,5.4c3.5,1.9,6,4.1,10,5.1c5.6,1.5,10.9-0.6,16.5-0.6c2.4,0,4.6,0.9,7.1,1c3,0.1,6-0.1,8.9,0.2c7.4,0.8,15.1-8,14.9-15c-0.1-3.2-1.7-6.4-2.8-9.4c-2.1-6-5.1-11.9-8.5-17.2C398.1,318.8,394.2,313.3,390.1,308.6z"}), 
+						
+					React.createElement("g", {id: "muscle", onClick: this.props.onClick.bind(null, 'Muscle'), onMouseOver: this.props.onMouseOver.bind(null, 'Muscle'), onMouseOut: this.props.onMouseOver.bind(null, undefined)}, 
+						React.createElement("path", {id: "muscle_color", fill: getRGB(this.props.values.avg[this.props.fixed.indices.Muscle]), d: "M138.3,603.5l-25-17c0,0,8.4-4.4,9.3-11.6l14-46.2c2.3-5.4,3-44.3,3-44.3c0-12,27.5-63.4,27.5-63.4s-0.8-17.7,2.5-38.9c1.8-11.8,8-23.1,9-37c0.7-10.2-3.2-21.1-3.7-31c-0.8-14.5,1.8-27,4.3-34.3c2.1-6.2,4.7-19,10.7-26.7c8.9-11.4,21.8-17.1,21.8-17.1s9.5-4.6,22.6-6.1c0,0-8.6,8.9-14.6,19.5c-4.2,7.3-6.3,16-7.1,20.6c-1.4,8.2,1.7,19.5,6.1,33.1c2.8,8.7,6.8,18.2,8.6,27.5c1.4,7.3,4.1,15.4,4.9,22.3c2.5,21.9,0.4,39.3,0.4,39.3l-2,5.7c-1.7,15.7-11.8,35.9-11.8,35.9l-1.7,21.4l-7.6,12.8c0,20.4-10.1,45.7-10.1,45.7L164,585.3c-5.6,5.6-3.9,20.4-3.9,20.4s0.2,8.8-1,18.3c-0.8,6.8-2.5,13.8-3.8,18.7c-0.9,3.3-0.6,4.7-1.3,4.8c-1.9,0.4-2.6-0.2-4-2.5c-2.7-4.5-6.2-13-8-22.3c-1-5.2,0-12.8-1.7-17.2C139.9,604.4,139.1,604.2,138.3,603.5"}), 
+						React.createElement("path", {id: "muscle_strokes", fill: "none", stroke: "#000000", d: "M228.6,337.8c1.4,10.1-0.5,29.7-7.7,47c-7.5,18-20.5,33.7-29.5,44.7c-17.7,21.5-24.5-8.6-24.5-8.6 M233.3,230.3c-6.5,7.1-18.6,22.6-20.5,38 M178.1,349.8c14.8-23.5,13.7-17,26.5-29.3s9.7-30.8,9.7-30.8 M212.5,235.7c-23,17.2-23.2,44.2-21.5,65c1.3,16,2.7,28.7,2.7,28.7 M196.1,424.5c1.6,2.4,3.5,4.3,5.5,5.7c0.3,0.2,0.5,0.3,0.8,0.5c7.6,4.9,16.1,3.5,16.1,3.5 M202.4,430.7c0,0-10.9,24.8-27.4,55c-7.1,12.9-16.3,24.2-23.5,38.3c-8.9,17.6-15.1,38.1-16.5,55.2c0,0,2.8,0.7,6.6,2c5.9,2.1,14.3,6,18.6,11.6 M171.8,491.7c12.3-5.7,37.3-23.3,37.3-23.3 M151.1,585.2c0,0,4.5-18.8,13.7-38c8-16.8,20.4-33.6,23.8-43.5c2.1-6.2,6.2-25.3,6.2-25.3 M179.5,487.8c0,0-2.7,12-9.3,26c-7,14.9-18,32.1-21.2,41c-2.2,6.4-6.7,26.2-6.7,26.2"}), 
+						React.createElement("path", {style: {transition: 'stroke .25s ease-in-out, stroke-width .25s ease-in-out'}, id: "muscle_hover", fill: "rgba(0,0,0,0)", stroke: hoverName === 'Muscle' || clickedItem === 'Muscle' ? "rgb(255,225,0)" : "rgba(0,0,0,0.5", strokeWidth: hoverName === "Muscle" || clickedItem === 'Muscle' ? "5" : "2", d: "M138.3,603.5l-25-17c0,0,8.4-4.4,9.3-11.6l14-46.2c2.3-5.4,3-44.3,3-44.3c0-12,27.5-63.4,27.5-63.4s-0.8-17.7,2.5-38.9c1.8-11.8,8-23.1,9-37c0.7-10.2-3.2-21.1-3.7-31c-0.8-14.5,1.8-27,4.3-34.3c2.1-6.2,4.7-19,10.7-26.7c8.9-11.4,21.8-17.1,21.8-17.1s9.5-4.6,22.6-6.1c0,0-8.6,8.9-14.6,19.5c-4.2,7.3-6.3,16-7.1,20.6c-1.4,8.2,1.7,19.5,6.1,33.1c2.8,8.7,6.8,18.2,8.6,27.5c1.4,7.3,4.1,15.4,4.9,22.3c2.5,21.9,0.4,39.3,0.4,39.3l-2,5.7c-1.7,15.7-11.8,35.9-11.8,35.9l-1.7,21.4l-7.6,12.8c0,20.4-10.1,45.7-10.1,45.7L164,585.3c-5.6,5.6-3.9,20.4-3.9,20.4s0.2,8.8-1,18.3c-0.8,6.8-2.5,13.8-3.8,18.7c-0.9,3.3-0.6,4.7-1.3,4.8c-1.9,0.4-2.6-0.2-4-2.5c-2.7-4.5-6.2-13-8-22.3c-1-5.2,0-12.8-1.7-17.2C139.9,604.4,139.1,604.2,138.3,603.5"})
+					), 
+
+					React.createElement("g", {id: "thymus", onClick: this.props.onClick.bind(null, 'Thymus'), onMouseOver: this.props.onMouseOver.bind(null, 'Thymus'), onMouseOut: this.props.onMouseOver.bind(null, undefined)}, 
+						React.createElement("path", {style: {transition: 'stroke .25s ease-in-out, stroke-width .25s ease-in-out'}, id: "thymus_color", fill: getRGB(this.props.values.avg[this.props.fixed.indices.Thymus]), stroke: hoverName === 'Thymus' || clickedItem === 'Thymus' ? "rgb(255,225,0)" : "rgba(0,0,0,0.5)", strokeWidth: hoverName === "Thymus" || clickedItem === 'Thymus' ? "5" : "2", d: "M334.5,239.9c0,0-0.3-7.6-5.8-5.8s-4.3,20-6.7,20s-3-2.7-6.1,0c-1.8,1.6-0.6,24.3,5.8,25.8s17.3-3.9,20-2.1s10,2.7,10.9,3.9s3,12.1,12.1,10s3-23.7,1.2-24.6s-6.7-10-9.7-11.8s-3.6-5.8-6.4-10.6c-2.7-4.9-3.6-7.2-4.6-9.1C342.4,229.9,334.5,239.9,334.5,239.9L334.5,239.9z"}), 
+						React.createElement("path", {id: "thymus_stroke", fill: "none", stroke: "#000000", strokeWidth: "0.5", d: "M345.4,269.4c0,0-15.2-17.9-10.9-29.5"})
+					), 
+
+					React.createElement("g", {id: "adrenal_glands", onClick: this.props.onClick.bind(null, 'Adrenal gland'), onMouseOver: this.props.onMouseOver.bind(null, 'Adrenal gland'), onMouseOut: this.props.onMouseOver.bind(null, undefined), fill: getRGB(this.props.values.avg[this.props.fixed.indices['Adrenal gland']]), stroke: hoverName === 'Adrenal gland' || clickedItem === 'Adrenal gland' ? "rgb(255,255,0)" : "rgba(0,0,0,0.5)", strokeWidth: hoverName === "Adrenal gland" || clickedItem === 'Adrenal gland'  ? "5" : "2"}, 
+						React.createElement("path", {style: {transition: 'stroke .25s ease-in-out, stroke-width .25s ease-in-out'}, id: "left_adrenal_gland", d: "M368.5,459.1c0,0,13.6-4.7,21.3-2.6s1.2-10.6-7.6-11.7C373.4,443.7,368.5,459.1,368.5,459.1z"}), 
+						React.createElement("path", {style: {transition: 'stroke .25s ease-in-out, stroke-width .25s ease-in-out'}, id: "right_adrenal_gland", d: "M301.2,460.8c0,0,14.5-2.1,21,3.7c6.5,5.8,1.2-16.4-2.2-17.2C316.6,446.4,301.7,454.8,301.2,460.8z"})
+					), 
+
+					React.createElement("path", {id: "bladder", style: {transition: 'stroke .25s ease-in-out, stroke-width .25s ease-in-out'}, onClick: this.props.onClick.bind(null, 'Bladder'), onMouseOver: this.props.onMouseOver.bind(null, 'Bladder'), onMouseOut: this.props.onMouseOver.bind(null, undefined), fill: getRGB(this.props.values.avg[this.props.fixed.indices.Bladder]), stroke: hoverName === 'Bladder' || clickedItem === 'Bladder' ? "rgb(255,225,0)" : "rgba(0,0,0,0.5", strokeWidth: hoverName === "Bladder" || clickedItem === 'Bladder' ? "5" : "2", d: "M365.8,643.6c0-6.1-8.5-9.7-21-9.8l0,0c-0.1,0-0.1,0-0.2,0s-0.1,0-0.2,0l0,0c-12.6,0.1-21,3.7-21,9.8c0,5.5,6,15.1,16.7,17c0.6,1,1.4,5.8,1.4,8.6h2.9l0,0h0.2h0.2l0,0h2.9c0-2.8,0.8-7.6,1.4-8.6C359.8,658.7,365.8,649.1,365.8,643.6L365.8,643.6z"}), 
+					React.createElement("path", {id: "brain", style: {transition: 'stroke .25s ease-in-out, stroke-width .25s ease-in-out'}, onClick: this.props.onClick.bind(null, 'Brain'), onMouseOver: this.props.onMouseOver.bind(null, 'Brain'), onMouseOut: this.props.onMouseOver.bind(null, undefined), fill: getRGB(this.props.values.avg[this.props.fixed.indices.Brain]), stroke: hoverName === 'Brain' || clickedItem === 'Brain' ? "rgb(255,225,0)" : "rgba(0,0,0,0.5", strokeWidth: hoverName === "Brain" || clickedItem === 'Brain' ? "5" : "2", d: "M346.3,126.9c0.3-0.9,0.6-1.8,1-2.6c1.8-2,3.7-4.3,5.9-5.7c5,6.6,15.3-3.6,11.2-9.5c2.9,5.5,12.5,4.1,16.6,0.7c4.5-3.7,3.7-16.2,6.6-18.1c-0.8,0.5-1.8,0.8-2.5,1.3c3.5-2.7,6.3-8.5,3.8-12.8c-0.7-1.3-1.5-1.7-2.3-1.5c0.2-0.6,0.3-1.2,0-1.7c4.2-5,4.8-9.9-0.3-14.6c1.7-2.4,0.7-6.9-1.1-9.1c-1.2-1.4-3.2-1.8-4-3.5s0.4-3.1-0.1-4.5c-1.2-3.7-6.1-4.3-8.8-5.9c-2.1-1.3-3.3-2.3-5.9-2.8c-2.1-0.4-4.7,0.3-6.7-0.3c-4.8-1.4-5.7-4.7-11.8-2.7c-2.5,0.8-3.9,2.5-4.6,4.6c-0.4-1.3-1.1-2.5-2.1-3.3c-2.9-2.3-13.2-3-14.2,1.8c-2.9-1.1-5.9-0.3-8.5,1c-2.3,1.1-5.1,4.7-7.2,5.4c-1.4,0.4-2.4-1-4.1-0.4s-2.8,3.3-3.5,4.8c-1.5,3.1-2.5,6.5-3.3,9.8c-1.4,5.8-5.5,8.7-2.2,15.7c0.6,1.3,1.8,3,3.3,4.6c-1.2-0.7-2.4-0.9-3.6-0.1c-4.5,3,1.3,12.8,3.5,15.3c-0.2-0.2-2.2,8-1.9,9.4c0.9,3.6,3.6,6.2,6.6,8c3.7,2.3,8.9,4,13.9,4.1c-0.6,5.7,8.5,7.5,12.6,5.9c2,2.9,4.8,5.7,5.4,9.4 M309.4,82.5c-0.1,0-0.2,0-0.3,0C309.2,82.4,309.3,82.4,309.4,82.5z M309.6,82.5c0.2,0,0.5,0,0.7,0C310.1,82.5,309.9,82.5,309.6,82.5z M330.4,115c0.1,1.4,0.7,2.8,1.5,4C330.9,118,330.4,116.6,330.4,115z M323.8,114c4.1-0.6,7.8-2.6,10-6.6C333.2,111.2,328.1,113.8,323.8,114z M347.6,123.7c1.6-3.5,3.7-7.1,4.2-10.9C351.3,116.7,349.6,120.5,347.6,123.7z M380.9,83.8c-0.7,0.6-1.4,1-2.1,1.1C379.4,84.7,380.1,84.3,380.9,83.8z"})
+
+				), 
+
+				React.createElement("g", {id: "brain_tissues", style: clickedItem === 'Brain' ? {visibility: 'visible', opacity: '1', transition: 'all .5s ease-in-out'} : {visibility: 'hidden', opacity: '0', transition: 'all .5s ease-in-out'}, transform: clickedItem === "Brain" ? "translate(-50,0)" : subtissueSelected ? "translate(140,-20) scale(0.18, 0.18)" : "translate(400,-20) scale(0.18, 0.18)"}, 
+					React.createElement("path", {id: "brain_color_1_", fill: "#B5B5B5", stroke: "#000000", strokeWidth: "2", d: "M942.7,697.7c-0.9-1.9-1.8-3.8-2.6-5.7c-2.6-5.9-4.8-12-6.5-18.2s-2.1-13.1-4.1-19.1c-5.7,3.5-13.4-0.8-18.7-3c-9-3.7-18.8-4.9-28.4-6.5c-2.3-0.4-4.6-0.8-6.7-1.6c0,0-9.5-3.5-13.1-9.5c-0.4-0.7-4.2-0.1-8-1c-4.4-1-8.8-3.4-8.8-3.4c-7.6-2.3-14-7.3-19.6-12.9c-5.6-5.6-9.6-11.8-16.2-16.1c-2.7-1.8-5.4-3.6-8.2-5.3c-1.9-1.3-3.9-2.5-5.6-4.1c-1.6-1.5-3-3.3-4.4-5.1c-3.1-4.1-6.3-8.2-8.8-12.7c-1.5-2.7-2.8-5.5-3.8-8.3c-2.8-7.7-4-16-3.3-24.2c0.3-4.4-3.4-8.7-5.1-12.7c-4.5-10.5-2.4-22.7,0.7-33.7c-4-6.2-5-16.1-1.3-22.5c2.4-4,6.5-7.3,11.1-7.5c-1.4-7.2,1.6-16.2,7.2-20.9c-1.6-1.5-0.3-4.5,0.5-6.5c2.4-5.7,5.2-11.3,9-16.1c4.2-5.4,9.6-9.7,14.9-14c3.3-2.7,6.6-5.3,9.9-8c4.1-12.5,12.1-23.8,24-29.5c1.5-0.7,3.2-1.5,3.7-3.1c2.2-7.1,11.2-11.7,17.4-15.6c5.7-3.6,12-6,18.3-8.4c17.6-6.6,35.2-13.3,53.7-16.6c3.9-0.7,7.7-1.3,11.5-2.5c8-2.6,14.8-8.2,22.8-11c7.9-2.8,17.3-2.1,25.6-1.1c5-3.1,11.9-3.4,17.7-4c13-1.2,26-2.5,39.1-3.7c2.8-0.3,5.7-0.5,8.5-0.8c3.2-0.3,6.4-0.6,9.7-0.5c3.8,0.1,7.5,0.8,11.3,0.8c6.2,0.1,12.3-1.5,18.5-1.9s12.9,0.3,17.7,4.3c-0.7-0.1-1.3-0.2-2-0.4c3.4,1.3,8.5-0.2,11.8-1.7c8.6-3.7,18.4-0.5,27.7,0.3c6,0.5,12.1,0,18.1,0.9c9.1,1.4,17.6,6.1,23.4,13.2c1.8-3.2,6.4-5.1,10.1-5.3c3.7-0.2,7.3,0.8,10.8,1.9c5.5,1.6,11,3.2,16.5,4.7c1.5,0.4,2.9,0.8,4.3,1.4c3.5,1.5,6.6,4,8.7,7.2c3.6-1.8,8.8-0.4,12.5,1.2c4.3,1.8,8.7,3.6,13,5.4c7.3,3,14.7,6.1,21.1,10.7c4.5,3.1,8.4,6.9,11.8,11.3c0.3,0.4,0.6,0.8,0.5,1.3s-0.9,0.7-1,0.2c2.3-1.2,5.6-1.2,8.1-0.5c1.7,0.4,3.3,1.3,4.9,2.2c4.5,2.5,9,5,13.5,7.5c1.3,0.7,2.5,1.4,3.6,2.3c3,2.5,4.5,6.3,5.9,9.9c6.5-0.9,12.5,3.4,16.5,8.5s7.3,11.1,12.7,14.8c5.7,3.9,13.3,4.7,18.3,9.5c2.2,2.1,3.7,4.7,5.7,7c2.9,3.3,6.7,5.6,9.6,8.9c3.5,4,5.4,9.3,5.3,14.6c2.9,1.4,6.2,2.6,9,4.1c1,0.5,1.9,1,2.7,1.7c1.8,1.6,2.4,4.3,4,6.1c2.2,2.6,6,3.3,8.6,5.5c3.8,3.3,4.3,9,4.4,14c-0.2,0.3,0.2,0.3,0,0c-0.4,4.8,3.4,8.8,6.3,12.6c6.1,7.9,7.4,18.4,7.1,28.4c8.4,5.1,11.4,15.4,14.3,24.7c0.7,2.1,1.3,4.3,1.4,6.5c0.1,1.7-0.2,3.4-0.4,5.1c-0.8,5.1-1.5,10.2-2.3,15.3c0.4-0.3-0.5,0.7-0.1,0.4c1.3,3.9,2.6,7.9,3.9,11.8c1,3,2,6,1.9,9.1c-0.1,1.8-0.5,3.5-1,5.2c-1.3,4.5-3.5,8.8-7.1,11.8c2.6,7.3,2.3,15.8,1.3,23.5c-0.4,3.2-0.9,6.5-2.7,9.2c-1.7,2.7-5,4.7-8.2,3.9c-0.9,3.3,0.1,6.7,0.3,10c0.2,4-0.7,8.1-3,11.4s-6.2,5.5-10.2,5.5l-12.5,2.7c5.6,12.4,11.2,26.4,6.4,39.1c-2.1,5.5-6,10.1-9.8,14.6c-6.1,7.2-12.2,14.4-19.7,20.1c-3.5,2.7-7.3,5-11,7.5c-13.3,9.1-25.1,20.8-39.7,27.7c-17.4,8.2-37.2,8.9-56.5,9.5l-23.2,1.2c11.1,28.7,16.4,59.3,22.9,89.3c1.1,5.2,2.3,10.5,4.7,15.3c2.2,4.5,5.6,9,5,14c-13.2-3.6-26.5-7.2-39.7-10.8c-1.5-0.4-3-0.8-4.2-1.8c-1.4-1.1-2.2-2.7-3-4.2c-2.8-5.5-5.6-11.1-7-17.1c-1-4.3-1.3-8.8-2.9-13c-2.5-6.7-7.9-11.9-11.2-18.3c-1.8-3.5-2.9-7.3-4.4-10.9c-3.6-8.7-9.5-16.3-15.3-23.7c-3-3.8-6-7.7-9.7-10.9c-6.5-5.7-14.6-9.1-22.2-13.2c-10.5-5.6-20.3-12.4-29.1-20.4l-11-2.4c-11.6-3.1-19.5-13.6-26.4-23.4c-4.5-6.4-6.9-11.2-11.4-17.6l-2-1.5c-2,1.5-4,3-6.2,4.1c-2.4,1.2-5,1.8-7.6,2.4c-4.2,1-8.3,2-12.5,3c-2.9,0.7-5.8,1.4-8.7,1.6c-3.5,0.2-7-0.3-10.6-0.6c-6.4-0.6-12.8-0.6-19.1,0c-3.6,0.3-7.2,0.9-10.2,2.9c-1.5,1-2.7,2.3-4.4,3c-1.6,0.7-3.4,0.6-5.2,0.5c-9.6-0.5-19.2-2.5-28.2-5.8c-7.9,0.5-17.4-0.3-24.8-3.2c-2.4-0.9-4.7-2.2-6.9-3.5c-7.1-4.1-14.6-8.5-18.5-15.7L942.7,697.7z"}), 
+					React.createElement("path", {id: "cerebellum", fill: getRGB(this.props.values.avg[this.props.fixed.indices.Cerebellum]), d: "M1431,671.1c5.6,12.4,11.2,26.4,6.4,39.1c-2.1,5.5-6,10.1-9.8,14.6c-6.1,7.2-12.2,14.4-19.7,20.1c-3.5,2.7-7.3,5-11,7.5c-13.3,9.1-25.1,20.8-39.7,27.7c-17.4,8.2-37.2,8.9-56.5,9.5l-23.2,1.2c0,0-26.5-11.1-35.5-20.1c0,0-24.5-21.4-27.8-29.9c0,0-5.1,2.8-9.3,0.5c0,0-2.1-2.3-2.3-5.6c0,0,3.8-4.3,3.6-5.5c0,0-22.9-10-27.9-16.2c-5-6.3-9.5-7.7-18.5-22.3c0,0,35.8-5.1,40.5-6.3c4.7-1.2,23.2-6,27.5-10.8c0,0,9.7-8,13.4-8.6c3.7-0.6,12.1-0.2,16,0c3.8,0.2,14-0.2,22-2.3c0,0,14.6-7.7,25.1-9.1c0,0,5.2-0.6,17.1,1.7c0,0,8.9-0.2,12.6,0.6c3.7,0.8,5.3,1.9,7,3.2c0,0,4,1.4,13.1,0.9c9-0.5,13.4,0,19.3,2.1c5.9,2.1,15.3-1.6,15.3-1.6s9-4.2,14-2.6c5,1.5,11.5,3.7,14.2,5.8c2.7,2.2,12.5,4.9,12.5,4.9L1431,671.1z"}), 
+					React.createElement("path", {id: "occipital_lobe", fill: getRGB(this.props.values.avg[this.props.fixed.indices["Occipital lobe"]]), d: "M1413.9,442.1c2.9,1.4,6.2,2.6,9,4.1c1,0.5,1.9,1,2.7,1.7c1.8,1.6,2.4,4.3,4,6.1c2.2,2.6,6,3.3,8.6,5.5c3.8,3.3,4.3,9,4.4,14c-0.2,0.3,0.2,0.3,0,0c-0.4,4.8,3.4,8.8,6.3,12.6c6.1,7.9,7.4,18.4,7.1,28.4c8.4,5.1,11.4,15.4,14.3,24.7c0.7,2.1,1.3,4.3,1.4,6.5c0.1,1.7-0.2,3.4-0.4,5.1c-0.8,5.1-1.5,10.2-2.3,15.3c0.4-0.3-0.5,0.7-0.1,0.4c1.3,3.9,2.6,7.9,3.9,11.8c1,3,2,6,1.9,9.1c-0.1,1.8-0.5,3.5-1,5.2c-1.3,4.5-3.5,8.8-7.1,11.8c2.6,7.3,2.3,15.8,1.3,23.5c-0.4,3.2-0.9,6.5-2.7,9.2c-1.7,2.7-5,4.7-8.2,3.9c-0.9,3.3,0.1,6.7,0.3,10c0.2,4-0.7,8.1-3,11.4s-6.2,5.5-10.2,5.5l-12.5,2.7c0,0-13.1-5-15.4-5.9c-2.3-0.9-12.1-7.6-18.8-5.7c-6.7,1.9-10.5,3.3-10.5,3.3s-5.9,3.1-13.3,1c-7.4-2.1-9.3-2.7-12.5-2.8s-2.6-0.1-2.6-0.1s-1.6-16.1-3.5-18.2c-1.8-2.1-0.7-2.1-7.6-4.9c0,0-8-2.2-9.8-3.1c-1.8-0.9-13-7-15.4-19.1c-2.4-12.1,1.4-20,1.4-20s5.9-9.7,14.3-11.7c0,0,0.7-3.2,9.4-8.9c8.7-5.7,16.9-12.3,16.9-12.3s4.4-2.8,5.2-2.7s-8.3-2.3-6.6-7.2c1.7-4.9,13.6-28.8,13.6-28.8l8.6-17c0,0,3.5-5.7-0.6-10.9c0,0-4.9-3.7-5.3-12s1.6-14.7,4.3-19.4c2.7-4.7,5.2-8.2,5.2-8.2s7-0.9,10.1-3.6c0,0,9.2-6,12.8-9.1L1413.9,442.1z"}), 
+					React.createElement("path", {id: "temporal_lobe", fill: getRGB(this.props.values.avg[this.props.fixed.indices["Temporal lobe"]]), d: "M1111.1,719.9c-2,1.5-4,3-6.2,4.1c-2.4,1.2-5,1.8-7.6,2.4c-4.2,1-8.3,2-12.5,3c-2.9,0.7-5.8,1.4-8.7,1.6c-3.5,0.2-7-0.3-10.6-0.6c-6.4-0.6-12.8-0.6-19.1,0c-3.6,0.3-7.2,0.9-10.2,2.9c-1.5,1-2.7,2.3-4.4,3c-1.6,0.7-3.4,0.6-5.2,0.5c-9.6-0.5-19.2-2.5-28.2-5.8c-7.9,0.5-17.4-0.3-24.8-3.2c-2.4-0.9-4.7-2.2-6.9-3.5c-7.1-4.1-14.6-8.5-18.5-15.7l-5.3-10.9c-0.9-1.9-1.8-3.8-2.6-5.7c-2.6-5.9-4.8-12-6.5-18.2s-2.1-13.1-4.1-19.1c0,0-4.6-11.9,1.1-20.3c0,0,4.5-4,5.6-5.9c1-1.9,3.2-5.8,2.1-11.6c-1-5.8-3-13.3-3-13.3s-2.9-8.6,3.7-12.4c6.5-3.8,23.7-11.7,23.7-11.7s7.8-4.2,17.8-3.7s12.8-4.1,12.8-4.1l6.1-12.1c0,0,8.4-17.4,20-17.7c0,0,7.4-0.9,10.5,2.7c3.1,3.6,3.9,20.3,3.9,20.3s8.1-0.8,17.6-9.1c9.6-8.3,21.7-7.8,21.7-7.8s10.1-0.4,18.5,6.5c8.4,7,6.8,6,11.4,8s10.1,3.2,15.6,10.3c0,0-1.7-7.4,20-16.9c1.6-0.7,4.7-4,10-5.3s11.6-1.7,20.6-0.2s18.2-4.7,18.2-4.7s5.6-5.3,9.9-10.3s16.2-19.3,27.6-21.4c11.4-2.1,16.7-6.7,16.7-6.7s19.8-10.7,37,3.6c17.2,14.3,11.4,9.7,11.4,9.7s3.5,3.6,10.7,1.7c7.2-1.9,13.1-14.4,13.1-14.4s7.9,13.4,18.1,15.5c10.2,2.1,13.2-0.2,19.9-0.1c6.7,0.1,19.7-1.3,24.6-0.3c0,0-13.1,25.6-13.5,27.9c-0.4,2.2-2.2,5.9,5.4,8.5c0,0-19.7,13.8-21.3,14.9c-1.6,1.1-8.4,5.7-9.4,9.1c0,0-6.8,0.9-14.3,11.7c0,0-10.2,25,13.1,38.7c0,0,6.7,3,11.8,3.9c5,1,7.2,4.7,8.3,10.8c1.1,6.1,1.7,11.8,1.7,11.8s-15.8,3.3-20.8-2.7c0,0-6.9-2.1-12.4-1.1c0,0-12.2-0.8-15.3-2c-3.2-1.2-11.6,0-26.9,7.6c0,0-10.3,5.1-27.6,3.9c-17.3-1.2-17.1,0.7-17.1,0.7s-13.9,11.6-20,12.7c0,0-12.2,6.1-27.9,8.2c-15.7,2.1-30.5,4.1-30.5,4.1s-12.8,1.5-20.3,8.4c-7.5,6.8-11.8,12.5-19.1,15.8c-7.3,3.2-7.6,3.4-7.6,3.4L1111.1,719.9z"}), 
+					React.createElement("path", {id: "temporal_gyrus", fill: getRGB(this.props.values.avg[this.props.fixed.indices["Temporal gyrus"]]), d: "M997.3,603.9c1.7-0.6,3.2-1.6,5-1.7c39.3-2,80.8,12.9,117.1-2.4c10.9-4.6,20.9-11.8,32.5-14c19.3-3.6,38.8,7.3,58.3,5.2c11.7-1.3,22.5-7.2,34.2-8.6c11.7-1.3,26,4.7,27,16.4c1,11.8-11.4,19.8-22.1,24.9c-19.6,9.4-39.6,18.9-61.1,22.2c-12.1,1.9-24.4,1.7-36.4,4.1c-13.9,2.7-26.9,8.8-40.9,11.1c-7,1.2-14.2,1.4-20.9,3.6c-13.4,4.4-22.9,16-34.7,23.6c-9.1,5.9-19.8,9.5-30.6,10.4c-7.7,0.6-15.4-0.2-22.9-1.7c-3.8-0.8-7.8-1.8-10.7-4.4c-7.5-6.6-4.4-18.5-5-28.5c-0.8-14.1-10-29.3-2.5-41.2C983.5,623.1,992.3,605.6,997.3,603.9z"}), 
+					React.createElement("path", {id: "parietal_lobe", fill: "#B5B5B5", d: "M1122.4,305.1c-0.7-0.1,6.5-0.6,9.8-2c8.6-3.7,18.4-0.5,27.7,0.3c6,0.5,12.1,0,18.1,0.9c9.1,1.4,17.6,6.1,23.4,13.2c1.8-3.2,6.4-5.1,10.1-5.3c3.7-0.2,7.3,0.8,10.8,1.9c5.5,1.6,11,3.2,16.5,4.7c1.5,0.4,2.9,0.8,4.3,1.4c3.5,1.5,6.6,4,8.7,7.2c3.6-1.8,8.8-0.4,12.5,1.2c4.3,1.8,8.7,3.6,13,5.4c7.3,3,14.7,6.1,21.1,10.7c4.5,3.1,8.4,6.9,11.8,11.3c0.3,0.4,0.6,0.8,0.5,1.3s-0.9,0.7-1,0.2c2.3-1.2,5.6-1.2,8.1-0.5c1.7,0.4,3.3,1.3,4.9,2.2c4.5,2.5,9,5,13.5,7.5c1.3,0.7,2.5,1.4,3.6,2.3c3,2.5,4.5,6.3,5.9,9.9c6.5-0.9,12.5,3.4,16.5,8.5s7.3,11.1,12.7,14.8c5.7,3.9,13.3,4.7,18.3,9.5c2.2,2.1,3.7,4.7,5.7,7c2.9,3.3,6.7,5.6,9.6,8.9c3.5,4,5.4,9.3,5.3,14.6c0,0-3.5,2-7,4.7c-5.2,3.9-11.7,8.9-18.2,9.2c0,0-17.6,21.8-5.8,38.2c0,0,6.4,3.5,2,12.2l-8.2,16.6c0,0-10.9-1.3-24.6,0.3s-22.7-0.7-22.7-0.7s-11.1-4.4-15.3-14.7c0,0-7.9,13.7-14.2,14.7s-11.7-3.4-11.7-3.4l-10-8.8c0,0-9.7-8.2-23.1-6.8c0,0-11.2,1.8-18,6.2s-11.1,4-11.1,4s-10.9,3.2-18.2,10.8s-16.3,17.9-16.3,17.9s-3.5,4.7-13,7.7c0,0-5.6,1.3-18.6-0.5s-18,5.1-18,5.1s-13.9,6-17.6,9.8s-4.6,4-5.3,8.4c0,0-1.6-5.8-17.3-10.5c0,0-7.2-3.9-10-8.2c0,0-8.4-6.6-19.8-6.2c0,0-11.5,0.7-20.4,8.3c0,0-8.6,7.6-16.7,8.3l-0.6-0.3c0,0-0.7-16.6-3.6-20c0,0,3.8-14.4,24-16c0,0-20-8.5,2.5-29.8c0,0,8.4-4.7,10.8-9s2.1-12,2.1-12s0.6-6.1,0.3-14.8c-0.4-11.9-1.6-28-1.7-33.2c-0.2-9,4.7-19.6,15.1-24.4c10.4-4.8,28,3.9,28,3.9l3.8,2.6c0,0-0.8-2.7-2.3-6.5c-2.1-5.5-5.1-13.2-4-18.5c1.9-8.8,0.7-8.1,4.8-15.1s5.6-12.8,4.9-19.8s-0.7-13.8-2.4-21.3c-1.7-7.5-3.5-14.4-0.7-19.7c2.8-5.2,5.4-5.2,5.4-5.2L1122.4,305.1z"}), 
+					React.createElement("path", {id: "frontal_lobe", fill: getRGB(this.props.values.avg[this.props.fixed.indices["Frontal lobe"]]), d: "M1122.5,305c-4.8-4-11.5-4.8-17.7-4.3s-12.3,2-18.5,1.9c-3.8-0.1-7.5-0.7-11.3-0.8c-3.2-0.1-6.5,0.2-9.7,0.5c-2.8,0.3-5.7,0.5-8.5,0.8c-13,1.2-26,2.5-39.1,3.7c-5.8,0.6-12.7,0.9-17.7,4c-8.3-1-17.7-1.8-25.6,1.1c-8,2.8-14.8,8.4-22.8,11c-3.7,1.2-7.6,1.8-11.5,2.5c-18.5,3.4-36.1,10-53.7,16.6c-6.3,2.4-12.6,4.8-18.3,8.4c-6.2,4-15.3,8.6-17.4,15.6c-0.5,1.6-2.2,2.4-3.7,3.1c-11.9,5.7-19.8,17-24,29.5c-3.3,2.7-6.6,5.3-9.9,8c-5.3,4.3-10.7,8.6-14.9,14c-3.8,4.9-6.6,10.4-9,16.1c-0.8,2-2.1,5-0.5,6.5c-5.6,4.7-8.6,13.7-7.2,20.9c-4.7,0.2-8.8,3.5-11.1,7.5c-3.7,6.4-2.8,16.3,1.3,22.5c-3.1,11-5.2,23.2-0.7,33.7c1.7,4,5.5,8.4,5.1,12.7c-0.6,8.2,0.5,16.5,3.3,24.2c1.1,2.9,2.3,5.7,3.8,8.3c2.5,4.5,5.7,8.6,8.8,12.7c1.4,1.8,2.7,3.6,4.4,5.1c1.7,1.6,3.6,2.8,5.6,4.1c2.7,1.8,5.4,3.6,8.2,5.3c6.6,4.3,10.6,10.5,16.2,16.1c5.6,5.6,12,10.6,19.6,12.9c0,0,4.4,2.4,8.8,3.4c3.8,0.9,7.6,0.3,8,1c3.5,6,13.1,9.5,13.1,9.5c2.2,0.8,4.4,1.2,6.7,1.6c9.6,1.6,19.4,2.9,28.4,6.5c5.4,2.2,13,6.5,18.7,3c0,0-3.2-9.8-1.8-13.9c1.4-4.1,4.2-7.6,5.2-8.5c1-0.8,4.7-3.6,5.2-8.9c0,0,0.8-2.5,0-7.7s-2.5-10.5-2.5-10.5s-1.9-6.1,1.1-11.2c3-5.1,28.4-15.2,28.4-15.2s5.9-3,14.1-2.7s12.7-2.9,12.7-2.9s3.8-3.6,8-14.5c0,0,5.9-9,11.6-13.8c5.8-4.7,14.9-2,14.9-2s2.4,0.4,3.4,1.9c0,0,2.1-6.4,6.6-9.7c4.5-3.2,8.3-6,16.4-6.7h1.8c0,0-6.6-2.4-7.1-5.9s-2.4-2-0.6-10.6c0,0,2-8.1,13.5-15.7c0,0,5.7-3.2,7.6-7.8c1.9-4.6,1.9-25.5,1.9-25.5s-2.8-33.3-1.3-38.7c0,0,1.7-11.4,10.3-16.6s16.6-3.2,16.6-3.2s11.5,2.1,14.7,4.4c3.2,2.3,5,2.9,5,2.9s-2.4-6.1-2.7-7.3c-0.3-1.2-3.4-9.1-3.8-11.6s0.1-12.1,4.4-20.5c4.3-8.5,5.8-10.2,5.3-16.1s0.8-13.5-1.5-21.5c-2.2-8-3.7-16.5-3-19.9c0.4-2,1.9-5.3,4.1-7.4C1119.5,306,1121.6,305.4,1122.5,305"}), 
+					React.createElement("path", {id: "prefrontal_cortex", fill: getRGB(this.props.values.avg[this.props.fixed.indices["Prefrontal cortex"]]), d: "M806.9,478.3c-9.9,14.5-12.5,33.7-6.8,50.3c5.2,15.3,16.6,27.7,22.6,42.6c2.6,6.5,4.3,13.7,9.5,18.2c3.8,3.3,8.8,4.6,13.6,5.9c9.1,2.4,18.3,4.8,27.4,7.2c5.6,1.5,11.4,2.9,17.1,2.3c5.7-0.6,11.6-4,13.4-9.5c1.2-3.4,0.7-7.1,1.1-10.7c1.4-13,13.8-21.9,25.8-27c12-5.1,25.4-8.5,34.6-17.7c9.3-9.3,12.6-22.8,15.6-35.6c4-17.3,7.5-37.1-3.1-51.3c-4.8-6.4-11.8-10.7-17.5-16.3c-8.4-8.2-13.7-19-18.5-29.6c-3.2-7.1-6.4-14.3-10.7-20.9c-10.1-15.4-29.6-26.8-47.1-20.7c-7.8,2.7-14.2,8.6-19.7,14.7c-15,16.6-25.9,36.4-36.6,56c-2.7,5-5.4,10-8.2,14.9c-5,9.2-10,18.4-14.5,27.8"}), 
+					React.createElement("path", {id: "brain_strokes", fill: "none", stroke: "#000000", d: "M1110.4,719.8c7.8-2.2,15-6.2,20.9-11.6c3.9-3.6,7.3-7.8,11.7-10.8c5.6-3.7,12.5-5.1,19.1-6.1c12.2-1.9,24.4-2.9,36.4-5.6c12-2.6,23.9-7,33.5-14.6c2.5-2,4.9-4.2,8-5.2c2-0.7,4.2-0.7,6.3-0.7c8.8,0.2,17.8,2,26.4,0.2c10.9-2.2,20.3-9.7,31.3-11c7.8-0.9,15.8,2.3,23.6,2.1c3.5-0.1,7.3-0.3,10.4,1.4c1.1,0.6,2,1.4,3.1,2c4.1,2.2,9.1,1,13.7,0.5c4.9-0.5,9.9,0,14.5,1.4c2.3,0.7,4.6,1.6,7,1.9c8.2,1,15.7-5.6,23.9-5.2c5.1,0.2,9.7,3.1,14.3,5.4c4.9,2.4,10.2,4.1,15.4,5.8 M1208.8,731.3c9.7,18.5,24.1,34.2,41.7,45.4c8.2,5.2,16.6,10.5,26,12.7 M1161.6,764.5c7.2-1.1,13.6-5.2,19.5-9.5c5.7-4.1,11.3-8.5,16.7-13.1c2-1.8,4.2-3.7,4.8-6.4c1.6-1.7,2.8-3.2,3.7-5.3 M1202.6,735.7c-0.3,1.7,0.6,3.3,1.5,4.7c0.2,0.3,0.4,0.7,0.8,0.9c0.4,0.3,0.8,0.4,1.3,0.5c1.5,0.4,3.1,0.4,4.6,0.3c0.9-0.1,1.9-0.4,2.3-1.3c0.4,0.1,0.9-0.4,1.1-0.7 M1159.8,691.7c0,0,12,23.6,39.9,35.8c3.6,1.6,6.9,3.8,10.8,3.5c3.9-0.4,7.6-1.9,11.2-3.4c5.1-2.1,10.1-4.3,15.2-6.4 M998.2,562.5c-0.6,1.4-1.2,2.8-1.8,4.2c-0.8,1.8-1.6,3.7-2.9,5.1c-2.3,2.5-5.8,3.6-9.1,3.9c-3.4,0.3-6.8,0.1-10.1,0.5c-5.5,0.7-10.7,3.1-15.7,5.5c-5.1,2.5-10.3,4.9-15.4,7.4c-1.7,0.8-3.5,1.7-4.8,3c-2.5,2.6-3.2,6.5-2.9,10.1c0.3,3.6,1.6,7,2.5,10.5c1.3,5.7,1.3,12.2-2.2,16.8c-1.9,2.4-4.5,4.2-6.2,6.7c-3.2,5.1-1.5,11.6,0.3,17.3 M1012.6,623.2c8.3-6,9.9-17.7,15-26.6c2.3-4,5.4-7.6,6.6-12c0.8-3,0.8-6.1,0.6-9.2c-0.4-8-1.4-15.9-2.4-23.8c-0.4-2.9-0.9-6.1-3.2-7.8c-1.5-1.1-3.5-1.3-5.4-1.5c-2.8-0.3-5.7-0.6-8.3,0.3c-3,1-5.3,3.4-7.5,5.8c-3.2,3.5-6.5,7-8.4,11.3c-2,4.6-2.5,9.7-4.5,14.3c-3.1,7-9.5,11.8-15.7,16.3 M986.1,671.6c0.7,5.9,1.4,11.7,2.1,17.6c0.1,1.1,0.3,2.2,0.8,3.2c1.1,2.1,3.5,3.1,5.8,3.5c2.4,0.5,5,0.5,7.4,0.1c1.1-0.2,2.1-0.4,3.2-0.2c2.4,0.6,3.7,3.5,6.1,4.2 M1013,649.5c0.6-3.3,0.6-6.7-0.5-9.9c-1.1-3.2-3.5-5.9-6.6-7.1c-2.4-0.9-5-0.9-7.5-0.9c-4.3,0-8.6,0-12.9,0c-1.5,0-3,0-4.3,0.5c-4.2,1.5-5.4,6.7-6.1,11c-0.7,4.4-1.8,9.5-5.9,11.2 M1015.5,630.6c-1.3,1-2.3,2.2-2.9,3.7c-0.4,0.9-1.2,1.7-1.4,2.6 M1117.5,679.5c-0.4,0.1-0.7-0.3-0.9-0.7c-5.5-10.9-17.2-17.1-28.4-22c-4.7-2.1-9.5-4.1-14.5-4.9c-14.6-2.5-29.1,4.8-44,5c-6.3,0.1-13.4-1.7-16.7-7v-0.7 M1092.4,698.9c-1.7-3.7-3.8-7.8-7.7-8.9c-2.9-0.9-6.1,0.2-9.1,0.5c-6.6,0.7-13.2-2.3-19.9-1.6c-5.4,0.6-10.5,3.8-13.5,8.3c-2.1,3.1-1.5,4.3-5.4,5.1c-3.3,0.7-7,0.5-10.3,0.1 M1085.9,690.3c0.9-0.8,2.4-1.3,3.3-2.1c1.2-1.1,2.4-2.2,3.6-3.4 M1038.8,701.7c1.8-0.9,4.3-1.6,6.1-2.5 M959.9,692.7c0.6,2.3,1.2,5.4,1.8,7.7c0.8,3,1.6,6.1,3.5,8.6c2.5,3.5,6.7,5.4,10.6,7.2c2.6,1.2,5.2,2.3,7.8,3.5 M940.1,675.3c1.4,1.9,2.7,3.9,4.1,5.8c1.5,2.1,3,4.3,5,5.9c1.8,1.5,3.9,2.6,6,3.6c2.6,1.3,5.6,2.6,8.4,1.8 M1142,690.2c-1.5-3.6-3.2-7.1-5.1-10.5c-0.7-1.2-1.4-2.4-2.4-3.3c-1.1-0.9-2.5-1.2-3.9-1.5c-5-1.2-10.1-2.5-15.1-3.7c-1.6-0.4-3.7-0.8-5.4-1.1 M1146.2,685.7c6.3-0.5,12.8-1,19,0.3c2.1,0.4,4.1,1.1,6.2,1.4c3.8,0.6,7.7,0,11.6-0.5c6-0.8,12-1.6,17.7-3.6c4.8-1.7,9.3-4.3,13.8-6.9c7-4,14-8.1,19.7-13.7c2.5-2.4,4.8-5.7,3.8-9c-0.7-2.3-2.9-3.9-4.9-5.2c-8.5-5.6-17.6-11.4-27.8-11.9 M1165.9,654.2c0-0.3-0.4,0.2-0.2,0.3c0.3,0.1,0.5-0.3,0.6-0.5c1.4-3.2,4-5.7,6.5-8.1c0.5-0.4,0.9-0.9,1.1-1.5c0.1-0.4,0.1-0.9,0.1-1.3c-0.3-3.4-1.8-6.7-4.2-9.1c-0.6-0.6-1.6-1.1-2-0.4c-4.3-1.6-7.9-4.2-12.3-5.8c-7.2-2.7-14.6-5.4-22.2-4.4c-2.8,0.3-5.6,1.2-8.5,1.3c-2.7,0.1-5.5-0.4-8.2-0.9c-7.7-1.6-15.3-3.7-22.8-6.2c-2.4-0.8-4.9-1.7-7.4-1.9c-6.8-0.6-13.1,3.3-18.8,7 M1054.8,602.3c5.4,1.6,11.1,2.3,16.7,1.9c0.9-0.1,1.9-0.2,2.8-0.5c1-0.4,1.8-1.2,2.6-1.9c3.6-3.5,6.4-7.8,8.4-12.5 M1174,642.1c4.1,0,7.6,4.6,11.5,5.8c1.1,0.3,2.3,0.4,3.4,0.4c1.4,0.1,2.9,0.1,4.3,0.2 M1225.7,593.9c-4-0.9-8-1.9-12-2.8c-2.4-0.6-4.9-1.1-7.3-0.6c-1.5,0.3-2.9,1-4.3,1.8c-8.8,4.6-17.2,9.9-25.3,15.7c-3,2.1-6,4.5-7.4,7.9c-2.2,5.5,0.5,11.7,0,17.6 M1075.1,603.7c-0.1,0.9,0.2,1.8,0.5,2.6c1.4,3.7,4,7,7.3,9.2 M1120.7,581.8c0.8-2.6,0.2-5.6-1.2-8c-1.4-2.4-3.5-4.3-5.7-5.9c-4.2-3-9.3-3.7-13.5-6.4c-4.1-2.6-6.9-6.8-11.4-9.2c-4.8-2.5-10.1-4.3-15.5-4.3c-7.8-0.1-15.3,3.3-21.7,7.8c-5.3,3.7-10.6,8.5-17.1,8.6 M1177.3,571.4c-2.7,1.4-4.4,4.2-7.1,5.7c-4.5,2.5-10.6,1-14.6,4.3c-2.3,1.9-3.3,5.2-2.7,8.2 M1104,571.9c-0.3-3.4-1.4-6.7-3.3-9.5 M1110.5,508.2c0.8,0,1.5,0,2.3,0c-5.3-0.4-11.2-0.6-15.5,2.6c-2.6,2-4.2,5-6.4,7.3c-1.6,1.8-3.6,3.1-5.7,4.4c-5.2,3.2-10.9,5.6-17,6c-5.7,0.5-11.4-0.8-17.1-0.2c-8.9,1-17.1,6.8-20.8,14.9 M1166.5,506.6c-3.2-6.7-10.6-10.7-18-11.8c-7.4-1-14.9,0.4-22.2,1.8c-4.3,0.8-9.3,2.1-11.3,6c-0.9,1.8-3,3.3-2.7,5.3 M1142,554.2c-0.2,0-0.1-0.5,0.1-0.4c0.2,0,0.3,0.4,0.2,0.6s-0.4,0.3-0.6,0.4c-5.1,2.1-10.1,4.6-14.7,7.7c-3.5,2.3-7,5.1-8.3,9.1 M1214.5,591.9c4.1-5.2,11.7-5.4,18-7.1c10.3-2.7,19.3-10.3,23.5-20.2c2.3-5.3,3.8-11.9,9-14.3c5.1-2.4,11.5,0.2,16.5-2.4 M859.7,624.2c0.6,3,1.7,6,3.1,8.7 M1139.9,543.9c0.3,3.7,1.1,7.3,2.4,10.8 M912.8,632.1c-2.1-0.4-4.2-0.8-6.3-1.3c-2.6-0.5-5.4-1.1-7.5-2.8c-2.3-1.8-3.4-4.7-4.7-7.3c-1.6-3.3-3.7-6.4-6.7-8.4s-7.2-2.6-10.3-0.7 M1281.5,513.6c-5.2-5.6-14.1-10.1-21.7-10.2c-7.7-0.1-15.2,2.3-21.9,5.9c-1.8,1-3.6,2-5.5,2.7c-2.1,0.8-4.4,1.2-6.6,1.8c-11.7,3.2-20.7,12.4-28.4,21.7c-4.6,5.5-9.4,11.5-16.2,13.9c-6.2,2.2-13.1,1-19.7,0.4c-6.6-0.6-13.9-0.2-18.8,4.3 M1263.9,535.4c0.6,0.2,0.7,0.9,0.7,1.5c0.1,4.2,0.7,8.4,1.9,12.4 M1276.9,587.2c-4.2,0.1-8.3-0.9-11.9-3c-1.6-0.9-3.1-2-4.7-2.9c-5.4-2.7-11.7-1.8-17.6-0.9 M1283.8,578.8c3.6-1.9,6.7-4.8,8.8-8.2c2.2-3.6,3.6-8,7-10.5 M1229.2,620.5c12.5,5.2,27.2,4.5,39.2-1.7c2.9-1.5,5.6-3.3,8.6-4.5c7.3-3.1,15.5-2.9,23.1-4.7c9.6-2.3,18.3-7.9,24.3-15.7c3.1-4,8.8-9.8,13.6-11.1 M1263.2,635c1.1,1.9,2.3,3.9,3.9,5.4c2.4,2.3,5.7,3.5,8.9,4.6c3.2,1.1,6.4,2.2,9.7,2.6c2.1,0.3,4.3,0.3,6.4,0.5c3,0.3,5.9,0.9,8.7,1.9 M1306,646.2c2.5-1.7,5-3.4,7.5-5.1c6.4-4.3,13.8-8.9,21.4-7.4c1.7,0.3,3.4-0.4,5-1.2c4.4-2.4,8.4-5.4,12-8.9c0.3-0.3,0.6-0.4,0.8-0.7 M1338.1,633.2c-0.3,0.6,0.1,1.4,0.7,1.7l1.8,0.8c1,1.1,2.8,0.9,4.3,1.1c1.8,0.2,3.4,0.9,5,1.6c1.9,0.9,3.9,1.8,4.9,3.6c0.4,0.7,0.6,1.4,0.8,2.2c1.3,4.9,2.3,10,2.7,15.1 M847,612.9c-0.9-3.5-4.5-5.5-7.8-6.8c-9.6-4-19.9-6.5-30.3-7.3 M933.1,626.4c-2.4-4.3-5.2-8.9-9.8-10.5c-1.6-0.6-3.4-0.7-5-1.2c-7.9-2.3-12.1-10.6-18.1-16.1c-4.4-4.1-10-6.8-14.6-10.7c-2.3-2-4.4-4.3-6.6-6.5c-7.3-7.1-16.1-12.6-25.7-16c-2.2-0.8-4.4-1.4-6.8-1.5c-3.6-0.1-7,1.3-10.5,1.9c-8.8,1.4-17.6-2.6-25.5-6.7c-4.6-2.4-9.2-4.9-13.1-8.4c-4.5-4-8.5-9.3-14.4-10.4c-2.5-0.5-5.2,0-7.1,1.6 M799.2,574.3c1.6,1.8,3.1,3.7,4.7,5.5c1.4,1.6,2.8,3.3,3.5,5.3c0.4,1.2,0.6,2.4,1,3.5c1.4,4.1,5.5,6.7,9.4,8.7c0.5,0.2,1.4,0.1,1.1-0.4 M842.3,564c2.4-5.9,3.3-12.4,2.7-18.7 M771.4,494.5c2.2,2.6,6.4,5.1,9.8,5.5 M809.4,527.4c2.6-4.2,7-6.9,10.1-10.7c3.6-4.2,5.5-9.9,5.1-15.4s-3.1-10.9-7.4-14.4c-2.1-1.8-4.6-3.1-7-4.3c-6-3.1-11.9-6.3-17.9-9.4c-3.8-2-8.8-6.4-11.1-10 M929.7,455.3c-1.5,5.1-2.2,10.3-2.1,15.6c3.8-2.4,8.5-3.4,13-2.5 M822.2,399.9c4.1,0.5,8.7,0.9,11.9-1.7c1.6-1.3,2.6-3.1,4.3-4.2 M927.5,470.9c-1.9,3.1-6.8,3.5-10,5.2c-1.9,1-3.5,2.5-5.2,3.9c-1.9,1.7-3.9,3.5-5.8,5.2c-1,0.9-2,2.4-1.1,3.3c0.3,0.3,0.7,0.4,1.1,0.6c1.5,0.6,2.7,2.1,3,3.7 M910.5,532.9c0-1.6,0-3.1,0-4.7 M905.2,486.9c-6.5,0.9-12.5,4.9-15.8,10.5s-3.8,12.9-1.3,18.9c1.2,2.9,3.1,5.7,5.8,7.3c3.4,2.1,7.6,2.2,11.4,3.3c2,0.6,4,1.4,6.1,1.4c4.2,0,7.7-3.1,10.8-6 M910.6,532.6c-1.7,7.4-2.3,15.6,1.1,22.4c0.9,1.9,2.1,3.6,2.9,5.5c1.6,3.4,2.1,7.2,3.9,10.6c0.3,0.6,0.8,1.3,1.5,1.5c0.6,0.2,1.2,0,1.7-0.2c2.9-0.9,6-1.3,9.1-1.1 M845.5,529.2c2.3-1.2,4.9,1,6.2,3.3c1.3,2.4,2.1,5.2,2.2,8c3.7-2.4,5.7-6.6,9-9.5c2.5-2.2,5.6-3.6,8.7-4.9c4.5-2,9.1-4,13.6-5.9c0.9-0.4,3.2-1.6,4.1-2.1 M834.8,515.7c-1.3-1.1-2.1-2.7-3.4-4c-2-2-5.2-2.7-7.9-1.8 M881.5,552c1.6,0.7,3.3,1.4,4.9,2.1c-0.7-1.5-1.1-3.2-1.2-4.9 M788.5,443.6c3.2,1.5,7.9,2.5,11.3,1.5c4.3-1.2,7.8-4.8,12.2-5.9c1.1-0.3,2.2-0.3,3.2-0.8s1.9-1.4,1.9-2.5 M817.2,433.9c-0.1,2.7,0.7,5.3,1.5,7.8c0.4,1.4,0.9,2.8,1.8,3.9c0.7,0.9,1.6,1.6,2.5,2.3c3.8,2.8,7.9,5.5,12.5,6.2c0.8,0.1,1.9,0.4,1.8,1.3 M950.5,526.6c0.4-0.2,0.8-0.4,1.1-0.6c-8.7,6.1-12.5,18.4-8.8,28.3c0.7,2,1.7,3.9,2.3,5.9c0.6,2.1,0.6,4.3,1.1,6.4c1.7,7.5,9.2,13.1,16.8,12.8 M987.9,544.2c-0.9-4.7-0.6-9.5,0.8-14c-1.6,0-3.2,0.1-4.8,0.1c-0.8,0-1.6,0-2.4-0.1c-0.7-0.1-1.3-0.3-1.9-0.6 M1024.5,412.6c3.2,2.4,5,6.1,7.3,9.3c1,1.3,2.5,2.6,4,2.1c1.4-0.5,1.8-2.1,2.2-3.5c1.7-5,6.1-8.5,10.4-11.5c-0.3,0-0.6,0-1-0.1 M1068.9,482.5c0.2,0,0.3,0.4,0.3,0.6c0,3.5-1.4,7-3.9,9.5c-1.9,1.9-4.3,3.1-6.5,4.6c-3.7,2.5-6.8,5.8-9.2,9.6c-2.1,3.5-3.6,7.5-3.2,11.5s3.1,8,7,9.1 M1115.2,411.7c-3.9-4-10.8-5.6-16.3-6.7c-4.7-1-9.7-1.8-14.3-0.4c-1.6,0.5-3.2,1.3-4.6,2.2c-6.1,3.9-10.4,10.6-11.4,17.8c-0.4,2.8-0.3,5.7-0.2,8.6c1,19.6,3.5,39.3-0.7,58.6c-0.6,2.6-0.9,5.6-3,7.3 M989,529.5c7.5-4.5,8.8-15.1,15.3-21c1.7-1.6,3.9-2.9,4.7-5.1c0.3-0.7,0.3-1.5,0.6-2.3c0.4-1,1.1-1.8,1.8-2.5c3.1-3.1,6.7-5.7,10.7-7.5c-0.5,0.1-0.9,0.3-1.4,0.4c0.3,0.7-0.3-1.4-0.4-2.1c-0.6-4.2-1.8-8.3-2.3-12.5c-0.4-4.2,0-8.7,2.3-12.3c0.7-1.1,1.6-2.1,2.2-3.2c0.5-1,0.8-2.2,1.1-3.4c1.2-5.2,2.1-10.7,5.4-14.7c2.4-2.9,6.2-5.3,6.4-9.1c0.2-3.2-1-7.4,0.3-10.4 M991.4,413.4c0.4-0.5,0.8-0.9,1.2-1.4c-2.6,2.4-5.3,4.8-7.3,7.8s-3.3,6.5-2.8,10.1c0.2,1.4,0.6,2.8,0.6,4.3c0,4.2-3.7,7.7-4,11.8c-0.2,2.9,1.4,5.7,1.4,8.6c0,4.2-3.2,7.8-4.5,11.8c-1.7,5.3-0.2,11.5-3.1,16.2c-1.8,2.9-5,4.6-7.9,6.4c-5.8,3.5-11.2,7.6-16.1,12.3c-2.7,2.6-5.3,5.5-6.7,9c-0.8,2.2-1.2,4.5-1.2,6.8c0,5,1.9,10.9,4.8,14.9 M981.4,484.2c-0.6-1.4-2.1-2.2-3.7-2.4c-1.6-0.2-3,0.2-4.5,0.6 M859.8,450.9c2.7-3.5-0.2-8.4-0.9-12.8c-0.4-2.8,0.1-5.6,0.5-8.4c1.1-7.3,1.5-14.8,1.2-22.2c-0.2-5.1-0.7-10.2-2.5-15c-2.1-5.7-5.9-11-6.6-17 M946.5,420.5c1.5,3,0.3,6.8,1.4,10c1.3,3.6,5.3,5.6,9.1,5.6c3.8,0,7.4-1.6,10.9-3.3c3.4-1.7,6.8-3.6,10.6-4.2 M947.9,430.5c0.5-0.8-1.3-2.4-2.2-2.8c-2.9-1.3-5.9-2.7-8.8-4c-1-0.5-2.1-0.9-3.2-1.2c-1.1-0.3-2.3-0.3-3.4-0.3c-2.5-0.1-4.9,0.8-6.8,2.6c-12.8,2.7-21.9,15.8-34.9,17.3c-9.7,1.2-20.4-4.4-29,0.4 M1058.9,389c-5.4-6-12.6-10-19.7-13.8c-2.6-1.4-5.2-2.8-7.9-3.8c-7.2-2.6-15-2.2-22.6-1.8c-3.9,0.2-8,0.5-11.3,2.5c-2.5,1.5-4.3,3.8-6.1,6.1c-7.8,9.8-16.1,19.6-27.1,25.7 M1069.4,390.9c0.3-1.9,0.6-3.7,0.7-5.6c0.2-5.5-1.5-11.9-6.3-14.8c-2.8-1.7-4.3-4.9-5.4-8.1c-1-2.9-1.8-5.8-2.4-8.8 M1088.8,309.6c-8.1,1.7-16.2,3.5-24.3,5.2c-5.4,1.2-11,2.4-15.8,5.1c-6.5,3.6-11.4,9.6-16,15.5 M898.1,387.5c5.1-7.3,13.6-11.7,22.4-13.6c2.6-0.5,5.2-0.9,7.8-1.1c2.4-0.2,6.7,0.6,8.8-0.3c3.1-1.3,4.3-8.4,7.4-11.4c1.7-1.6,3.7-3,5.3-4.6c2.1-2.1,3.5-4.8,5.3-7.1c1.8-2.4,4-4.6,6.9-5.3c4.1-1,8.1,1.2,11.7,3.3 M882.7,367c1.9,0.4,3.9,0,5.7,0.7c1,0.4,1.9,1.1,2.6,1.8c5.7,5.4,8.5,13.7,7.1,21.4 M834.8,454.3c1.3,3.9,2.7,7.9,4,11.8c1.3,3.8,3.5,8.3,7.5,8.4c1.2,0,2.8-0.3,3.5,0.7c0.4,0.6,0.3,1.3,0.2,2c-0.2,3.4,2,6.5,4.8,8.5c2.8,1.9,6.1,2.9,9.3,3.9c1,0.3,2.2,0.7,2.8,1.5c0.5,0.6,0.7,1.4,1.1,2.1c1,1.6,3,2.2,4.9,2.6c4.5,0.8,9.1,0.9,13.6,0.1 M947.3,377.1c-2.5-2.9-6.3-4.7-10.1-4.8 M966.6,332.6c-2.3,3.4-3.4,7.5-3.4,11.6 M999.7,311.5c3,4.9,6.4,10.1,11.6,12.6c4,1.9,8.7,2,12.6,4.2c2.8,1.6,4.8,4.1,6.8,6.6 M1030.8,334.4c-0.2,0.5,0.5,1.1,1.1,1s1-0.5,1.5-0.9 M1121.4,304.8c-4.1,2.4-6.9,6.8-7.4,11.5c-0.4,3.8,0.7,7.6,1.6,11.3c2.3,9.5,3.3,19.4,2.9,29.2c-0.1,2.4-0.3,4.8-1,7c-0.7,2.1-1.9,4.1-3,6c-4.9,8.8-7.6,19.5-4.1,28.9c0.9,2.4,2.2,4.7,2.8,7.2c0.5,2,0.6,4.2,2,5.7c1.9,2.1,5.2,1.9,8.1,1.5c5.3-0.9,10.6-2.1,15.8-3.7 M1101.1,508.9c3.3-1.4,5.3-5.6,6.3-9c0.8-2.8,2.2-5.5,2.9-8.4c0.5-2.3,0.6-4.8,0.6-7.2c0-5.6,0-11.2-0.2-16.7 M1131.8,453.8c-6.2,1.7-11.8,5.9-15.1,11.4 M1204.2,472.6c-8-2-17.2,3.1-19.7,11c-0.4,1.3-0.7,2.8-1.5,3.9c-0.7,1-1.8,1.7-2.8,2.3c-3.2,2-6.3,4.1-8.8,6.9c-2.5,2.7-4.5,6.2-4.8,9.9 M1110.5,467.9c0.5-1.6-0.7-3.1-1.9-4.2c-2.1-2-4.1-4-6.2-6 M1196.3,472.6c0.9-3.2,1.2-6.7,0.8-10 M1251.6,327.6c-7.3,9.8,1.2,25.4-5.9,35.4c-2.5,3.6-6.6,5.6-10.5,7.7c-4.3,2.3-8.5,4.7-12.6,7.3c-3.1,1.9-6.2,4-8.3,7c-1.9,2.7-2.9,5.9-3.9,9.1c-1.4,4.6-2.8,9.1-4.2,13.7c-1.1,3.7-2.2,7.5-1.3,11.3c1.2,4.7,5.5,8.1,6.6,12.9c1.4,5.8-2.3,12-0.4,17.6c1.3,3.9,5.1,6.5,8.6,8.7 M1178.8,438.9c-3-1.1-6.5-0.9-9.4,0.5c-1,0.5-1.9,1.1-2.5,2c-0.7,1.1-0.8,2.4-1.2,3.5c-1.1,2.8-4.1,4.3-6.3,6.3c-3.3,2.9-5.4,7.3-5.6,11.7 M1158,400.4c-7.2,0.7-13.4,5.1-19.2,9.3 M1110.2,465.8c2.2,0.7,4.8,0.2,6.7-1.1 M1166.8,441.6c-1.3-7.3-5.9-13.9-12.3-17.6c-0.8-0.5-1.7-0.9-2.4-1.6c-0.8-0.8-1.3-1.8-1.8-2.7c-2.6-4.6-7.1-8.1-12.2-9.6 M1116.9,464.6c3.1,3.6,7.9,6.6,12.6,6.2 M1148.3,372.5c4.2,6.5,7,13.8,8.2,21.4c0.4,2.6,0.7,5.2,1.9,7.5c1,1.9,2.5,3.4,4.1,4.7c9,6.9,21.5,6.4,32.8,5.6c3.5-0.3,8.2-1.7,10.9-3.9 M1164.6,337.7c-3.5-0.8-7-1.7-10.5-2.5c-2.5-0.6-5-1.2-7.5-1.1c-2.5,0.1-5.1,1.2-6.6,3.2 M1167.4,345.6c5.3,2.9,9.8,7.4,12.8,12.6c1.4,2.3,2.9,5.2,5.6,5.4c0.6-6.2,5.6-11.8,11.7-13c5.2-1,10.5,0.7,15.7,0.3c4.4-0.4,8.7-2.4,11.7-5.6 M1200.8,327.2c0.5-3.1,0.5-6.2,0-9.3 M1253.2,381.6c-0.4,1.9,1,3.6,2,5.2c1.2,2,1.8,4.3,1.9,6.6c0,0.7,0,1.4,0.3,2.1c0.3,0.7,0.9,1.2,1.6,1.1c3-3.5,7.5-5.6,12.1-5.7 M1233.1,412c0.3-0.2,0.7-0.1,1.1,0c3,1.2,6,2.3,9,3.5c1.4,0.5,2.8,1.1,4,1.8c2.3,1.4,4,3.5,5.7,5.5c7.1,8.4,14.2,16.8,21.3,25.3c2.7,3.2,5.5,6.5,7,10.4c2.2,5.6,1.6,11.8,1,17.7c-0.6,6.2-1.3,12.4-3.8,18.1c-1,2.2-2.3,4.4-2.7,6.9c-0.9,5.9,4,11,8.5,14.9c4.4,3.9,9.9,8.1,15.5,6.5c2.5-0.7,4.5-2.4,6.4-4.2c6.6-6.6,11-15.3,12.4-24.4 M1296.9,400.5c-2.4-1.6-4.3-3.8-5.6-6.4c-1.4,2.6-3.2,5-5.4,7 M1258.9,396.5c-0.4,4.1-4.7,7.3-7.3,10.4c-2.6,3.2-4.2,7-3.5,11 M1309,358c-4.4,4.8-11.7,7.3-13.7,13.5c-1,3.1-0.4,6.5-0.7,9.8c-0.2,2.6-0.9,5.2-2.1,7.5c-0.8,1.6-1.1,3.5-1.2,5.3 M1269.7,442.6c-1.4-2-1.8-6.8-0.6-9.1c1.1-2.2,3-4,5-5.5c14.8-11.3,35.2-13.1,50-24.4c8.2-6.3,14.2-15.1,19.9-23.7 M1320.4,450.8c-6.2,6-10.9,13.5-13.4,21.7 M1313.9,507.9c2.5,4.9,6.3,9.2,10.8,12.3c1.8,1.3,3.8,2.3,6,2.9c2.4,0.6,4.9,0.6,7.3,0.5c4.6-0.1,9.2-0.2,13.9-0.3 M1308.4,439.4c3,3.2,6,6.4,9.1,9.6c1,1,1.9,2,3.1,2.8c2.2,1.5,5,1.9,7.7,1.9c10.3,0.2,20-4.1,29.4-8.2c4.4-2,8-4.6,12.5-6.6 M1332,523.4c-0.2,3.4,1.8,7.7,4.9,9.2 M1373.6,420.9c0.2,3.9-0.4,7.9-1.8,11.5c-1,2.7-2.5,5.6-1.3,8.3c0.5,1,1.3,1.9,2.1,2.7c3.4,3.3,6.8,6.6,10.2,10c0.9,0.8,1.8,1.7,2.9,2.2c1.4,0.6,3,0.5,4.6,0.2c8.7-1.6,15.7-7.8,22.2-13.8 M1251.4,471.9c0.8,7-6.8,12.4-7.2,19.5c-0.1,1.3,0.1,2.7,0.3,4c0.4,2.3,1.1,4.5,2.4,6.4c1.1,1.5,2.8,2.7,4.6,2.4 M1110.5,536.9c1.2,1.3,3.2,1.6,4.9,1.2c1.7-0.4,3.3-1.3,4.8-2.2 M1209.7,519.8c2.5-2.2,3.5-5.7,3.9-9s0.5-6.8,1.9-9.8c0.8-1.8,1.9-3.3,2.6-5.2c0.9-2.5,0.6-5.2,0.4-7.8c-0.1-1.3-0.3-2.7-1.1-3.7c-0.7-0.8-1.8-1.2-2.7-1.8c-4.2-2.6-5.6-8.9-10.4-10 M1209.9,519.6c-0.1-0.2-0.4,0-0.5,0.2c-0.7,1.3-1.3,2.7-1.8,4.1 M1227.2,474.9c-2-0.1-3.7,1.4-5,2.8c-1.9,2.1-3.4,4.6-4.6,7.2 M1354.9,642.2c2.9,1.5,6.1,2.9,9.3,2.3c3.1-0.6,5.7-2.9,8.9-3.1c1.2-0.1,2.7,0,3.2-1.1 M1396.2,659.2c3.5-1.7,5.8-5.2,7-8.9s1.4-7.6,1.5-11.5c0.2-4.2,0.3-8.5-0.4-12.6c-1.1-5.8-4.1-11.1-7-16.3c-0.4-0.7-0.8-1.3-1.4-1.8c-0.8-0.6-1.9-0.8-2.9-1c-2.8-0.4-5.6-0.9-8.4-1.3c-1.2-0.2-2.5-0.4-3.5-1c-0.9-0.6-1.7-1.4-2.4-2.2c-2.6-3.1-5.3-6.3-7.9-9.4 M1337.4,591.4c-1.5-3-0.7-6.7,1.2-9.5s4.6-4.8,7.4-6.8c5.3-3.8,10.6-7.6,15.9-11.5c2.7-1.9,5.4-3.9,8.6-4.6c1.7-0.4,3.5-0.4,5.3-0.1c1.4,0.2,2.8,0.6,3.9,1.5c3.5,2.9,1.5,8.7,3.6,12.7c1.4,2.6,4.3,4.1,7.2,4.7c2.9,0.6,5.9,0.7,8.8,1.5c10.3,2.8,16.3,13.8,25.9,18.6c6.5,3.2,14.4,3.3,20.9,0.1c1.6-0.8,3.3-1.9,4-3.5c0.5-1.1,0.5-2.3,0.4-3.5c-0.4-6.6-3.4-13.1-8.3-17.6s-11.5-7.1-18.1-7.1 M1447.8,624.9c-4.4,3.9-9,8-14.7,9.6c-4.8,1.3-9.8,0.7-14.7,1.6c-5.7,1.1-10.9,4.5-14.3,9.3 M1433.7,613.2c0.3-4,0.2-8.9-0.2-12.8 M1447.7,562.1c-2,1.3-4.1,2.7-5.5,4.6c-1.4,1.9-1.1,4.6-0.1,6.8 M1378.9,602.9c-3.9,1.5-8.9,2.7-13,2.7 M1467.3,567.8c-1.4-2.4-2.4-5.1-3.3-7.7c-1.6-4.9-2.9-9.9-5-14.6c-2-4.5-5.3-9.7-10-11.7c-1.9,6.2-14.1,11.5-19.6,13.7c-7.7,3.1-16.1,4.6-24.4,4.2c-5-0.2-10.2-1.1-15.1,0c-4.9,1.1-9.6,5.2-9.4,10.3 M1388.5,455.9c-6.3,7.9-10.4,19.2-9.4,29.3c0.3,3.3,1.2,6.7,3.6,9c0.8,0.7,1.7,1.3,2.4,2.1c2.6,3.1,0.9,7.7-0.9,11.2c-6.4,12.9-12.8,25.9-19.3,38.8c-1.2,2.4-2.4,4.9-2.2,7.5c0.2,2.6,4,5.6,6.7,5.6 M1399.8,537.2c0.6-3.7-1.1-7.6-4.2-9.7 M1420.6,465.8c3,2.3,5.8,5.1,9.2,6.9s7.7,2.4,10.9,0.3 M1449.1,533.8c1.7-2.6,0.6-5.2,1.4-8.2c1.2-4.6,5-8.6,4.4-13.3 M1430.1,500.2c-3.3,5.2-3.9,12.1-1.5,17.8c0.9,2.1,2.2,4.1,3,6.3 M1428.1,516.6c-1.8,0.6-4.1,0.1-5.5,1.4c-1.5,1.5-3.9,1.3-6.1,1.4c-5.6,0.1-11.2,2.4-15,6.5c-1.3,1.4-2.4,3.1-2.9,5 M1404,523.6c3.4-5.5,5.6-12.8,8.2-18.7c3-6.6,2.1-14.2,1.1-21.4 M1346.8,483.2c0.1,1.7,0.1,3.3,0.1,5c2.7,0.6,5.7-0.4,7.5-2.4 M1330.8,553.2c-0.3,1.1-1.5,1.6-2.6,1.7c-1.1,0.1-2.2-0.2-3.3,0c-0.2,0-0.5,0.1-0.7,0.3c-0.2,0.3-0.1,0.6-0.1,0.9c0.3,1.9-0.2,3.9-1.4,5.3"}), 
+					
+					React.createElement("g", {id: "cerebellum"}, 
+						React.createElement("title", null, "Number of samples: ", _.find(_.find(this.props.fixed.header, function(o){return o.name == 'Brain'}).children, function(o){return o.name == 'Cerebellum'}).numAnnotated, ", average: ", this.props.values.avg[this.props.fixed.indices.Cerebellum], ", AUC: ", this.props.values.auc[this.props.fixed.indices.Cerebellum]), 
+						React.createElement("path", {style: {transition: 'stroke .25s ease-in-out, stroke-width .25s ease-in-out'}, id: "cerebellum_highlight", onMouseOver: this.props.onMouseOver.bind(null, 'Cerebellum'), fill: "rgba(0,0,0,0)", stroke: hoverName === 'Cerebellum' || clickedItem === 'Cerebellum' ? "rgb(255,225,0)" : "rgba(0,0,0,0.5", strokeWidth: hoverName === "Cerebellum" || clickedItem === 'Cerebellum' ? "5" : "0", d: "M1431,671.1c5.6,12.4,11.2,26.4,6.4,39.1c-2.1,5.5-6,10.1-9.8,14.6c-6.1,7.2-12.2,14.4-19.7,20.1c-3.5,2.7-7.3,5-11,7.5c-13.3,9.1-25.1,20.8-39.7,27.7c-17.4,8.2-37.2,8.9-56.5,9.5l-23.2,1.2c0,0-26.5-11.1-35.5-20.1c0,0-24.5-21.4-27.8-29.9c0,0-5.1,2.8-9.3,0.5c0,0-2.1-2.3-2.3-5.6c0,0,3.8-4.3,3.6-5.5c0,0-22.9-10-27.9-16.2c-5-6.3-9.5-7.7-18.5-22.3c0,0,35.8-5.1,40.5-6.3c4.7-1.2,23.2-6,27.5-10.8c0,0,9.7-8,13.4-8.6c3.7-0.6,12.1-0.2,16,0c3.8,0.2,14-0.2,22-2.3c0,0,14.6-7.7,25.1-9.1c0,0,5.2-0.6,17.1,1.7c0,0,8.9-0.2,12.6,0.6c3.7,0.8,5.3,1.9,7,3.2c0,0,4,1.4,13.1,0.9c9-0.5,13.4,0,19.3,2.1c5.9,2.1,15.3-1.6,15.3-1.6s9-4.2,14-2.6c5,1.5,11.5,3.7,14.2,5.8c2.7,2.2,12.5,4.9,12.5,4.9L1431,671.1z"}), 
+						React.createElement("path", {id: "cerebellum_strokes", onMouseOver: this.props.onMouseOver.bind(null, 'Cerebellum'), opacity: "0.5", fill: "none", stroke: "#000000", d: "M1403.2,750.4c-13.3,8.3-48-7-48-7s-22-12-54.1-9.9s-58.2-8.4-58.2-8.4s-12,0.8-14.6-18.8s21.2-38,21.2-38 M1174.2,692.2c-10,9.3-5.4,14.4-5.4,14.4 M1183.8,690.9c-14.9,9.2-9.6,21.6-9.6,21.6 M1192,689.6c-19.7,17.2-10.1,29.3-10.1,29.3 M1195.7,689.6c-13,11.7-5,34.8-5,34.8 M1200.9,688.4c-12.8,29,1.8,42.5,1.8,42.5 M1206.4,686.3c-10.5,28.2,8,46.5,8,46.5 M1214.4,683.7c-12.3,23.5,7.6,46.4,7.6,46.4 M1224.2,679.2c-19,29.5,3.9,48.3,3.9,48.3 M1241.4,668.4c-35.3,31.3-9.5,56.8-9.5,56.8 M1413.9,666.2c0,0-21,10.8-93.5,6.5s-91.6,36.9-91.6,36.9 M1426.1,670.9c0,0-51.5,15.5-106.7,8.3s-88.9,36-88.9,36 M1431.9,675.4c0,0-36.1,23.6-96.4,12.5c-68.1-12.6-101.6,32.8-101.6,32.8 M1397.4,661.4c0,0-1.8,1.8-11.8,5.1s-38,1.9-38,1.9s-23.8-4.3-62.5,0s-57.1,33.3-57.1,33.3 M1335.5,659.4c-25.7-0.8-45.9,2.4-45.9,2.4 M1259.9,668.6c-14.5,3.7-24.7,15.1-24.7,15.1 M1434.1,683.7c-4,8.8-46,15.8-46,15.8s-12.8,3-66.8-5.2c-54.1-8.2-79.9,30.2-79.9,30.2 M1438.3,692.2c-6.3,5.5-21.4,11.1-21.4,11.1c-30.8,7.4-53.8,3.3-53.8,3.3s-17.3-3.2-55-6.5c-37.8-3.2-59.9,26.9-59.9,26.9 M1257.7,729.6c0,0,14.2-28.5,59.5-21.2s68.9,6.4,70,6.7s39.6,0.4,52.4-13.4 M1263.7,730.9c0,0,23.8-18.9,57.7-15.8c33.8,3,64.1,7.2,64.1,7.2s35.4,3.5,51.7-8.5 M1427.9,727c-13.8,8.1-31.7,1.9-33.2,2.6s-28.3-5.2-65-7.2s-53.1,10.5-54,10.4 M1419.2,736.9c-6.2,4.3-26.8,0-26.8,0s-25-3.5-45.3-6s-51.5,2.9-51.5,2.9 M1338.2,737.1c0,0,31.2,3.2,43.9,7.6c12.7,4.4,28.9,0,28.9,0 M1211.7,739.9c-6-0.3-6.6,4-6.6,4 M1210.4,736.3c-3.5-1.6-7.7,3.6-7.7,3.6 M1212.9,733.8c0,0,34.7,39.1,63.8,35.3c6.9-0.9,13.2,1.4,18.9,3c18.4,5.2,29.8,18,29.8,18 M1219.8,730.9c5.4,13.3,15.3,17.5,15.3,17.5s24.2,12.5,41.6,13.6c17.3,1.1,46.4,5,46.4,5s15.5,2.1,30-7.9s25.9-8,25.9-8 M1219.8,750.8c0,0,8.6,6.9,10.6,8.6s24.7,16.5,40.1,16.3s17.6,1,17.6,1c23.8,6.8,24.6,13.5,24.6,13.5 M1303.4,791.4c-5.3-8.5-12.8-7.8-15.8-8.8s-9.8,0-18.5,0s-26.3-8.9-26.3-8.9 M1289.5,791.9c-9.1-4.8-25.8-5-25.8-5 M1329.7,767.2c0,0-5.8,18.4,13.6,19.7 M1336.1,765.4c0,0-8.9,14.5,11.1,20 M1339.8,765.4c0,0-2.6,21.5,22.6,14.2 M1345.3,763.4c0,0,0.1,19.7,23.9,11.8 M1350.4,760.9c0,0,1.9,17.9,25.8,9.6 M1357.4,756.5c0,0-0.4,17.7,21.6,11.8 M1363.3,753.7c0,0,1.5,17.5,22.8,9.2 M1328.9,789.4c-1-3.3-3.5-6.8-3.5-6.8c-10.5-15.1-36.4-19.6-36.4-19.6 M1328.9,776.2c-3.7-6.7-14.9-10.4-14.9-10.4 M1331.1,781.1l3,7 M1225.9,728.4c0,0,16.8,29.9,66,30.1c0,0,26.2,1.1,33.4,0s28.7,0,28.7,0 M1230.5,726.5c0,0,20.2,23,43.7,24.3c23.5,1.4,20,4.5,48.3,1.3s37.3,3.2,37.3,3.2 M1237.1,723.6c0,0,16.5,18,30.5,20.2s32.8,5.1,34.8,5.2s22.4-2.8,33.7-2.4c11.3,0.4,32.2,5.4,32.2,5.4s8.1,10.7,26.3,4.4 M1252.9,728.4c0,0,3.5,8.8,33.8,11.5s34.8,1.2,34.8,1.2s14.7-4.2,33.7,2.3"}), 
+						React.createElement("text", {style: {cursor: 'default'}, fontSize: "35px", transform: "matrix(1 0 0 1 1359.9347 846.6549)", onMouseOver: this.props.onMouseOver.bind(null, 'Cerebellum'), onMouseOut: this.props.onMouseOver.bind(null, undefined)}, "Cerebellum")
+					), 
+
+					React.createElement("g", {id: "occipital lobe"}, 
+						React.createElement("title", null, "Number of samples: ", _.find(_.find(this.props.fixed.header, function(o){return o.name == 'Brain'}).children, function(o){return o.name == 'Occipital lobe'}).numAnnotated, ", average: ", this.props.values.avg[this.props.fixed.indices['Occipital lobe']], ", AUC: ", this.props.values.auc[this.props.fixed.indices['Occipital lobe']]), 
+						React.createElement("path", {style: {transition: 'stroke .25s ease-in-out, stroke-width .25s ease-in-out'}, id: "occipital_lobe_highlight", onMouseOver: this.props.onMouseOver.bind(null, 'Occipital lobe'), fill: "rgba(0,0,0,0)", stroke: hoverName === 'Occipital lobe' || clickedItem === 'Occipital lobe' ? "rgb(255,225,0)" : "rgba(0,0,0,0.5", strokeWidth: hoverName === "Occipital lobe" || clickedItem === 'Occipital lobe' ? "5" : "0", d: "M1414.1,444.6c2.9,1.4,6.2,2.6,9,4.1c1,0.5,1.9,1,2.7,1.7c1.8,1.6,2.4,4.3,4,6.1c2.2,2.6,6,3.3,8.6,5.5c3.8,3.3,4.3,9,4.4,14c-0.2,0.3,0.2,0.3,0,0c-0.4,4.8,3.4,8.8,6.3,12.6c6.1,7.9,7.4,18.4,7.1,28.4c8.4,5.1,11.4,15.4,14.3,24.7c0.7,2.1,1.3,4.3,1.4,6.5c0.1,1.7-0.2,3.4-0.4,5.1c-0.8,5.1-1.5,10.2-2.3,15.3c0.4-0.3-0.5,0.7-0.1,0.4c1.3,3.9,2.6,7.9,3.9,11.8c1,3,2,6,1.9,9.1c-0.1,1.8-0.5,3.5-1,5.2c-1.3,4.5-3.5,8.8-7.1,11.8c2.6,7.3,2.3,15.8,1.3,23.5c-0.4,3.2-0.9,6.5-2.7,9.2c-1.7,2.7-5,4.7-8.2,3.9c-0.9,3.3,0.1,6.7,0.3,10c0.2,4-0.7,8.1-3,11.4s-6.2,5.5-10.2,5.5l-12.5,2.7c0,0-13.1-5-15.4-5.9s-12.1-7.6-18.8-5.7c-6.7,1.9-10.5,3.3-10.5,3.3s-5.9,3.1-13.3,1s-9.3-2.7-12.5-2.8s-2.6-0.1-2.6-0.1s-1.6-16.1-3.5-18.2c-1.8-2.1-0.7-2.1-7.6-4.9c0,0-8-2.2-9.8-3.1c-1.8-0.9-13-7-15.4-19.1s1.4-20,1.4-20s5.9-9.7,14.3-11.7c0,0,0.7-3.2,9.4-8.9c8.7-5.7,16.9-12.3,16.9-12.3s4.4-2.8,5.2-2.7s-8.3-2.3-6.6-7.2c1.7-4.9,13.6-28.8,13.6-28.8l8.6-17c0,0,3.5-5.7-0.6-10.9c0,0-4.9-3.7-5.3-12s1.6-14.7,4.3-19.4c2.7-4.7,5.2-8.2,5.2-8.2s7-0.9,10.1-3.6c0,0,9.2-6,12.8-9.1L1414.1,444.6z"}), 
+						React.createElement("text", {style: {cursor: 'default'}, fontSize: "35px", transform: "matrix(1 0 0 1 1377.2399 336.7896)", onMouseOver: this.props.onMouseOver.bind(null, 'Occipital lobe'), onMouseOut: this.props.onMouseOver.bind(null, undefined)}, "Occipital lobe")
+					), 
+
+					React.createElement("g", {id: "temporal lobe"}, 
+						React.createElement("title", null, "Number of samples: ", _.find(_.find(this.props.fixed.header, function(o){return o.name == 'Brain'}).children, function(o){return o.name == 'Temporal lobe'}).numAnnotated, ", average: ", this.props.values.avg[this.props.fixed.indices['Temporal lobe']], ", AUC: ", this.props.values.auc[this.props.fixed.indices['Temporal lobe']]), 
+						React.createElement("path", {style: {transition: 'stroke .25s ease-in-out, stroke-width .25s ease-in-out'}, id: "temporal_lobe_highlight", onMouseOver: this.props.onMouseOver.bind(null, 'Temporal lobe'), fill: "rgba(0,0,0,0)", stroke: hoverName === 'Temporal lobe' || clickedItem === 'Temporal lobe' ? "rgb(255,225,0)" : "rgba(0,0,0,0.5", strokeWidth: hoverName === "Temporal lobe" || clickedItem === 'Temporal lobe' ? "5" : "0", d: "M1111.3,722.4c-2,1.5-4,3-6.2,4.1c-2.4,1.2-5,1.8-7.6,2.4c-4.2,1-8.3,2-12.5,3c-2.9,0.7-5.8,1.4-8.7,1.6c-3.5,0.2-7-0.3-10.6-0.6c-6.4-0.6-12.8-0.6-19.1,0c-3.6,0.3-7.2,0.9-10.2,2.9c-1.5,1-2.7,2.3-4.4,3c-1.6,0.7-3.4,0.6-5.2,0.5c-9.6-0.5-19.2-2.5-28.2-5.8c-7.9,0.5-17.4-0.3-24.8-3.2c-2.4-0.9-4.7-2.2-6.9-3.5c-7.1-4.1-14.6-8.5-18.5-15.7l-5.3-10.9c-0.9-1.9-1.8-3.8-2.6-5.7c-2.6-5.9-4.8-12-6.5-18.2s-2.1-13.1-4.1-19.1c0,0-4.6-11.9,1.1-20.3c0,0,4.5-4,5.6-5.9c1-1.9,3.2-5.8,2.1-11.6c-1-5.8-3-13.3-3-13.3s-2.9-8.6,3.7-12.4c6.5-3.8,23.7-11.7,23.7-11.7s7.8-4.2,17.8-3.7s12.8-4.1,12.8-4.1l6.1-12.1c0,0,8.4-17.4,20-17.7c0,0,7.4-0.9,10.5,2.7c3.1,3.6,3.9,20.3,3.9,20.3s8.1-0.8,17.6-9.1c9.6-8.3,21.7-7.8,21.7-7.8s10.1-0.4,18.5,6.5c8.4,7,6.8,6,11.4,8s10.1,3.2,15.6,10.3c0,0-1.7-7.4,20-16.9c1.6-0.7,4.7-4,10-5.3s11.6-1.7,20.6-0.2s18.2-4.7,18.2-4.7s5.6-5.3,9.9-10.3s16.2-19.3,27.6-21.4c11.4-2.1,16.7-6.7,16.7-6.7s19.8-10.7,37,3.6s11.4,9.7,11.4,9.7s3.5,3.6,10.7,1.7c7.2-1.9,13.1-14.4,13.1-14.4s7.9,13.4,18.1,15.5c10.2,2.1,13.2-0.2,19.9-0.1c6.7,0.1,19.7-1.3,24.6-0.3c0,0-13.1,25.6-13.5,27.9c-0.4,2.2-2.2,5.9,5.4,8.5c0,0-19.7,13.8-21.3,14.9c-1.6,1.1-8.4,5.7-9.4,9.1c0,0-6.8,0.9-14.3,11.7c0,0-10.2,25,13.1,38.7c0,0,6.7,3,11.8,3.9c5,1,7.2,4.7,8.3,10.8c1.1,6.1,1.7,11.8,1.7,11.8s-15.8,3.3-20.8-2.7c0,0-6.9-2.1-12.4-1.1c0,0-12.2-0.8-15.3-2c-3.2-1.2-11.6,0-26.9,7.6c0,0-10.3,5.1-27.6,3.9c-17.3-1.2-17.1,0.7-17.1,0.7s-13.9,11.6-20,12.7c0,0-12.2,6.1-27.9,8.2c-15.7,2.1-30.5,4.1-30.5,4.1s-12.8,1.5-20.3,8.4c-7.5,6.8-11.8,12.5-19.1,15.8c-7.3,3.2-7.6,3.4-7.6,3.4L1111.3,722.4z"}), 
+						React.createElement("text", {style: {cursor: 'default'}, fontSize: "35px", transform: "matrix(1 0 0 1 933.9652 828.9044)", onMouseOver: this.props.onMouseOver.bind(null, 'Temporal lobe'), onMouseOut: this.props.onMouseOver.bind(null, undefined)}, "Temporal lobe")
+					), 
+
+					React.createElement("g", {id: "temporal gyrus"}, 
+						React.createElement("title", null, "Number of samples: ", _.find(_.find(this.props.fixed.header, function(o){return o.name == 'Brain'}).children, function(o){return o.name == 'Temporal gyrus'}).numAnnotated, ", average: ", this.props.values.avg[this.props.fixed.indices['Temporal gyrus']], ", AUC: ", this.props.values.auc[this.props.fixed.indices['Temporal gyrus']]), 
+						React.createElement("path", {style: {transition: 'stroke .25s ease-in-out, stroke-width .25s ease-in-out'}, id: "temporal_gyrus", onMouseOver: this.props.onMouseOver.bind(null, 'Temporal gyrus'), fill: "rgba(0,0,0,0)", stroke: hoverName === 'Temporal gyrus' || clickedItem === 'Temporal gyrus' ? "rgb(255,225,0)" : "rgba(0,0,0,0.5", strokeWidth: hoverName === "Temporal gyrus" || clickedItem === 'Temporal gyrus' ? "5" : "0", d: "M997.5,606.4c1.7-0.6,3.2-1.6,5-1.7c39.3-2,80.8,12.9,117.1-2.4c10.9-4.6,20.9-11.8,32.5-14c19.3-3.6,38.8,7.3,58.3,5.2c11.7-1.3,22.5-7.2,34.2-8.6c11.7-1.3,26,4.7,27,16.4c1,11.8-11.4,19.8-22.1,24.9c-19.6,9.4-39.6,18.9-61.1,22.2c-12.1,1.9-24.4,1.7-36.4,4.1c-13.9,2.7-26.9,8.8-40.9,11.1c-7,1.2-14.2,1.4-20.9,3.6c-13.4,4.4-22.9,16-34.7,23.6c-9.1,5.9-19.8,9.5-30.6,10.4c-7.7,0.6-15.4-0.2-22.9-1.7c-3.8-0.8-7.8-1.8-10.7-4.4c-7.5-6.6-4.4-18.5-5-28.5c-0.8-14.1-10-29.3-2.5-41.2C983.7,625.6,992.5,608.1,997.5,606.4z"}), 
+						React.createElement("text", {style: {cursor: 'default'}, fontSize: "35px", transform: "matrix(1 0 0 1 730.8944 765.5699)", onMouseOver: this.props.onMouseOver.bind(null, 'Temporal gyrus'), onMouseOut: this.props.onMouseOver.bind(null, undefined)}, "Temporal gyrus")
+					), 
+
+					React.createElement("g", {id: "parietal lobe"}, 
+						React.createElement("path", {id: "parietal_lobe_highlight", fill: "rgba(0,0,0,0)", stroke: "rgba(0,0,0,0.5)", strokeWidth: "0", d: "M1122.6,307.6c-0.7-0.1,6.5-0.6,9.8-2c8.6-3.7,18.4-0.5,27.7,0.3c6,0.5,12.1,0,18.1,0.9c9.1,1.4,17.6,6.1,23.4,13.2c1.8-3.2,6.4-5.1,10.1-5.3c3.7-0.2,7.3,0.8,10.8,1.9c5.5,1.6,11,3.2,16.5,4.7c1.5,0.4,2.9,0.8,4.3,1.4c3.5,1.5,6.6,4,8.7,7.2c3.6-1.8,8.8-0.4,12.5,1.2c4.3,1.8,8.7,3.6,13,5.4c7.3,3,14.7,6.1,21.1,10.7c4.5,3.1,8.4,6.9,11.8,11.3c0.3,0.4,0.6,0.8,0.5,1.3s-0.9,0.7-1,0.2c2.3-1.2,5.6-1.2,8.1-0.5c1.7,0.4,3.3,1.3,4.9,2.2c4.5,2.5,9,5,13.5,7.5c1.3,0.7,2.5,1.4,3.6,2.3c3,2.5,4.5,6.3,5.9,9.9c6.5-0.9,12.5,3.4,16.5,8.5s7.3,11.1,12.7,14.8c5.7,3.9,13.3,4.7,18.3,9.5c2.2,2.1,3.7,4.7,5.7,7c2.9,3.3,6.7,5.6,9.6,8.9c3.5,4,5.4,9.3,5.3,14.6c0,0-3.5,2-7,4.7c-5.2,3.9-11.7,8.9-18.2,9.2c0,0-17.6,21.8-5.8,38.2c0,0,6.4,3.5,2,12.2l-8.2,16.6c0,0-10.9-1.3-24.6,0.3s-22.7-0.7-22.7-0.7s-11.1-4.4-15.3-14.7c0,0-7.9,13.7-14.2,14.7s-11.7-3.4-11.7-3.4l-10-8.8c0,0-9.7-8.2-23.1-6.8c0,0-11.2,1.8-18,6.2s-11.1,4-11.1,4s-10.9,3.2-18.2,10.8s-16.3,17.9-16.3,17.9s-3.5,4.7-13,7.7c0,0-5.6,1.3-18.6-0.5s-18,5.1-18,5.1s-13.9,6-17.6,9.8s-4.6,4-5.3,8.4c0,0-1.6-5.8-17.3-10.5c0,0-7.2-3.9-10-8.2c0,0-8.4-6.6-19.8-6.2c0,0-11.5,0.7-20.4,8.3c0,0-8.6,7.6-16.7,8.3l-0.6-0.3c0,0-0.7-16.6-3.6-20c0,0,3.8-14.4,24-16c0,0-20-8.5,2.5-29.8c0,0,8.4-4.7,10.8-9s2.1-12,2.1-12s0.6-6.1,0.3-14.8c-0.4-11.9-1.6-28-1.7-33.2c-0.2-9,4.7-19.6,15.1-24.4s28,3.9,28,3.9l3.8,2.6c0,0-0.8-2.7-2.3-6.5c-2.1-5.5-5.1-13.2-4-18.5c1.9-8.8,0.7-8.1,4.8-15.1s5.6-12.8,4.9-19.8s-0.7-13.8-2.4-21.3c-1.7-7.5-3.5-14.4-0.7-19.7c2.8-5.2,5.4-5.2,5.4-5.2L1122.6,307.6z"})
+					), 
+
+					React.createElement("g", {id: "frontal lobe"}, 
+						React.createElement("title", null, "Number of samples: ", _.find(_.find(this.props.fixed.header, function(o){return o.name == 'Brain'}).children, function(o){return o.name == 'Frontal lobe'}).numAnnotated, ", average: ", this.props.values.avg[this.props.fixed.indices['Frontal lobe']], ", AUC: ", this.props.values.auc[this.props.fixed.indices['Frontal lobe']]), 
+						React.createElement("path", {style: {transition: 'stroke .25s ease-in-out, stroke-width .25s ease-in-out'}, id: "frontal_lobe_highlight", onMouseOver: this.props.onMouseOver.bind(null, 'Frontal lobe'), fill: "rgba(0,0,0,0)", stroke: hoverName === 'Frontal lobe' || clickedItem === 'Frontal lobe' ? "rgb(255,225,0)" : "rgba(0,0,0,0.5", strokeWidth: hoverName === "Frontal lobe" || clickedItem === 'Frontal lobe' ? "5" : "0", d: "M1122.7,307.5c-4.8-4-11.5-4.8-17.7-4.3s-12.3,2-18.5,1.9c-3.8-0.1-7.5-0.7-11.3-0.8c-3.2-0.1-6.5,0.2-9.7,0.5c-2.8,0.3-5.7,0.5-8.5,0.8c-13,1.2-26,2.5-39.1,3.7c-5.8,0.6-12.7,0.9-17.7,4c-8.3-1-17.7-1.8-25.6,1.1c-8,2.8-14.8,8.4-22.8,11c-3.7,1.2-7.6,1.8-11.5,2.5c-18.5,3.4-36.1,10-53.7,16.6c-6.3,2.4-12.6,4.8-18.3,8.4c-6.2,4-15.3,8.6-17.4,15.6c-0.5,1.6-2.2,2.4-3.7,3.1c-11.9,5.7-19.8,17-24,29.5c-3.3,2.7-6.6,5.3-9.9,8c-5.3,4.3-10.7,8.6-14.9,14c-3.8,4.9-6.6,10.4-9,16.1c-0.8,2-2.1,5-0.5,6.5c-5.6,4.7-8.6,13.7-7.2,20.9c-4.7,0.2-8.8,3.5-11.1,7.5c-3.7,6.4-2.8,16.3,1.3,22.5c-3.1,11-5.2,23.2-0.7,33.7c1.7,4,5.5,8.4,5.1,12.7c-0.6,8.2,0.5,16.5,3.3,24.2c1.1,2.9,2.3,5.7,3.8,8.3c2.5,4.5,5.7,8.6,8.8,12.7c1.4,1.8,2.7,3.6,4.4,5.1c1.7,1.6,3.6,2.8,5.6,4.1c2.7,1.8,5.4,3.6,8.2,5.3c6.6,4.3,10.6,10.5,16.2,16.1c5.6,5.6,12,10.6,19.6,12.9c0,0,4.4,2.4,8.8,3.4c3.8,0.9,7.6,0.3,8,1c3.5,6,13.1,9.5,13.1,9.5c2.2,0.8,4.4,1.2,6.7,1.6c9.6,1.6,19.4,2.9,28.4,6.5c5.4,2.2,13,6.5,18.7,3c0,0-3.2-9.8-1.8-13.9c1.4-4.1,4.2-7.6,5.2-8.5c1-0.8,4.7-3.6,5.2-8.9c0,0,0.8-2.5,0-7.7s-2.5-10.5-2.5-10.5s-1.9-6.1,1.1-11.2c3-5.1,28.4-15.2,28.4-15.2s5.9-3,14.1-2.7s12.7-2.9,12.7-2.9s3.8-3.6,8-14.5c0,0,5.9-9,11.6-13.8c5.8-4.7,14.9-2,14.9-2s2.4,0.4,3.4,1.9c0,0,2.1-6.4,6.6-9.7c4.5-3.2,8.3-6,16.4-6.7h1.8c0,0-6.6-2.4-7.1-5.9s-2.4-2-0.6-10.6c0,0,2-8.1,13.5-15.7c0,0,5.7-3.2,7.6-7.8c1.9-4.6,1.9-25.5,1.9-25.5s-2.8-33.3-1.3-38.7c0,0,1.7-11.4,10.3-16.6s16.6-3.2,16.6-3.2s11.5,2.1,14.7,4.4s5,2.9,5,2.9s-2.4-6.1-2.7-7.3c-0.3-1.2-3.4-9.1-3.8-11.6s0.1-12.1,4.4-20.5c4.3-8.5,5.8-10.2,5.3-16.1s0.8-13.5-1.5-21.5c-2.2-8-3.7-16.5-3-19.9c0.4-2,1.9-5.3,4.1-7.4C1119.7,308.5,1121.8,307.9,1122.7,307.5"}), 
+						React.createElement("text", {style: {cursor: 'default'}, fontSize: "35px", transform: "matrix(1 0 0 1 936.9847 179.9883)", onMouseOver: this.props.onMouseOver.bind(null, 'Frontal lobe'), onMouseOut: this.props.onMouseOver.bind(null, undefined)}, "Frontal lobe")
+					), 
+
+					React.createElement("g", {id: "prefrontal cortex"}, 
+						React.createElement("title", null, "Number of samples: ", _.find(_.find(this.props.fixed.header, function(o){return o.name == 'Brain'}).children, function(o){return o.name == 'Prefrontal cortex'}).numAnnotated, ", average: ", this.props.values.avg[this.props.fixed.indices['Prefrontal cortex']], ", AUC: ", this.props.values.auc[this.props.fixed.indices['Prefrontal cortex']]), 
+						React.createElement("path", {style: {transition: 'stroke .25s ease-in-out, stroke-width .25s ease-in-out'}, id: "prefrontal_cortex_highlight", onMouseOver: this.props.onMouseOver.bind(null, 'Prefrontal cortex'), fill: "rgba(0,0,0,0)", stroke: hoverName === 'Prefrontal cortex' || clickedItem === 'Prefrontal cortex' ? "rgb(255,225,0)" : "rgba(0,0,0,0.5", strokeWidth: hoverName === "Prefrontal cortex" || clickedItem === 'Prefrontal cortex' ? "5" : "0", d: "M807.1,480.8c-9.9,14.5-12.5,33.7-6.8,50.3c5.2,15.3,16.6,27.7,22.6,42.6c2.6,6.5,4.3,13.7,9.5,18.2c3.8,3.3,8.8,4.6,13.6,5.9c9.1,2.4,18.3,4.8,27.4,7.2c5.6,1.5,11.4,2.9,17.1,2.3c5.7-0.6,11.6-4,13.4-9.5c1.2-3.4,0.7-7.1,1.1-10.7c1.4-13,13.8-21.9,25.8-27s25.4-8.5,34.6-17.7c9.3-9.3,12.6-22.8,15.6-35.6c4-17.3,7.5-37.1-3.1-51.3c-4.8-6.4-11.8-10.7-17.5-16.3c-8.4-8.2-13.7-19-18.5-29.6c-3.2-7.1-6.4-14.3-10.7-20.9c-10.1-15.4-29.6-26.8-47.1-20.7c-7.8,2.7-14.2,8.6-19.7,14.7c-15,16.6-25.9,36.4-36.6,56c-2.7,5-5.4,10-8.2,14.9c-5,9.2-10,18.4-14.5,27.8"}), 
+						React.createElement("text", {style: {cursor: 'default'}, fontSize: "35px", transform: "matrix(1 0 0 1 697.8964 267.1014)", onMouseOver: this.props.onMouseOver.bind(null, 'Prefrontal cortex'), onMouseOut: this.props.onMouseOver.bind(null, undefined)}, "Prefrontal cortex")
+					), 
+
+					React.createElement("g", {id: "lines", fill: "none", stroke: "#000000"}, 
+						React.createElement("line", {x1: "798", y1: "278.2", x2: "851.7", y2: "426.5"}), 
+						React.createElement("line", {x1: "1013.9", y1: "194.2", x2: "1013.6", y2: "320.4"}), 
+						React.createElement("line", {x1: "1448.9", y1: "348.7", x2: "1427.9", y2: "486.7"}), 
+						React.createElement("line", {x1: "1448", y1: "800.4", x2: "1393.7", y2: "741.5"}), 
+						React.createElement("line", {x1: "1018.4", y1: "801.7", x2: "1025.6", y2: "728.4"}), 
+						React.createElement("line", {x1: "836.9", y1: "737.2", x2: "992.9", y2: "661.8"})
+					)
+
+				), 
+
+				React.createElement("g", {id: "blood_cells", transform: clickedItem === "Blood" ? "translate(0,0)" : subtissueSelected ? "translate(150,200) scale(0.4, 0.4)" : "translate(450,200) scale(0.4, 0.4)", style: clickedItem === 'Blood' ? {visibility: 'visible', opacity: '1', transition: 'all .5s ease-in-out'} : {visibility: 'hidden', opacity: '0', transition: 'all .5s ease-in-out'}}, 
+
+					React.createElement("g", {id: "B-cell", onMouseOver: this.props.onMouseOver.bind(null, 'B-cell'), onMouseOut: this.props.onMouseOver.bind(null, undefined)}, 
+						React.createElement("title", null, "Number of samples: ", _.find(_.find(this.props.fixed.header, function(o){return o.name == 'Blood'}).children, function(o){return o.name == 'B-cell'}).numAnnotated, ", average: ", this.props.values.avg[this.props.fixed.indices['B-cell']], ", AUC: ", this.props.values.auc[this.props.fixed.indices['B-cell']]), 
+						React.createElement("path", {style: {transition: 'stroke .25s ease-in-out, stroke-width .25s ease-in-out'}, id: "b_cell_color", fill: getRGB(this.props.values.avg[this.props.fixed.indices['B-cell']]), stroke: hoverName === 'B-cell' || clickedItem === 'B-cell' ? "rgb(255,225,0)" : "rgba(0,0,0,0.5", strokeWidth: hoverName === "B-cell" || clickedItem === 'B-cell' ? "5" : "2", d: "M723.6,199.8c0,0,3.7,54.2,33,54.8s38,3.1,59.2-11.2s26.5-46.6,22.1-59.8c-4.8-14.4-21-26.1-31.8-28c-6.2-1.1-16.3-8.7-28.3-10c-7.5-0.8-12.4-3-18.7-0.2c-5.5,2.4-12.3,9.5-17.4,13.3C730.7,166.9,719.9,176.9,723.6,199.8z"}), 
+						React.createElement("path", {id: "b_cell_strokes", opacity: "0.2", stroke: "#000000", strokeWidth: "2", d: "M757.2,230.3c0,0,18.1,9.3,26.2-3.7s-8.1-17.4-8.1-17.4s-4.7-1.2-5.9-2.2c-1.2-0.9-15-6.9-19.9,3.7s0,14,0,14S751.6,228.2,757.2,230.3z"}), 
+						React.createElement("g", {id: "b_cell_receptors"}, 
+							React.createElement("polygon", {id: "b_cell_receptor1", fill: "#000000", opacity: "0.6", points: "728.3,182.7 717.9,179.3 704.5,180.5 702.3,177.4 716.1,175.7 712,162.4 715.7,162.6 719.5,175.1 730,179.7"}), 
+							React.createElement("polygon", {id: "b_cell_receptor2", fill: "#000000", opacity: "0.6", points: "812.9,158.2 818.6,147.8 820,133.3 823.7,131.5 822.8,146.6 837.8,144.9 836.8,148.8 822.8,150.4 816.8,160.6 "})
+						), 
+						React.createElement("text", {fontSize: "35px", className: "clickable", transform: "matrix(1 0 0 1 883.8381 206.1467)", onMouseOver: this.props.onMouseOver.bind(null, 'B-cell'), onMouseOut: this.props.onMouseOver.bind(null, undefined)}, "B-cell")
+					), 
+
+					React.createElement("g", {id: "T-cell", onMouseOver: this.props.onMouseOver.bind(null, 'T-cell'), onMouseOut: this.props.onMouseOver.bind(null, undefined)}, 
+						React.createElement("title", null, "Number of samples: ", _.find(_.find(this.props.fixed.header, function(o){return o.name == 'Blood'}).children, function(o){return o.name == 'T-cell'}).numAnnotated, ", average: ", this.props.values.avg[this.props.fixed.indices['T-cell']], ", AUC: ", this.props.values.auc[this.props.fixed.indices['T-cell']]), 
+						React.createElement("path", {style: {transition: 'stroke .25s ease-in-out, stroke-width .25s ease-in-out'}, id: "t_cell_color", fill: getRGB(this.props.values.avg[this.props.fixed.indices['T-cell']]), stroke: hoverName === 'T-cell' || clickedItem === 'T-cell' ? "rgb(255,225,0)" : "rgba(0,0,0,0.5", strokeWidth: hoverName === "T-cell" || clickedItem === 'T-cell' ? "5" : "2", d: "M834.3,322.3c-5.2,8.8-10.5,31.8,3.3,49.7c6.5,8.4,30.5,28.6,53.6,30.5c26.3,2.2,51.7-14.9,58.6-24.3c2-2.8,15.7-29.1,9-49.9c-5.8-17.9-31.1-30.8-41.1-32.7c-18.7-3.6-48-1.9-66.1,6.8C840.3,307.7,835.3,320.5,834.3,322.3z"}), 
+						React.createElement("path", {id: "t_cell_strokes", opacity: "0.2", stroke: "#000000", strokeWidth: "2", d: "M868.8,345c0,0,17.8,0,24.3-7.2s2.4-12.8-2.8-15.6c-5.3-2.8-20.6-0.3-24,2.2s-14.6,4.4-11.5,12.1C857.9,344.4,868.8,345,868.8,345z"}), 
+						React.createElement("g", {id: "t_cell_receptors"}, 
+							React.createElement("path", {id: "t_cell_receptor", fill: "#000000", opacity: "0.6", d: "M928.3,302.8l9.2-14c0,0,1.3-0.3,1.7-0.1c0.4,0.2,1.2,1.6,1.2,1.6l-9.2,14.3L928.3,302.8z"}), 
+							React.createElement("path", {id: "t_cell_receptor", fill: "#000000", opacity: "0.6", d: "M833.2,337.5l-17.3-7.5c0,0-0.6-1.5-0.5-2s1.4-1.7,1.4-1.7l17.7,7.5L833.2,337.5z"}), 
+							React.createElement("path", {id: "t_cell_receptor", fill: "#000000", opacity: "0.6", d: "M957.7,345.3l14.1-0.3c0,0,1,0.8,1.1,1.2s-0.3,1.6-0.3,1.6l-14.4,0.5L957.7,345.3z"})
+						), 
+						React.createElement("text", {fontSize: "35px", className: "clickable", transform: "matrix(1 0 0 1 1005.453 349.7471)", onMouseOver: this.props.onMouseOver.bind(null, 'T-cell'), onMouseOut: this.props.onMouseOver.bind(null, undefined)}, "T-cell")
+					), 
+
+					React.createElement("g", {id: "NK-cell", onMouseOver: this.props.onMouseOver.bind(null, 'NK-cell'), onMouseOut: this.props.onMouseOver.bind(null, undefined)}, 
+						React.createElement("title", null, "Number of samples: ", _.find(_.find(this.props.fixed.header, function(o){return o.name == 'Blood'}).children, function(o){return o.name == 'NK-cell'}).numAnnotated, ", average: ", this.props.values.avg[this.props.fixed.indices['NK-cell']], ", AUC: ", this.props.values.auc[this.props.fixed.indices['NK-cell']]), 
+						React.createElement("path", {style: {transition: 'stroke .25s ease-in-out, stroke-width .25s ease-in-out'}, id: "nk_cell_color", fill: getRGB(this.props.values.avg[this.props.fixed.indices['NK-cell']]), stroke: hoverName === 'NK-cell' || clickedItem === 'NK-cell' ? "rgb(255,225,0)" : "rgba(0,0,0,0.5", strokeWidth: hoverName === "NK-cell" || clickedItem === 'NK-cell' ? "5" : "2", d: "M944.7,693.5c-1.9-14.7-0.9-26.7-4.8-35.9c-11.7-27.5-34.3-32.7-47.1-33.5c-3.3-0.2-13.9,0.2-23.8,6.7c-5.5,3.6-9.9,11.6-14.7,16.3c-4.4,4.2-18,13.9-18.7,30.3c-0.5,10,2.8,16.2,5.4,26.2c2.1,8.2,2.2,16.8,4.6,24.1c2.5,8,7.2,14.3,9.1,16.1c4.1,3.9,27.6,13.1,47.9,8.8C927.2,747.5,949,725.8,944.7,693.5z"}), 
+						React.createElement("path", {id: "nk_cell_nucleus", opacity: "0.2", stroke: "#000000", strokeWidth: "2", d: "M919.2,671.6c-1.4,4.6-0.6,8.2-1.6,10.7c-2.1,5.1-7.5,8-12.6,6.7c-4.1-1-7.8-5.7-9.9-6.7c-4.1-1.9-11.7-1.3-13.4-5.9c-2.1-5.7-2.2-22,4.8-28.9c7.5-7.4,22.3-5.2,24.9-3.5C919,648.8,923.1,658.8,919.2,671.6z"}), 
+						React.createElement("g", {id: "granules", opacity: "0.2"}, 
+							React.createElement("path", {stroke: "#000000", strokeWidth: "0.5", d: "M890.3,708.8c0,0,3.2,4.8,4.8,0C896.8,704,887.9,705.6,890.3,708.8z"}), 
+							React.createElement("path", {stroke: "#000000", strokeWidth: "0.5", d: "M906.1,718.7c0,0,3.5,1.3,3.2-1.9C909.1,713.6,902.4,715,906.1,718.7z"}), 
+							React.createElement("path", {stroke: "#000000", strokeWidth: "0.5", d: "M916.6,696.5c0,0-2.1,4.6,1.3,4.3C921.4,700.5,921.9,695.7,916.6,696.5z"}), 
+							React.createElement("path", {stroke: "#000000", strokeWidth: "0.5", d: "M927.6,710.9c0,0,3.2,2.1,3.7-1.3C931.8,706.1,924.3,708.8,927.6,710.9z"}), 
+							React.createElement("path", {stroke: "#000000", strokeWidth: "0.5", d: "M920.6,721.7c0,0,2.4,4.8,4.8,0C927.8,716.8,919.5,720.3,920.6,721.7z"}), 
+							React.createElement("path", {stroke: "#000000", strokeWidth: "0.5", d: "M901.8,731.8c0,0-2.4,2.7,1.3,2.9C906.9,735,906.7,728.9,901.8,731.8z"}), 
+							React.createElement("path", {stroke: "#000000", strokeWidth: "0.5", d: "M886,729.2c0,0,1.6,5.1,5.4,1.9C895.1,727.8,885.8,725.1,886,729.2z"}), 
+							React.createElement("path", {stroke: "#000000", strokeWidth: "0.5", d: "M878.8,717c0,0-2.8,4.1,1.7,3.3S879.2,713.9,878.8,717z"}), 
+							React.createElement("path", {stroke: "#000000", strokeWidth: "0.5", d: "M907.2,704.5c4.6-1.6-4.6-4-3.8-1.9C903.4,702.6,902.6,706.1,907.2,704.5z"}), 
+							React.createElement("path", {stroke: "#000000", strokeWidth: "0.5", d: "M878,742c0,0,4.9,2.7,4.2-2.9C881.5,733.4,876.3,743.3,878,742z"}), 
+							React.createElement("path", {stroke: "#000000", strokeWidth: "0.5", d: "M865.7,727.1c0,0,1.3,3.9,4.8,0C874,723.3,864.3,723.3,865.7,727.1z"}), 
+							React.createElement("path", {stroke: "#000000", strokeWidth: "0.5", d: "M860.1,677.5c0,0,9.6-0.8,1.6-6.2C853.6,665.9,856.5,678.4,860.1,677.5z"}), 
+							React.createElement("path", {stroke: "#000000", strokeWidth: "0.5", d: "M860.7,698.6c0,0,3.9,3,4.9-4C866.5,687.6,854.1,698.3,860.7,698.6z"}), 
+							React.createElement("path", {stroke: "#000000", strokeWidth: "0.5", d: "M880,699.2c0,0,1.1-6.5-2-3.5C873.4,700.1,880,699.2,880,699.2z"}), 
+							React.createElement("path", {stroke: "#000000", strokeWidth: "0.5", d: "M870,707.9c0,0,4,2.6,4.3-2.2C874.5,701,866.6,707.6,870,707.9z"}), 
+							React.createElement("path", {stroke: "#000000", strokeWidth: "0.5", d: "M854.7,716.1c0,0,2,3.2,6,0C864.6,712.8,852.7,712.8,854.7,716.1z"})
+						), 
+						React.createElement("text", {fontSize: "35px", className: "clickable", transform: "matrix(1 0 0 1 987.4189 692.1923)", onMouseOver: this.props.onMouseOver.bind(null, 'NK-cell'), onMouseOut: this.props.onMouseOver.bind(null, undefined)}, "NK-cell")
+					), 
+
+					React.createElement("g", {id: "erythroblast", onMouseOver: this.props.onMouseOver.bind(null, 'Erythroblast'), onMouseOut: this.props.onMouseOver.bind(null, undefined)}, 
+						React.createElement("title", null, "Number of samples: ", _.find(_.find(this.props.fixed.header, function(o){return o.name == 'Blood'}).children, function(o){return o.name == 'Erythroblast'}).numAnnotated, ", average: ", this.props.values.avg[this.props.fixed.indices['Erythroblast']], ", AUC: ", this.props.values.auc[this.props.fixed.indices['Erythroblast']]), 
+						React.createElement("path", {style: {transition: 'stroke .25s ease-in-out, stroke-width .25s ease-in-out'}, id: "erythroblast_color", fill: getRGB(this.props.values.avg[this.props.fixed.indices['T-cell']]), stroke: hoverName === 'Erythroblast' || clickedItem === 'Erythroblast' ? "rgb(255,225,0)" : "rgba(0,0,0,0.5", strokeWidth: hoverName === "Erythroblast" || clickedItem === 'Erythroblast' ? "5" : "2", d: "M838.2,563.1c8.7-4.7,24.2-21.3,27.4-44c3.4-24-13.9-51.3-38.8-60c-13.2-4.6-52.6-6.2-77.6,7.8c-7.9,4.4-21.6,17.5-26.9,34.3c-4.7,15-1.6,33.5,1.3,41.4c5.7,15.5,13.1,28.1,27.4,34.6s35.7,3.2,53.8-1.8C822.2,570.5,836.4,564.1,838.2,563.1z"}), 
+						React.createElement("path", {id: "erythroblast_nucleus", opacity: "0.2", stroke: "#000000", strokeWidth: "2", d: "M783,556.8c0,0-15,3.2-24.3-6.3s-9.5-32.1-9.5-32.1s0.7-6.8,2.9-14.8c1.3-4.7,1.8-9.8,6.9-14.2c13.6-11.6,19.7-11.6,19.7-11.6s5.7-2.9,13.6-3.5c3.4-0.2,7.1,1.9,11,1.7c7.7-0.3,15.5-1.5,22.6,1.7c18.8,8.7,24,14.5,19.7,34.4c-1.9,8.7-6.6,21-15.9,26c-2.5,1.4-6.1,4.6-10.4,5.5c-4.6,1-9.8-0.3-14.5,1.4c-5.4,2.1-8.6,7.4-12.4,9.5C787.7,557.5,783,556.8,783,556.8z"}), 
+						React.createElement("text", {fontSize: "35px", className: "clickable", transform: "matrix(1 0 0 1 906.463 529.7457)", onMouseOver: this.props.onMouseOver.bind(null, 'Erythroblast'), onMouseOut: this.props.onMouseOver.bind(null, undefined)}, "Erythroblast")
+					), 
+
+					React.createElement("g", {id: "monocyte", onMouseOver: this.props.onMouseOver.bind(null, 'Monocyte'), onMouseOut: this.props.onMouseOver.bind(null, undefined)}, 
+						React.createElement("title", null, "Number of samples: ", _.find(_.find(this.props.fixed.header, function(o){return o.name == 'Blood'}).children, function(o){return o.name == 'Monocyte'}).numAnnotated, ", average: ", this.props.values.avg[this.props.fixed.indices['Monocyte']], ", AUC: ", this.props.values.auc[this.props.fixed.indices['Monocyte']]), 	
+						React.createElement("path", {style: {transition: 'stroke .25s ease-in-out, stroke-width .25s ease-in-out'}, id: "monocyte_color", fill: getRGB(this.props.values.avg[this.props.fixed.indices['Monocyte']]), stroke: hoverName === 'Monocyte' || clickedItem === 'Monocyte' ? "rgb(255,225,0)" : "rgba(0,0,0,0.5", strokeWidth: hoverName === "Monocyte" || clickedItem === 'Monocyte' ? "5" : "2", d: "M785.3,913.1c0,0,52.6-0.7,59.9-47.3c7.4-46.5-45.4-61.3-45.4-61.3s-44-23.6-62.4,17.7c-18.5,41.3-24.4,53.9,0,75.3C761.9,919,785.3,913.1,785.3,913.1z"}), 
+						React.createElement("path", {id: "monocyte_nucleus", opacity: "0.2", stroke: "#000000", d: "M813.8,831c16.6,3,14.4,28.1,10,32.9c-4.4,4.8-17.7,18.1-31,10.7c-7.8-4.3-4.8-15.7-7.3-20.3c-1.7-3.2-9.2-1.4-11.9,1.1c-2.4,2.2-6.1,4.3-10.1,5.8c-3.3,1.3-8.5,2.4-13.9,1.2c-6-1.3-12-5.1-12.6-7.1c-1.4-5,1.4-13.4,3.2-17c1.8-3.5,7.6-6,11.8-11.8c2.1-2.9,4.2-13.5,10.1-16.5c2.8-1.5,11.4-4.7,19.7-0.4c5.2,2.7,10,8.6,15.3,12.9C802.8,827.2,808.9,830.1,813.8,831z"}), 
+						React.createElement("text", {fontSize: "35px", className: "clickable", transform: "matrix(1 0 0 1 880.2762 867.9855)", onMouseOver: this.props.onMouseOver.bind(null, 'Monocyte'), onMouseOut: this.props.onMouseOver.bind(null, undefined)}, "Monocyte")
+					), 
+
+					React.createElement("g", {id: "granulocyte", onMouseOver: this.props.onMouseOver.bind(null, 'Granulocyte'), onMouseOut: this.props.onMouseOver.bind(null, undefined)}, 
+						React.createElement("title", null, "Number of samples: ", _.find(_.find(this.props.fixed.header, function(o){return o.name == 'Blood'}).children, function(o){return o.name == 'Granulocyte'}).numAnnotated, ", average: ", this.props.values.avg[this.props.fixed.indices['Granulocyte']], ", AUC: ", this.props.values.auc[this.props.fixed.indices['Granulocyte']]), 	
+						React.createElement("path", {style: {transition: 'stroke .25s ease-in-out, stroke-width .25s ease-in-out'}, id: "granulocyte_color", fill: getRGB(this.props.values.avg[this.props.fixed.indices['Granulocyte']]), stroke: hoverName === 'Granulocyte' || clickedItem === 'Granulocyte' ? "rgb(255,225,0)" : "rgba(0,0,0,0.5", strokeWidth: hoverName === "Granulocyte" || clickedItem === 'Granulocyte' ? "5" : "2", d: "M979.1,1014.5c1.2,13.5-8.1,41-27.2,52.6c-16.4,10-42.2,5.2-49.5,5.6c-11.9,0.6-20.3,6-30.8,4.1c-23.1-4.2-35-17-40.2-26.4c-4.8-8.8-12.8-49.1,5-73.4c17.2-23.4,60-31,73.7-28.7c6.6,1.1,33.7,6.6,49.1,20.6C974.6,983,978.3,1005.4,979.1,1014.5z"}), 
+						React.createElement("path", {id: "granulocyte_nucleus", opacity: "0.2", stroke: "#000000", strokeWidth: "0.5", d: "M886.1,1025.3c0.5-4.7,1.4-10,1.6-13.3c0.3-4.6,0.4-10.2,2.3-11.9c3.9-3.4,10.9,1.5,10.3,9.8c-0.5,6.1-1.7,16.1,0.5,23.8c1,3.5,10,14.9,21,11.7c7.3-2.1,31.7-15.3,31.8-26.4c0-4.4-3.7-14.2-9.1-17.1c-2.1-1.1-8.2-2.2-13.3,0c-3.8,1.7-6.3,6.9-10.3,6.1c-1.8-0.3-5-5.5-9.3-7.9c-4.6-2.6-10.2-2.4-13.1-3.7c-7.5-3.4-12-10.4-11.3-12.5c0,0,12.1,6.7,20.6,4.1c7.7-2.3,11.9-13.9,11.9-15.9c0-6-7.1-12.5-16.4-13.4c-6.3-0.6-18.3-2.4-22.9,3.2c-3.1,3.7-6,9.5-5.8,14.7c0,0.7,0.4,3.6,2.6,7c3.8,5.9,9.9,13.8,5.8,16.4c-6,3.8-21-2.6-31.8-1.4c-9.1,1-14.7,9.3-14.9,14c-0.2,6,7.7,9.4,15.8,13.6C865.8,1033,884.6,1040.5,886.1,1025.3z"}), 
+						React.createElement("text", {fontSize: "35px", className: "clickable", transform: "matrix(1 0 0 1 1017.7397 1027.427)", onMouseOver: this.props.onMouseOver.bind(null, 'Granulocyte'), onMouseOut: this.props.onMouseOver.bind(null, undefined)}, "Granulocyte")
+					)
+
+				)
+				
+			)
+		)
+	}
+})
 
 },{"lodash":130,"react":333}],15:[function(require,module,exports){
-var _=require("lodash"),React=require("react"),Link=require("react-router").Link,Rectangle=require("../ReactComponents/SVGCollection").Rectangle,htmlutil=require("../../js/htmlutil"),color=require("../../js/color"),reactable=require("reactable"),Tr=reactable.Tr,Td=reactable.Td,Table=reactable.Table,unsafe=reactable.unsafe,SimilarGenesTable=React.createClass({displayName:"SimilarGenesTable",propTypes:{data:React.PropTypes.object},render:function(){var e=_.map(this.props.data.data,function(e,t){var a=(e.gene.description||"").replace(/\[[^\]]+\]/g,"");return React.createElement(Tr,{key:e.gene.id},React.createElement(Td,{column:"GENE",className:"text"},React.createElement(Link,{className:"black nodecoration",title:a,to:"/gene/"+e.gene.name},React.createElement(Rectangle,{title:e.gene.biotype.replace(/_/g," "),className:"tablerectangle",fill:color.biotype2color[e.gene.biotype]||color.colors.gnblack}),React.createElement("span",null,e.gene.name))),React.createElement(Td,{column:"DESCRIPTION"},React.createElement(Link,{className:"black nodecoration",title:a,to:"/gene/"+e.gene.name},a)),React.createElement(Td,{column:"P-VALUE"},unsafe(htmlutil.pValueToReadable(e.pValue))))});return React.createElement(Table,{className:"rowcolors table gene-coreg-table",sortable:[{column:"GENE",sortFunction:function(e,t){var a=e.props.to.slice(6),r=t.props.to.slice(6);return a.localeCompare(r)}},{column:"DESCRIPTION",sortFunction:function(e,t){return e.localeCompare(t)}},{column:"P-VALUE",sortFunction:function(e,t){if(e.length<5)return t.length<5?e-t:(t[0],1);if("<"!=e[0]){if(t.length<5)return-1;if("<"!=t[0]){e=e.toString();var a=e.slice(53),r=a.slice(0,a.indexOf("<")),l=e.slice(0,3);t=t.toString();var n=t.slice(53),c=n.slice(0,n.indexOf("<")),i=t.slice(0,3);return r-c||l-i}return 1}if(t.length<5)return-1;if("<"!=t[0])return-1;e=e.toString();var a=e.slice(55),r=a.slice(0,a.indexOf("<")),l=e.slice(2,5);t=t.toString();var n=t.slice(55),c=n.slice(0,n.indexOf("<")),i=t.slice(2,5);return r-c||l-i}}]},e)}});module.exports=SimilarGenesTable;
+var _ = require('lodash');
+var React = require('react');
+var Link = require('react-router').Link;
+var Rectangle = require('../ReactComponents/SVGCollection').Rectangle;
+var htmlutil = require('../../js/htmlutil');
+var color = require('../../js/color');
+
+var reactable = require('reactable');
+var Tr = reactable.Tr;
+var Td = reactable.Td;
+var Table = reactable.Table;
+var unsafe = reactable.unsafe;
+
+var SimilarGenesTable = React.createClass({displayName: "SimilarGenesTable",
+
+    propTypes: {
+        data: React.PropTypes.object
+    },
+    
+    render: function() {
+
+        var rows = _.map(this.props.data.data, function(gene, i) {
+
+            var desc = (gene.gene.description || '').replace(/\[[^\]]+\]/g, '');
+            return React.createElement(Tr, {key: gene.gene.id}, 
+                    React.createElement(Td, {column: "GENE", className: "text"}, 
+                    React.createElement(Link, {className: "black nodecoration", title: desc, to: "/gene/" + gene.gene.name + ""}, 
+                    React.createElement(Rectangle, {title: gene.gene.biotype.replace(/_/g, ' '), className: "tablerectangle", fill: color.biotype2color[gene.gene.biotype] || color.colors.gnblack}), 
+                    React.createElement("span", null, gene.gene.name)
+                    )
+                    ), 
+                    React.createElement(Td, {column: "DESCRIPTION"}, 
+                    React.createElement(Link, {className: "black nodecoration", title: desc, to: "/gene/" + gene.gene.name + ""}, 
+                    desc
+                    )
+                    ), 
+                    React.createElement(Td, {column: "P-VALUE"}, unsafe(htmlutil.pValueToReadable(gene.pValue)))
+                    );
+        });
+        
+        return (
+                React.createElement(Table, {className: "rowcolors table gene-coreg-table", 
+
+                sortable: [
+                    {
+                        column: 'GENE',
+                        sortFunction: function(a,b) {
+                            var aGeneName = a.props.to.slice(6);
+                            var bGeneName = b.props.to.slice(6);
+                            return aGeneName.localeCompare(bGeneName)
+                        }
+                    },
+
+                    {
+                        column: 'DESCRIPTION',
+                        sortFunction: function(a,b) {
+                            return a.localeCompare(b)
+                        }
+                    },
+
+                    {
+                    column: "P-VALUE",
+                    sortFunction: function(a, b) {
+
+                        if (a.length < 5) {
+                            if (b.length < 5) {             {/* a ?? b */}
+                                return a - b
+                            } else if (b[0] != '<') {    {/* a > b */}
+                                return 1
+                            } else {                        {/* a > b */}
+                                return 1
+                            }
+                        } else if (a[0] != '<') {
+                            if (b.length < 5) {             {/* a < b */}
+                                return -1
+                            } else if (b[0] != '<') {    {/* a ?? b */}
+
+                                a = a.toString();
+                                var aExponent = a.slice(53);
+                                var aExp = aExponent.slice(0, aExponent.indexOf("<"));
+                                var aNumber = a.slice(0,3);
+
+                                b = b.toString();
+                                var bExponent = b.slice(53);
+                                var bExp = bExponent.slice(0, bExponent.indexOf("<"));
+                                var bNumber = b.slice(0,3);
+
+                                return aExp - bExp || aNumber - bNumber
+
+                            } else {                        {/* a > b */}
+                                return 1
+                            }
+                        } else {
+                            if (b.length < 5) {             {/* a < b */}
+                                return -1
+                            } else if (b[0] != '<') {    {/* a <b */}
+                                return -1
+                            } else {
+
+                                a = a.toString();
+                                var aExponent = a.slice(55);
+                                var aExp = aExponent.slice(0, aExponent.indexOf("<"));
+                                var aNumber = a.slice(2,5);
+
+                                b = b.toString();
+                                var bExponent = b.slice(55);
+                                var bExp = bExponent.slice(0, bExponent.indexOf("<"));
+                                var bNumber = b.slice(2,5);
+
+                                return aExp - bExp || aNumber - bNumber
+
+                            }
+                        }
+
+                        return b - a
+                    }
+                }
+
+                ]}, 
+                
+
+                rows
+                )
+        )
+    }
+});
+
+module.exports = SimilarGenesTable;
 
 },{"../../js/color":4,"../../js/htmlutil":5,"../ReactComponents/SVGCollection":45,"lodash":130,"react":333,"react-router":164,"reactable":334}],16:[function(require,module,exports){
-"use strict";var _=require("lodash"),React=require("react"),HomoSapiens=require("./HomoSapiens"),htmlutil=require("../../js/htmlutil"),SVGCollection=require("../ReactComponents/SVGCollection"),ListIcon=SVGCollection.ListIcon,TranscriptBars=SVGCollection.TranscriptBars,I=SVGCollection.I,OpenMenu=require("../ReactComponents/OpenMenu"),TriangleDown=require("../ReactComponents/SVGCollection").TriangleDown,TriangleUp=require("../ReactComponents/SVGCollection").TriangleUp,reactable=require("reactable"),Tr=reactable.Tr,Td=reactable.Td,Th=reactable.Th,Thead=reactable.Thead,Table=reactable.Table,unsafe=reactable.unsafe,DataTable=React.createClass({displayName:"DataTable",getInitialState:function(){return{}},handleTranscriptBarHover:function(t){this.setState({transcriptBarHover:t})},componentWillMount:function(){var t=this.props.fixed.indices,e=this.props.values.avg;this.sortedItems=_.sortBy(this.props.fixed.header,function(s){return e[t[s.name]]}).reverse()},render:function(){var t=this.props.fixed.indices,e=this.props.transcript?this.props.transcript.avg:this.props.values.avg,s=(this.props.transcript?this.props.transcript.z:this.props.values.z,this.props.transcript?this.props.transcript.stdev:this.props.values.stdev,this.props.transcript?this.props.transcript.auc:this.props.values.auc),r=(this.props.transcriptBars,_.map(this.sortedItems,function(r,a){return React.createElement(Tr,{key:r.name,className:"clickable",onClick:this.props.onClick.bind(null,r),onMouseOut:this.props.onMouseOver.bind(null,void 0),onMouseOver:this.props.onMouseOver.bind(null,r),style:this.props.hoverItem===r.name||this.props.clickedItem===r.name?{backgroundColor:"rgb(255,225,0)"}:{}},React.createElement(Td,{column:""},"Brain"===r.name||"Blood"===r.name?React.createElement(ListIcon,{w:10,h:10,n:3}):null),React.createElement(Td,{column:"tissue"},r.name),React.createElement(Td,{column:"samples"},r.numSamples),React.createElement(Td,{column:"average"},e[t[r.name]]),React.createElement(Td,{column:"auc"},s[t[r.name]]))}.bind(this)));return React.createElement(Table,{className:"sortable table tissues-table rowcolors",sortable:["tissue",{column:"samples",sortFunction:function(t,e){return e-t}},{column:"average",sortFunction:function(t,e){return e-t}},{column:"auc",sortFunction:function(t,e){return e-t}}]},React.createElement(Thead,{className:"headercolor"},React.createElement(Th,null,""),React.createElement(Th,{column:"tissue"},React.createElement("span",null,"TISSUE")),React.createElement(Th,{column:"samples"},React.createElement("span",null,"SAMPLES")," ",React.createElement(I,{title:"Number of samples"})),React.createElement(Th,{column:"average"},React.createElement("span",null,"AVERAGE")," ",React.createElement(I,{title:"For each gene the expression values for <br /> all samples were standard normalized and <br />the average of each tissue-specific set of<br />  samples was subsequently calculated."}))),r)}}),Tissues=React.createClass({displayName:"Tissues",getInitialState:function(){return{}},componentWillMount:function(){this.setState({currentTranscriptbars:10,endTranscriptbars:"left"})},handleMouseOver:function(t){var e="object"==typeof t?t.name:t;this.setState({hoverItem:e})},handleTranscriptArrowClick:function(t){var e,s=this;"right"===t?(e=this.props.data.gene.transcripts.slice(this.state.currentTranscriptbars,this.state.currentTranscriptbars+10),this.setState({currentTranscripts:e}),this.setState(function(t){return{currentTranscriptbars:t.currentTranscriptbars+10}}),this.setState({endTranscriptbars:this.state.currentTranscriptbars+20>this.props.data.gene.transcripts.length?"right":void 0})):(e=this.props.data.gene.transcripts.slice(this.state.currentTranscriptbars-20,this.state.currentTranscriptbars-10),this.setState({currentTranscripts:e}),this.setState(function(t){return{currentTranscriptbars:t.currentTranscriptbars-10}}),this.setState({endTranscriptbars:20===this.state.currentTranscriptbars?"left":void 0})),$.ajax({url:GN.urls.transcriptBars+"/"+this.props.data.gene.id+","+e,datatype:"binary",success:function(t){this.setState({transcriptBars:t})}.bind(s),error:function(t,e,s){console.log(t),this.setState({error:"Error"+t.status})}.bind(s)})},handleTranscriptBarClick:function(t){if(this.state.selectedTranscript==t)this.setState({transcript:void 0,selectedTranscript:void 0});else{var e=this;$.ajax({url:GN.urls.transcript+"/"+t,dataType:"json",success:function(e){this.setState({transcript:e,selectedTranscript:t.toString()})}.bind(e),error:function(t,e,s){console.log(t),this.setState({error:"Error"+t.status})}.bind(e)})}},handleClick:function(t){var e="object"==typeof t?t.name:t;this.setState({clickedItem:e===this.state.clickedItem?void 0:e})},render:function(){return this.props.celltypes?React.createElement("div",null,React.createElement("div",{className:"hflex"},React.createElement("div",{className:"flex11",style:{width:"35%",minWidth:"332px"}},React.createElement(DataTable,{values:this.state.transcript?this.state.transcript:this.props.celltypes.values,transcripts:this.state.currentTranscripts?this.state.currentTranscripts:this.props.data.gene.transcripts,fixed:this.props.celltypes.fixed,onClick:this.handleClick,clickedItem:this.state.clickedItem,hoverItem:this.state.hoverItem,onMouseOver:this.handleMouseOver,showTranscriptBars:!!this.props.data.gene.transcripts,showTranscriptBarArrows:!!this.props.data.gene.transcripts&&this.props.data.gene.transcripts.length>=10,selectedTranscript:this.props.data.gene.transcripts?this.state.selectedTranscript:0,transcriptBars:this.state.transcriptBars?this.state.transcriptBars:this.props.celltypes.transcriptBars,endTranscriptbars:this.state.endTranscriptbars,onTranscriptArrowClick:this.handleTranscriptArrowClick,onTranscriptBarClick:this.handleTranscriptBarClick})),React.createElement("div",{className:"flex11",style:{minWidth:"400px",width:"65%",position:"relative"}},React.createElement(HomoSapiens,{values:this.state.transcript?this.state.transcript:this.props.celltypes.values,fixed:this.props.celltypes.fixed,onClick:this.handleClick,clickedItem:this.state.clickedItem,hoverItem:this.state.hoverItem,onMouseOver:this.handleMouseOver})))):null}});module.exports=Tissues;
+'use strict'
+
+var _ = require('lodash')
+var React = require('react')
+var HomoSapiens = require('./HomoSapiens')
+var htmlutil = require('../../js/htmlutil')
+var SVGCollection = require('../ReactComponents/SVGCollection')
+var ListIcon = SVGCollection.ListIcon
+var TranscriptBars = SVGCollection.TranscriptBars
+var I = SVGCollection.I
+var OpenMenu = require('../ReactComponents/OpenMenu')
+var TriangleDown = require('../ReactComponents/SVGCollection').TriangleDown
+var TriangleUp = require('../ReactComponents/SVGCollection').TriangleUp
+
+var reactable = require('reactable')
+var Tr = reactable.Tr
+var Td = reactable.Td
+var Th = reactable.Th
+var Thead = reactable.Thead
+var Table = reactable.Table
+var unsafe = reactable.unsafe
+
+var DataTable = React.createClass({displayName: "DataTable",
+
+    getInitialState: function() {
+        return {}
+    },
+
+	handleTranscriptBarHover: function(item) {
+        this.setState({
+            transcriptBarHover: item
+        });
+	},
+
+    componentWillMount: function() {
+        var indices = this.props.fixed.indices
+        var avg = this.props.values.avg
+        this.sortedItems = _.sortBy(this.props.fixed.header, function(item){
+            return avg[indices[item.name]]
+        }).reverse()
+    },
+
+    render: function() {
+        var indices = this.props.fixed.indices
+        var avg = this.props.transcript ? this.props.transcript.avg : this.props.values.avg
+        var z = this.props.transcript ? this.props.transcript.z : this.props.values.z
+        var stdev = this.props.transcript ? this.props.transcript.stdev : this.props.values.stdev
+        var auc = this.props.transcript ? this.props.transcript.auc : this.props.values.auc
+        var transcriptBars = this.props.transcriptBars
+    	var rows = _.map(this.sortedItems, function(item, i){
+                // <Td column="transcripts">
+                //     <TranscriptBars
+                //         showBars={this.props.showTranscriptBars}
+                //         values={transcriptBars[item.name]}
+                //         transcripts={this.props.transcripts}
+                //         endTranscriptbars={this.props.endTranscriptbars}
+                //         onTranscriptArrowClick={this.props.onTranscriptArrowClick}
+                //         onTranscriptBarClick={this.props.onTranscriptBarClick}
+                //         onClick={this.props.onClick}
+                //         onMouseOver={this.handleTranscriptBarHover}
+                //         hoverItem={this.state.transcriptBarHover}
+                //         selectedTranscript={this.props.selectedTranscript}
+                //         showTranscriptBarArrows={this.props.showTranscriptBarArrows} />
+                //     </Td>
+    	    return(
+                React.createElement(Tr, {key: item.name, className: "clickable", onClick: this.props.onClick.bind(null, item), onMouseOut: this.props.onMouseOver.bind(null, undefined), onMouseOver: this.props.onMouseOver.bind(null, item), style: this.props.hoverItem === item.name || this.props.clickedItem === item.name ? {backgroundColor: 'rgb(255,225,0)'} : {}}, 
+                React.createElement(Td, {column: ""}, item.name === "Brain" || item.name === "Blood" ? React.createElement(ListIcon, {w: 10, h: 10, n: 3}) : null), 
+                React.createElement(Td, {column: "tissue"}, item.name), 
+                React.createElement(Td, {column: "samples"}, item.numSamples), 
+                React.createElement(Td, {column: "average"}, avg[indices[item.name]]), 
+                React.createElement(Td, {column: "auc"}, auc[indices[item.name]])
+                )
+    	    )
+    	}.bind(this))
+
+        return (
+            React.createElement(Table, {className: "sortable table tissues-table rowcolors", sortable: ['tissue',
+                {
+                	column: 'samples',
+                	sortFunction: function(a, b) {return b - a}
+                },
+                {
+                	column: 'average',
+                	sortFunction: function(a, b) {return b - a}
+                },
+                {
+                	column: 'auc',
+                	sortFunction: function(a, b) {return b - a}
+                }
+            ]
+            }, 
+            React.createElement(Thead, {className: "headercolor"}, 
+            	React.createElement(Th, null, ""), 
+            	React.createElement(Th, {column: "tissue"}, React.createElement("span", null, "TISSUE")), 
+            	React.createElement(Th, {column: "samples"}, React.createElement("span", null, "SAMPLES"), " ", React.createElement(I, {title: "Number of samples"})), 
+            	React.createElement(Th, {column: "average"}, React.createElement("span", null, "AVERAGE"), " ", React.createElement(I, {title: "For each gene the expression values for <br /> all samples were standard normalized and <br />the average of each tissue-specific set of<br />  samples was subsequently calculated."}))
+            ), 
+            rows
+            )
+        )
+    }
+})
+
+var Tissues = React.createClass({displayName: "Tissues",
+
+    getInitialState: function() {
+        return {}
+    },
+
+    componentWillMount: function() {
+        this.setState({
+            currentTranscriptbars: 10,
+            endTranscriptbars: 'left'
+        })
+    },
+    
+    handleMouseOver: function(item) {
+        var hoverItem = typeof item === "object" ? item.name : item
+        this.setState({
+            hoverItem: hoverItem
+        });
+    },
+
+    handleTranscriptArrowClick: function(item) {
+        var that = this
+        var transcripts        
+        if (item === 'right'){ //when clicked on the right arrow, select the next 10 transcripts
+            transcripts = this.props.data.gene.transcripts.slice(this.state.currentTranscriptbars, this.state.currentTranscriptbars + 10)
+            this.setState({currentTranscripts: transcripts})
+            this.setState(function(previousState) {
+                return {currentTranscriptbars: previousState.currentTranscriptbars + 10} 
+            })
+            //when reached the end, right arrow is not clickable anymore
+            this.setState({
+            	endTranscriptbars: this.state.currentTranscriptbars + 20 > this.props.data.gene.transcripts.length ? 'right' : undefined
+            })
+        } else { //when clicked on the left arrow, select the previous 10 transcripts
+            transcripts = this.props.data.gene.transcripts.slice(this.state.currentTranscriptbars - 20, this.state.currentTranscriptbars - 10)
+            this.setState({currentTranscripts: transcripts})
+            this.setState(function(previousState) {return {currentTranscriptbars: previousState.currentTranscriptbars - 10}})
+            //makes left arrow not clickable at start
+            this.setState({
+            	endTranscriptbars: this.state.currentTranscriptbars === 20 ? 'left' : undefined
+            })
+        }
+        //get transcript bar data
+        $.ajax({
+            url: GN.urls.transcriptBars + '/' + this.props.data.gene.id + ',' + transcripts,
+            datatype: 'binary',
+            success: function(data) {
+                this.setState({
+                    transcriptBars: data
+                })
+            }.bind(that),
+            error: function(xhr, status, err) {
+                console.log(xhr)
+                this.setState({
+                    error: 'Error' + xhr.status
+                })
+            }.bind(that)
+        })
+    },
+
+    handleTranscriptBarClick: function(item) {
+        if (this.state.selectedTranscript == item) { //deselect transcript
+            this.setState({
+                transcript: undefined,
+                selectedTranscript: undefined
+            })
+        } else {
+            var that = this
+            $.ajax({
+                url: GN.urls.transcript + '/' + item,
+                dataType: 'json',
+                success: function(data) {
+                    this.setState({
+                        transcript: data,
+                        selectedTranscript: item.toString()
+                    })
+                }.bind(that),
+                error: function(xhr, status, err) {
+                    console.log(xhr)
+                    this.setState({
+                        error: 'Error' + xhr.status
+                    })
+                }.bind(that)
+            })
+        }
+    },
+
+    handleClick: function(item) {
+    	var clickedItem = typeof item === "object" ? item.name : item
+        this.setState({
+        	clickedItem: clickedItem === this.state.clickedItem ? undefined : clickedItem
+        })
+    },
+  
+    render: function() {
+
+        if (!this.props.celltypes) return null
+    	return (
+            React.createElement("div", null, 
+        		React.createElement("div", {className: "hflex"}, 
+            		React.createElement("div", {className: "flex11", style: {width: '35%', minWidth: '332px'}}, 
+                    	React.createElement(DataTable, {
+                            values: this.state.transcript ? this.state.transcript : this.props.celltypes.values, 
+                            transcripts: this.state.currentTranscripts ? this.state.currentTranscripts : this.props.data.gene.transcripts, 
+                            fixed: this.props.celltypes.fixed, 
+                            onClick: this.handleClick, 
+                            clickedItem: this.state.clickedItem, 
+                            hoverItem: this.state.hoverItem, 
+                            onMouseOver: this.handleMouseOver, 
+                            showTranscriptBars: this.props.data.gene.transcripts ? true : false, 
+                            showTranscriptBarArrows: !this.props.data.gene.transcripts ? false : this.props.data.gene.transcripts.length >= 10 ? true : false, 
+                            selectedTranscript: !this.props.data.gene.transcripts ? 0 : this.state.selectedTranscript, 
+                            transcriptBars: this.state.transcriptBars ? this.state.transcriptBars : this.props.celltypes.transcriptBars, 
+                            endTranscriptbars: this.state.endTranscriptbars, 
+                            onTranscriptArrowClick: this.handleTranscriptArrowClick, 
+                            onTranscriptBarClick: this.handleTranscriptBarClick})
+
+                	), 
+                	React.createElement("div", {className: "flex11", style: {minWidth: '400px', width: '65%', position: 'relative'}}, 
+                   		React.createElement(HomoSapiens, {
+                            values: this.state.transcript ? this.state.transcript : this.props.celltypes.values, 
+                            fixed: this.props.celltypes.fixed, 
+                            onClick: this.handleClick, 
+                            clickedItem: this.state.clickedItem, 
+                            hoverItem: this.state.hoverItem, 
+                            onMouseOver: this.handleMouseOver})
+                    )
+                )
+            )
+    	)
+    }
+})
+
+module.exports = Tissues
 
 },{"../../js/htmlutil":5,"../ReactComponents/OpenMenu":42,"../ReactComponents/SVGCollection":45,"./HomoSapiens":14,"lodash":130,"react":333,"reactable":334}],17:[function(require,module,exports){
-var _=require("lodash"),React=require("react"),ReactTable=require("react-table").default,DocumentTitle=require("react-document-title"),color=require("../js/color"),GeneList=React.createClass({displayName:"GeneList",getInitialState:function(){return{genes:[],notFound:[]}},componentWillReceiveProps:function(e){this.handleUpdate(e.location.state.geneList)},componentDidMount:function(){this.handleUpdate(this.props.location.state.geneList)},parseGeneList:function(e){e=e.trim().replace(/(\r\n|\n|\r|\t|\s|;)/g,",");var t=e.split(",").filter(function(e){return e});return t=_.uniq(t)},handleUpdate:function(e){var t=this.parseGeneList(e);this.getGenesFromDb(t)},handleDbResponse:function(e){var t=_.compact(_.map(e,"not_found")),n=_.compact(_.flatten(_.map(e,"genes")));this.setState({genes:n,notFound:t})},getGenesFromDb:function(e){var t=this;$.ajax({url:GN.urls.genes+"/"+e+"?verbose",dataType:"json",success:function(e){t.handleDbResponse(e)}.bind(t),error:function(e,t,n){console.log(n)}.bind(t)})},render:function(){var e=this.state.notFound;return React.createElement(DocumentTitle,{title:"Gene set enrichment"+GN.pageTitleSuffix},React.createElement("div",{className:"flex10"},React.createElement("div",{className:"gn-term-description-outer",style:{backgroundColor:color.colors.gnwhite,padding:"20px"}},React.createElement("div",{className:"gn-term-description-inner hflex flexcenter maxwidth"},React.createElement("div",{className:"gn-term-description-name"},React.createElement("span",{style:{fontWeight:"bold",fontFamily:"GG",fontSize:"1.5em"}},"Gene set enrichment")),React.createElement("div",{className:"flex11"}),React.createElement("div",{className:"gn-term-description-stats",style:{textAlign:"right"}},React.createElement("span",{style:{color:"green",fontWeight:"bold"}},this.state.genes.length),React.createElement("span",null," genes found"),React.createElement("br",null),React.createElement("span",{style:{color:"red",fontWeight:"bold"}},this.state.notFound.length),React.createElement("span",null," not found"),React.createElement("br",null)),React.createElement("div",{className:"gn-term-description-networkbutton flexend",style:{padding:"0 0 3px 10px"}},React.createElement("a",{className:"clickable button noselect",title:"Open network",href:GN.urls.networkPage+_.map(this.state.genes,function(e){return e.id}),target:"_blank"},"OPEN NETWORK")))),React.createElement("div",{className:"gn-gene-container-outer",style:{backgroundColor:color.colors.gnwhite,marginTop:"10px"}},React.createElement("div",{className:"gn-gene-container-inner maxwidth",style:{padding:"20px"}},React.createElement("span",{style:{fontWeight:"bold",fontFamily:"GG",fontSize:"1.2em"}},"Not found:"),React.createElement("br",null),_.map(e,function(t,n){return e.length===n+1?React.createElement("span",{key:t},t):React.createElement("span",{key:t},t,", ")}),React.createElement("div",null,React.createElement("br",null),React.createElement("span",{style:{fontWeight:"bold",fontFamily:"GG",fontSize:"1.2em"}},"Found:"),React.createElement(ReactTable,{data:this.state.genes,columns:[{Header:"Symbol",accessor:"name",maxWidth:100},{Header:"Ensembl ID",accessor:"id",maxWidth:175},{Header:"Description",accessor:"description"}],defaultPageSize:10}))))))}});module.exports=GeneList;
+var _ = require('lodash');
+var React = require('react');
+var ReactTable = require('react-table').default;
+var DocumentTitle = require('react-document-title');
+var color = require('../js/color');
+
+var GeneList = React.createClass({displayName: "GeneList",
+
+    getInitialState: function() {
+        return ({
+            genes: [],
+            notFound: []
+        })
+    },
+
+    componentWillReceiveProps: function(newProps) {
+        this.handleUpdate(newProps.location.state.geneList);
+    },
+
+    componentDidMount: function() {
+        this.handleUpdate(this.props.location.state.geneList)
+    },
+
+    parseGeneList: function(geneList) {
+        geneList = geneList.trim().replace(/(\r\n|\n|\r|\t|\s|;)/g, ',');
+        var genes = geneList.split(',').filter(function(e){return e});
+        genes = _.uniq(genes);
+        return(genes);
+    },
+
+    handleUpdate: function (geneList) {
+        var genes = this.parseGeneList(geneList);
+        this.getGenesFromDb(genes);
+    },
+
+    handleDbResponse: function (data) {
+        var notFound = _.compact(_.map(data, 'not_found'));
+        var genes = _.compact(_.flatten(_.map(data, 'genes'))); // this also flattens the genes from a given pathway // TODO: cluster genes searched by pathway id
+
+        this.setState({
+            genes: genes,
+            notFound: notFound,
+        });
+    },
+
+    getGenesFromDb: function (genes) {
+        var that = this;
+            $.ajax({
+                url: GN.urls.genes + '/' + genes + '?verbose',
+                dataType: 'json',
+                success: function(genes) {
+                    that.handleDbResponse(genes);
+                }.bind(that),
+                error: function(xhr, status, err) {
+                    console.log(err)
+                }.bind(that)
+            })
+    },
+
+    render: function() {
+        var notFound = this.state.notFound;
+
+        return (
+            React.createElement(DocumentTitle, {title: 'Gene set enrichment' + GN.pageTitleSuffix}, 
+            React.createElement("div", {className: "flex10"}, 
+                React.createElement("div", {className: "gn-term-description-outer", style: {backgroundColor: color.colors.gnwhite, padding: '20px'}}, 
+                    React.createElement("div", {className: "gn-term-description-inner hflex flexcenter maxwidth"}, 
+                        React.createElement("div", {className: "gn-term-description-name"}, 
+                            React.createElement("span", {style: {fontWeight: 'bold', fontFamily: 'GG', fontSize: '1.5em'}}, "Gene set enrichment")
+                        ), 
+                        React.createElement("div", {className: "flex11"}), 
+                        React.createElement("div", {className: "gn-term-description-stats", style: {textAlign: 'right'}}, 
+                            React.createElement("span", {style: {color: 'green', fontWeight: 'bold'}}, this.state.genes.length), React.createElement("span", null, " genes found"), React.createElement("br", null), 
+                            React.createElement("span", {style: {color: 'red', fontWeight: 'bold'}}, this.state.notFound.length), React.createElement("span", null, " not found"), React.createElement("br", null)
+                        ), 
+                        React.createElement("div", {className: "gn-term-description-networkbutton flexend", style: {padding: '0 0 3px 10px'}}, 
+                            React.createElement("a", {className: "clickable button noselect", title: 'Open network', href: GN.urls.networkPage + _.map(this.state.genes, function(gene) { return gene.id } ), target: "_blank"}, 
+                                "OPEN NETWORK")
+                        )
+                    )
+                ), 
+
+                React.createElement("div", {className: 'gn-gene-container-outer', style: {backgroundColor: color.colors.gnwhite, marginTop: '10px'}}, 
+                    React.createElement("div", {className: "gn-gene-container-inner maxwidth", style: {padding: '20px'}}, 
+                        React.createElement("span", {style: {fontWeight: 'bold', fontFamily: 'GG', fontSize: '1.2em'}}, "Not found:"), React.createElement("br", null), 
+                        _.map(notFound, function (geneItem, i) {
+                            if (notFound.length === i+1) return React.createElement("span", {key: geneItem}, geneItem);
+                            else return React.createElement("span", {key: geneItem}, geneItem, ", ")
+                        }), 
+                        React.createElement("div", null, React.createElement("br", null), 
+                            React.createElement("span", {style: {fontWeight: 'bold', fontFamily: 'GG', fontSize: '1.2em'}}, "Found:"), 
+                            React.createElement(ReactTable, {
+                                data: this.state.genes, 
+                                columns: [{
+                                    Header: 'Symbol',
+                                    accessor: 'name',
+                                    maxWidth: 100
+                                }, {
+                                    Header: 'Ensembl ID',
+                                    accessor: 'id',
+                                    maxWidth: 175
+                                }, {
+                                    Header: 'Description',
+                                    accessor: 'description',
+                                }
+                                ], 
+                                defaultPageSize: 10}
+                            )
+                        )
+                    )
+                )
+            )
+            )
+        )
+    }
+
+});
+
+module.exports = GeneList;
 
 },{"../js/color":4,"lodash":130,"react":333,"react-document-title":142,"react-table":185}],18:[function(require,module,exports){
-"use strict";var GN=require("../../config/gn.js"),React=require("react"),ReactDOM=require("react-dom"),ReactRouter=require("react-router"),Router=ReactRouter.Router,Route=ReactRouter.Route,createBrowserHistory=require("history/lib/createBrowserHistory"),Landing=require("./Landing"),FAQ=require("./FAQ"),About=require("./About"),GeneList=require("./GeneList"),API=require("./ReactComponents/API"),Gene=require("./Gene/Gene"),Term=require("./ReactComponents/Term"),Network=require("./Network/Network"),Ontology=require("./ReactComponents/Ontology"),DiagnosisMain=require("./ReactComponents/DiagnosisMain"),Diagnosis=require("./ReactComponents/Diagnosis");window.GN=GN;var history=createBrowserHistory();ReactDOM.render(React.createElement(Router,{history:history},React.createElement(Route,null,React.createElement(Route,{path:"/",component:Landing},React.createElement(Route,{path:"/faq",component:FAQ}),React.createElement(Route,{path:"/about",component:About}),React.createElement(Route,{path:"/api",component:API}),React.createElement(Route,{path:"/gene-list",component:GeneList}),React.createElement(Route,{path:"/gene/:geneId",component:Gene}),React.createElement(Route,{path:"/term/:termId",component:Term}),React.createElement(Route,{path:"/network/:ids",component:Network}),React.createElement(Route,{path:"/ontology/:id",component:Ontology}),React.createElement(Route,{path:"/gado",component:DiagnosisMain}),React.createElement(Route,{path:"/gado/:id",component:Diagnosis})))),document.getElementById("reactcontainer"));
+'use strict';
+
+
+var GN = require('../../config/gn.js');
+
+var React = require('react');
+var ReactDOM = require('react-dom');
+var ReactRouter = require('react-router');
+var Router = ReactRouter.Router;
+var Route = ReactRouter.Route;
+var createBrowserHistory = require('history/lib/createBrowserHistory');
+
+var Landing = require('./Landing');
+var FAQ = require('./FAQ');
+var About = require('./About');
+var GeneList = require('./GeneList');
+var API = require('./ReactComponents/API');
+var Gene = require('./Gene/Gene');
+var Term = require('./ReactComponents/Term');
+var Network = require('./Network/Network');
+var Ontology = require('./ReactComponents/Ontology');
+var DiagnosisMain = require('./ReactComponents/DiagnosisMain');
+var Diagnosis = require('./ReactComponents/Diagnosis');
+
+//TODO: Is this really necessary? we can just import it in the appropriate jsx files, right?
+window.GN = GN;
+
+var history = createBrowserHistory();
+ReactDOM.render(React.createElement(Router, {history: history}, 
+                    React.createElement(Route, null, 
+                        React.createElement(Route, {path: "/", component: Landing}, 
+                            React.createElement(Route, {path: "/faq", component: FAQ}), 
+                            React.createElement(Route, {path: "/about", component: About}), 
+                            React.createElement(Route, {path: "/api", component: API}), 
+                            React.createElement(Route, {path: "/gene-list", component: GeneList}), 
+                            React.createElement(Route, {path: "/gene/:geneId", component: Gene}), 
+                            React.createElement(Route, {path: "/term/:termId", component: Term}), 
+                            React.createElement(Route, {path: "/network/:ids", component: Network}), 
+                            React.createElement(Route, {path: "/ontology/:id", component: Ontology}), 
+                            React.createElement(Route, {path: "/gado", component: DiagnosisMain}), 
+                            React.createElement(Route, {path: "/gado/:id", component: Diagnosis})
+                        )
+                    )
+                ),
+                document.getElementById('reactcontainer')
+               );
 
 },{"../../config/gn.js":51,"./About":7,"./FAQ":10,"./Gene/Gene":11,"./GeneList":17,"./Landing":19,"./Network/Network":27,"./ReactComponents/API":30,"./ReactComponents/Diagnosis":33,"./ReactComponents/DiagnosisMain":34,"./ReactComponents/Ontology":41,"./ReactComponents/Term":47,"history/lib/createBrowserHistory":114,"react":333,"react-dom":143,"react-router":164}],19:[function(require,module,exports){
-var _=require("lodash"),React=require("react"),ReactRouter=require("react-router"),Link=ReactRouter.Link,Select=require("react-select"),Async=Select.Async,TextareaAutosize=require("react-textarea-autosize"),GN=require("../../config/gn.js"),color=require("../js/color"),MenuBar=require("./MenuBar"),Logo=require("./ReactComponents/Logo"),Footer=require("./ReactComponents/Footer"),Tools=require("./Tools"),Landing=React.createClass({displayName:"Landing",mixins:[ReactRouter.History],getInitialState:function(){return{pasteGeneList:!1,onlyGeneList:!1,geneList:"",filename:"upload"}},componentDidMount:function(){this.refs.select&&this.refs.select.focus()},isGeneList:function(e){return e.length>10&&/[\n\r;,]+/.test(e)||e.length>30},getSuggestions:function(e,t){return!e||e.length<1?t(null,{}):this.isGeneList(e)?(this.setState({geneList:e,pasteGeneList:!0}),t(null,{})):void io.socket.get(GN.urls.suggest,{q:e},function(e,n){if(200===n.statusCode){var a=_.compact(_.map(e,function(e){if("gene"===e._type)return{value:"gene!"+e._source.id,label:e._source.name+" - "+e._source.description+" ("+e._source.id+")"};if("term"===e._type){var t="HPO"===e._source.database?"("+e._source.id+")":"";return{value:"network!"+e._source.id,label:e._source.name+" - "+e._source.database+" "+e._source.type+" "+t}}return"trait_mapped"===e._type?{value:"network!"+e._source.shortURL,label:e._source.name+" - "+e._source.numGenes+" GWAS genes"}:null})),s=_.chain(a).sortBy(function(e){return e.label.split(" - ")[0]}).sortBy(function(e){return e.value.split("!")[0]}).value();return t(null,{options:s,complete:!1})}return t(null,{})})},onSelectChange:function(e){var t=e.value;if(t.indexOf("!")>-1){var n=t.substring(0,t.indexOf("!")),a=t.substring(t.indexOf("!")+1);this.history.pushState(null,"/"+n+"/"+a)}},onLogoClick:function(){this.history.pushState(null,"/")},onGeneListChange:function(e){this.setState({geneList:e.target.value}),this.state.onlyGeneList||this.isGeneList(e.target.value)||this.setState({pasteGeneList:!1})},onFunctionEnrichmentClick:function(){this.setState({pasteGeneList:!0,onlyGeneList:!0})},onFunctionEnrichmentCancelClick:function(){this.setState({onlyGeneList:!1,pasteGeneList:!1,filename:"upload"})},onGeneListSubmit:function(){var e=document.getElementById("file-genelist").files[0],t=this;if(e){var n=new FormData;n.append("genelist",e),$.ajax({url:GN.urls.fileupload,data:n,processData:!1,contentType:!1,type:"POST",success:function(e){this.setState({pasteGeneList:!1}),this.history.pushState({geneList:e},"/gene-list/")}.bind(t)})}else this.setState({pasteGeneList:!1}),this.history.pushState({geneList:this.state.geneList},"/gene-list/")},onFileUploadClick:function(){document.getElementById("file-genelist").onchange=function(){var e=document.getElementById("file-genelist").files[0].name;e=e.length>30?e.slice(0,30)+"...":e,this.setState({filename:""});var t=this,n=document.getElementById("file-genelist").files[0],a=new FormData;a.append("genelist",n),$.ajax({url:GN.urls.fileupload,data:a,processData:!1,contentType:!1,type:"POST",success:function(e){this.setState({pasteGeneList:!1}),this.history.pushState({geneList:e},"/gene-list/")}.bind(t)})}.bind(this)},moveCaretAtEnd:function(e){var t=e.target.value;e.target.value="",e.target.value=t},renderSearchBar:function(){return this.state.pasteGeneList&&0===_.size(this.props.params)?React.createElement(TextareaAutosize,{key:"gene-list",ref:"select",value:this.state.geneList,className:"flex11 textarea-genes",minRows:5,maxRows:20,placeholder:"Paste a list of gene symbols or Ensembl IDs",autoFocus:!0,onChange:this.onGeneListChange,onFocus:this.moveCaretAtEnd}):React.createElement(Async,{key:"gene",ref:"select",name:"search",matchPos:"any",matchProp:"label",placeholder:"Search here or paste a list of multiple genes (Ensembl IDs or HGNC symbols)",autoload:!1,cacheAsyncResults:!1,loadOptions:this.getSuggestions,filterOption:function(e){return e},onChange:this.onSelectChange,className:"flex11"})},render:function(){var e=React.createElement("div",{className:"flex11"}),t=null;return 0===_.size(this.props.params)?t=1===this.props.location.pathname.indexOf("gado")?null:React.createElement("div",{className:"searchcontainer"},React.createElement("div",{className:"searchheader noselect defaultcursor"},"Predict gene functions. Discover potential disease genes."),this.state.onlyGeneList?React.createElement("div",{style:{color:"#999999",marginLeft:"20px",fontSize:"1.17em",fontWeight:"bold"}},React.createElement("span",null,"Function enrichment:"),React.createElement("span",{style:{color:"#f8f8f8",marginLeft:"4px",cursor:"pointer"},onClick:this.onFunctionEnrichmentCancelClick},"x")):null,React.createElement("div",{className:"selectcontainer hflex"},this.renderSearchBar()),this.state.pasteGeneList?React.createElement("div",null,React.createElement("form",{encType:"multipart/form-data"},React.createElement("span",{style:{margin:"10px 10px 0px 20px"},className:"buttondarkbg",onClick:this.onGeneListSubmit},"SUBMIT"),React.createElement("input",{id:"file-genelist",type:"file",style:{display:"none"}}),React.createElement("label",{htmlFor:"file-genelist",className:"buttondarkbg",onClick:this.onFileUploadClick},"CHOOSE A FILE..."),React.createElement("span",{style:{color:color.colors.gngray}},"upload"===this.state.filename?null:this.state.filename))):null,React.createElement("div",{className:"examples noselect defaultcursor"},"For example: ",React.createElement(Link,{className:"clickable",title:"SMIM1",to:"/gene/SMIM1"},"SMIM1"),", ",React.createElement(Link,{className:"clickable",title:"Interferon signaling",to:"/network/REACTOME:R-HSA-913531"},"Interferon signaling"),", ",React.createElement(Link,{className:"clickable",title:"Migraine",to:"/network/HP:0002076"},"Migraine"),", ",React.createElement(Link,{className:"clickable",title:"Autism",to:"/network/HP:0000717"},"Autism"))):e=React.createElement("div",{className:"gn-top-search flex11",style:{margin:"0 20px"}},this.renderSearchBar()),React.createElement("div",{className:"gn-app vflex"},React.createElement("div",{className:"gn-top flex00 flexcenter hflex"},React.createElement("div",{className:"gn-top-logo clickable flex00",style:{margin:"10px 0"},onClick:this.onLogoClick},React.createElement(Logo,{w:33,h:60,mirrored:!0,style:{float:"left",paddingRight:"10px"}}),React.createElement("div",{className:"noselect",style:{fontSize:"1.5em",color:color.colors.gndarkgray,float:"left"}},"GENE",React.createElement("br",null),"NETWORK"),React.createElement("div",{className:"noselect",style:{fontSize:"1em",color:color.colors.gndarkgray,float:"left",marginTop:"37px",marginLeft:"7px"}},"v2.0")),e,React.createElement(MenuBar,{items:GN.menuItems,style:{padding:"30px 20px 20px 20px"}})),t,this.props.children,this.props.children?null:React.createElement(Tools,{onClick:this.onFunctionEnrichmentClick}),!this.props.children||this.props.children.props.route.path.indexOf("network")<0?React.createElement(Footer,null):null)}});module.exports=Landing;
+var _ = require('lodash');
+var React = require('react');
+var ReactRouter = require('react-router');
+var Link = ReactRouter.Link;
+var Select = require('react-select');
+var Async = Select.Async;
+var TextareaAutosize = require('react-textarea-autosize');
+
+var GN = require('../../config/gn.js');
+var color = require('../js/color');
+
+var MenuBar = require('./MenuBar');
+var Logo = require('./ReactComponents/Logo');
+var Footer = require('./ReactComponents/Footer');
+var Tools = require('./Tools');
+
+/**
+ * Component for root url
+ */
+var Landing = React.createClass({displayName: "Landing",
+
+    mixins: [ReactRouter.History],
+
+    getInitialState: function() {
+        return {
+            pasteGeneList: false,
+            onlyGeneList: false,
+            geneList: '',
+            filename: 'upload'
+        }
+    },
+
+    /**
+     * Focus on search bar when page gets active
+     */
+    componentDidMount: function() {
+        this.refs.select && this.refs.select.focus();
+    },
+
+    /**
+     * Checks if value of the search bar input is a list of multiple genes
+     * @param geneList input of search bar
+     * @returns {boolean} is geneList
+     */
+    isGeneList: function (geneList) {
+        // TODO: Better logic to determine if input is a gene list
+        return (geneList.length > 10 && /[\n\r;,]+/.test(geneList) || geneList.length > 30);
+    },
+
+    /**
+     * Uses an elasticsearch index to search for valid search options in the search bar
+     * @param input
+     * @param callback
+     * @returns {*}
+     */
+    getSuggestions: function(input, callback) {
+        // Start search after 1 character
+        if (!input || input.length < 1) return callback(null, {});
+
+        // If a list of genes is passed cancel suggestion search and change state to update components
+        if (this.isGeneList(input)) {
+            this.setState({geneList: input, pasteGeneList: true});
+            return callback(null, {});
+        }
+        io.socket.get(GN.urls.suggest,
+            {
+                q: input
+            },
+            function(res, jwres) {
+                if (jwres.statusCode === 200) {
+                    var options = _.compact(_.map(res, function(result) {
+                        if (result._type === 'gene') {
+                            return {
+                                value: 'gene!' + result._source.id,
+                                label: result._source.name + ' - ' + result._source.description + ' (' + result._source.id + ')'
+                            }
+                        } else if (result._type === 'term') {
+                            var id = result._source.database === "HPO" ? '(' + result._source.id + ')' : ''
+                            return {
+                                value: 'network!' + result._source.id,
+                                label: result._source.name + ' - ' + result._source.database + ' ' + result._source.type + ' ' + id
+                            }
+                        } else if (result._type === 'trait_mapped') {
+                            return {
+                                value: 'network!' + result._source.shortURL,
+                                label: result._source.name + ' - ' + result._source.numGenes + ' GWAS genes'
+                            }
+                        } else {
+                            return null
+                        }
+                    }));
+                    var sorted = _.chain(options)
+                        .sortBy(function(item){return item.label.split(' - ')[0]}) //sorts on name of gene/term/network
+                        .sortBy(function(item){return item.value.split('!')[0]}) //sorts on type of entry (first gene, then term, then network)
+                        .value();
+                    return callback(null, {options: sorted, complete: false})
+                } else {
+                    return callback(null, {})
+                }
+            })
+    },
+
+    /**
+     * When a search options is clicked push to relevant view
+     * @param value
+     * @param options
+     */
+    onSelectChange: function(selectedOption) {
+        var value = selectedOption.value;
+        if (value.indexOf('!') > -1) {
+            var type = value.substring(0, value.indexOf('!'));
+            var id = value.substring(value.indexOf('!') + 1);
+            this.history.pushState(null, '/' + type + '/' + id)
+        }
+    },
+
+    onLogoClick: function() {
+        this.history.pushState(null, '/')
+    },
+
+    /**
+     * Checks if the value of the search bar is still a list
+     * @param event
+     */
+    onGeneListChange: function (event) {
+
+        this.setState({ geneList: event.target.value });
+
+        if (!this.state.onlyGeneList && !this.isGeneList(event.target.value)) {
+//         if (!this.isGeneList(event.target.value)) {
+            this.setState({
+                pasteGeneList: false,
+            });
+        }
+    },
+
+    onFunctionEnrichmentClick: function () {
+        this.setState({
+            pasteGeneList: true,
+            onlyGeneList: true
+        });
+    },
+
+    onFunctionEnrichmentCancelClick: function () {
+        this.setState({
+            onlyGeneList: false,
+            pasteGeneList: false,
+            filename: 'upload'
+        })
+    },
+
+    onGeneListSubmit: function () {
+
+        var file = document.getElementById('file-genelist').files[0]
+        var that = this
+        if (!file){
+            //handle search bar gene list
+            this.setState({ pasteGeneList: false });
+            this.history.pushState({ geneList: this.state.geneList }, '/gene-list/')
+
+        } else {
+            //handle file upload
+            var fd = new FormData()
+            fd.append('genelist', file)
+
+            $.ajax({
+                url: GN.urls.fileupload,
+                data: fd,
+                processData: false,
+                contentType: false,
+                type: 'POST',
+                success: function(data){
+                    this.setState({ pasteGeneList: false})
+                    this.history.pushState({ geneList: data }, '/gene-list/')
+                }.bind(that)
+            })
+        }
+    },
+
+    onFileUploadClick: function() {
+        document.getElementById('file-genelist').onchange = function(){
+            var filename = document.getElementById('file-genelist').files[0].name
+            filename = filename.length > 30 ? (filename.slice(0, 30) + '...') : filename
+            this.setState({
+                filename: ''
+            })
+
+            var that = this
+            var file = document.getElementById('file-genelist').files[0]
+            var fd = new FormData()
+            fd.append('genelist', file)
+
+            $.ajax({
+                url: GN.urls.fileupload,
+                data: fd,
+                processData: false,
+                contentType: false,
+                type: 'POST',
+                success: function(data){
+                    this.setState({ pasteGeneList: false})
+                    this.history.pushState({ geneList: data }, '/gene-list/')
+                }.bind(that)
+            })
+
+
+        }.bind(this)
+    },
+
+    /**
+     * Necessary to maintain focus at the end of the search bar when the state.geneList == true
+     * @param event
+     */
+    moveCaretAtEnd: function(event) {
+        var temp_value = event.target.value;
+        event.target.value = '';
+        event.target.value = temp_value
+    },
+
+    renderSearchBar: function() {
+        if (this.state.pasteGeneList && _.size(this.props.params) === 0) {
+            return (
+                React.createElement(TextareaAutosize, {
+                    key: "gene-list", 
+                    ref: "select", 
+                    value: this.state.geneList, 
+                    className: "flex11 textarea-genes", 
+                    minRows: 5, 
+                    maxRows: 20, 
+                    placeholder: "Paste a list of gene symbols or Ensembl IDs", 
+                    autoFocus: true, 
+                    onChange: this.onGeneListChange, 
+                    onFocus: this.moveCaretAtEnd}
+                )
+            );
+        } else {
+            return (
+                React.createElement(Async, {key: "gene", 
+                    ref: "select", 
+                    name: "search", 
+                    matchPos: "any", 
+                    matchProp: "label", 
+                    placeholder: "Search here or paste a list of multiple genes (Ensembl IDs or HGNC symbols)", 
+                    autoload: false, 
+                    cacheAsyncResults: false, 
+                    loadOptions: this.getSuggestions, 
+                    filterOption: function (options) { return options }, // Prevents filtering on input
+                    onChange: this.onSelectChange, 
+                    className: "flex11"}
+                )
+            )
+        }
+    },
+
+    render: function() {
+        var topSearch = (React.createElement("div", {className: "flex11"}));
+        var topBanner = null;
+
+        if (_.size(this.props.params) === 0) {
+            if (this.props.location.pathname.indexOf('gado') === 1) {
+                topBanner = (null)
+            } else {
+                topBanner = (React.createElement("div", {className: "searchcontainer"}, 
+                    React.createElement("div", {className: "searchheader noselect defaultcursor"}, 
+                        "Predict gene functions. Discover potential disease genes."
+                    ), 
+                    
+                        this.state.onlyGeneList ?
+                            React.createElement("div", {style: { color: "#999999", marginLeft: "20px", fontSize: "1.17em", fontWeight:"bold"}}, 
+                                React.createElement("span", null, "Function enrichment:"), 
+                                React.createElement("span", {style: { color: "#f8f8f8", marginLeft: "4px", cursor: "pointer"}, onClick: this.onFunctionEnrichmentCancelClick}, "x")
+                            ) :
+                            null, 
+
+                    
+                    React.createElement("div", {className: "selectcontainer hflex"}, 
+                        this.renderSearchBar()
+                    ), 
+                     this.state.pasteGeneList ?
+                        React.createElement("div", null, 
+                            React.createElement("form", {encType: "multipart/form-data"}, 
+
+                                React.createElement("span", {
+                                    style: {margin: '10px 10px 0px 20px'}, 
+                                    className: "buttondarkbg", 
+                                    onClick: this.onGeneListSubmit}, 
+                                    "SUBMIT"
+                                ), 
+                                
+                                React.createElement("input", {id: "file-genelist", type: "file", style: {display: 'none'}}), 
+                                React.createElement("label", {htmlFor: "file-genelist", className: "buttondarkbg", onClick: this.onFileUploadClick}, "CHOOSE A FILE..."), 
+                                
+                                React.createElement("span", {style: {color: color.colors.gngray}}, 
+                                    this.state.filename === 'upload' ? null : this.state.filename
+                                )
+                           )
+
+                        )
+                        :
+                        null, 
+                    
+                    React.createElement("div", {className: "examples noselect defaultcursor"}, "For example: ", 
+                        React.createElement(Link, {className: "clickable", title: "SMIM1", to: "/gene/SMIM1"}, "SMIM1"), ", ", 
+                        React.createElement(Link, {className: "clickable", title: "Interferon signaling", to: "/network/REACTOME:R-HSA-913531"}, "Interferon signaling"), ", ", 
+                        React.createElement(Link, {className: "clickable", title: "Migraine", to: "/network/HP:0002076"}, "Migraine"), ", ", 
+                        React.createElement(Link, {className: "clickable", title: "Autism", to: "/network/HP:0000717"}, "Autism")
+                    )
+                ))
+            }
+        } else {
+            topSearch = (React.createElement("div", {className: "gn-top-search flex11", style: {margin: '0 20px'}}, 
+                this.renderSearchBar()
+            ))
+        }
+        return (React.createElement("div", {className: "gn-app vflex"}, 
+                React.createElement("div", {className: "gn-top flex00 flexcenter hflex"}, 
+                    React.createElement("div", {className: "gn-top-logo clickable flex00", style: {margin: '10px 0'}, onClick: this.onLogoClick}, 
+                        React.createElement(Logo, {w: 33, h: 60, mirrored: true, style: {float: 'left', paddingRight: '10px'}}), 
+                        React.createElement("div", {className: "noselect", style: {fontSize: '1.5em', color: color.colors.gndarkgray, float: 'left'}}, 
+                            "GENE", React.createElement("br", null), "NETWORK"
+                        ), 
+                        React.createElement("div", {className: "noselect", style: {fontSize: '1em', color: color.colors.gndarkgray, float: 'left', marginTop: '37px', marginLeft: '7px'}}, 
+                            "v2.0"
+                        )
+                    ), 
+                    topSearch, 
+                    React.createElement(MenuBar, {items: GN.menuItems, style: {padding: '30px 20px 20px 20px'}})
+                ), 
+                topBanner, 
+                this.props.children, 
+                !this.props.children ? React.createElement(Tools, {onClick: this.onFunctionEnrichmentClick}) : null, 
+                !this.props.children || this.props.children.props.route.path.indexOf('network') < 0 ? React.createElement(Footer, null) : null
+            )
+        )
+    }
+});
+
+module.exports = Landing;
 
 },{"../../config/gn.js":51,"../js/color":4,"./MenuBar":20,"./ReactComponents/Footer":37,"./ReactComponents/Logo":40,"./Tools":49,"lodash":130,"react":333,"react-router":164,"react-select":175,"react-textarea-autosize":191}],20:[function(require,module,exports){
-var _=require("lodash"),React=require("react"),ReactRouter=require("react-router"),Link=ReactRouter.Link,MenuBar=React.createClass({displayName:"MenuBar",render:function(){var e=this,t=_.map(e.props.items,function(t,r){return React.createElement(Link,{key:t.name,className:"menuitem "+(0===r?"first":r===e.props.items.length-1?"last":""),to:t.route},t.name)});return React.createElement("div",{className:"gn-top-menubar noselect flex00 flexstart",style:this.props.style},t)}});module.exports=MenuBar;
+var _ = require('lodash');
+var React = require('react');
+var ReactRouter = require('react-router');
+var Link = ReactRouter.Link;
+
+var MenuBar = React.createClass({displayName: "MenuBar",
+    render: function() {
+        var that = this;
+        var items = _.map(that.props.items, function(item, i) {
+            return (React.createElement(Link, {key: item.name, className: 'menuitem ' + (i === 0 ? 'first' : i === that.props.items.length - 1 ? 'last' : ''), to: item.route}, item.name))
+        });
+        return (React.createElement("div", {className: "gn-top-menubar noselect flex00 flexstart", style: this.props.style}, items))
+    }
+});
+
+module.exports = MenuBar;
 
 },{"lodash":130,"react":333,"react-router":164}],21:[function(require,module,exports){
-var React=require("react"),PredictedGenesPanel=require("../ReactComponents/PredictedGenesPanel"),PWAPanel=require("./PWAPanel"),SVGCollection=require("../ReactComponents/SVGCollection"),color=require("../../js/color.js"),DownloadPanel=require("../ReactComponents/DownloadPanel"),AnalysisPanel=React.createClass({displayName:"AnalysisPanel",propTypes:{analysisGroup:React.PropTypes.object.isRequired,coloring:React.PropTypes.string.isRequired,onClose:React.PropTypes.func.isRequired,onTermSelect:React.PropTypes.func.isRequired,onGeneAdd:React.PropTypes.func.isRequired,onGeneRemove:React.PropTypes.func.isRequired,addedGenes:React.PropTypes.array.isRequired,termColoring:React.PropTypes.string},getInitialState:function(){return{activeTab:0}},componentDidMount:function(){this.refs.pwa.pwaRequest(this.props.analysisGroup)&&this.refs.pred.gpRequest(this.props.analysisGroup)},componentWillReceiveProps:function(e){e.analysisGroup!==this.props.analysisGroup&&this.refs.pwa.pwaRequest(e.analysisGroup)&&this.refs.pred.gpRequest(e.analysisGroup)},onTabSelect:function(e){this.setState({activeTab:e})},onPWAStart:function(){this.setState({pwaDownloadable:!1})},onPWAFinish:function(){this.setState({pwaDownloadable:!0})},onPredStart:function(){this.setState({predDownloadable:!1})},onPredFinish:function(){this.setState({predDownloadable:!0})},render:function(){var e={getNodeById:function(){return null}},t=[{position:"relative",backgroundColor:color.colors.gnwhite},{position:"relative",backgroundColor:color.colors.gnwhite,display:"none"}],o=["button selectedbutton clickable","button clickable"];return 1===this.state.activeTab&&(t.reverse(),o.reverse()),React.createElement("div",{className:"analysispanel bordered vflex",style:this.props.style},React.createElement("div",{className:"flex00"},React.createElement("div",{className:o[0],onClick:this.onTabSelect.bind(null,0)},"PATHWAYS & PHENOTYPES"),React.createElement("div",{className:o[1],onClick:this.onTabSelect.bind(null,1)},"GENES"),React.createElement("div",{style:{float:"right",display:"inline-block"}},React.createElement("div",{style:{display:"inline-block"}},0===this.state.activeTab&&this.state.pwaDownloadable?React.createElement(DownloadButton,{comp:this.refs.pwa}):null,1===this.state.activeTab&&this.state.predDownloadable?React.createElement(DownloadButton,{comp:this.refs.pred}):null),React.createElement("div",{className:"clickable xbutton",style:{display:"inline-block",margin:"0 10px",verticalAlign:"top"},onClick:this.props.onClose},React.createElement(SVGCollection.X,{size:12})))),React.createElement(PWAPanel,{ref:"pwa",style:t[0],maxTableHeight:this.props.style.maxHeight&&this.props.style.maxHeight-120+"px"||"100%",selectedTerm:this.props.selectedTerm,group:this.props.analysisGroup,termColoring:this.props.termColoring,areNodesColoredByTerm:"term"==this.props.coloring,onPWAStart:this.onPWAStart,onPWAFinish:this.onPWAFinish,onTermClick:this.props.onTermSelect}),React.createElement(PredictedGenesPanel,{ref:"pred",style:t[1],group:this.props.analysisGroup,onPredStart:this.onPredStart,onPredFinish:this.onPredFinish,onGeneAdd:this.props.onGeneAdd,onGeneRemove:this.props.onGeneRemove,addedGenes:this.props.addedGenes,d3fd:e}))}}),DownloadButton=React.createClass({displayName:"DownloadButton",propTypes:{comp:React.PropTypes.object.isRequired},render:function(){return React.createElement("div",{title:"Download these results",onClick:this.props.comp.download},React.createElement(SVGCollection.Download,{text:"TXT",size:24}))}});module.exports=AnalysisPanel;
+var React = require('react');
+var PredictedGenesPanel = require('../ReactComponents/PredictedGenesPanel');
+var PWAPanel = require('./PWAPanel');
+var SVGCollection = require('../ReactComponents/SVGCollection');
+var color = require('../../js/color.js');
+var DownloadPanel = require('../ReactComponents/DownloadPanel');
+
+var AnalysisPanel = React.createClass({displayName: "AnalysisPanel",
+
+    propTypes: {
+
+        analysisGroup: React.PropTypes.object.isRequired,
+        coloring: React.PropTypes.string.isRequired,
+        onClose: React.PropTypes.func.isRequired,
+        onTermSelect: React.PropTypes.func.isRequired,
+        onGeneAdd: React.PropTypes.func.isRequired,
+        onGeneRemove: React.PropTypes.func.isRequired,
+        addedGenes: React.PropTypes.array.isRequired,
+
+        // selectedTerm: React.PropTypes.object,
+        termColoring: React.PropTypes.string,
+    },
+
+    getInitialState: function() {
+        return {
+            activeTab: 0
+        }
+    },
+    
+    componentDidMount: function() {
+        if (this.refs.pwa.pwaRequest(this.props.analysisGroup)) {
+            this.refs.pred.gpRequest(this.props.analysisGroup)
+        }
+    },
+
+    componentWillReceiveProps: function(newProps) {
+        if (newProps.analysisGroup !== this.props.analysisGroup) {
+            if (this.refs.pwa.pwaRequest(newProps.analysisGroup)) {
+                this.refs.pred.gpRequest(newProps.analysisGroup)
+            }
+        }
+    },
+
+    onTabSelect: function(index) {
+        this.setState({
+            activeTab: index
+        });
+    },
+
+    onPWAStart: function() {
+        this.setState({
+            pwaDownloadable: false
+        })
+    },
+
+    onPWAFinish: function() {
+        this.setState({
+            pwaDownloadable: true
+        })
+    },
+
+    onPredStart: function() {
+        this.setState({
+            predDownloadable: false
+        })
+    },
+
+    onPredFinish: function() {
+        this.setState({
+            predDownloadable: true
+        })
+    },
+
+    render: function() {
+
+        var d3fd = {getNodeById: function() { return null }};
+        var styles = [
+            // {position: 'relative', height: '100%', overflow: 'hidden', backgroundColor: color.colors.gnwhite},//, position: 'relative'},
+            // {position: 'relative', height: '100%', overflow: 'hidden', backgroundColor: color.colors.gnwhite, display: 'none'}//, position: 'relative'}
+            {position: 'relative', backgroundColor: color.colors.gnwhite},
+            {position: 'relative', backgroundColor: color.colors.gnwhite, display: 'none'}
+        ];
+        var classNames = ['button selectedbutton clickable', 'button clickable'];
+        if (this.state.activeTab === 1) {
+            styles.reverse();
+            classNames.reverse()
+        }
+
+        return (
+                React.createElement("div", {className: "analysispanel bordered vflex", style: this.props.style}, 
+                React.createElement("div", {className: "flex00"}, 
+                React.createElement("div", {className: classNames[0], onClick: this.onTabSelect.bind(null, 0)}, "PATHWAYS & PHENOTYPES"), 
+                React.createElement("div", {className: classNames[1], onClick: this.onTabSelect.bind(null, 1)}, "GENES"), 
+                React.createElement("div", {style: {float: 'right', display: 'inline-block'}}, 
+                React.createElement("div", {style: {display: 'inline-block'}}, 
+                this.state.activeTab === 0 && this.state.pwaDownloadable ? React.createElement(DownloadButton, {comp: this.refs.pwa}) : null, 
+                this.state.activeTab === 1 && this.state.predDownloadable ? React.createElement(DownloadButton, {comp: this.refs.pred}) : null
+            ), 
+                React.createElement("div", {className: "clickable xbutton", style: {display: 'inline-block', margin: '0 10px', verticalAlign: 'top'}, onClick: this.props.onClose}, 
+                React.createElement(SVGCollection.X, {size: 12})
+                )
+                )
+                ), 
+                React.createElement(PWAPanel, {
+            ref: "pwa", 
+            style: styles[0], 
+            maxTableHeight: (this.props.style.maxHeight && (this.props.style.maxHeight - 120) + 'px') || '100%', 
+            selectedTerm: this.props.selectedTerm, 
+            group: this.props.analysisGroup, 
+            termColoring: this.props.termColoring, 
+            areNodesColoredByTerm: this.props.coloring == 'term', 
+            onPWAStart: this.onPWAStart, 
+            onPWAFinish: this.onPWAFinish, 
+            onTermClick: this.props.onTermSelect}), 
+                React.createElement(PredictedGenesPanel, {
+            ref: "pred", 
+            style: styles[1], 
+            group: this.props.analysisGroup, 
+            onPredStart: this.onPredStart, 
+            onPredFinish: this.onPredFinish, 
+            onGeneAdd: this.props.onGeneAdd, 
+            onGeneRemove: this.props.onGeneRemove, 
+            addedGenes: this.props.addedGenes, 
+            d3fd: d3fd})
+                )
+        )
+    }
+});
+
+var DownloadButton = React.createClass({displayName: "DownloadButton",
+
+    propTypes: {
+        comp: React.PropTypes.object.isRequired
+    },
+
+    render: function() {
+
+        return (
+                React.createElement("div", {title: "Download these results", onClick: this.props.comp.download}, 
+                React.createElement(SVGCollection.Download, {text: "TXT", size: 24})
+                )
+        )
+    }
+});
+
+module.exports = AnalysisPanel;
 
 },{"../../js/color.js":4,"../ReactComponents/DownloadPanel":36,"../ReactComponents/PredictedGenesPanel":43,"../ReactComponents/SVGCollection":45,"./PWAPanel":29,"react":333}],22:[function(require,module,exports){
-var _=require("lodash"),React=require("react"),d3=require("d3"),color=require("../../js/color.js"),EdgeLegend=React.createClass({displayName:"EdgeLegend",propTypes:{edgeValueScales:React.PropTypes.array.isRequired,edgeColorScales:React.PropTypes.array.isRequired,threshold:React.PropTypes.number},getInitialState:function(){return{}},componentDidMount:function(){for(var e=[],o=0;o<this.props.edgeValueScales.length;o++)e.push(d3.scale.linear().domain(this.props.edgeValueScales[o]).range(this.props.edgeColorScales[o]).clamp(!0));this.setState({colorScales:e})},render:function(){if(!this.state.colorScales)return null;for(var e=null,o=[],l=0;l<100;l+=10)o.push(React.createElement("rect",{key:l,x:l+12,y:0,width:5,height:16,style:{fill:this.state.colorScales[0]((l+10)/100*_.last(this.props.edgeValueScales[0]))}}));void 0!=this.props.threshold&&(e="Edge threshold Z-score "+this.props.threshold,o.push(React.createElement("rect",{key:"threshold",x:this.props.threshold/_.last(this.props.edgeValueScales[0])*100+12,y:0,width:"3",height:16,style:{fill:color.colors.gnblue}})));var r=this.props.threshold<2,s=this.props.threshold>13;return React.createElement("div",{title:e,style:{position:"absolute",top:"-30px",right:"20px",zIndex:1}},React.createElement("svg",{width:119,height:16,style:{backgroundColor:"#ffffff"}},React.createElement("polygon",{fill:r?color.colors.gnlightgray:"left"===this.props.hoverEdge?color.colors.gndarkgray:color.colors.gngray,onMouseOver:this.props.onMouseOver.bind(null,"left"),onMouseOut:this.props.onMouseOver.bind(null,void 0),onClick:r?this.props.onClick.bind(null,0):this.props.onClick.bind(null,-.5),className:r?null:"clickable",points:"0,8 10,0 10,16 "}),React.createElement("polygon",{fill:s?color.colors.gnlightgray:"right"===this.props.hoverEdge?color.colors.gndarkgray:color.colors.gngray,onMouseOver:this.props.onMouseOver.bind(null,"right"),onMouseOut:this.props.onMouseOver.bind(null,void 0),onClick:s?this.props.onClick.bind(null,0):this.props.onClick.bind(null,.5),className:s?null:"clickable",points:"119,8 109,0 109,16 "}),o))}});module.exports=EdgeLegend;
+var _ = require('lodash')
+var React = require('react')
+var d3 = require('d3')
+var color = require('../../js/color.js')
+
+var EdgeLegend = React.createClass({displayName: "EdgeLegend",
+
+    propTypes: {
+
+        edgeValueScales: React.PropTypes.array.isRequired,
+        edgeColorScales: React.PropTypes.array.isRequired,
+        threshold: React.PropTypes.number
+    },
+
+    getInitialState: function() {
+
+        return {}
+    },
+
+    componentDidMount: function() {
+
+        var colorScales = []
+        for (var i = 0; i < this.props.edgeValueScales.length; i++) {
+            colorScales.push(d3.scale.linear()
+                            .domain(this.props.edgeValueScales[i])
+                            .range(this.props.edgeColorScales[i])
+                            .clamp(true))
+        }
+        
+        this.setState({
+            colorScales: colorScales
+        })
+    },
+    
+    render: function() {
+
+        if (!this.state.colorScales) return null
+
+        var title = null
+        var width = 100, height = 16, step = 10
+        var bars = []
+        for (var x = 0; x < width; x += step) {
+            bars.push(React.createElement("rect", {key: x, x: x+12, y: 0, width: step/2, height: height, 
+                      style: {fill: this.state.colorScales[0]((x + step) / width * _.last(this.props.edgeValueScales[0]))}}))
+        }
+        
+        if (this.props.threshold != undefined) {
+            title = 'Edge threshold Z-score ' + this.props.threshold
+            bars.push(React.createElement("rect", {key: "threshold", x: (this.props.threshold / _.last(this.props.edgeValueScales[0]) * width) + 12, y: 0, width: "3", height: height, 
+                      style: {fill: color.colors.gnblue}}))
+        }
+
+        var endLeft = this.props.threshold < 2
+        var endRight = this.props.threshold > 13
+        // pytrik
+            // <polygon fill={this.props.hoverEdge === 'left' ? color.colors.gndarkgray : color.colors.gngray} onMouseOver={this.props.onMouseOver.bind(null, 'left')} onMouseOut={this.props.onMouseOver.bind(null, undefined)} onClick={this.props.onClick.bind(null, -0.5)} className="clickable" points="0.9,8 7.7,4 7.7,12 " />
+            // <polygon fill={this.props.hoverEdge === 'right' ? color.colors.gndarkgray : color.colors.gngray} onMouseOver={this.props.onMouseOver.bind(null, 'right')} onMouseOut={this.props.onMouseOver.bind(null, undefined)} onClick={this.props.onClick.bind(null, 0.5)} className="clickable" points="114.5,8 107.7,4 107.7,12 " />
+            
+        return (
+                React.createElement("div", {title: title, style: {position: 'absolute', top: '-30px', right: '20px', zIndex: 1}}, 
+                React.createElement("svg", {width: (width - step/2) + 24, height: height, style: {backgroundColor: '#ffffff'}}, 
+                React.createElement("polygon", {fill: endLeft ? color.colors.gnlightgray : this.props.hoverEdge === 'left' ? color.colors.gndarkgray : color.colors.gngray, onMouseOver: this.props.onMouseOver.bind(null, 'left'), onMouseOut: this.props.onMouseOver.bind(null, undefined), onClick: endLeft ? this.props.onClick.bind(null, 0) : this.props.onClick.bind(null, -0.5), className: !endLeft ? "clickable" : null, points: "0,8 10,0 10,16 "}), 
+                React.createElement("polygon", {fill: endRight ? color.colors.gnlightgray : this.props.hoverEdge === 'right' ? color.colors.gndarkgray : color.colors.gngray, onMouseOver: this.props.onMouseOver.bind(null, 'right'), onMouseOut: this.props.onMouseOver.bind(null, undefined), onClick: endRight ? this.props.onClick.bind(null, 0) : this.props.onClick.bind(null, 0.5), className: !endRight ? "clickable" : null, points: "119,8 109,0 109,16 "}), 
+                bars
+            )
+                )
+        )
+    }
+})
+
+module.exports = EdgeLegend
 
 },{"../../js/color.js":4,"d3":60,"lodash":130,"react":333}],23:[function(require,module,exports){
-var _=require("lodash"),React=require("react"),GeneOpenMenu=require("../ReactComponents/GeneOpenMenu"),SVGCollection=require("../ReactComponents/SVGCollection"),genstats=require("genstats"),htmlutil=require("../../js/htmlutil"),color=require("../../js/color"),EdgePanel=React.createClass({displayName:"EdgePanel",propTypes:{edge:React.PropTypes.object.isRequired},render:function(){return console.log(this.props.edge),React.createElement("div",{id:"edgepanel",className:"networkleftpanel smallpadding bordered",style:{marginBottom:"0px"}},React.createElement("div",null,this.props.edge.source.name+" - "+this.props.edge.target.name),React.createElement("br",null),React.createElement("div",{dangerouslySetInnerHTML:{__html:"p-value "+htmlutil.pValueToReadable(genstats.probability.zToP(this.props.edge.weight))}}),React.createElement("div",{dangerouslySetInnerHTML:{__html:"z-score "+this.props.edge.weight}}))}});module.exports=EdgePanel;
+var _ = require('lodash')
+var React = require('react')
+var GeneOpenMenu = require('../ReactComponents/GeneOpenMenu')
+var SVGCollection = require('../ReactComponents/SVGCollection')
+var genstats = require('genstats')
+var htmlutil = require('../../js/htmlutil')
+var color = require('../../js/color')
+
+var EdgePanel = React.createClass({displayName: "EdgePanel",
+    
+    propTypes: {
+        edge: React.PropTypes.object.isRequired
+    },
+
+    render: function() {
+
+        console.log(this.props.edge)
+        
+	return (
+		React.createElement("div", {id: "edgepanel", className: "networkleftpanel smallpadding bordered", style: {marginBottom: '0px'}}, 
+		React.createElement("div", null, 
+                this.props.edge.source.name + ' - ' + this.props.edge.target.name
+	    ), 
+                React.createElement("br", null), 
+                React.createElement("div", {dangerouslySetInnerHTML: {__html: 'p-value ' + htmlutil.pValueToReadable(genstats.probability.zToP(this.props.edge.weight))}}), 
+                React.createElement("div", {dangerouslySetInnerHTML: {__html: 'z-score ' + this.props.edge.weight}})
+                )
+	)
+    }
+})
+
+module.exports = EdgePanel
 
 },{"../../js/color":4,"../../js/htmlutil":5,"../ReactComponents/GeneOpenMenu":38,"../ReactComponents/SVGCollection":45,"genstats":97,"lodash":130,"react":333}],24:[function(require,module,exports){
-var _=require("lodash"),React=require("react"),GeneOpenMenu=require("../ReactComponents/GeneOpenMenu"),SVGCollection=require("../ReactComponents/SVGCollection"),color=require("../../js/color"),GenePanel=React.createClass({displayName:"GenePanel",propTypes:{gene:React.PropTypes.object.isRequired},render:function(){var e=[{id:"GN",name:"Gene Network",url:GN.urls.main+"/gene/",useid:"name"},{id:"EXAC",name:"ExAC Browser",url:"http://exac.broadinstitute.org/gene/",useid:"id"},{id:"ENSEMBL",name:"Ensembl",url:"http://www.ensembl.org/Homo_sapiens/Gene/Summary?db=core;g=",useid:"id"},{id:"PUBMED",name:"PubMed search",url:"http://www.ncbi.nlm.nih.gov/pubmed/?term=",useid:"name"}],t=_.map(e,function(e){return React.createElement("span",{key:e.id},React.createElement("a",{className:"nodecoration externallink",href:e.url+this.props.gene[e.useid],target:"_blank"},e.name),React.createElement("br",null))}.bind(this)),n=this.props.gene.description||"no description";n=n.replace(/\[[^\]]+\]/g,"");var r=this.props.gene.biotype||"unknown biotype";r=r.replace("_"," ");var a=color.colors.textdefault,l=color.colors.textdefault;return React.createElement("div",{id:"genepanel",className:"networkleftpanel smallpadding bordered",style:{marginBottom:"0px"}},React.createElement("div",null,React.createElement("a",{className:"externallink nodecoration black",title:"Open "+this.props.gene.name+" in Gene Network",href:GN.urls.genePage+this.props.gene.name,target:"_blank"},this.props.gene.name)),React.createElement("div",{style:{paddingTop:"0.875em"}},React.createElement(SVGCollection.Chromosome,{chr:this.props.gene.chr,position:(this.props.gene.stop+this.props.gene.start)/2,start:this.props.gene.start,stop:this.props.gene.stop,style:{clear:"left",float:"left"}}),React.createElement("div",{className:"smalldescription",style:{float:"left",color:l,paddingLeft:"5px"}},"chr "+this.props.gene.chr)),React.createElement("div",{className:"smalldescription",style:{clear:"both",color:a}},r),React.createElement("br",null),React.createElement("div",null,n),React.createElement("br",null),React.createElement("div",null,"Open ",this.props.gene.name," in"),t)}});module.exports=GenePanel;
+var _ = require('lodash')
+var React = require('react')
+var GeneOpenMenu = require('../ReactComponents/GeneOpenMenu')
+var SVGCollection = require('../ReactComponents/SVGCollection')
+var color = require('../../js/color')
+
+var GenePanel = React.createClass({displayName: "GenePanel",
+    
+    propTypes: {
+        gene: React.PropTypes.object.isRequired
+    },
+
+    render: function() {
+
+        var services = [
+            {id: 'GN', name: 'Gene Network', url: GN.urls.main + '/gene/', useid: 'name'},
+            {id: 'EXAC', name: 'ExAC Browser', url: 'http://exac.broadinstitute.org/gene/', useid: 'id'},
+            {id: 'ENSEMBL', name: 'Ensembl', url: 'http://www.ensembl.org/Homo_sapiens/Gene/Summary?db=core;g=', useid: 'id'},
+            {id: 'PUBMED', name: 'PubMed search', url: 'http://www.ncbi.nlm.nih.gov/pubmed/?term=', useid: 'name'},
+        ]
+        var links = _.map(services, function(service) {
+            return (
+                    React.createElement("span", {key: service.id}, React.createElement("a", {className: "nodecoration externallink", href: service.url + this.props.gene[service.useid], target: "_blank"}, service.name), React.createElement("br", null))
+            )
+        }.bind(this))
+        
+	var desc = this.props.gene.description || 'no description'
+	// remove the "[Source: HGNC...]" that appears in many descriptions
+	desc = desc.replace(/\[[^\]]+\]/g, '')
+	var biotypeStr = this.props.gene.biotype || 'unknown biotype'
+	biotypeStr = biotypeStr.replace('_', ' ')
+	// var biotypeColor = this.props.coloring == 'biotype' ? color.biotype2color[this.props.gene.biotype] || color.colors.textdefault : color.colors.textdefault
+        var biotypeColor = color.colors.textdefault
+	// var chrColor = this.props.coloring == 'chr' ? color.chr2color[this.props.gene.chr] || color.colors.textdefault : color.colors.textdefault
+        var chrColor = color.colors.textdefault
+	return (
+		React.createElement("div", {id: "genepanel", className: "networkleftpanel smallpadding bordered", style: {marginBottom: '0px'}}, 
+		React.createElement("div", null, 
+                React.createElement("a", {className: "externallink nodecoration black", title: 'Open ' + this.props.gene.name + ' in Gene Network', href: GN.urls.genePage + this.props.gene.name, target: "_blank"}, 
+                this.props.gene.name)
+                ), 
+                React.createElement("div", {style: {paddingTop: '0.875em'}}, 
+                React.createElement(SVGCollection.Chromosome, {
+            chr: this.props.gene.chr, 
+            position: (this.props.gene.stop + this.props.gene.start) / 2, 
+            start: this.props.gene.start, 
+            stop: this.props.gene.stop, 
+            style: {clear: 'left', float: 'left'}}), 
+                React.createElement("div", {className: "smalldescription", style: {float: 'left', color: chrColor, paddingLeft: '5px'}}, 'chr ' + this.props.gene.chr)
+                ), 
+                React.createElement("div", {className: "smalldescription", style: {clear: 'both', color: biotypeColor}}, biotypeStr), 
+      		React.createElement("br", null), 
+		React.createElement("div", null, desc), 
+	        React.createElement("br", null), 
+
+                React.createElement("div", null, "Open ", this.props.gene.name, " in"), 
+                links
+		)
+	)
+    }
+})
+
+module.exports = GenePanel
 
 },{"../../js/color":4,"../ReactComponents/GeneOpenMenu":38,"../ReactComponents/SVGCollection":45,"lodash":130,"react":333}],25:[function(require,module,exports){
-var _=require("lodash"),React=require("react"),SVGCollection=require("../ReactComponents/SVGCollection"),color=require("../../js/color"),GroupPanel=React.createClass({displayName:"GroupPanel",propTypes:{data:React.PropTypes.object.isRequired,activeGroup:React.PropTypes.object,coloring:React.PropTypes.string,isGeneListShown:React.PropTypes.bool,onGroupClick:React.PropTypes.func,onAnalyse:React.PropTypes.func},componentDidMount:function(){},download:function(){var e=document.getElementById("gn-network-groupform");e.genes.value=JSON.stringify(_.map(this.props.data.elements.nodes,function(e){return e.data.id})),e.groups.value=JSON.stringify(this.props.data.elements.groups),e.submit()},render:function(){for(var e=[],t=this.props.data.elements.groups,o=0,a=t.length;o<a;o++){group=t[o];var r,l,n=group===this.props.activeGroup;n?(r=color.colors.textdefault,l="","visible"):(r=color.colors.gngray,l="Select "+group.name,"hidden"),e.push(React.createElement("tr",{key:group.name.toUpperCase()},React.createElement("td",{title:l,className:"group clickable",style:{color:r},onClick:this.props.onGroupClick.bind(null,group)},group.name.toUpperCase()),React.createElement("td",{className:"verysmalldescription clickable",style:{textAlign:"right",color:r},onClick:this.props.onGroupClick.bind(null,group)},group.nodes.length)))}this.props.activeGroup.nodes.join(",");return React.createElement("div",{id:"grouppanel",className:"networkleftpanel bordered smallpadding paddingbottom noshrink smallfont",style:this.props.style||{}},React.createElement("div",{id:"downloadgroups",title:"Download gene lists",style:{position:"absolute",top:"16px",right:"6px"},onClick:this.download},React.createElement(SVGCollection.Download,{text:"TXT",size:24})),React.createElement("div",{style:{overflow:"auto",maxHeight:this.props.style&&this.props.style.maxHeight-60||"100%"}},React.createElement("table",{style:{width:"100%",paddingRight:"32px"}},React.createElement("tbody",null,e))),React.createElement("br",null),this.props.activeGroup.nodes.length>4?React.createElement("div",{title:"Run pathway analysis and gene prediction",className:"button clickable",onClick:this.props.onAnalyse.bind(null,this.props.activeGroup)},"ANALYSE ",this.props.activeGroup.name.toUpperCase()):React.createElement("div",{title:"At least five genes are needed for analysis",className:"button disabled"},"ANALYSE ",this.props.activeGroup.name.toUpperCase()))}});module.exports=GroupPanel;
+var _ = require('lodash')
+var React = require('react')
+var SVGCollection = require('../ReactComponents/SVGCollection')
+var color = require('../../js/color')
+
+var GroupPanel = React.createClass({displayName: "GroupPanel",
+
+    propTypes: {
+        data: React.PropTypes.object.isRequired,
+        activeGroup: React.PropTypes.object,
+        coloring: React.PropTypes.string,
+        isGeneListShown: React.PropTypes.bool,
+        onGroupClick: React.PropTypes.func,
+        onAnalyse: React.PropTypes.func
+    },
+
+    /**
+     * Start pathway analysis automatically
+     */
+    componentDidMount: function() {
+        // this.props.onAnalyse(this.props.activeGroup);
+    },
+
+    download: function() {
+        
+        var form = document.getElementById('gn-network-groupform')
+        form['genes'].value = JSON.stringify(_.map(this.props.data.elements.nodes, function(node) { return node.data.id }))
+        form['groups'].value = JSON.stringify(this.props.data.elements.groups)
+        form.submit()
+    },
+    
+    render: function() {
+
+        var elems = []
+        var options = this.props.data.elements.groups
+
+        for (var i = 0, ii = options.length; i < ii; i++) {
+            group = options[i]
+            var isActiveGroup = (group === this.props.activeGroup)
+            var className = 'group clickable'
+            var clr, title, listVisibility
+            if (isActiveGroup) {
+                clr = color.colors.textdefault
+                title = ''
+                listVisibility = 'visible'
+            } else {
+                clr = color.colors.gngray
+                title = 'Select ' + group.name
+                listVisibility = 'hidden'
+            }
+            
+            elems.push(React.createElement("tr", {key: group.name.toUpperCase()}, 
+                       React.createElement("td", {title: title, className: className, style: {color: clr}, onClick: this.props.onGroupClick.bind(null, group)}, 
+                       group.name.toUpperCase()
+                       ), 
+                       React.createElement("td", {className: "verysmalldescription clickable", style: {textAlign: 'right', color: clr}, onClick: this.props.onGroupClick.bind(null, group)}, 
+                       group.nodes.length
+                       )
+                       ))
+        }
+
+        var geneStr = this.props.activeGroup.nodes.join(',')
+        // Analyse {this.props.activeGroup.nodes.length} {this.props.activeGroup.nodes.length === 1 ? 'gene' : 'genes'}
+        // {this.props.activeGroup.nodes.length === 1 ? <span style={{visibility: 'hidden'}}>s</span> : ''}
+        return (
+                React.createElement("div", {id: "grouppanel", className: "networkleftpanel bordered smallpadding paddingbottom noshrink smallfont", style: this.props.style || {}}, 
+                React.createElement("div", {id: "downloadgroups", title: "Download gene lists", style: {position: 'absolute', top: '16px', right: '6px'}, onClick: this.download}, 
+                React.createElement(SVGCollection.Download, {text: "TXT", size: 24})
+                ), 
+                React.createElement("div", {style: {overflow: 'auto', maxHeight: (this.props.style && this.props.style.maxHeight - 60) || '100%'}}, 
+                React.createElement("table", {style: {width: '100%', paddingRight: '32px'}}, 
+                React.createElement("tbody", null, 
+                elems
+            )
+                )
+                ), 
+                React.createElement("br", null), 
+                this.props.activeGroup.nodes.length > 4 ?
+                 (React.createElement("div", {title: "Run pathway analysis and gene prediction", className: "button clickable", onClick: this.props.onAnalyse.bind(null, this.props.activeGroup)}, 
+                  "ANALYSE ", this.props.activeGroup.name.toUpperCase()
+                  )) :
+                 (React.createElement("div", {title: "At least five genes are needed for analysis", className: "button disabled"}, 
+                  "ANALYSE ", this.props.activeGroup.name.toUpperCase()
+                  ))
+                )
+        )
+    }
+});
+
+module.exports = GroupPanel;
 
 },{"../../js/color":4,"../ReactComponents/SVGCollection":45,"lodash":130,"react":333}],26:[function(require,module,exports){
-"use strict";var _=require("lodash"),React=require("react"),ReactTooltip=require("react-tooltip"),OpenMenu=require("../ReactComponents/OpenMenu"),SquareSVG=require("../ReactComponents/SVGCollection").SquareSVG,color=require("../../js/color"),SVGCollection=require("../ReactComponents/SVGCollection"),I=SVGCollection.I,LegendPanel=React.createClass({displayName:"LegendPanel",propTypes:{data:React.PropTypes.object.isRequired,coloring:React.PropTypes.string,termColoring:React.PropTypes.string},getInitialState:function(){return{items:this.getItems(this.props.coloring,this.props.termColoring)}},componentWillReceiveProps:function(e){this.isMounted()&&this.shouldComponentUpdate(e,null)&&this.setState({items:this.getItems(e.coloring,e.termColoring)})},shouldComponentUpdate:function(e,t){return e.coloring!=this.props.coloring||e.termColoring!=this.props.termColoring||e.data.elements.nodes.length!=this.props.data.elements.nodes.length||e.data.elements.edges.length!=this.props.data.elements.nodes.length},getItems:function(e,t){if("biotype"==e)return this.getItemsBiotype();if("chr"==e)return this.getItemsChr();if("cluster"==e)return this.getItemsCluster();if("custom"==e)return this.getItemsGroup();if("term"==e){if("prediction"==t)return this.getItemsScore();if("annotation"==t)return this.getItemsAnnotation()}return[]},getItem:function(e,t){return React.createElement("div",{style:{display:"inline-block",paddingRight:"10px"},key:e},React.createElement(SquareSVG,{size:12,color:t,padding:"1px 2px 0 0"}),React.createElement("span",null,e))},getItemsBiotype:function(){var e={};_.forEach(this.props.data.elements.nodes,function(t){e[t.data.biotype]=!0});var t={};_.forEach(e,function(e,o){var r=color.biotype2color[o];void 0===t[r]&&(t[r]=[]),t[r].push(o)});var o=this,r=[];return _.forEach(t,function(e,t){r.push(o.getItem(e.join(", ").replace(/_/g," "),t))}),r},getItemsChr:function(){var e=this,t={};_.forEach(this.props.data.elements.nodes,function(e){t[e.data.chr]=!0});var o={};_.forEach(t,function(e,t){var r=color.chr2color[t];void 0===o[r]&&(o[r]=[]),o[r].push(t)});var r=[];return _.forEach(o,function(t,o){t="x"==t[0].toLowerCase()||"y"==t[0].toLowerCase()?t.join(", ").replace("_"," "):"Autosomal",r.push(e.getItem(t,o))}),r},getItemsCluster:function(){var e=this,t=0;return _.map(this.props.data.elements.groups,function(o){if("cluster"!==o.type)return null;var r=color.cluster2color[t++]||color.colors.nodeDefault;return t<=color.cluster2color.length?e.getItem(o.name,r):t===color.cluster2color.length+1?e.getItem("Rest",r):null})},getItemsGroup:function(){var e=this;return _.map(this.props.data.elements.groups,function(t,o){if("custom"!=t.type)return null;var r=color.group2color[t.index_];return e.getItem(t.name,r)})},getItemsScore:function(){var e=this,t=[color.colors.gnblue,color.colors.gnbluelightgray,color.colors.gnlightgray,color.colors.gnredlightgray,color.colors.gnred],o=["< -10","-5","0","5","> 10"],r=[];return r.push(React.createElement("span",{key:"zscore",style:{paddingRight:"10px"}},"Z-score")),_.forEach(o,function(o,n){r.push(e.getItem(o,t[n]))}),r},getItemsAnnotation:function(){var e=this,t=[color.colors.gngray,color.colors.gnred],o=["not annotated","annotated"];return _.map(o,function(o,r){return e.getItem(o,t[r])})},render:function(){return this.state&&this.state.items?React.createElement("div",{className:"gn-network-legendpanel smallscreensmallfont"},React.createElement("span",{className:"noselect defaultcursor",style:{padding:"9px 10px",float:"left",backgroundColor:color.colors.gnwhite}},"COLOR GENES BY"),React.createElement(OpenMenu,{options:this.props.coloringOptions,selected:this.props.coloring,onSelect:this.props.onColoring,style:{float:"left"}}),React.createElement("div",{className:"gn-network-legendpanel-legend noselect",style:{float:"left",padding:"8px 10px 9px 10px",backgroundColor:color.colors.gnwhite}},this.state.items,React.createElement(I,{title:"This is an experimental automatic clustering."}))):null}});module.exports=LegendPanel;
+'use strict';
+
+var _ = require('lodash');
+var React = require('react');
+var ReactTooltip = require('react-tooltip');
+var OpenMenu = require('../ReactComponents/OpenMenu');
+var SquareSVG = require('../ReactComponents/SVGCollection').SquareSVG;
+var color = require('../../js/color');
+var SVGCollection = require('../ReactComponents/SVGCollection');
+var I = SVGCollection.I;
+
+
+var LegendPanel = React.createClass({displayName: "LegendPanel",
+
+    propTypes: {
+        data: React.PropTypes.object.isRequired,
+        coloring: React.PropTypes.string,
+        termColoring: React.PropTypes.string,
+    },
+
+    getInitialState: function() {
+        return {
+            items: this.getItems(this.props.coloring, this.props.termColoring)
+        }
+    },
+
+    componentWillReceiveProps: function(nextProps) {
+        if (this.isMounted() && this.shouldComponentUpdate(nextProps, null)) {
+            this.setState({
+                items: this.getItems(nextProps.coloring, nextProps.termColoring)
+            })
+        }
+    },
+    
+    shouldComponentUpdate: function(nextProps, nextState) {
+        return nextProps.coloring != this.props.coloring
+            || nextProps.termColoring != this.props.termColoring
+            || nextProps.data.elements.nodes.length != this.props.data.elements.nodes.length
+            || nextProps.data.elements.edges.length != this.props.data.elements.nodes.length
+    },
+
+    getItems: function(coloring, termColoring) {
+        if (coloring == 'biotype') {
+            return this.getItemsBiotype()
+        } else if (coloring == 'chr') {
+            return this.getItemsChr()
+        } else if (coloring == 'cluster') {
+            return this.getItemsCluster()
+        } else if (coloring == 'custom') {
+            return this.getItemsGroup()
+        } else if (coloring == 'term') {
+            if (termColoring == 'prediction') {
+                return this.getItemsScore()
+            } else if (termColoring == 'annotation') {
+                return this.getItemsAnnotation()
+            }
+        }
+        return []
+    },
+
+    getItem: function(label, clr) {
+        return (
+                React.createElement("div", {style: {display: 'inline-block', paddingRight: '10px'}, key: label}, 
+                React.createElement(SquareSVG, {size: 12, color: clr, padding: "1px 2px 0 0"}), 
+                React.createElement("span", null, label)
+                )
+        )
+        // return (
+        //         <tr key={label}>
+        //         <td><SquareSVG size={12} color={clr} padding='1px 2px 0 0' /></td>
+        //         <td>{label}</td>
+        //         </tr>
+        // )
+    },
+    
+    getItemsBiotype: function() {
+        var biotypes = {};
+        _.forEach(this.props.data.elements.nodes, function(node) {
+            biotypes[node.data.biotype] = true
+        });
+        var color2biotypes = {};
+        _.forEach(biotypes, function(thisistrue, biotype) {
+            var clr = color.biotype2color[biotype];
+            if (color2biotypes[clr] === undefined) {
+                color2biotypes[clr] = []
+            }
+            color2biotypes[clr].push(biotype)
+        });
+        var that = this;
+        var items = [];
+        _.forEach(color2biotypes, function(biotypes, clr) {
+            items.push(that.getItem(biotypes.join(', ').replace(/_/g, ' '), clr))
+        });
+        return items
+    },
+
+    getItemsChr: function() {
+        var that = this;
+        var chrs = {};
+        _.forEach(this.props.data.elements.nodes, function(node) {
+            chrs[node.data.chr] = true
+        });
+
+        var color2chrs = {};
+        _.forEach(chrs, function(thisistrue, chr) {
+            var clr = color.chr2color[chr];
+            if (color2chrs[clr] === undefined) {
+                color2chrs[clr] = []
+            }
+            color2chrs[clr].push(chr)
+        });
+
+        var items = [];
+
+        _.forEach(color2chrs, function(chrs, clr) {
+            if (chrs[0].toLowerCase() == 'x' || chrs[0].toLowerCase() == 'y'){
+                chrs = chrs.join(', ').replace('_', ' ')
+            } else {
+                chrs = "Autosomal"
+            }
+            items.push(that.getItem(chrs, clr))
+        });
+
+        return items
+    },
+
+    getItemsCluster: function() {
+        var that = this;
+        var i = 0;
+        var items = _.map(this.props.data.elements.groups, function(group) {
+            if (group.type !== 'cluster') {
+                return null
+            }
+            var clr = color.cluster2color[i++] || color.colors.nodeDefault;
+            if (i <= color.cluster2color.length) {
+                return that.getItem(group.name, clr)
+            } else if (i === color.cluster2color.length + 1) {
+                return that.getItem('Rest', clr)
+            } else {
+                return null
+            }
+        });
+
+        return items
+    },
+
+    getItemsGroup: function() {
+        var that = this;
+        var items = _.map(this.props.data.elements.groups, function(group, i) {
+            if (group.type != 'custom') {
+                return null
+            }
+            var clr = color.group2color[group.index_];
+            return that.getItem(group.name, clr)
+        });
+        return items
+    },
+
+    // TODO coloring from Pytrik
+    getItemsScore: function() {
+        var that = this;
+        var clrs = [color.colors.gnblue, color.colors.gnbluelightgray, color.colors.gnlightgray, color.colors.gnredlightgray, color.colors.gnred];
+        var labels = ['< -10', '-5', '0', '5', '> 10'];
+        var items = [];
+        items.push(React.createElement("span", {key: "zscore", style: {paddingRight: '10px'}}, "Z-score"));
+        _.forEach(labels, function(label, i) {
+            items.push(that.getItem(label, clrs[i]))
+        });
+        return items
+    },
+
+    getItemsAnnotation: function() {
+        var that = this;
+        var clrs = [color.colors.gngray, color.colors.gnred];
+        var labels = ['not annotated', 'annotated'];
+        var items = _.map(labels, function(label, i) {
+            return that.getItem(label, clrs[i])
+        });
+        return items
+    },
+    
+    render: function() {
+
+        if (!this.state || !this.state.items) return null;
+        // <table className='noselect defaultcursor' style={{backgroundColor: color.colors.gnwhite}}>
+        // <tbody>
+        return (
+                React.createElement("div", {className: "gn-network-legendpanel smallscreensmallfont"}, 
+                React.createElement("span", {className: "noselect defaultcursor", style: {padding: '9px 10px', float: 'left', backgroundColor: color.colors.gnwhite}}, "COLOR GENES BY"), 
+                React.createElement(OpenMenu, {options: this.props.coloringOptions, selected: this.props.coloring, onSelect: this.props.onColoring, style: {float: 'left'}}), 
+                React.createElement("div", {className: "gn-network-legendpanel-legend noselect", style: {float: 'left', padding: '8px 10px 9px 10px', backgroundColor: color.colors.gnwhite}}, 
+                this.state.items, 
+                React.createElement(I, {title: "This is an experimental automatic clustering."})
+                )
+                )
+        )
+    }
+
+});
+
+module.exports = LegendPanel;
 
 },{"../../js/color":4,"../ReactComponents/OpenMenu":42,"../ReactComponents/SVGCollection":45,"lodash":130,"react":333,"react-tooltip":199}],27:[function(require,module,exports){
-"use strict";var _=require("lodash"),async=require("async"),AffinityPropagation=require("affinity-propagation"),React=require("react"),ReactDOM=require("react-dom"),DocumentTitle=require("react-document-title"),GroupPanel=require("./GroupPanel"),GenePanel=require("./GenePanel"),EdgePanel=require("./EdgePanel"),AnalysisPanel=require("./AnalysisPanel"),NetworkControlPanel=require("./NetworkControlPanel"),EdgeLegend=require("./EdgeLegend"),LegendPanel=require("./LegendPanel"),Footer=require("../ReactComponents/Footer"),GeneTable=require("../ReactComponents/GeneTable"),DownloadPanel=require("../ReactComponents/DownloadPanel"),D3Network=require("../../js/D3Network.js"),color=require("../../js/color"),htmlutil=require("../../js/htmlutil"),quicksort=require("../../js/sort/quicksort"),ZOOM_SCALE=[.05,10],keyListener=function(e){e.altKey&&78===e.keyCode&&(this.state.network&&this.state.network.toggleNegative(),this.setState({hasNegatives:!this.state.hasNegatives}))},network2js=function(e){var t=Date.now(),n={elements:{nodes:_.map(e.genes,function(e){return{data:e}}),edges:[],allEdges:[]},edgeValueScales:[[0,12,15],[0,-12,-15]],edgeColorScales:[["#ffffff","#000000","#ff3c00"],["#ffffff","#00a0d2","#7a18ec"]],buffer:e.buffer,pathway:e.pathway};n.elements.hashNodes=_.keyBy(n.elements.nodes,function(e){return e.data.id});for(var a=n.elements.nodes.length,s=new DataView(e.buffer),o=new Array(a*(a-1)/2),i=0;i<o.length;i++)o[i]=(s.getUint16(2*i)-32768)/1e3;var r=o.slice(0);quicksort(r),n.threshold=Math.min(_.last(n.edgeValueScales[0])-1,r[Math.max(0,r.length-2*a)]);for(var l=new Array(a),i=0;i<l.length;i++)l[i]=!1;for(var i=0,d=0;d<a-1;d++)for(var c=d+1;c<a;c++)n.elements.allEdges.push({data:{source:n.elements.nodes[d].data.id,target:n.elements.nodes[c].data.id,weight:o[i]}}),o[i]>=n.threshold&&(n.elements.edges.push({data:{source:n.elements.nodes[d].data.id,target:n.elements.nodes[c].data.id,weight:o[i]}}),l[d]=!0,l[c]=!0),i++;if(n.elements.groups=[{name:"All genes",nodes:_.map(n.elements.nodes,function(e){return e.data.id}),type:"auto"}],_.forEach(e.groups,function(e){n.elements.groups.push({name:e.name,index_:e.id,nodes:e.genes,type:"custom"}),_.forEach(e.genes,function(t){void 0==n.elements.hashNodes[t].customGroups&&(n.elements.hashNodes[t].customGroups=[]),n.elements.hashNodes[t].customGroups.push(e.id)})}),console.debug("Network.network2js: %d ms",Date.now()-t),t=Date.now(),a>4){var u=-32.768,h=AffinityPropagation.getClusters(o,{symmetric:!0,preference:u,damping:.8});1===h.exemplars.length&&(u="min",h=AffinityPropagation.getClusters(o,{symmetric:!0,preference:u,damping:.8}));var m=[],g={};_.forEach(h.exemplars,function(e,t){var a={nodes:[],type:"cluster",exemplar:n.elements.nodes[e].data.id};m.push(a),g[e]=a}),_.forEach(h.clusters,function(e,t){g[e].nodes.push(n.elements.nodes[t].data.id)}),m=_.sortBy(m,function(e){return-e.nodes.length}),_.forEach(m,function(e,t){e.name="Cluster "+(t+1),e.index_=t}),Array.prototype.push.apply(n.elements.groups,m),console.debug("AffinityPropagation: %d ms",Date.now()-t)}return n.elements.groups.push({name:"My selection",nodes:[],type:"auto"}),n},Network=React.createClass({displayName:"Network",propTypes:{data:React.PropTypes.object,forceToArea:React.PropTypes.bool,onClick:React.PropTypes.func,onNodeClick:React.PropTypes.func},getInitialState:function(){return{network:null,hasNegatives:!1,selectionMode:"move",coloring:"cluster",coloringOptions:[{key:"biotype",label:"Biotype"},{key:"chr",label:"Chromosome"},{key:"cluster",label:"Cluster"}],progressText:"loading",progressDone:!1,addedGenes:[],selectedTissue:"data",selectedTerm:"Pathway",showGenes:!0,tab:"network",genes:{genes:{annotated:null,predicted:null},pathway:{database:null,name:null}},gpMessage:null}},loadNetworkData:function(e){var t=this.props.params.ids.replace(/(\r\n|\n|\r)/g,",");console.debug("Network: loading",t);io.socket.on("network",function(t){this.setState({error:null,progressText:"creating visualization"}),setTimeout(function(){var n=network2js(t);this.setState({data:n,url:GN.urls.networkPage+t.shortURL}),e(null,n)}.bind(this),10)}.bind(this)),io.socket.get(GN.urls.network,{genes:t,tissue:void 0},function(t,n){200!==n.statusCode&&(this.setState({error:"Please try again later.",errorTitle:n.statusCode}),e({name:"Error",message:"Couldn't load data"}))}.bind(this))},createNetwork:function(e,t){var n=ReactDOM.findDOMNode(this).offsetWidth,a=document.getElementById("network").offsetHeight,s=(new Date,new D3Network(document.getElementById("network"),{width:n+300,height:a,minZoomScale:ZOOM_SCALE[0],maxZoomScale:ZOOM_SCALE[1],labelSizeEm:1,labelColor:color.colors.gnwhite,nodeHeight:30,gravity:.8,friction:.1,charge:-8e4,distance:10,onSelect:this.updateGroup,onEdgeSelect:this.selectEdge,onSelectionModeChange:this.onSelectionModeChange,onZoomEnd:this.checkZoomBounds,onProgress:this.updateProgress}));this.setState({width:n,height:a,network:s}),t(null,e)},drawNetwork:function(e,t){var n=this.state.coloring;_.compact(_.filter(e.elements.groups,function(e){return"custom"==e.type})).length>0&&!_.includes(this.state.coloringOptions,"custom")?(this.state.coloringOptions.push({key:"custom",label:"My coloring"}),n="custom",this.handleColoring("custom")):"custom"==n&&(n="biotype"),this.setState({coloring:n,activeGroup:e.elements.groups[0],threshold:e.threshold,progressText:"creating visualization"}),setTimeout(function(){this.state.network.draw(e),this.state.network.colorBy(n)}.bind(this),10),t(null)},loadTissueData:function(e){var t=this.props.params.ids.replace(/(\r\n|\n|\r)/g,",");io.socket.get(GN.urls.network,{genes:t,tissue:e},function(e,t){200!==t.statusCode&&this.setState({error:"Please try again later.",errorTitle:t.statusCode})}.bind(this))},loadGenes:function(e){if(null!=this.state.data.pathway)console.log("Get genes from pathway database"),$.ajax({url:GN.urls.pathway+"/"+this.state.data.pathway.id+"?verbose",dataType:"json",success:function(e){this.setState({genes:e,error:null})}.bind(this),error:function(e,t,n){"Not Found"==n?this.setState({predictedGenes:null,error:"Term "+termId+" not found",errorTitle:"Error "+e.status}):this.setState({predictedGenes:null,error:"Please try again later ("+e.status+")",errorTitle:"Error "+e.status})}.bind(this)}),e(null);else if(this.state.activeGroup.nodes.length>=5){console.log("Get genes from prediction server"),io.socket.on("geneprediction.queueEvent",this._onIOQueueEvent),io.socket.on("geneprediction.result",this._onIOResult);var t=this.state.activeGroup.nodes;io.socket.get(GN.urls.geneprediction,{genes:t,geneOfInterest:void 0},function(e,t){200!==t.statusCode&&window.alert("Please try again later.")}),e(null)}},_onIOQueueEvent:function(e){if(console.log("onIOQueueEvent"),e.queueLength||0===e.queueLength){var t=htmlutil.intToStr(e.queueLength)+" analyses";t=0===e.queueLength?"Starting analysis...":e.queueLength<2?"Your analysis will start in a few seconds...":e.queueLength<10?"Your analysis will start in less than a minute, please be patient. You're "+htmlutil.intToOrdinalStr(e.queueLength)+" in the queue.":"This will take some time as our servers are busy right now, please be patient. You're "+htmlutil.intToOrdinalStr(e.queueLength)+" in the queue.",this.setState({gpMessage:t})}else console.log("PredictedGenesPanel.setSocketListeners: unhandled queueEvent")},_onIOResult:function(e){if(e.gpResults.auc&&e.gpResults.auc>0)this.setState({gpAUC:e.gpResults.auc});else{var t={genes:{annotated:null,predicted:e.gpResults.results},pathway:{database:null,name:null}};this.setState({gpMessage:null,genes:t,gpStatus:e.gpStatus,gpRunning:!0,gpAUC:e.gpResults.auc})}},_onIOError:function(e){this.setState({gpMessage:e.gpMessage,gpRunning:!1})},_onIOEnd:function(e){this.props.onPredFinish(),this.setState({gpMessage:e.gpMessage,gpRunning:!1})},componentDidMount:function(){async.waterfall([this.loadNetworkData,this.createNetwork,this.drawNetwork,this.loadGenes],function(e){e?console.log(e):(this.setGeneAddSocketListeners(),window.addEventListener("resize",this.handleResize),$(document).keydown(keyListener.bind(this)))}.bind(this))},componentWillUnmount:function(){console.log("Network will unmount");this.getDOMNode();window.removeEventListener("resize",this.handleResize),$(document).unbind("keydown")},componentWillReceiveProps:function(e){e.data&&e.data!=this.state.data&&this.drawNetwork(e.data)},handleResize:function(e){var t=document.getElementById("network");this.state.network.resize(t.offsetWidth,t.offsetHeight)},setGeneAddSocketListeners:function(){io.socket.on("genevsnetwork.result",function(e){this.addGene(e.gene,e.zScores)}.bind(this)),console.debug("geneAdd socket listener set")},updateProgress:function(e){"done"===e?this.setState({progressDone:!0}):this.setState({progressText:e})},updateThreshold:function(e){if(0!=e){var t=this.state.threshold,n=this.state.threshold+e;if(this.state.network.updateThreshold(n),this.setState({threshold:n}),e<0){var a=_.filter(this.state.data.elements.allEdges,function(e){return _.inRange(e.data.weight,n,t)});this.state.network.addEdges(a)}else{var s=_.filter(this.state.data.elements.edges,function(e){return _.inRange(e.data.weight,n,t)});this.state.network.removeEdges(s)}}},handleColoring:function(e){var t=null;"term"==e?(t="prediction",this.state.network.colorBy(t),this.state.coloring===e?this.setState({termColoring:t}):this.setState({previousColoring:this.state.coloring,coloring:e,termColoring:t})):(this.state.network.colorBy(e),this.setState({previousColoring:this.state.coloring,coloring:e}))},onLegendSelect:function(e){},updateGroup:function(e,t){_.isPlainObject(e)||console.warn("Network.updateGroup: argument must be an object, got "+typeof e),t&&this.state.network.highlightGroup(this.state.data.elements.groups.indexOf(e)),this.setState({activeGroup:e,selectedEdge:null})},selectEdge:function(e){this.setState({selectedEdge:e})},onAnalyse:function(e){this.setState({analysisGroup:e})},selectTerm:function(e){if(null===e)return _.remove(this.state.coloringOptions,function(e){return"term"===e.key}),this.setState({selectedTerm:null}),this.handleColoring(this.state.previousColoring);var t=_.map(this.state.data.elements.nodes,function(e){return e.data.index_}),n=new Date;io.socket.get(GN.urls.genescores,{term:e,geneIndices:t},function(t,a){if(t&&t.zScores){console.debug(new Date-n+"ms: scoreRequest");for(var s=0;s<t.zScores.length;s++)this.state.data.elements.nodes[s].data.zScore=t.zScores[s],this.state.data.elements.nodes[s].data.annotated=t.annotations[s];this.handleColoring("term"),_.includes(_.map(this.state.coloringOptions,"key"),"term")||this.state.coloringOptions.push({key:"term",label:"HPO"===e.database?"Phenotype":"Pathway"}),this.setState({selectedTerm:e,coloringOptions:this.state.coloringOptions})}else console.error("could not get z-scores for "+e)}.bind(this))},addGeneRequest:function(e){io.socket.get(GN.urls.genevsnetwork,{geneIndex:e.index_,geneIndices:_.map(this.state.data.elements.nodes,function(e){return e.data.index_})},function(e,t){200!==t.statusCode&&this.setState({error:"Please try again later."})}.bind(this))},addGene:function(e,t){this.state.network.addNodeToDataAndNetwork(e,t),this.state.network.colorBy(this.state.coloring);var n=this.state.addedGenes.slice(0);n.push(e.id),"zscore"==this.state.coloring&&this.state.selectedTerm&&(console.log("reselecting "+this.state.selectedTerm.name),this.selectTerm(this.state.selectedTerm)),this.setState({addedGenes:n})},removeGene:function(e){this.state.network.removeGeneFromNetwork(e.id);var t=this.state.addedGenes.slice(0),n=t.indexOf(e.id);n>-1&&(t.splice(n,1),this.setState({addedGenes:t}))},download:function(e){var t=document.getElementById("networksvg"),n=(new XMLSerializer).serializeToString(t),a=document.getElementById("gn-network-svgform");a.format.value=e,a.data.value=n,a.submit()},onSelectionModeChange:function(e){this.state.network.setSelectionMode(e),this.setState({selectionMode:e})},handleAnalysisPanelClose:function(){this.setState({analysisGroup:null})},onZoom:function(e){var t=this.state.network.tweenZoom(e,200);this.checkZoomBounds(t)},checkZoomBounds:function(e){e<=ZOOM_SCALE[0]?this.setState({isZoomedMax:!1,isZoomedMin:!0}):e>=ZOOM_SCALE[1]?this.setState({isZoomedMax:!0,isZoomedMin:!1}):this.setState({isZoomedMax:!1,isZoomedMin:!1})},handleTissueHover:function(e){this.setState({hoverTissue:e})},handleTissueClick:function(e){var t=e===this.state.selectedTissue?"data":e,n=this.state[t].threshold;this.state.network.toggleNetwork(this.state[t]),this.setState({selectedTissue:t,threshold:n})},handleEdgeHover:function(e){this.setState({hoverEdge:e})},onTabClick:function(e){this.setState({tab:e}),"network"==e?this.state.network.show():this.state.network.hide()},downloadPredictions:function(){document.getElementById("gn-term-downloadform").submit()},render:function(){var e=this.state.error?this.state.errorTitle:"Loading"+GN.pageTitleSuffix;if(this.state.progressDone&&this.state.data){e=this.state.data.elements.nodes.length+" genes"+GN.pageTitleSuffix;var t=null!=this.state.data.pathway?this.state.data.pathway.database+": "+this.state.data.pathway.name:null,n=null!=this.state.data.pathway?React.createElement("div",null,React.createElement(DownloadPanel,{onClick:this.downloadPredictions,text:"DOWNLOAD ALL"}),React.createElement("form",{id:"gn-term-downloadform",method:"post",encType:"multipart/form-data",action:GN.urls.tabdelim},React.createElement("input",{type:"hidden",id:"termId",name:"termId",value:this.state.data.pathway.id}),React.createElement("input",{type:"hidden",id:"db",name:"db",value:this.state.data.pathway.database}),React.createElement("input",{type:"hidden",id:"what",name:"what",value:"termprediction"}))):null,a=React.createElement("div",null,React.createElement("div",{className:"gn-term-container-outer",style:{backgroundColor:color.colors.gnwhite}},React.createElement("div",{className:"gn-term-container-inner maxwidth",style:{padding:"20px"}},React.createElement(GeneTable,{genes:this.state.genes.genes.predicted?this.state.genes.genes.predicted:null,type:"prediction",gpMessage:this.state.gpMessage}),n)),React.createElement(Footer,null)),s=React.createElement("div",null,React.createElement("div",{className:"gn-term-container-outer",style:{backgroundColor:color.colors.gnwhite}},React.createElement("div",{className:"gn-term-container-inner maxwidth",style:{padding:"20px"}},React.createElement(GeneTable,{genes:this.state.genes.genes.annotated?this.state.genes.genes.annotated:null,type:"annotation"}))),React.createElement(Footer,null)),o=React.createElement("div",{id:"network",className:"flex10 hflex gn-network",style:{position:"relative",backgroundColor:color.colors.gnwhite,minHeight:"400px"}},React.createElement(NetworkControlPanel,{download:this.download,onSelectionModeChange:this.onSelectionModeChange,selectionMode:this.state.selectionMode,isZoomedMax:this.state.isZoomedMax,isZoomedMin:this.state.isZoomedMin,onZoom:this.onZoom}),React.createElement(EdgeLegend,{threshold:this.state.threshold,edgeValueScales:this.state.data.edgeValueScales,edgeColorScales:this.state.data.edgeColorScales,onMouseOver:this.handleEdgeHover,hoverEdge:this.state.hoverEdge,onClick:this.updateThreshold}),this.state.selectedEdge?React.createElement(EdgePanel,{edge:this.state.selectedEdge}):1===this.state.activeGroup.nodes.length?React.createElement(GenePanel,{gene:this.state.data.elements.nodes[this.state.network.getNodeById(this.state.activeGroup.nodes[0])].data,coloring:this.state.coloring}):null,React.createElement(LegendPanel,{data:this.state.data,coloring:this.state.coloring,termColoring:this.state.termColoring,coloringOptions:this.state.coloringOptions,onColoring:this.handleColoring}),React.createElement("div",{className:"gn-network-panelcontainer noselect smallscreensmallfont"},React.createElement(GroupPanel,{data:this.state.data,activeGroup:this.state.activeGroup,coloring:this.state.coloring,onGroupClick:this.updateGroup,onAnalyse:this.onAnalyse,style:{maxHeight:1/3*this.state.height-30,paddingRight:"0px"}}),this.state.analysisGroup?React.createElement(AnalysisPanel,{style:{padding:"10px 0 10px 10px",maxHeight:2/3*this.state.height-70},onClose:this.handleAnalysisPanelClose,analysisGroup:this.state.analysisGroup,selectedTerm:this.state.selectedTerm,termColoring:this.state.termColoring,coloring:this.state.coloring,onTermSelect:this.selectTerm,onGeneAdd:this.addGeneRequest,onGeneRemove:this.removeGene,addedGenes:this.state.addedGenes}):null),React.createElement("form",{id:"gn-network-svgform",method:"post",encType:"multipart/form-data",action:GN.urls.svg2pdf},React.createElement("input",{type:"hidden",id:"data",name:"data",value:""}),React.createElement("input",{type:"hidden",id:"format",name:"format",value:""})),React.createElement("form",{id:"gn-network-groupform",method:"post",encType:"multipart/form-data",action:GN.urls.tabdelim},React.createElement("input",{type:"hidden",id:"genes",name:"genes",value:""}),React.createElement("input",{type:"hidden",id:"groups",name:"groups",value:""}),React.createElement("input",{type:"hidden",id:"edges",name:"edges",value:"e"}),React.createElement("input",{type:"hidden",id:"what",name:"what",value:"groups"})),React.createElement("form",{id:"gn-network-pwaform",method:"post",encType:"multipart/form-data",action:GN.urls.tabdelim},React.createElement("input",{type:"hidden",id:"data",name:"data",value:""}),React.createElement("input",{type:"hidden",id:"name",name:"name",value:""}),React.createElement("input",{type:"hidden",id:"db",name:"db",value:""}),React.createElement("input",{type:"hidden",id:"genes",name:"genes",value:""}),React.createElement("input",{type:"hidden",id:"testType",name:"testType",value:""}),React.createElement("input",{type:"hidden",id:"what",name:"what",value:"pwa"})),React.createElement("form",{id:"gn-network-gpform",method:"post",encType:"multipart/form-data",action:GN.urls.tabdelim},React.createElement("input",{type:"hidden",id:"data",name:"data",value:""}),React.createElement("input",{type:"hidden",id:"name",name:"name",value:""}),React.createElement("input",{type:"hidden",id:"genes",name:"genes",value:""}),React.createElement("input",{type:"hidden",id:"what",name:"what",value:"prediction"}))),i=React.createElement("div",{id:"networkdesc",style:{paddingTop:"10px"}},React.createElement("div",{className:"gn-term-description-outer",style:{backgroundColor:color.colors.gnwhite,padding:"20px 20px 10px 20px",height:"40px"}},React.createElement("div",{className:"gn-term-description-inner hflex flexcenter maxwidth",style:{display:"inline"}},React.createElement("div",{className:"gn-term-menu noselect",style:{height:"45px",display:"inline"}},React.createElement("span",{style:{cursor:"default",paddingRight:"10px"}},"SHOW"),React.createElement("div",{className:"predictedgenes"==this.state.tab?"clickable button selectedbutton":"clickable button",onClick:this.onTabClick.bind(null,"predictedgenes")},"PREDICTED GENES"),React.createElement("div",{className:"annotatedgenes"==this.state.tab?"clickable button selectedbutton":"clickable button",onClick:this.onTabClick.bind(null,"annotatedgenes")},"ANNOTATED GENES"),React.createElement("div",{className:"network"==this.state.tab?"clickable button selectedbutton":"clickable button",onClick:this.onTabClick.bind(null,"network")},"NETWORK"))))),r=React.createElement("div",{id:"networkdesc"},React.createElement("div",{className:"gn-term-description-outer",style:{backgroundColor:color.colors.gnwhite,padding:"20px"}},React.createElement("div",{className:"gn-term-description-inner hflex flexcenter maxwidth"},React.createElement("div",{className:"gn-term-description-name"},React.createElement("span",{style:{fontWeight:"bold",fontFamily:"GG",fontSize:"1.5em"}},t)),React.createElement("div",{className:"flex11"}),React.createElement("div",{className:"gn-term-description-stats",style:{textAlign:"right"}},this.state.data.pathway?"Prediction accuracy "+Math.round(100*this.state.data.pathway.auc)/100:null))));return React.createElement(DocumentTitle,{title:e},React.createElement("div",{className:"flex10 vflex"},React.createElement("div",null,this.state.showGenes?r:React.createElement("div",{className:"gn-term-description-stats",style:{textAlign:"left",padding:"5px"}},this.state.data.elements.nodes.length>4?React.createElement("span",null,"Link to this network: ",React.createElement("br",null),this.state.url):React.createElement("span",null,"This network contains ",htmlutil.intToStr(this.state.data.elements.nodes.length)," genes. Pathway analysis and prediction of similar genes require five or more genes.")),this.state.showGenes?i:null),this.state.showGenes?"predictedgenes"==this.state.tab?a:"annotatedgenes"==this.state.tab?s:o:o))}return React.createElement(DocumentTitle,{title:e},React.createElement("div",{className:"flex10 vflex"},React.createElement("div",null,React.createElement("div",{id:"networkdesc"},React.createElement("div",{className:"gn-term-description-outer",style:{backgroundColor:color.colors.gnwhite,padding:"20px"}},React.createElement("div",{className:"gn-term-description-inner hflex flexcenter maxwidth"},React.createElement("div",{className:"gn-term-description-name"},React.createElement("span",{style:{fontWeight:"bold",fontFamily:"GG",fontSize:"1.5em"}},"Loading")),React.createElement("div",{className:"flex11"}),React.createElement("div",{className:"gn-term-description-stats",style:{textAlign:"right"}})))),this.state.showGenes?React.createElement("div",{id:"networkdesc",style:{paddingTop:"10px"}},React.createElement("div",{className:"gn-term-description-outer",style:{backgroundColor:color.colors.gnwhite,padding:"20px 20px 10px 20px",height:"40px"}})):null),React.createElement("div",{id:"network",className:"flex10 hflex gn-network",style:{position:"relative",backgroundColor:color.colors.gnwhite,minHeight:"400px"}},React.createElement("div",{id:"loadcontainer",className:"vflex flexcenter flexjustifycenter fullwidth"},React.createElement("span",null,this.state.error||this.state.progressText)))))}});module.exports=Network;
+'use strict';
+
+var _ = require('lodash');
+var async = require('async');
+var AffinityPropagation = require('affinity-propagation');
+var React = require('react');
+var ReactDOM = require('react-dom');
+var DocumentTitle = require('react-document-title');
+
+var GroupPanel = require('./GroupPanel');
+var GenePanel = require('./GenePanel');
+var EdgePanel = require('./EdgePanel');
+var AnalysisPanel = require('./AnalysisPanel');
+var NetworkControlPanel = require('./NetworkControlPanel');
+var EdgeLegend = require('./EdgeLegend');
+var LegendPanel = require('./LegendPanel');
+var Footer = require('../ReactComponents/Footer');
+var GeneTable = require('../ReactComponents/GeneTable');
+var DownloadPanel = require('../ReactComponents/DownloadPanel');
+
+
+var D3Network = require('../../js/D3Network.js');
+var color = require('../../js/color');
+var htmlutil = require('../../js/htmlutil');
+var quicksort = require('../../js/sort/quicksort');
+
+var ZOOM_SCALE = [0.05, 10];
+
+var keyListener = function(e) {
+
+    if (e.altKey && e.keyCode === 78) { // alt+n secret key combo easter egg idbeholdi
+        this.state.network && this.state.network.toggleNegative();
+        this.setState({
+            hasNegatives: !this.state.hasNegatives
+        })
+    }
+};
+
+var network2js = function(network) {
+
+    var time = Date.now();
+    
+    var js = {
+        elements: {
+            nodes: _.map(network.genes, function(gene) {
+                return {
+                    data: gene
+                }
+            }),
+            edges: [],
+            allEdges: [],
+        },
+        edgeValueScales: [[0, 12, 15], [0, -12, -15]],
+        edgeColorScales: [['#ffffff', '#000000', '#ff3c00'], ['#ffffff', '#00a0d2', '#7a18ec']],
+        buffer: network.buffer,
+        pathway: network.pathway
+    };
+
+    js.elements.hashNodes = _.keyBy(js.elements.nodes, function(node) {
+        return node.data.id
+    });
+
+    var numNodes = js.elements.nodes.length;
+
+    // convert buffer to an array of Z-scores
+    var dataView = new DataView(network.buffer); // DataView is big-endian by default
+    var data = new Array(numNodes * (numNodes - 1) / 2); // buffer contains a symmetric matrix
+    for (var i = 0; i < data.length; i++) {
+        data[i] = (dataView.getUint16(i * 2) - 32768) / 1000
+    }
+
+    // get a suitable threshold for showing edges
+    var dataCopy = data.slice(0);
+    quicksort(dataCopy);
+    js.threshold = Math.min(_.last(js.edgeValueScales[0]) - 1, dataCopy[Math.max(0, dataCopy.length - numNodes * 2)]);
+    // js.threshold = Math.min(_.last(js.edgeValueScales[0]) - 1, dataCopy[Math.max(0, dataCopy.length - numNodes * 10)])
+
+    // keep track of lone genes (not connected to another gene based on threshold)
+    var isConnected = new Array(numNodes);
+    for (var i = 0; i < isConnected.length; i++) {
+        isConnected[i] = false
+    }
+
+    // add edges based on threshold
+    var i = 0;
+    for (var i1 = 0; i1 < numNodes - 1; i1++) {
+        for (var i2 = i1 + 1; i2 < numNodes; i2++) {
+            js.elements.allEdges.push({
+                data: {
+                    source: js.elements.nodes[i1].data.id,
+                    target: js.elements.nodes[i2].data.id,
+                    weight: data[i]
+                }
+            });
+
+            if (data[i] >= js.threshold) {
+                js.elements.edges.push({
+                    data: {
+                        source: js.elements.nodes[i1].data.id,
+                        target: js.elements.nodes[i2].data.id,
+                        weight: data[i]
+                    }
+                });
+                isConnected[i1] = true;
+                isConnected[i2] = true
+            }
+            i++
+        }
+    }
+
+    // add default groups
+    js.elements.groups = [
+        {
+            name: 'All genes',
+            nodes: _.map(js.elements.nodes, function(node) {
+                return node.data.id
+            }),
+            type: 'auto'
+        },
+    ];
+
+    // add custom groups
+    _.forEach(network.groups, function(group) {
+        js.elements.groups.push({
+            name: group.name,
+            index_: group.id,
+            nodes: group.genes,
+            type: 'custom'
+        });
+        // add custom group information per gene to allow partial coloring in the ui
+        _.forEach(group.genes, function (id) {
+            if (js.elements.hashNodes[id].customGroups == undefined) {
+                js.elements.hashNodes[id].customGroups = []
+            }
+            js.elements.hashNodes[id].customGroups.push(group.id)
+        })
+    });
+
+    console.debug('Network.network2js: %d ms', (Date.now() - time));
+    time = Date.now();
+    
+    // affinity propagation clustering
+    if (numNodes > 4) {
+        var preference = -32.768; // minimum possible Z-score
+        var clusters = AffinityPropagation.getClusters(data, {symmetric: true, preference: preference, damping: 0.8});
+        if (clusters.exemplars.length === 1) { // only one cluster found, cluster again with a higher preference
+            preference = 'min'; // minimum Z-score in data
+            clusters = AffinityPropagation.getClusters(data, {symmetric: true, preference: preference, damping: 0.8})        
+        }
+
+        // create cluster groups
+        var clusterGroups = [];
+        var clusterHash = {};
+        _.forEach(clusters.exemplars, function(exemplar, i) {
+            var group = {
+                nodes: [],
+                type: 'cluster',
+                exemplar: js.elements.nodes[exemplar].data.id
+            };
+            clusterGroups.push(group);
+            clusterHash[exemplar] = group
+        });
+        
+        // add genes to clusters
+        _.forEach(clusters.clusters, function(exemplar, i) {
+            clusterHash[exemplar].nodes.push(js.elements.nodes[i].data.id)
+        });
+
+        // add cluster groups to network
+        clusterGroups = _.sortBy(clusterGroups, function(group) { return -group.nodes.length });
+        _.forEach(clusterGroups, function(group, i) {
+            group.name = 'Cluster ' + (i + 1);
+            group.index_ = i
+        });
+        Array.prototype.push.apply(js.elements.groups, clusterGroups);
+        
+        console.debug('AffinityPropagation: %d ms', (Date.now() - time))
+    }
+    
+    // 'My selection' group has to be last for D3Network to handle it correctly // TODO fix this  
+    js.elements.groups.push({
+        name: 'My selection',
+        nodes: [],
+        type: 'auto'
+    });
+
+    // console.log('EDGES: ' + JSON.stringify(js.elements.edges))
+
+    return js
+};
+
+var Network = React.createClass({displayName: "Network",
+
+    propTypes: {
+        data: React.PropTypes.object,
+        forceToArea: React.PropTypes.bool,
+        onClick: React.PropTypes.func,
+        onNodeClick: React.PropTypes.func,
+    },
+
+    getInitialState: function() {
+
+        var coloring = 'cluster';
+
+        var genes = {
+                genes: {annotated: null, predicted: null },
+                pathway: {database: null, name: null}
+            };
+
+        return {
+            network: null,
+            hasNegatives: false,
+            selectionMode: 'move',
+            coloring: coloring,
+            coloringOptions: [
+                {key: 'biotype', label: 'Biotype'},
+                {key: 'chr', label: 'Chromosome'},
+                {key: 'cluster', label: 'Cluster'}
+            ],
+            progressText: 'loading',
+            progressDone: false,
+            addedGenes: [],
+            selectedTissue: 'data',
+            selectedTerm: 'Pathway',
+            showGenes: true, //set to false to see old network page
+            tab: 'network',
+            genes: genes,
+            gpMessage: null
+        }
+    },
+    
+    loadNetworkData: function(callback) {
+        
+        var ids = this.props.params.ids.replace(/(\r\n|\n|\r)/g, ',');
+        console.debug('Network: loading', ids);
+        var data = {
+            format: 'network',
+            genes: ids,
+        };
+
+        io.socket.on('network', function(network) {
+            this.setState({
+                error: null,
+                progressText: 'creating visualization'
+            });
+            // allow state change
+            setTimeout(function() {
+                // var view = new DataView(network.buffer)
+                var js = network2js(network);
+                this.setState({
+                    data: js,
+                    url: GN.urls.networkPage + network.shortURL
+                });
+                callback(null, js)
+            }.bind(this), 10) 
+        }.bind(this));
+        
+        io.socket.get(GN.urls.network, {genes: ids, tissue: undefined}, function(res, jwres) {
+            if (jwres.statusCode !== 200) {
+                this.setState({
+                    error: 'Please try again later.',
+                    errorTitle: jwres.statusCode
+                });
+                callback({name: 'Error', message: 'Couldn\'t load data'})
+             } //else {
+            //     console.log(res)
+            // }
+        }.bind(this))
+    },
+
+    createNetwork: function(data, callback) {
+
+        var width = ReactDOM.findDOMNode(this).offsetWidth;
+        var height = document.getElementById('network').offsetHeight;//ReactDOM.findDOMNode(this).offsetHeight
+
+        var ts = new Date();
+        var network = new D3Network(document.getElementById('network'), {
+            width: width + 300,
+            height: height,
+            minZoomScale: ZOOM_SCALE[0],
+            maxZoomScale: ZOOM_SCALE[1],
+            labelSizeEm: 1,
+            labelColor: color.colors.gnwhite,
+            nodeHeight: 30,
+            gravity: 0.8,
+            friction: 0.1, //0.65
+            charge: -80000, //10000
+            distance: 10,
+            onSelect: this.updateGroup,
+            onEdgeSelect: this.selectEdge,
+            onSelectionModeChange: this.onSelectionModeChange,
+            onZoomEnd: this.checkZoomBounds,
+            onProgress: this.updateProgress
+        });
+
+        this.setState({
+            width: width,
+            height: height,
+            network: network
+        });
+
+        callback(null, data)
+    },
+
+    drawNetwork: function(data, callback) {
+
+        var coloring = this.state.coloring;
+        if (_.compact(_.filter(data.elements.groups, function(group) {
+            return group.type == 'custom'
+        })).length > 0 && !_.includes(this.state.coloringOptions, 'custom')) {
+            this.state.coloringOptions.push({key: 'custom', label: 'My coloring'});
+            coloring = 'custom';
+            this.handleColoring('custom')
+        } else if (coloring == 'custom') {
+            coloring = 'biotype'
+        }
+
+        this.setState({
+            coloring: coloring,
+            activeGroup: data.elements.groups[0],
+            threshold: data.threshold,
+            progressText: 'creating visualization',
+        });
+
+        // allow state change
+        setTimeout(function() {
+            // console.log('SHOWGENES')
+            // console.log(this.state.showgenes)
+            // this.state.showGenes ? this.state.network.transparant() : null
+            // this.state.tab !== 'network' ? this.state.network.transparant() : null
+            this.state.network.draw(data);
+            this.state.network.colorBy(coloring)
+        }.bind(this), 10);
+        callback(null)
+    },
+
+    // setTissueSocketListener: function() {
+    //     io.socket.on('network', function(network) {
+    //         this.setState({
+    //             error: null,
+    //             progressText: 'creating visualization'
+    //         });
+    //         // allow state change
+    //         setTimeout(function() {
+    //             // var view = new DataView(network.buffer)
+    //             var js = network2js(network);
+    //             this.setState({
+    //                 [network.tissue]: js,
+    //                 url: GN.urls.networkPage + network.shortURL
+    //             })
+    //         }.bind(this), 10)
+    //     }.bind(this))
+    // },
+
+    loadTissueData: function(tissue) {
+        var ids = this.props.params.ids.replace(/(\r\n|\n|\r)/g, ',');
+        io.socket.get(GN.urls.network, {genes: ids, tissue: tissue}, function(res, jwres) {
+            if (jwres.statusCode !== 200) {
+                this.setState({
+                    error: 'Please try again later.',
+                    errorTitle: jwres.statusCode
+                })
+            }
+        }.bind(this))
+    },
+
+    loadGenes: function(callback) {
+        if (this.state.data.pathway != null) {
+        // if (ids.split(',').length == 1 && (ids.startsWith('REACTOME:') || ids.startsWith('HP:'))){
+            console.log('Get genes from pathway database');
+            $.ajax({
+                url: GN.urls.pathway + '/' + this.state.data.pathway.id + '?verbose',
+                dataType: 'json',
+                success: function(data){
+                    this.setState({
+                        genes: data,
+                        error: null
+                    })
+                }.bind(this),
+                error: function(xhr, status, err){
+                    if (err == 'Not Found'){
+                        this.setState({
+                            predictedGenes: null,
+                            error: 'Term ' + termId + ' not found',
+                            errorTitle: 'Error ' + xhr.status
+                        })
+                    } else {
+                        this.setState({
+                            predictedGenes: null,
+                            error: 'Please try again later (' + xhr.status + ')',
+                            errorTitle: 'Error ' + xhr.status
+                        }) 
+                    }
+                }.bind(this)
+            });
+            callback(null)
+
+        } else if (this.state.activeGroup.nodes.length >= 5) {
+            console.log('Get genes from prediction server');
+
+            io.socket.on('geneprediction.queueEvent', this._onIOQueueEvent);
+            io.socket.on('geneprediction.result', this._onIOResult);
+	        var genes = this.state.activeGroup.nodes;
+            io.socket.get(GN.urls.geneprediction, {genes: genes, geneOfInterest: undefined}, function(res, jwres) {
+                if (jwres.statusCode !== 200) {
+                    window.alert('Please try again later.')
+                }
+            });
+            callback(null)
+        } 
+    },
+
+    _onIOQueueEvent: function(msg) {
+    	console.log('onIOQueueEvent');
+        if (msg.queueLength || msg.queueLength === 0) {
+            var str = htmlutil.intToStr(msg.queueLength) + ' analyses';
+            if (msg.queueLength === 0) str = 'Starting analysis...';
+            else if (msg.queueLength < 2) str = 'Your analysis will start in a few seconds...';
+            else if (msg.queueLength < 10) str = 'Your analysis will start in less than a minute, please be patient. '
+                + 'You\'re ' + htmlutil.intToOrdinalStr(msg.queueLength) + ' in the queue.';
+            else str = 'This will take some time as our servers are busy right now, please be patient. '
+                + 'You\'re ' + htmlutil.intToOrdinalStr(msg.queueLength) + ' in the queue.';
+            this.setState({
+                gpMessage: str
+            })
+        } else {
+            console.log('PredictedGenesPanel.setSocketListeners: unhandled queueEvent')
+        }
+    },
+
+    _onIOResult: function(msg) {
+
+        if (msg.gpResults.auc && msg.gpResults.auc > 0) {
+            
+            this.setState({
+                gpAUC: msg.gpResults.auc
+            })
+            
+        } else {
+
+			var genes = {
+                genes: {annotated: null, predicted: msg.gpResults.results },
+                pathway: {database: null, name: null}
+            };
+
+            this.setState({
+                gpMessage: null,
+                genes: genes,
+                gpStatus: msg.gpStatus,
+                gpRunning: true,
+                gpAUC: msg.gpResults.auc
+            })
+        }
+    },
+
+    _onIOError: function(msg) {
+
+        this.setState({
+            gpMessage: msg.gpMessage,
+            gpRunning: false
+        })
+    },
+
+    _onIOEnd: function(msg) {
+
+        this.props.onPredFinish();
+
+        this.setState({
+            gpMessage: msg.gpMessage,
+            gpRunning: false
+        })
+    },
+
+    componentDidMount: function() {
+        async.waterfall([
+            this.loadNetworkData,
+            this.createNetwork,
+            this.drawNetwork,
+            this.loadGenes
+            
+        ], function(err) {
+            if (err) {
+                console.log(err)
+            }
+            else {
+                this.setGeneAddSocketListeners();
+                window.addEventListener('resize', this.handleResize);
+                //window.addEventListener('keydown', this.keyListener)
+                $(document).keydown(keyListener.bind(this))
+
+                // io.socket.off('network')
+                //load tissue data
+                // setTimeout(function(){
+                //     this.setTissueSocketListener()
+                //     this.loadTissueData('brain')
+                //     this.loadTissueData('blood')
+                //     // this.state.showGenes ? this.state.network.hide() : null
+                // }.bind(this), 1500)
+            }
+        }.bind(this));
+    },
+
+    componentWillUnmount: function() {
+        console.log('Network will unmount');
+        var el = this.getDOMNode();
+        // this.state.network.destroy(el)
+        window.removeEventListener('resize', this.handleResize);
+        $(document).unbind('keydown')
+    },
+
+    componentWillReceiveProps: function(nextProps) {
+        if (nextProps.data && nextProps.data != this.state.data) {
+            this.drawNetwork(nextProps.data)
+        }
+    },
+
+    handleResize: function(e) {
+        var el = document.getElementById('network');
+        this.state.network.resize(el.offsetWidth, el.offsetHeight)
+    },
+    
+    setGeneAddSocketListeners: function() {
+        io.socket.on('genevsnetwork.result', function(msg) {
+            this.addGene(msg.gene, msg.zScores)
+        }.bind(this));
+        console.debug('geneAdd socket listener set')
+    },
+        
+    updateProgress: function(progressText) {
+        if (progressText === 'done') {
+            this.setState({
+                progressDone: true
+            })
+        } else {
+            this.setState({
+                progressText: progressText
+            })
+        }
+    },
+    
+    updateThreshold: function(n) {
+        if (n != 0){ // if n is 0, the end of the threshold legend is reached
+            var previousThreshold = this.state.threshold;
+            var currentThreshold = this.state.threshold + n;
+            this.state.network.updateThreshold(currentThreshold);
+            this.setState({
+                threshold: currentThreshold,
+            });
+            if (n < 0){
+                // add edges
+                // TODO: change data into [state.selectedtissue] to enable threshold changing for tissue-specific networks
+                var edgesToBeAdded = _.filter(this.state.data.elements.allEdges, function(edge){return _.inRange(edge.data.weight, currentThreshold, previousThreshold)});
+                this.state.network.addEdges(edgesToBeAdded)
+            } else {
+                // remove edges
+                var edgesToBeRemoved = _.filter(this.state.data.elements.edges, function(edge){return _.inRange(edge.data.weight, currentThreshold, previousThreshold)});
+                this.state.network.removeEdges(edgesToBeRemoved)
+            }
+        }
+    },
+    
+    handleColoring: function(type) {
+        var type2 = null;
+        if (type == 'term') {
+            type2 = 'prediction';
+            // console.log('coloring by ' + type2)
+            this.state.network.colorBy(type2);
+            if (this.state.coloring === type) {
+                this.setState({
+                    termColoring: type2
+                })
+            } else {
+                this.setState({
+                    previousColoring: this.state.coloring,
+                    coloring: type,
+                    termColoring: type2
+                })
+            }
+        } else {
+            // console.log('coloring by ' + type)
+            this.state.network.colorBy(type);
+            this.setState({
+                previousColoring: this.state.coloring,
+                coloring: type
+            })
+        }
+        // Cookies.set('networkcoloring', type, { expires: 365 * 24 * 60 * 60 })
+    },
+    
+    onLegendSelect: function(filter) {
+        
+    },
+    
+    updateGroup: function(group, updateD3) {
+
+        if (!_.isPlainObject(group)) {
+            console.warn('Network.updateGroup: argument must be an object, got ' + typeof group)
+        }
+        updateD3 && this.state.network.highlightGroup(this.state.data.elements.groups.indexOf(group));
+        this.setState({
+            activeGroup: group,
+            selectedEdge: null
+        })
+    },
+
+    selectEdge: function(edge) {
+        this.setState({
+            selectedEdge: edge
+        })
+    },
+
+    onAnalyse: function(group) {
+        this.setState({
+            analysisGroup: group
+        })
+    },
+    
+    selectTerm: function(term) {
+
+        if (term === null) {
+            _.remove(this.state.coloringOptions, function(option) {
+                return option.key === 'term'
+            });
+            this.setState({
+                selectedTerm: null
+            });
+            return this.handleColoring(this.state.previousColoring)
+        }
+        
+        var geneIndices = _.map(this.state.data.elements.nodes, function(node) { return node.data.index_ });
+        var ts = new Date();
+
+        io.socket.get(GN.urls.genescores, {term: term, geneIndices: geneIndices}, function(res, jwres) {
+            if (!res || !res.zScores) {
+                console.error('could not get z-scores for ' + term)
+            } else {
+                console.debug((new Date() - ts) + 'ms: scoreRequest');
+                for (var i = 0; i < res.zScores.length; i++) {
+                    this.state.data.elements.nodes[i].data.zScore = res.zScores[i];
+                    this.state.data.elements.nodes[i].data.annotated = res.annotations[i]
+                }
+                this.handleColoring('term');
+                if (!_.includes(_.map(this.state.coloringOptions, 'key'), 'term')) {
+                    this.state.coloringOptions.push({key: 'term', label: term.database === 'HPO' ? 'Phenotype' : 'Pathway'})
+                }
+                this.setState({
+                    selectedTerm: term,
+                    coloringOptions: this.state.coloringOptions,
+                    // additionalColoringOptions: [
+                    //     {key: 'term', label: term.database === 'HPO' ? 'Phenotype' : 'Pathway'} // TODO proper pathway/phenotype distinction
+                    // ]
+                })
+            }
+        }.bind(this))
+    },
+
+    addGeneRequest: function(gene) {
+
+        io.socket.get(GN.urls.genevsnetwork,
+          {geneIndex: gene.index_,
+           geneIndices: _.map(this.state.data.elements.nodes, function(d) { return d.data.index_ })},
+          function(res, jwres) {
+              if (jwres.statusCode !== 200) {
+                  this.setState({
+                      error: 'Please try again later.'
+                  })
+              }
+          }.bind(this))
+    },
+
+    addGene: function(gene, zScores) {
+        this.state.network.addNodeToDataAndNetwork(gene, zScores);
+        this.state.network.colorBy(this.state.coloring);
+        var addedGenes = this.state.addedGenes.slice(0);
+        addedGenes.push(gene.id);
+        if (this.state.coloring == 'zscore' && this.state.selectedTerm) {
+            console.log('reselecting ' + this.state.selectedTerm.name);
+            this.selectTerm(this.state.selectedTerm)
+        }
+        this.setState({
+            addedGenes: addedGenes
+        })
+    },
+    
+    removeGene: function(gene) {
+        this.state.network.removeGeneFromNetwork(gene.id);
+        var addedGenes = this.state.addedGenes.slice(0);
+        var index = addedGenes.indexOf(gene.id);
+        if (index > -1) {
+            addedGenes.splice(index, 1);
+            this.setState({
+                addedGenes: addedGenes
+            })
+        }
+    },
+    
+    download: function(format) {
+        var elem = document.getElementById('networksvg');
+        var xml = (new XMLSerializer()).serializeToString(elem);
+        var form = document.getElementById('gn-network-svgform');
+        form['format'].value = format;
+        form['data'].value = xml;
+        form.submit()
+    },
+    
+    onSelectionModeChange: function(type) {
+        this.state.network.setSelectionMode(type);
+        this.setState({
+            selectionMode: type
+        })
+    },
+    
+    handleAnalysisPanelClose: function() {
+        this.setState({
+            analysisGroup: null
+        })
+    },
+
+    onZoom: function(factor) {
+        var newScale = this.state.network.tweenZoom(factor, 200);
+        this.checkZoomBounds(newScale)
+    },
+
+    checkZoomBounds: function(zoomScale) {
+        if (zoomScale <= ZOOM_SCALE[0]) {
+            this.setState({
+                isZoomedMax: false,
+                isZoomedMin: true
+            })
+        } else if (zoomScale >= ZOOM_SCALE[1]) {
+            this.setState({
+                isZoomedMax: true,
+                isZoomedMin: false
+            })
+        } else {
+            this.setState({
+                isZoomedMax: false,
+                isZoomedMin: false
+            })
+        }
+    },
+    
+    handleTissueHover: function(hoverTissue) {
+        this.setState({
+            hoverTissue: hoverTissue
+        })
+    },
+
+    handleTissueClick: function(selectedTissue) {
+        var tissue = selectedTissue === this.state.selectedTissue ? 'data' : selectedTissue;
+        var threshold = this.state[tissue].threshold;
+        this.state.network.toggleNetwork(this.state[tissue]);
+        this.setState({
+            selectedTissue: tissue,
+            threshold: threshold
+        }) 
+        // this.state.network.colorBy(this.state.coloring)
+    },
+
+    handleEdgeHover: function(hoverEdge){
+        this.setState({
+            hoverEdge: hoverEdge
+        })
+    },
+
+    onTabClick: function(type) {
+        // Cookies.set('tab', type);
+        this.setState({
+            tab: type
+        });
+        type == 'network' ? this.state.network.show() : this.state.network.hide()
+    },
+
+    downloadPredictions: function() {
+        var form = document.getElementById('gn-term-downloadform');
+        form.submit()
+    },
+
+    render: function() {
+        var pageTitle = this.state.error ? this.state.errorTitle : 'Loading' + GN.pageTitleSuffix;
+        if (!this.state.progressDone || !this.state.data) {
+            return (
+                    React.createElement(DocumentTitle, {title: pageTitle}, 
+                    React.createElement("div", {className: "flex10 vflex"}, 
+                    React.createElement("div", null, 
+                        React.createElement("div", {id: "networkdesc"}, 
+                            React.createElement("div", {className: "gn-term-description-outer", style: {backgroundColor: color.colors.gnwhite, padding: '20px'}}, 
+                                React.createElement("div", {className: "gn-term-description-inner hflex flexcenter maxwidth"}, 
+                                    React.createElement("div", {className: "gn-term-description-name"}, 
+                                        React.createElement("span", {style: {fontWeight: 'bold', fontFamily: 'GG', fontSize: '1.5em'}}, "Loading")
+                                    ), 
+                                    React.createElement("div", {className: "flex11"}), 
+                                    React.createElement("div", {className: "gn-term-description-stats", style: {textAlign: 'right'}}
+                                    )
+                                )
+                            )
+                        ), 
+                        this.state.showGenes ? 
+
+                            React.createElement("div", {id: "networkdesc", style: {paddingTop: '10px'}}, 
+                            React.createElement("div", {className: "gn-term-description-outer", style: {backgroundColor: color.colors.gnwhite, padding: '20px 20px 10px 20px', height: '40px'}}
+                            )
+                        )
+
+                         : null
+                    ), 
+
+
+                    React.createElement("div", {id: "network", className: "flex10 hflex gn-network", style: {position: 'relative', backgroundColor: color.colors.gnwhite, minHeight: '400px'}}, 
+                    React.createElement("div", {id: "loadcontainer", className: "vflex flexcenter flexjustifycenter fullwidth"}, 
+                    React.createElement("span", null, this.state.error || this.state.progressText)
+                    )
+                    )
+                    )
+                    )
+            )
+
+        } else {
+
+            pageTitle = this.state.data.elements.nodes.length + ' genes' + GN.pageTitleSuffix;
+            var title = this.state.data.pathway != null ? (this.state.data.pathway.database + ': ' + this.state.data.pathway.name) : null;
+
+            var downloadButton = this.state.data.pathway != null ? (
+                React.createElement("div", null, 
+                React.createElement(DownloadPanel, {onClick: this.downloadPredictions, text: "DOWNLOAD ALL"}), 
+                React.createElement("form", {id: "gn-term-downloadform", method: "post", encType: "multipart/form-data", action: GN.urls.tabdelim}, 
+                    React.createElement("input", {type: "hidden", id: "termId", name: "termId", value: this.state.data.pathway.id}), 
+                    React.createElement("input", {type: "hidden", id: "db", name: "db", value: this.state.data.pathway.database}), 
+                    React.createElement("input", {type: "hidden", id: "what", name: "what", value: "termprediction"})
+                )
+                )
+            ) : null;
+
+            var predictedgenes = (
+                    React.createElement("div", null, 
+                        React.createElement("div", {className: "gn-term-container-outer", style: {backgroundColor: color.colors.gnwhite}}, 
+                        React.createElement("div", {className: "gn-term-container-inner maxwidth", style: {padding: '20px'}}, 
+                            React.createElement(GeneTable, {genes: this.state.genes.genes.predicted ? this.state.genes.genes.predicted : null, type: "prediction", gpMessage: this.state.gpMessage}), 
+                             downloadButton 
+                        )
+                        ), 
+                        React.createElement(Footer, null)
+                    )
+                );
+            var annotatedgenes = (
+                React.createElement("div", null, 
+                    React.createElement("div", {className: "gn-term-container-outer", style: {backgroundColor: color.colors.gnwhite}}, 
+                        React.createElement("div", {className: "gn-term-container-inner maxwidth", style: {padding: '20px'}}, 
+                            React.createElement(GeneTable, {genes: this.state.genes.genes.annotated ? this.state.genes.genes.annotated : null, type: "annotation"})
+                        )
+                        ), 
+                        React.createElement(Footer, null)
+                )
+                );
+
+            var network = (
+                React.createElement("div", {id: "network", className: "flex10 hflex gn-network", style: {position: 'relative', backgroundColor: color.colors.gnwhite, minHeight: '400px'}}, 
+                                    
+                      React.createElement(NetworkControlPanel, {download: this.download, onSelectionModeChange: this.onSelectionModeChange, selectionMode: this.state.selectionMode, isZoomedMax: this.state.isZoomedMax, isZoomedMin: this.state.isZoomedMin, onZoom: this.onZoom}), 
+                        React.createElement(EdgeLegend, {threshold: this.state.threshold, edgeValueScales: this.state.data.edgeValueScales, edgeColorScales: this.state.data.edgeColorScales, onMouseOver: this.handleEdgeHover, hoverEdge: this.state.hoverEdge, onClick: this.updateThreshold}), 
+                        
+                    this.state.selectedEdge ?
+                     (React.createElement(EdgePanel, {edge: this.state.selectedEdge}))
+                     :
+                     this.state.activeGroup.nodes.length === 1 ?
+                     (React.createElement(GenePanel, {gene: this.state.data.elements.nodes[this.state.network.getNodeById(this.state.activeGroup.nodes[0])].data, 
+                      coloring: this.state.coloring})) : null, 
+                    
+                        React.createElement(LegendPanel, {data: this.state.data, coloring: this.state.coloring, termColoring: this.state.termColoring, 
+                    coloringOptions: this.state.coloringOptions, onColoring: this.handleColoring}), 
+
+                        React.createElement("div", {className: "gn-network-panelcontainer noselect smallscreensmallfont"}, 
+                        
+                            React.createElement(GroupPanel, {data: this.state.data, 
+                                        activeGroup: this.state.activeGroup, 
+                                        coloring: this.state.coloring, 
+                                        onGroupClick: this.updateGroup, 
+                                        onAnalyse: this.onAnalyse, 
+                                        style: {maxHeight: 1 / 3 * this.state.height - 30, paddingRight: '0px'}}
+                            ), 
+                                
+                            this.state.analysisGroup ?
+                                React.createElement(AnalysisPanel, {
+                                     style: {padding: '10px 0 10px 10px', maxHeight: 2 / 3 * this.state.height - 70}, 
+                                     onClose: this.handleAnalysisPanelClose, 
+                                     analysisGroup: this.state.analysisGroup, 
+                                     selectedTerm: this.state.selectedTerm, 
+                                     termColoring: this.state.termColoring, 
+                                     coloring: this.state.coloring, 
+                                     onTermSelect: this.selectTerm, 
+                                     onGeneAdd: this.addGeneRequest, 
+                                     onGeneRemove: this.removeGene, 
+                                     addedGenes: this.state.addedGenes}) : null
+
+                        ), 
+
+                    React.createElement("form", {id: "gn-network-svgform", method: "post", encType: "multipart/form-data", action: GN.urls.svg2pdf}, 
+                    React.createElement("input", {type: "hidden", id: "data", name: "data", value: ""}), 
+                    React.createElement("input", {type: "hidden", id: "format", name: "format", value: ""})
+                    ), 
+                    
+                    React.createElement("form", {id: "gn-network-groupform", method: "post", encType: "multipart/form-data", action: GN.urls.tabdelim}, 
+                    React.createElement("input", {type: "hidden", id: "genes", name: "genes", value: ""}), 
+                    React.createElement("input", {type: "hidden", id: "groups", name: "groups", value: ""}), 
+                    React.createElement("input", {type: "hidden", id: "edges", name: "edges", value: "e"}), 
+                    React.createElement("input", {type: "hidden", id: "what", name: "what", value: "groups"})
+                    ), 
+                    
+                    React.createElement("form", {id: "gn-network-pwaform", method: "post", encType: "multipart/form-data", action: GN.urls.tabdelim}, 
+                    React.createElement("input", {type: "hidden", id: "data", name: "data", value: ""}), 
+                    React.createElement("input", {type: "hidden", id: "name", name: "name", value: ""}), 
+                    React.createElement("input", {type: "hidden", id: "db", name: "db", value: ""}), 
+                    React.createElement("input", {type: "hidden", id: "genes", name: "genes", value: ""}), 
+                    React.createElement("input", {type: "hidden", id: "testType", name: "testType", value: ""}), 
+                    React.createElement("input", {type: "hidden", id: "what", name: "what", value: "pwa"})
+                    ), 
+                    
+                    React.createElement("form", {id: "gn-network-gpform", method: "post", encType: "multipart/form-data", action: GN.urls.tabdelim}, 
+                    React.createElement("input", {type: "hidden", id: "data", name: "data", value: ""}), 
+                    React.createElement("input", {type: "hidden", id: "name", name: "name", value: ""}), 
+                    React.createElement("input", {type: "hidden", id: "genes", name: "genes", value: ""}), 
+                    React.createElement("input", {type: "hidden", id: "what", name: "what", value: "prediction"})
+                    )
+
+                    )
+                );
+
+                var menu = (
+                    React.createElement("div", {id: "networkdesc", style: {paddingTop: '10px'}}, 
+                            React.createElement("div", {className: "gn-term-description-outer", style: {backgroundColor: color.colors.gnwhite, padding: '20px 20px 10px 20px', height: '40px'}}, 
+                                React.createElement("div", {className: "gn-term-description-inner hflex flexcenter maxwidth", style: {display: 'inline'}}, 
+                                    React.createElement("div", {className: "gn-term-menu noselect", style: {height: '45px', display: 'inline'}}, 
+                                        React.createElement("span", {style: {cursor: 'default', paddingRight: '10px'}}, "SHOW"), 
+                                        React.createElement("div", {className: (this.state.tab == 'predictedgenes') ? 'clickable button selectedbutton' : 'clickable button', onClick: this.onTabClick.bind(null, 'predictedgenes')}, 
+                                        "PREDICTED GENES"), 
+                                        React.createElement("div", {className: (this.state.tab == 'annotatedgenes') ? 'clickable button selectedbutton' : 'clickable button', onClick: this.onTabClick.bind(null, 'annotatedgenes')}, 
+                                        "ANNOTATED GENES"), 
+                                        React.createElement("div", {className: (this.state.tab == 'network') ? 'clickable button selectedbutton' : 'clickable button', onClick: this.onTabClick.bind(null, 'network')}, 
+                                        "NETWORK")
+                                    )
+                                )
+                            )
+                        )
+                    );
+
+                var networkdesc = (
+                    React.createElement("div", {id: "networkdesc"}, 
+                        React.createElement("div", {className: "gn-term-description-outer", style: {backgroundColor: color.colors.gnwhite, padding: '20px'}}, 
+                            React.createElement("div", {className: "gn-term-description-inner hflex flexcenter maxwidth"}, 
+                                React.createElement("div", {className: "gn-term-description-name"}, 
+                                    React.createElement("span", {style: {fontWeight: 'bold', fontFamily: 'GG', fontSize: '1.5em'}}, title)
+                                ), 
+
+                                React.createElement("div", {className: "flex11"}), 
+                                React.createElement("div", {className: "gn-term-description-stats", style: {textAlign: 'right'}}, 
+                                    this.state.data.pathway ? "Prediction accuracy " + Math.round(this.state.data.pathway.auc * 100)/100 : null
+                                )
+                            )
+                        )
+                    )
+                );
+
+            return (
+                    React.createElement(DocumentTitle, {title: pageTitle}, 
+                    React.createElement("div", {className: "flex10 vflex"}, 
+                    React.createElement("div", null, 
+                        this.state.showGenes ? networkdesc : 
+                            React.createElement("div", {className: "gn-term-description-stats", style: {textAlign: 'left', padding: '5px'}}, 
+                                this.state.data.elements.nodes.length > 4 ?
+                                (React.createElement("span", null, "Link to this network: ", React.createElement("br", null), this.state.url)) :
+                                (React.createElement("span", null, "This network contains ", htmlutil.intToStr(this.state.data.elements.nodes.length), " genes. Pathway analysis and prediction of similar genes require five or more genes."))
+                            ), 
+                        
+                        this.state.showGenes ? menu : null
+                    ), 
+
+                    !this.state.showGenes ? network : this.state.tab == 'predictedgenes' ? predictedgenes : this.state.tab == 'annotatedgenes' ? annotatedgenes : network
+                    
+                    )
+                )
+            )
+        }
+    }
+});
+
+module.exports = Network;
 
 },{"../../js/D3Network.js":2,"../../js/color":4,"../../js/htmlutil":5,"../../js/sort/quicksort":6,"../ReactComponents/DownloadPanel":36,"../ReactComponents/Footer":37,"../ReactComponents/GeneTable":39,"./AnalysisPanel":21,"./EdgeLegend":22,"./EdgePanel":23,"./GenePanel":24,"./GroupPanel":25,"./LegendPanel":26,"./NetworkControlPanel":28,"affinity-propagation":53,"async":54,"lodash":130,"react":333,"react-document-title":142,"react-dom":143}],28:[function(require,module,exports){
-var React=require("react"),SVGCollection=require("../ReactComponents/SVGCollection"),color=require("../../js/color"),NetworkControlPanel=React.createClass({displayName:"NetworkControlPanel",propTypes:{onSelectionModeChange:React.PropTypes.func.isRequired,download:React.PropTypes.func.isRequired,selectionMode:React.PropTypes.string.isRequired,onZoom:React.PropTypes.func,isZoomedMax:React.PropTypes.bool,isZoomedMin:React.PropTypes.bool},render:function(){var e={padding:"10px",borderBottom:"1px solid #dcdcdc"};this.props.isZoomedMax&&(e.backgroundColor="#f5f5f5");var o={padding:"10px",borderBottom:"1px solid #dcdcdc"};this.props.isZoomedMin&&(o.backgroundColor="#f5f5f5");var l=[{padding:"10px"},{backgroundColor:color.colors.gnyellow,padding:"10px"}];return"move"===this.props.selectionMode&&l.reverse(),l[0].borderBottom="1px solid #dcdcdc",React.createElement("div",{className:"gn-network-controlpanel"},React.createElement("div",{className:"gn-network-controlpanel-group bordered"},React.createElement("div",{className:"gn-network-controlpanel-control clickable",style:e,onClick:this.props.isZoomedMax?null:this.props.onZoom.bind(null,1.5)},React.createElement(SVGCollection.Plus,null)),React.createElement("div",{className:"gn-network-controlpanel-control clickable",style:o,onClick:this.props.isZoomedMin?null:this.props.onZoom.bind(null,1/1.5)},React.createElement(SVGCollection.Minus,null))),React.createElement("div",{className:"gn-network-controlpanel-group bordered",style:{marginTop:"10px"}},React.createElement("div",{style:l[0],className:"gn-network-controlpanel-selectionmode clickable",onClick:this.props.onSelectionModeChange.bind(null,"move")},React.createElement(SVGCollection.Move,null)),React.createElement("div",{style:l[1],className:"gn-network-controlpanel-selectionmode clickable",onClick:this.props.onSelectionModeChange.bind(null,"select")},React.createElement(SVGCollection.Crop,null))),React.createElement("div",{className:"gn-network-controlpanel-group bordered",style:{marginTop:"10px"}},React.createElement("div",{className:"gn-network-controlpanel-control clickable noselect",style:{padding:"10px",borderBottom:"1px solid #dcdcdc"},onClick:this.props.download.bind(null,"pdf")},React.createElement(SVGCollection.Download,{text:"PDF"})),React.createElement("div",{className:"gn-network-controlpanel-control clickable noselect",style:{padding:"10px"},onClick:this.props.download.bind(null,"png")},React.createElement(SVGCollection.Download,{text:"PNG"}))))}});module.exports=NetworkControlPanel;
+var React = require('react');
+var SVGCollection =  require('../ReactComponents/SVGCollection');
+var color = require('../../js/color');
+
+var NetworkControlPanel = React.createClass({displayName: "NetworkControlPanel",
+
+    propTypes: {
+        onSelectionModeChange: React.PropTypes.func.isRequired,
+        download: React.PropTypes.func.isRequired,
+        selectionMode: React.PropTypes.string.isRequired,
+        onZoom: React.PropTypes.func,
+        isZoomedMax: React.PropTypes.bool,
+        isZoomedMin: React.PropTypes.bool
+    },
+
+    render: function() {
+        
+        var zoomInStyle = {padding: '10px', borderBottom: '1px solid #dcdcdc'};
+        if (this.props.isZoomedMax) zoomInStyle.backgroundColor = '#f5f5f5';
+        var zoomOutStyle = {padding: '10px', borderBottom: '1px solid #dcdcdc'};
+        if (this.props.isZoomedMin) zoomOutStyle.backgroundColor = '#f5f5f5';
+
+        var selectIconStyles = [{padding: '10px'}, {backgroundColor: color.colors.gnyellow, padding: '10px'}];
+        if (this.props.selectionMode === 'move') {
+            selectIconStyles.reverse()
+        }
+        selectIconStyles[0].borderBottom = '1px solid #dcdcdc';
+        
+        return (
+            React.createElement("div", {className: "gn-network-controlpanel"}, 
+                React.createElement("div", {className: "gn-network-controlpanel-group bordered"}, 
+                    React.createElement("div", {className: "gn-network-controlpanel-control clickable", style: zoomInStyle, onClick: this.props.isZoomedMax ? null : this.props.onZoom.bind(null, 1.5)}, 
+                        React.createElement(SVGCollection.Plus, null)
+                    ), 
+                    React.createElement("div", {className: "gn-network-controlpanel-control clickable", style: zoomOutStyle, onClick: this.props.isZoomedMin ? null : this.props.onZoom.bind(null, 1/1.5)}, 
+                        React.createElement(SVGCollection.Minus, null)
+                    )
+                ), 
+                React.createElement("div", {className: "gn-network-controlpanel-group bordered", style: {marginTop: '10px'}}, 
+                    React.createElement("div", {style: selectIconStyles[0], className: "gn-network-controlpanel-selectionmode clickable", onClick: this.props.onSelectionModeChange.bind(null, 'move')}, 
+                        React.createElement(SVGCollection.Move, null)
+                    ), 
+                    React.createElement("div", {style: selectIconStyles[1], className: "gn-network-controlpanel-selectionmode clickable", onClick: this.props.onSelectionModeChange.bind(null, 'select')}, 
+                        React.createElement(SVGCollection.Crop, null)
+                    )
+                ), 
+                React.createElement("div", {className: "gn-network-controlpanel-group bordered", style: {marginTop: '10px'}}, 
+                    React.createElement("div", {className: "gn-network-controlpanel-control clickable noselect", style: {padding: '10px', borderBottom: '1px solid #dcdcdc'}, onClick: this.props.download.bind(null, 'pdf')}, 
+                        React.createElement(SVGCollection.Download, {text: "PDF"})
+                    ), 
+                    React.createElement("div", {className: "gn-network-controlpanel-control clickable noselect", style: {padding: '10px'}, onClick: this.props.download.bind(null, 'png')}, 
+                        React.createElement(SVGCollection.Download, {text: "PNG"})
+                    )
+                )
+            )
+        )
+    }
+});
+
+module.exports = NetworkControlPanel;
 
 },{"../../js/color":4,"../ReactComponents/SVGCollection":45,"react":333}],29:[function(require,module,exports){
-"use strict";var _=require("lodash"),htmlutil=require("../../js/htmlutil.js"),color=require("../../js/color.js"),React=require("react"),ReactDOM=require("react-dom"),StatusBar=require("../ReactComponents/StatusBar"),Disetti=require("../ReactComponents/Disetti"),SVGCollection=require("../ReactComponents/SVGCollection"),Rectangle=SVGCollection.Rectangle,Cookies=require("cookies-js"),PWAPanel=React.createClass({displayName:"PWAPanel",propTypes:{group:React.PropTypes.object,termColoring:React.PropTypes.string,areNodesColoredByTerm:React.PropTypes.bool},keyListener:function(e){var t=this.state.pwaResults&&this.state.pwaResults[this.state.currentDatabase],a=ReactDOM.findDOMNode(this);if(38===e.keyCode&&t){if(this.props.selectedTerm&&t[0].pathway!=this.props.selectedTerm){e.preventDefault(),e.stopPropagation();for(var s=t.length,n=1;n<s;n++)if(t[n].pathway==this.props.selectedTerm){if(this.props.onTermClick(t[n-1].pathway),this.refs&&this.refs.selectedrow){var r=this.refs.selectedrow.offsetHeight;a.scrollTop-=r}break}}}else if(40===e.keyCode&&t){if(this.props.selectedTerm&&_.last(t).pathway!=this.props.selectedTerm){e.preventDefault(),e.stopPropagation();for(var s=t.length,n=0;n<s-1;n++)if(t[n].pathway==this.props.selectedTerm){if(this.props.onTermClick(t[n+1].pathway),this.refs&&this.refs.selectedrow){var r=this.refs.selectedrow.offsetHeight;a.scrollTop+=r}break}}}else if(37===e.keyCode&&t){if(this.props.selectedTerm&&t[0].pathway!=this.props.selectedTerm){e.preventDefault(),e.stopPropagation();for(var s=t.length,n=1;n<s;n++)if(t[n].pathway==this.props.selectedTerm){var i=n-10>=0?10:n;if(this.props.onTermClick(t[n-i].pathway),this.refs&&this.refs.selectedrow){var r=this.refs.selectedrow.offsetHeight;a.scrollTop-=i*r}break}}}else if(39===e.keyCode&&t&&this.props.selectedTerm&&_.last(t).pathway!=this.props.selectedTerm){e.preventDefault(),e.stopPropagation();for(var s=t.length,n=0;n<s-1;n++)if(t[n].pathway==this.props.selectedTerm){var i=n+10<=s-1?10:n;if(this.props.onTermClick(t[n+i].pathway),this.refs&&this.refs.selectedrow){var r=this.refs.selectedrow.offsetHeight;a.scrollTop+=i*r}break}}},getInitialState:function(){return{currentDatabase:"REACTOME",progress:0,pwaResults:{}}},componentDidMount:function(){this.w=ReactDOM.findDOMNode(this).offsetWidth-30-16,window.addEventListener("resize",this.handleResize),$(document).keydown(this.keyListener),this.setSocketListeners()},shouldComponentUpdate:function(e,t){return 0===_.size(this.state.pwaResults)||t.currentDatabase!=this.state.currentDatabase||t.progress!=this.state.progress||t.filterValue!==this.state.filterValue||t.pwaRunning!=this.state.pwaRunning||e.selectedTerm!=this.props.selectedTerm||e.termColoring!=this.props.termColoring||e.areNodesColoredByTerm!=this.props.areNodesColoredByTerm||e.style.display!=this.props.style.display},componentWillReceiveProps:function(e){this.w=ReactDOM.findDOMNode(this).offsetWidth-30-16},handleResize:function(e){this.w=ReactDOM.findDOMNode(this).offsetWidth-30-16,this.setState({w:this.w})},componentWillUnmount:function(){console.log("PWAPanel.componentWillUnmount: called"),window.removeEventListener("resize",this.handleResize),$(document).unbind("keydown",this.keyListener),io.socket._raw.removeListener("pathwayanalysis.queueEvent",this._onIOQueueEvent),io.socket._raw.removeListener("pathwayanalysis.error",this._onIOError),io.socket._raw.removeListener("pathwayanalysis.result",this._onIOResult),io.socket._raw.removeListener("pathwayanalysis.end",this._onIOEnd)},_onIOQueueEvent:function(e){if(this.isMounted()||console.warn("PWAPanel.setSocketListeners: pathwayanalysis.queueEvent received but component not mounted"),e.queueLength||0===e.queueLength){var t=htmlutil.intToStr(e.queueLength)+" analyses";t=0===e.queueLength?"Analysis started":e.queueLength<2?"Your analysis will start in a few seconds...":e.queueLength<8?"Your analysis will start in less than a minute, please be patient.I'm "+htmlutil.intToOrdinalStr(e.queueLength)+" in the queue.":"This will take some time as our servers are busy right now, please be patient.I'm "+htmlutil.intToOrdinalStr(e.queueLength)+" in the queue. test",this.setState({pwaMessage:t,currentDatabase:e.db||this.state.currentDatabase})}else console.log("PWAPanel.setSocketListeners: unhandled queueEvent")},_onIOError:function(e){this.isMounted()||console.warn("PWAPanel.setSocketListeners: pathwayanalysis.error received but component not mounted"),this.setState({pwaMessage:e.pwaMessage,pwaRunning:!1})},_onIOResult:function(e){this.isMounted()||console.warn("PWAPanel.setSocketListeners: pathwayanalysis.result received but component not mounted");for(var t=this.state.pwaResults,a=t[e.db]||[],s=[],n=0,r=0;r<a.length;r++){for(;n<e.pwaResults.length&&e.pwaResults[n].p<a[r].p;)s.push(e.pwaResults[n]),n++;s.push(a[r])}for(var r=n;r<e.pwaResults.length;r++)s.push(e.pwaResults[r]);t[e.db]=s,this.setState({pwaMessage:"Analysis "+e.progress+" % done",pwaResults:t,pwaRunning:!0,progress:e.progress,currentDatabase:e.db,testType:e.testType,availableDatabases:e.availableDatabases})},_onIOEnd:function(e){this.isMounted()||console.warn("PWAPanel.setSocketListeners: pathwayanalysis.end received but component not mounted"),this.props.onPWAFinish(),this.setState({pwaRunning:!1})},setSocketListeners:function(){io.socket.on("pathwayanalysis.queueEvent",this._onIOQueueEvent),io.socket.on("pathwayanalysis.error",this._onIOError),io.socket.on("pathwayanalysis.result",this._onIOResult),io.socket.on("pathwayanalysis.end",this._onIOEnd)},handleDatabaseClick:function(e){e&&(this.state.pwaResults[e]?this.setState({currentDatabase:e}):(this.state.pwaResults[e]=[],this.pwaRequest(this.state.group,e)))},pwaRequest:function(e,t){if(!this.isMounted())return console.warn("PWAPanel.pwaRequest: component not mounted!"),!1;if(this.clearFilter(),!(e=e||this.props.group))return console.warn("PWAPanel.pwaRequest: no group!"),!1;if(!0===this.state.pwaRunning)return window.alert("A pathway analysis is already running, not starting a new one."),!1;var t=t||this.state.currentDatabase;console.log("PWAPanel.pwaRequest: sending pathway analysis request: "+t);var a=_.map(e.nodes,function(e){return e});return io.socket.get(GN.urls.pathwayanalysis,{db:t,genes:a},function(e,t){500===t.statusCode&&that.setState({pwaMessage:"Please try again later."})}.bind(this)),this.props.onPWAStart(),this.state.pwaResults[t]=null,this.setState({pwaMessage:"Analysis requested",progress:0,pwaResults:this.state.pwaResults,pwaRunning:!0}),!0},download:function(){var e=document.getElementById("gn-network-pwaform");e.data.value=JSON.stringify(this.state.pwaResults[this.state.currentDatabase]),e.name.value=this.props.group.name,e.db.value=this.state.currentDatabase,e.genes.value=JSON.stringify(this.props.group.nodes),e.testType.value=this.state.testType,e.submit()},clearFilter:function(){this.setState({filterValue:""})},handleFilterChange:function(e){this.setState({filterValue:e.target.value.toLowerCase()})},render:function(){if(!this.props.group)return React.createElement("div",null);var e=this,t=_.size(this.state.pwaResults);if(0===t&&this.state.pwaMessage)return React.createElement("div",{className:"flex10",style:{position:"relative"}},React.createElement("div",{dangerouslySetInnerHTML:{__html:this.state.pwaMessage}}));if(t>0){var a=[];this.state.pwaResults[this.state.currentDatabase]&&(a.push(React.createElement("tr",{key:"pwaheader",className:"headerrow"},React.createElement("th",null,"HPO"==this.state.currentDatabase?"PHENOTYPE":"PATHWAY"),React.createElement("th",{className:"pvalueheader"},"P-VALUE"))),a.push.apply(a,_.map(this.state.pwaResults[this.state.currentDatabase],function(t,a){if(!e.state.filterValue||t.pathway.name.toLowerCase().indexOf(e.state.filterValue)>=0){var s=a++%2==0?"datarow evenrow":"datarow oddrow";return e.props.selectedTerm&&e.props.selectedTerm.id==t.pathway.id?React.createElement("tr",{ref:"selectedrow",key:t.pathway.database+t.pathway.id,className:"datarow selectedrow"},React.createElement("td",{className:"clickable",title:t.pathway.numAnnotatedGenes+" annotated genes, prediction accuracy "+Math.round(100*t.pathway.auc)/100,onClick:e.props.onTermClick.bind(null,null)},t.pathway.name),React.createElement("td",{className:"pvalue",style:{whiteSpace:"nowrap"},dangerouslySetInnerHTML:{__html:htmlutil.pValueToReadable(t.p)}})):React.createElement("tr",{key:t.pathway.database+t.pathway.id,className:s},React.createElement("td",{className:"clickable",title:t.pathway.numAnnotatedGenes+" annotated genes, prediction accuracy "+Math.round(100*t.pathway.auc)/100,onClick:e.props.onTermClick.bind(null,t.pathway)},t.pathway.name),React.createElement("td",{className:"pvalue",style:{whiteSpace:"nowrap"},dangerouslySetInnerHTML:{__html:htmlutil.pValueToReadable(t.p)}}))}})));var s=[color.colors.gngray,color.colors.gngray];this.state.pwaRunning;["clickable noselect","clickable noselect"],this.props.areNodesColoredByTerm&&"prediction"==this.props.termColoring?s[0]=color.colors.gndarkgray:this.props.areNodesColoredByTerm&&"annotation"==this.props.termColoring&&(s[1]=color.colors.gndarkgray);var n=(this.state.pwaRunning||this.state.currentDatabase,_.map(this.state.availableDatabases,function(t){var a="button small noselect "+(e.state.pwaRunning?"disabled":"clickable");return t.id==e.state.currentDatabase&&(a+=" selectedbutton"),React.createElement("div",{key:t.id,onClick:e.handleDatabaseClick.bind(e,t.id),className:a,style:{float:"left"}},t.id.replace("_"," "))}));return React.createElement("div",{className:"vflex flexnowrap",style:this.props.style},React.createElement("div",{className:"flex00"},n),100!==this.state.progress?React.createElement("span",{style:{padding:"10px 0"}},this.state.pwaMessage):React.createElement("span",{style:{padding:"10px 0"}},"This is ",React.createElement("strong",null,this.state.currentDatabase)," pathway enrichment for ",React.createElement("strong",null,this.props.group.name,".")),a.length>0?React.createElement(Filter,{filterValue:this.state.filterValue,onChange:this.handleFilterChange,onClear:this.clearFilter}):null,React.createElement("div",{style:{overflow:"auto",maxHeight:this.props.maxTableHeight}},React.createElement("table",{className:"pwatable"},React.createElement("tbody",null,a))))}return React.createElement("div",null,"Loading...")}}),Filter=React.createClass({displayName:"Filter",render:function(){return React.createElement("div",{className:"flex00 hflex"},React.createElement("form",{className:"flex00",onSubmit:function(e){e.preventDefault()}},React.createElement("input",{ref:"pwfilter",type:"text",name:"pwfilter",placeholder:"filter",autoComplete:"off",value:this.props.filterValue,onChange:this.props.onChange})),this.props.filterValue&&this.props.filterValue.length>0?React.createElement("div",{style:{padding:"1px 0px 0px 3px"},className:"flex00"},React.createElement("svg",{viewBox:"0 0 16 16",width:"12",height:"12",className:"clickable delete",onClick:this.props.onClear},React.createElement("line",{x1:"2",x2:"14",y1:"2",y2:"14"}),React.createElement("line",{x1:"14",x2:"2",y1:"2",y2:"14"}))):null)}});module.exports=PWAPanel;
+'use strict'
+
+var _ = require('lodash')
+var htmlutil = require('../../js/htmlutil.js')
+var color = require('../../js/color.js')
+var React = require('react')
+var ReactDOM = require('react-dom')
+var StatusBar = require('../ReactComponents/StatusBar')
+var Disetti = require('../ReactComponents/Disetti')
+var SVGCollection = require('../ReactComponents/SVGCollection')
+var Rectangle = SVGCollection.Rectangle
+var Cookies = require('cookies-js')
+
+// TODO handle resize: width
+
+var PWAPanel = React.createClass({displayName: "PWAPanel",
+
+    propTypes: {
+        group: React.PropTypes.object,
+        // selectedTerm: React.PropTypes.object,
+        termColoring: React.PropTypes.string,
+        areNodesColoredByTerm: React.PropTypes.bool
+    },
+
+    keyListener: function(e) {
+
+        var pwaResults = this.state.pwaResults && this.state.pwaResults[this.state.currentDatabase]
+        var domNode = ReactDOM.findDOMNode(this)
+        
+        if (e.keyCode === 38 && pwaResults) { // bob marley - wake up and live
+            if (this.props.selectedTerm && pwaResults[0].pathway != this.props.selectedTerm) {
+                e.preventDefault()
+                e.stopPropagation()
+                var numTerms = pwaResults.length
+                for (var i = 1; i < numTerms; i++) {
+                    if (pwaResults[i].pathway == this.props.selectedTerm) {
+                        this.props.onTermClick(pwaResults[i-1].pathway)
+                        if (this.refs && this.refs.selectedrow) {
+                            var offset = this.refs.selectedrow.offsetHeight
+                            domNode.scrollTop -= offset
+                        }
+                        break
+                    }
+                }
+            }
+        } else if (e.keyCode === 40 && pwaResults) { // sentenced - down
+            if (this.props.selectedTerm && _.last(pwaResults).pathway != this.props.selectedTerm) {
+                e.preventDefault()
+                e.stopPropagation()
+                var numTerms = pwaResults.length
+                for (var i = 0; i < numTerms - 1; i++) {
+                    if (pwaResults[i].pathway == this.props.selectedTerm) {
+                        this.props.onTermClick(pwaResults[i+1].pathway)
+                        if (this.refs && this.refs.selectedrow) {
+                            var offset = this.refs.selectedrow.offsetHeight
+                            domNode.scrollTop += offset
+                        }
+                        break
+                    }
+                }
+            }
+        } else if (e.keyCode === 37 && pwaResults) { // entombed - left hand path
+            if (this.props.selectedTerm && pwaResults[0].pathway != this.props.selectedTerm) {
+                e.preventDefault()
+                e.stopPropagation()
+                var numTerms = pwaResults.length
+                for (var i = 1; i < numTerms; i++) {
+                    if (pwaResults[i].pathway == this.props.selectedTerm) {
+                        var numMoved = (i - 10 >= 0) ? 10 : i
+                        this.props.onTermClick(pwaResults[i - numMoved].pathway)
+                        if (this.refs && this.refs.selectedrow) {
+                            var offset = this.refs.selectedrow.offsetHeight
+                            domNode.scrollTop -= numMoved * offset
+                        }
+                        break
+                    }
+                }
+            }
+        } else if (e.keyCode === 39 && pwaResults) { // right is the new wrong
+            if (this.props.selectedTerm && _.last(pwaResults).pathway != this.props.selectedTerm) {
+                e.preventDefault()
+                e.stopPropagation()
+                var numTerms = pwaResults.length
+                for (var i = 0; i < numTerms - 1; i++) {
+                    if (pwaResults[i].pathway == this.props.selectedTerm) {
+                        var numMoved = (i + 10 <= numTerms - 1) ? 10 : i
+                        this.props.onTermClick(pwaResults[i + numMoved].pathway)
+                        if (this.refs && this.refs.selectedrow) {
+                            var offset = this.refs.selectedrow.offsetHeight
+                            domNode.scrollTop += numMoved * offset
+                        }
+                        break
+                    }
+                }
+            }
+        }
+    },
+    
+    getInitialState: function() {
+        return {
+            currentDatabase: 'REACTOME',
+            progress: 0,
+            pwaResults: {}
+        }
+    },
+    
+    componentDidMount: function() {
+        this.w = ReactDOM.findDOMNode(this).offsetWidth - 3 * 10 - 16 // 3 * padding - diskette width
+        window.addEventListener('resize', this.handleResize)
+        $(document).keydown(this.keyListener)
+        this.setSocketListeners()
+    },
+    
+    shouldComponentUpdate: function(nextProps, nextState) {
+        return _.size(this.state.pwaResults) === 0
+            || nextState.currentDatabase != this.state.currentDatabase
+            || nextState.progress != this.state.progress
+            || nextState.filterValue !== this.state.filterValue
+            || nextState.pwaRunning != this.state.pwaRunning
+            || nextProps.selectedTerm != this.props.selectedTerm
+            || nextProps.termColoring != this.props.termColoring
+            || nextProps.areNodesColoredByTerm != this.props.areNodesColoredByTerm
+            || nextProps.style.display != this.props.style.display
+    },
+    
+    componentWillReceiveProps: function(nextProps) {
+
+        this.w = ReactDOM.findDOMNode(this).offsetWidth - 3 * 10 - 16 // 3 * padding - diskette width
+    },
+
+    handleResize: function(e) {
+
+        this.w = ReactDOM.findDOMNode(this).offsetWidth - 3 * 10 - 16 // 3 * padding - diskette width
+        this.setState({
+            w: this.w
+        })
+    },
+    
+    componentWillUnmount: function() {
+
+        console.log('PWAPanel.componentWillUnmount: called')
+        window.removeEventListener('resize', this.handleResize)
+        $(document).unbind('keydown', this.keyListener)
+        io.socket._raw.removeListener('pathwayanalysis.queueEvent', this._onIOQueueEvent)
+        io.socket._raw.removeListener('pathwayanalysis.error', this._onIOError)
+        io.socket._raw.removeListener('pathwayanalysis.result', this._onIOResult)
+        io.socket._raw.removeListener('pathwayanalysis.end', this._onIOEnd)
+    },
+
+    _onIOQueueEvent: function(msg) {
+
+        if (!this.isMounted()) {
+            console.warn('PWAPanel.setSocketListeners: pathwayanalysis.queueEvent received but component not mounted')
+        }
+
+        if (msg.queueLength || msg.queueLength === 0) {
+            var str = htmlutil.intToStr(msg.queueLength) + ' analyses'
+            if (msg.queueLength === 0) str = 'Analysis started'
+            else if (msg.queueLength < 2) str = 'Your analysis will start in a few seconds...'
+            else if (msg.queueLength < 8) str = 'Your analysis will start in less than a minute, please be patient.'
+                + 'I\'m ' + htmlutil.intToOrdinalStr(msg.queueLength) + ' in the queue.'
+            else str = 'This will take some time as our servers are busy right now, please be patient.'
+                + 'I\'m ' + htmlutil.intToOrdinalStr(msg.queueLength) + ' in the queue. test'
+            this.setState({
+                pwaMessage: str,
+                currentDatabase: msg.db || this.state.currentDatabase
+            })
+        } else {
+            console.log('PWAPanel.setSocketListeners: unhandled queueEvent')
+        }
+    },
+
+    _onIOError: function(msg) {
+        if (!this.isMounted()) {
+            console.warn('PWAPanel.setSocketListeners: pathwayanalysis.error received but component not mounted')
+        }
+        
+        this.setState({
+            pwaMessage: msg.pwaMessage,
+            pwaRunning: false
+        })
+    },
+
+    _onIOResult: function(msg) {
+
+        if (!this.isMounted()) {
+            console.warn('PWAPanel.setSocketListeners: pathwayanalysis.result received but component not mounted')
+        }
+        
+        // console.log(msg)
+        var allResults = this.state.pwaResults // also other databases, should probably go to some storage
+        var oldResults = allResults[msg.db] || []
+        var newResults = []
+        var curI = 0
+        for (var i = 0; i < oldResults.length; i++) {
+            while (curI < msg.pwaResults.length && msg.pwaResults[curI].p < oldResults[i].p) {
+                newResults.push(msg.pwaResults[curI])
+                curI++
+            }
+            newResults.push(oldResults[i])
+        }
+        for (var i = curI; i < msg.pwaResults.length; i++) {
+            newResults.push(msg.pwaResults[i])
+        }
+        allResults[msg.db] = newResults
+        this.setState({
+            pwaMessage: 'Analysis ' + msg.progress + ' % done',
+            pwaResults: allResults,
+            pwaRunning: true,
+            progress: msg.progress,
+            currentDatabase: msg.db,
+            testType: msg.testType,
+            availableDatabases: msg.availableDatabases
+        })
+    },
+
+    _onIOEnd: function(msg) {
+
+        if (!this.isMounted()) {
+            console.warn('PWAPanel.setSocketListeners: pathwayanalysis.end received but component not mounted')
+        }
+        // Cookies.set('pwadb', msg.db)
+        this.props.onPWAFinish()
+        this.setState({
+            pwaRunning: false
+        })
+    },
+    
+    setSocketListeners: function() {
+
+        // TODO own vs broadcast
+        io.socket.on('pathwayanalysis.queueEvent', this._onIOQueueEvent)
+        io.socket.on('pathwayanalysis.error', this._onIOError)
+        io.socket.on('pathwayanalysis.result', this._onIOResult)
+        io.socket.on('pathwayanalysis.end', this._onIOEnd)
+    },
+
+    handleDatabaseClick: function(db) {
+
+        if (!db) return
+
+        if (this.state.pwaResults[db]) { // results already fetched
+            this.setState({
+                currentDatabase: db
+            })
+        } else {
+            this.state.pwaResults[db] = []
+            this.pwaRequest(this.state.group, db)
+        }
+    },
+    
+    pwaRequest: function(group, db) {
+
+        if (!this.isMounted()) {
+            console.warn('PWAPanel.pwaRequest: component not mounted!')
+            return false
+        }
+        
+        this.clearFilter()
+        
+        group = group || this.props.group
+        if (!group) {
+            console.warn('PWAPanel.pwaRequest: no group!')
+            return false
+        }
+        
+        if (this.state.pwaRunning === true) {
+            
+            window.alert('A pathway analysis is already running, not starting a new one.')
+            return false
+            
+        } else {
+            
+            var db = db || this.state.currentDatabase
+            console.log('PWAPanel.pwaRequest: sending pathway analysis request: ' + db)
+            var genes = _.map(group.nodes, function(gene) { return gene })
+
+            io.socket.get(GN.urls.pathwayanalysis,
+                          {db: db,
+                           genes: genes},
+                          function(res, jwres) {
+                              if (jwres.statusCode === 500) {
+                                  that.setState({
+                                      pwaMessage: 'Please try again later.'
+                                  })
+                              }
+                          }.bind(this))
+            
+            this.props.onPWAStart()
+            this.state.pwaResults[db] = null
+            this.setState({
+                pwaMessage: 'Analysis requested',
+                progress: 0,
+                pwaResults: this.state.pwaResults,
+                pwaRunning: true
+            })
+            
+            return true
+            
+        }
+    },
+
+    download: function() {
+        var form = document.getElementById('gn-network-pwaform')
+        form['data'].value = JSON.stringify(this.state.pwaResults[this.state.currentDatabase])
+        form['name'].value = this.props.group.name
+        form['db'].value = this.state.currentDatabase
+        form['genes'].value = JSON.stringify(this.props.group.nodes)
+        form['testType'].value = this.state.testType
+        form.submit()
+    },
+
+    clearFilter: function() {
+        this.setState({
+            filterValue: ''
+        })
+    },
+    
+    handleFilterChange: function(e) {
+        this.setState({
+            filterValue: e.target.value.toLowerCase()
+        })
+    },
+
+    // TODO move stuff to componentWillUpdate for speedup
+    render: function() {
+
+        if (!this.props.group) return (React.createElement("div", null))
+
+        var that = this
+        var numDatabasesWithResults = _.size(this.state.pwaResults)
+        if (numDatabasesWithResults === 0 && this.state.pwaMessage) {
+            return (React.createElement("div", {className: "flex10", style: {position: 'relative'}}, 
+                    React.createElement("div", {dangerouslySetInnerHTML: {__html: this.state.pwaMessage}})
+                    ))
+        } else if (numDatabasesWithResults > 0) {
+            //TODO fix 'HPO' .. type of database over the wire
+            var rows = []
+            if (this.state.pwaResults[this.state.currentDatabase]) {
+                rows.push((React.createElement("tr", {key: "pwaheader", className: "headerrow"}, React.createElement("th", null, this.state.currentDatabase == 'HPO' ? 'PHENOTYPE' : 'PATHWAY'), React.createElement("th", {className: "pvalueheader"}, "P-VALUE"))))
+                rows.push.apply(rows, _.map(this.state.pwaResults[this.state.currentDatabase], function(result, rowNum) {
+                    if (!that.state.filterValue || result.pathway.name.toLowerCase().indexOf(that.state.filterValue) >= 0) {
+                        var cls = rowNum++ % 2 === 0 ? 'datarow evenrow' : 'datarow oddrow'
+                        if (that.props.selectedTerm && that.props.selectedTerm.id == result.pathway.id) {
+                            return (
+                                    React.createElement("tr", {ref: "selectedrow", key: result.pathway.database + result.pathway.id, className: "datarow selectedrow"}, 
+        	                    React.createElement("td", {className: "clickable", title: result.pathway.numAnnotatedGenes + ' annotated genes, prediction accuracy ' + Math.round(100 * result.pathway.auc) / 100, onClick: that.props.onTermClick.bind(null, null)}, result.pathway.name), 
+                                    React.createElement("td", {className: "pvalue", style: {whiteSpace: 'nowrap'}, dangerouslySetInnerHTML: {__html: htmlutil.pValueToReadable(result.p)}})
+    		                    )
+                            )
+                        } else {
+                            return (
+                                    React.createElement("tr", {key: result.pathway.database + result.pathway.id, className: cls}, 
+        	                    React.createElement("td", {className: "clickable", title: result.pathway.numAnnotatedGenes + ' annotated genes, prediction accuracy ' + Math.round(100 * result.pathway.auc) / 100, onClick: that.props.onTermClick.bind(null, result.pathway)}, result.pathway.name), 
+                                    React.createElement("td", {className: "pvalue", style: {whiteSpace: 'nowrap'}, dangerouslySetInnerHTML: {__html: htmlutil.pValueToReadable(result.p)}})
+    		                    )
+                            )
+                        }
+                    }
+                }))
+            }
+
+            // console.log(this.state.progress)
+            var clrs = [color.colors.gngray, color.colors.gngray]
+            var buttonClasses = this.state.pwaRunning ? ['button small disabled noselect', 'button small disabled noselect'] : ['clickable button small noselect', 'clickable button small noselect']
+            buttonClasses = ['clickable noselect', 'clickable noselect']
+            if (this.props.areNodesColoredByTerm && this.props.termColoring == 'prediction') {
+                // buttonClasses = ['noselect', 'noselect']//['clickable button small selectedbutton noselect', 'clickable button small noselect']
+                clrs[0] = color.colors.gndarkgray
+            } else if (this.props.areNodesColoredByTerm && this.props.termColoring == 'annotation') {
+                // buttonClasses = ['noselect', 'noselect']//['clickable button small noselect', 'clickable button small selectedbutton noselect']
+                clrs[1] = color.colors.gndarkgray
+            }
+            var buttonTitles = this.state.pwaRunning
+                ? ['Waiting for the analysis to finish', 'Waiting for the analysis to finish']
+                : ['Color genes by Gene Network prediction score', 'Color genes by ' + (this.state.currentDatabase || '') + ' annotation']
+
+            var databaseButtons = _.map(this.state.availableDatabases, function(db) {
+                var cls = 'button small noselect ' + (that.state.pwaRunning ? 'disabled' : 'clickable')
+                if (db.id == that.state.currentDatabase) {
+                    cls += ' selectedbutton'
+                }
+                return (
+                        React.createElement("div", {key: db.id, onClick: that.handleDatabaseClick.bind(that, db.id), className: cls, style: {float: 'left'}}, 
+                        db.id.replace('_', ' ')
+                    )
+                )
+            });
+
+
+//            var message = {These are <strong>pathways</strong})
+            return (
+                    React.createElement("div", {className: "vflex flexnowrap", style: this.props.style}, 
+                    React.createElement("div", {className: "flex00"}, 
+                    databaseButtons
+                ), 
+                    this.state.progress !== 100 ?
+                     React.createElement("span", {style: {padding: '10px 0'}}, 
+                     this.state.pwaMessage
+                     ) :
+                     React.createElement("span", {style: {padding: '10px 0'}}, 
+                     "This is ", React.createElement("strong", null, this.state.currentDatabase), " pathway enrichment for ", React.createElement("strong", null, this.props.group.name, ".")
+                     ), 
+                rows.length > 0 ? React.createElement(Filter, {filterValue: this.state.filterValue, onChange: this.handleFilterChange, onClear: this.clearFilter}) : null, 
+                    React.createElement("div", {style: {overflow: 'auto', maxHeight: this.props.maxTableHeight}}, 
+                    React.createElement("table", {className: "pwatable"}, React.createElement("tbody", null, rows))
+                    )
+      	            )
+            )
+        } else {
+            return(React.createElement("div", null, "Loading..."))
+        }
+    }
+})
+
+var Filter = React.createClass({displayName: "Filter",
+
+    render: function() {
+        
+        return (
+                React.createElement("div", {className: "flex00 hflex"}, 
+                React.createElement("form", {className: "flex00", onSubmit: function(e) { e.preventDefault() }}, 
+                React.createElement("input", {ref: "pwfilter", type: "text", name: "pwfilter", placeholder: "filter", autoComplete: "off", value: this.props.filterValue, onChange: this.props.onChange})
+                ), 
+                this.props.filterValue && this.props.filterValue.length > 0 ?
+                 (React.createElement("div", {style: {padding:'1px 0px 0px 3px'}, className: "flex00"}, 
+                  React.createElement("svg", {viewBox: "0 0 16 16", width: "12", height: "12", className: "clickable delete", onClick: this.props.onClear}, 
+                  React.createElement("line", {x1: "2", x2: "14", y1: "2", y2: "14"}), 
+                  React.createElement("line", {x1: "14", x2: "2", y1: "2", y2: "14"})
+                  )
+                  )) : null
+            )
+        )
+    }
+})
+                              
+
+module.exports = PWAPanel
 
 },{"../../js/color.js":4,"../../js/htmlutil.js":5,"../ReactComponents/Disetti":35,"../ReactComponents/SVGCollection":45,"../ReactComponents/StatusBar":46,"cookies-js":56,"lodash":130,"react":333,"react-dom":143}],30:[function(require,module,exports){
-"use strict";var _=require("lodash"),React=require("react"),DocumentTitle=require("react-document-title"),color=require("../../js/color.js"),Description=React.createClass({displayName:"Description",render:function(){return React.createElement("p",null,"The Gene Network API provides programmatic access for reading Gene Network data using http ",React.createElement("code",null,"GET")," requests. Responses are available in JSON format.")}}),Notes=React.createClass({displayName:"Notes",render:function(){return React.createElement("div",null,React.createElement("h2",null,"General notes"),React.createElement("p",null,"One or more ",React.createElement("strong",null,"geneName"),"s are required in some API calls. These can be either official gene names or Ensembl (ENSG) identifiers. Here TBA is list of all available gene names and identifiers."),React.createElement("p",null,"One or more ",React.createElement("strong",null,"termId"),"s are required in some API calls. These are identifiers for pathways in Reactome and Gene Ontology or phenotypes in Human Phenotype Ontology. Here TBA is a list of all available pathway and phenotype identifiers."))}}),Gene=React.createClass({displayName:"Gene",render:function(){return React.createElement("div",null,React.createElement("h3",null,"Gene"),React.createElement("p",{className:"dont-break-out"},React.createElement("code",null,"GET ",GN.urls.gene,"/",React.createElement("strong",null,"geneName"))),React.createElement("p",null,"Get annotation and prediction information for a given gene."),React.createElement("h4",null,"Returns"),React.createElement("ul",null,React.createElement("li",null,"Ensembl BioMart annotations: Ensembl identifier, gene name, biotype, chromosome, start and stop positions, strand, gene description and the BioMart release used"),React.createElement("li",null,"Annotated pathways/phenotypes"),React.createElement("li",null,"Predicted pathways/phenotypes")),React.createElement("h4",null,"Parameters"),React.createElement("ul",null,React.createElement("li",null,React.createElement("strong",null,"db")," (optional): specifies the database for which annotations and predictions are returned"),React.createElement("li",null,React.createElement("strong",null,"verbose")," (optional): if given, additional information of annotated and predicted pathways/phenotypes is returned")),React.createElement("p",null,"If ",React.createElement("strong",null,"db")," parameter is given, prediction scores for all pathways/phenotypes in the given database are returned. If no ",React.createElement("strong",null,"db")," parameter is given, significantly predicted pathways for all databases are returned."),React.createElement("h4",null,"Examples"),React.createElement("p",{className:"dont-break-out"},React.createElement("code",null,"GET ",GN.urls.gene,"/rps27l")),React.createElement("p",{className:"dont-break-out"},React.createElement("code",null,"GET ",GN.urls.gene,"/rps27l?db=GO-CC&verbose")))}}),Term=React.createClass({displayName:"Term",render:function(){return React.createElement("div",null,React.createElement("h3",null,"Pathway / phenotype"),React.createElement("p",{className:"dont-break-out"},React.createElement("code",null,"GET ",GN.urls.pathway,"/",React.createElement("strong",null,"termId"))),React.createElement("p",null,"Get annotation and prediction information for a given pathway or phenotype."),React.createElement("h4",null,"Parameters"),React.createElement("ul",null,React.createElement("li",null,React.createElement("strong",null,"verbose")," (optional): if given, additional information of annotated and predicted genes is returned")),React.createElement("h4",null,"Returns"),React.createElement("ul",null,React.createElement("li",null,"Database, name, url and number of annotated genes for the pathway/phenotype, and an AUC (Area Under the Curve) value describing the prediction accuracy for the pathway/phenotype"),React.createElement("li",null,"List of annotated genes"),React.createElement("li",null,"List of predicted genes")),React.createElement("h4",null,"Examples"),React.createElement("p",{className:"dont-break-out"},React.createElement("code",null,"GET ",GN.urls.pathway,"/GO:0000302")),React.createElement("p",{className:"dont-break-out"},React.createElement("code",null,"GET ",GN.urls.pathway,"/GO:0000302?verbose")))}}),Prioritization=React.createClass({displayName:"Prioritization",render:function(){return React.createElement("div",null,React.createElement("h3",null,"Prioritization"),React.createElement("p",{className:"dont-break-out"},React.createElement("code",null,"GET ",GN.urls.prioritization,"/",React.createElement("strong",null,"termId1,termId2,..."))),React.createElement("p",null,"Get prioritized genes for given pathways or phenotypes."),React.createElement("h4",null,"Parameters"),React.createElement("ul",null,React.createElement("li",null,React.createElement("strong",null,"verbose")," (optional): if given, additional information of prioritized genes is returned")),React.createElement("h4",null,"Returns"),React.createElement("ul",null,React.createElement("li",null,"List of pathways/phenotypes found"),React.createElement("li",null,"List of pathways/phenotypes not found"),React.createElement("li",null,"List of prioritized genes, sorted by weighted Z-score")),React.createElement("p",null,'In the returned gene list, the "predicted" array contains prediction Z-scores for each found pathway/phenotype. The order of the values in the array corresponds to the order of the "terms" array in the returned JSON. The "annotated" array contains the pathways/phenotypes to which the gene has been annotated, if any.'),React.createElement("h4",null,"Examples"),React.createElement("p",{className:"dont-break-out"},React.createElement("code",null,"GET ",GN.urls.prioritization,"/HP:0001874,HP:0001419,HP:0002718,HP:0004313,HP:0000951")),React.createElement("p",{className:"dont-break-out"},React.createElement("code",null,"GET ",GN.urls.prioritization,"/HP:0001874,HP:0001419,HP:0002718,HP:0004313,HP:0000951?verbose")))}}),Coregulation=React.createClass({displayName:"Coregulation",render:function(){return React.createElement("div",null,React.createElement("h3",null,"Coregulation"),React.createElement("div",null,"tba"))}}),Cofunction=React.createClass({displayName:"Cofunction",render:function(){return React.createElement("div",null,React.createElement("h3",null,"Cofunction"),React.createElement("div",null,"tba"))}}),Api=React.createClass({displayName:"Api",render:function(){return React.createElement(DocumentTitle,{title:"API"+GN.pageTitleSuffix},React.createElement("div",{style:{backgroundColor:color.colors.gnwhite,marginTop:"10px",padding:"20px"}},React.createElement("h2",null,"API"),React.createElement(Description,null),React.createElement(Notes,null),React.createElement("h2",null,"Resources"),React.createElement("p",null),React.createElement(Gene,null),React.createElement(Term,null),React.createElement(Prioritization,null),React.createElement(Coregulation,null),React.createElement(Cofunction,null)))}});module.exports=Api;
+'use strict'
+
+var _ = require('lodash')
+var React = require('react')
+var DocumentTitle = require('react-document-title')
+var color = require('../../js/color.js')
+
+var Description = React.createClass({displayName: "Description",
+
+    render: function() {
+        return (
+                React.createElement("p", null, "The Gene Network API provides programmatic access for reading Gene Network data using http ", React.createElement("code", null, "GET"), " requests. Responses are available in JSON format.")
+        )
+    }
+})
+
+var Notes = React.createClass({displayName: "Notes",
+
+    render: function() {
+        return (
+            React.createElement("div", null, 
+            React.createElement("h2", null, "General notes"), 
+                React.createElement("p", null, "One or more ", React.createElement("strong", null, "geneName"), "s are required in some API calls. These can be either official gene" + ' ' +
+            "names or Ensembl (ENSG) identifiers. Here TBA is list of all available gene names and identifiers."), 
+                React.createElement("p", null, "One or more ", React.createElement("strong", null, "termId"), "s are required in some API calls. These are identifiers for pathways in Reactome and Gene Ontology or phenotypes in Human Phenotype Ontology. Here TBA is a list of all available pathway and phenotype identifiers.")
+                )
+        )
+    }
+})
+
+var Gene = React.createClass({displayName: "Gene",
+
+    render: function() {
+        return (
+                React.createElement("div", null, 
+                React.createElement("h3", null, "Gene"), 
+                React.createElement("p", {className: "dont-break-out"}, React.createElement("code", null, "GET ", GN.urls.gene, "/", React.createElement("strong", null, "geneName"))), 
+                React.createElement("p", null, "Get annotation and prediction information for a given gene."), 
+
+                React.createElement("h4", null, "Returns"), 
+                React.createElement("ul", null, 
+                React.createElement("li", null, "Ensembl BioMart annotations: Ensembl identifier, gene name, biotype, chromosome, start and stop positions, strand, gene description and the BioMart release used"), 
+                React.createElement("li", null, "Annotated pathways/phenotypes"), 
+                React.createElement("li", null, "Predicted pathways/phenotypes")
+                ), 
+
+                React.createElement("h4", null, "Parameters"), 
+                React.createElement("ul", null, 
+                React.createElement("li", null, React.createElement("strong", null, "db"), " (optional): specifies the database for which" + ' ' +
+            "annotations and predictions are returned"), 
+                React.createElement("li", null, React.createElement("strong", null, "verbose"), " (optional): if given, additional information of annotated and predicted pathways/phenotypes is returned")
+                ), 
+                React.createElement("p", null, "If ", React.createElement("strong", null, "db"), " parameter is given, prediction scores for" + ' ' +
+                    "all pathways/phenotypes in the given database are returned. If no ", React.createElement("strong", null, "db"), " parameter is given," + ' ' +
+            "significantly predicted pathways for all databases are" + ' ' +
+            "returned."), 
+                
+                React.createElement("h4", null, "Examples"), 
+                React.createElement("p", {className: "dont-break-out"}, React.createElement("code", null, "GET ", GN.urls.gene, "/rps27l")), 
+                React.createElement("p", {className: "dont-break-out"}, React.createElement("code", null, "GET ", GN.urls.gene, "/rps27l?db=GO-CC&verbose"))
+                )
+        )
+    }
+})
+
+var Term = React.createClass({displayName: "Term",
+
+    render: function() {
+        return (
+                React.createElement("div", null, 
+                React.createElement("h3", null, "Pathway / phenotype"), 
+                React.createElement("p", {className: "dont-break-out"}, React.createElement("code", null, "GET ", GN.urls.pathway, "/", React.createElement("strong", null, "termId"))), 
+                React.createElement("p", null, "Get annotation and prediction information for a given pathway or phenotype."), 
+
+                React.createElement("h4", null, "Parameters"), 
+                React.createElement("ul", null, 
+                React.createElement("li", null, React.createElement("strong", null, "verbose"), " (optional): if given, additional information of annotated and predicted genes is returned")
+                ), 
+            
+                React.createElement("h4", null, "Returns"), 
+                React.createElement("ul", null, 
+                React.createElement("li", null, "Database, name, url and number of annotated genes for the pathway/phenotype," + ' ' +
+            "and an AUC (Area Under the Curve) value describing the prediction accuracy for the pathway/phenotype"), 
+                React.createElement("li", null, "List of annotated genes"), 
+                React.createElement("li", null, "List of predicted genes")
+                ), 
+                React.createElement("h4", null, "Examples"), 
+                React.createElement("p", {className: "dont-break-out"}, React.createElement("code", null, "GET ", GN.urls.pathway, "/GO:0000302")), 
+                React.createElement("p", {className: "dont-break-out"}, React.createElement("code", null, "GET ", GN.urls.pathway, "/GO:0000302?verbose"))
+                )
+        )
+    }
+})
+
+
+var Prioritization = React.createClass({displayName: "Prioritization",
+
+    render: function() {
+        return (
+                React.createElement("div", null, 
+                React.createElement("h3", null, "Prioritization"), 
+                React.createElement("p", {className: "dont-break-out"}, React.createElement("code", null, "GET ", GN.urls.prioritization, "/", React.createElement("strong", null, "termId1,termId2,..."))), 
+                React.createElement("p", null, "Get prioritized genes for given pathways or phenotypes."), 
+
+                React.createElement("h4", null, "Parameters"), 
+                React.createElement("ul", null, 
+                React.createElement("li", null, React.createElement("strong", null, "verbose"), " (optional): if given, additional information of prioritized genes is returned")
+                ), 
+            
+                React.createElement("h4", null, "Returns"), 
+                React.createElement("ul", null, 
+                React.createElement("li", null, "List of pathways/phenotypes found"), 
+                React.createElement("li", null, "List of pathways/phenotypes not found"), 
+                React.createElement("li", null, "List of prioritized genes, sorted by weighted Z-score")
+                ), 
+                React.createElement("p", null, "In the returned gene list, the \"predicted\" array contains prediction Z-scores for each found pathway/phenotype. The order of the values in the array corresponds to the order of the \"terms\" array in the returned JSON. The \"annotated\" array contains the pathways/phenotypes to which the gene has been annotated, if any."), 
+                React.createElement("h4", null, "Examples"), 
+                React.createElement("p", {className: "dont-break-out"}, React.createElement("code", null, "GET ", GN.urls.prioritization, "/HP:0001874,HP:0001419,HP:0002718,HP:0004313,HP:0000951")), 
+                React.createElement("p", {className: "dont-break-out"}, React.createElement("code", null, "GET ", GN.urls.prioritization, "/HP:0001874,HP:0001419,HP:0002718,HP:0004313,HP:0000951?verbose"))
+                )
+        )
+    }
+})
+var Coregulation = React.createClass({displayName: "Coregulation",
+
+    render: function() {
+        return (
+                React.createElement("div", null, 
+                React.createElement("h3", null, "Coregulation"), 
+                React.createElement("div", null, "tba")
+                )
+        )
+    }
+})
+
+var Cofunction = React.createClass({displayName: "Cofunction",
+
+    render: function() {
+        return (
+                React.createElement("div", null, 
+                React.createElement("h3", null, "Cofunction"), 
+                React.createElement("div", null, "tba")
+                )
+        )
+    }
+})
+
+var Api = React.createClass({displayName: "Api",
+    
+    render: function() {
+        return (
+                React.createElement(DocumentTitle, {title: 'API' + GN.pageTitleSuffix}, 
+                React.createElement("div", {style: {backgroundColor: color.colors.gnwhite, marginTop: '10px', padding: '20px'}}, 
+                React.createElement("h2", null, "API"), 
+                React.createElement(Description, null), 
+                React.createElement(Notes, null), 
+                React.createElement("h2", null, "Resources"), 
+                React.createElement("p", null), 
+                React.createElement(Gene, null), 
+                React.createElement(Term, null), 
+                React.createElement(Prioritization, null), 
+                React.createElement(Coregulation, null), 
+                React.createElement(Cofunction, null)
+                )
+                )
+        )
+    }
+})
+
+module.exports = Api
 
 },{"../../js/color.js":4,"lodash":130,"react":333,"react-document-title":142}],31:[function(require,module,exports){
-"use strict";var _=require("lodash"),React=require("react"),DocumentTitle=require("react-document-title"),color=require("../../js/color.js"),Select=require("react-select"),reactable=require("reactable"),ReactRouter=require("react-router"),Router=ReactRouter.Router,Link=ReactRouter.Link,SVGCollection=require("./SVGCollection"),Back=React.createClass({displayName:"Back",getInitialState:function(){return{color:color.colors.gngray}},onMouseOver:function(){this.setState({color:color.colors.gndarkgray})},onMouseOut:function(){this.setState({color:color.colors.gngray})},render:function(){return React.createElement("div",{style:{float:"right"}},React.createElement(Link,{style:{color:this.state.color,fontSize:"10pt"},onMouseOver:this.onMouseOver,onMouseOut:this.onMouseOut,className:"nodecoration black clickable",to:this.props.url},React.createElement(SVGCollection.ArrowLeft,{color:this.state.color,onMouseOver:this.onMouseOver,onMouseOut:this.onMouseOut}),React.createElement("b",{style:{paddingLeft:"5px"}},"GO BACK")))}});module.exports=Back;
+'use strict'
+
+var _ = require('lodash')
+var React = require('react')
+var DocumentTitle = require('react-document-title')
+var color = require('../../js/color.js')
+var Select = require('react-select')
+
+var reactable = require('reactable')
+var ReactRouter = require('react-router')
+var Router = ReactRouter.Router
+var Link = ReactRouter.Link
+
+var SVGCollection = require('./SVGCollection')
+
+var Back = React.createClass({displayName: "Back",
+
+    getInitialState: function() {
+      return {
+        color: color.colors.gngray
+      }
+    },
+
+    onMouseOver: function() {
+      this.setState({
+        color: color.colors.gndarkgray
+      })
+    },
+
+    onMouseOut: function() {
+      this.setState({
+        color: color.colors.gngray
+      })
+    },
+
+    render: function() {
+      return (
+          React.createElement("div", {style: {float: 'right'}}, 
+            React.createElement(Link, {style: {color: this.state.color, fontSize: '10pt'}, onMouseOver: this.onMouseOver, onMouseOut: this.onMouseOut, className: "nodecoration black clickable", to: this.props.url}, 
+              React.createElement(SVGCollection.ArrowLeft, {color: this.state.color, onMouseOver: this.onMouseOver, onMouseOut: this.onMouseOut}), 
+              React.createElement("b", {style: {paddingLeft: '5px'}}, "GO BACK")
+            )
+          )
+        )
+    }
+
+})
+
+module.exports = Back
 
 },{"../../js/color.js":4,"./SVGCollection":45,"lodash":130,"react":333,"react-document-title":142,"react-router":164,"react-select":175,"reactable":334}],32:[function(require,module,exports){
-"use strict";var _=require("lodash"),React=require("react"),Router=require("react-router"),Link=Router.Link,SVGCollection=require("./SVGCollection"),htmlutil=require("../../js/htmlutil"),PredictionRow=require("./PredictionRow"),color=require("../../js/color"),reactable=require("reactable"),Tr=reactable.Tr,Td=reactable.Td,Th=reactable.Th,Thead=reactable.Thead,Table=reactable.Table,unsafe=reactable.unsafe,DataTable=React.createClass({displayName:"DataTable",propTypes:{data:React.PropTypes.object.isRequired,db:React.PropTypes.string.isRequired},getInitialState:function(){return{annotationsOnly:!1}},handleAnnotationsClick:function(){console.log("handleAnnotationsClick"),this.setState({annotationsOnly:!this.state.annotationsOnly})},render:function(){var e=this,t=this.state.annotationsOnly?this.props.data.pathways.annotated:this.props.data.pathways.predicted;t=_.filter(t,function(t){return t.term.database.toUpperCase()===e.props.db}),this.state.annotationsOnly&&(t=_.sortBy(t,"pValue"));var a=_.map(t,function(t,a){var n=e.state.annotationsOnly||t.annotated,l=t.term.id,r=e.props.data.gene,o=t,n=n;return React.createElement(Tr,{key:l},React.createElement(Td,{column:"TERM",className:"text"},React.createElement("a",{href:GN.urls.networkPage+o.term.id,className:"nodecoration",target:"_blank",style:{color:color.colors.gnblack}},o.term.name)),React.createElement(Td,{column:"P-VALUE",style:{whiteSpace:"nowrap",textAlign:"center"}},unsafe(htmlutil.pValueToReadable(o.pValue))),React.createElement(Td,{column:"DIRECTION",style:{textAlign:"center"}},o.zScore>0?React.createElement(SVGCollection.TriangleUp,{className:"directiontriangleup"}):React.createElement(SVGCollection.TriangleDown,{className:"directiontriangledown"})),React.createElement(Td,{column:"ANNOTATED",style:{textAlign:"center"}},n?React.createElement(SVGCollection.Annotated,null):React.createElement(SVGCollection.NotAnnotated,null)),React.createElement(Td,{column:"NETWORK",style:{textAlign:"center"}},React.createElement("a",{title:"Open network "+(o.annotated?"highlighting ":"with ")+r.name,href:GN.urls.networkPage+o.term.id+",0!"+r.name,target:"_blank"},React.createElement(SVGCollection.NetworkIcon,null))))});0===a.length&&(a=React.createElement("tr",null,React.createElement("td",null,"No ",this.props.db," ",this.state.annotationsOnly?"annotations":"predictions"," for ",this.props.data.gene.name)));var n=this.state.annotationsOnly?"clickable underline":"clickable";return React.createElement(Table,{className:"rowcolors table gene-term-table",sortable:[{column:"TERM",sortFunction:function(e,t){var a=e.props.children,n=t.props.children;return a.localeCompare(n)}},{column:"P-VALUE",sortFunction:function(e,t){if(e.length<5)return t.length<5?e-t:(t[0],1);if("<"!=e[0]){if(t.length<5)return-1;if("<"!=t[0]){e=e.toString();var a=e.slice(53),n=a.slice(0,a.indexOf("<")),l=e.slice(0,3);t=t.toString();var r=t.slice(53),o=r.slice(0,r.indexOf("<")),c=t.slice(0,3);return n-o||l-c}return 1}if(t.length<5)return-1;if("<"!=t[0])return-1;e=e.toString();var a=e.slice(55),n=a.slice(0,a.indexOf("<")),l=e.slice(2,5);t=t.toString();var r=t.slice(55),o=r.slice(0,r.indexOf("<")),c=t.slice(2,5);return n-o||l-c}},{column:"DIRECTION",sortFunction:function(e,t){return console.log(e.props.className),e.props.className.localeCompare(t.props.className)}},{column:"ANNOTATED",sortFunction:function(e,t){return console.log(e.props.className),e.props.className.localeCompare(t.props.className)}}]},React.createElement(Thead,null,React.createElement(Th,{column:"TERM"},"TERM"),React.createElement(Th,{column:"P-VALUE"},"P-VALUE"),React.createElement(Th,{column:"DIRECTION"},"DIRECTION"),React.createElement(Th,{column:"ANNOTATED",className:n,onClick:this.handleAnnotationsClick},"ANNOTATED"),React.createElement(Th,{column:"NETWORK"},"NETWORK")),a)}});module.exports=DataTable;
+'use strict';
+
+var _ = require('lodash');
+var React = require('react');
+var Router = require('react-router');
+var Link = Router.Link;
+
+var SVGCollection = require('./SVGCollection');
+var htmlutil = require('../../js/htmlutil');
+var PredictionRow = require('./PredictionRow');
+var color = require('../../js/color');
+
+var reactable = require('reactable');
+var Tr = reactable.Tr;
+var Td = reactable.Td;
+var Th = reactable.Th;
+var Thead = reactable.Thead;
+var Table = reactable.Table;
+var unsafe = reactable.unsafe;
+
+var DataTable = React.createClass({displayName: "DataTable",
+
+    propTypes: {
+        data: React.PropTypes.object.isRequired,
+        db: React.PropTypes.string.isRequired
+    },
+
+    getInitialState: function() {
+        return {
+            annotationsOnly: false
+        }
+    },
+
+    handleAnnotationsClick: function() {
+        console.log('handleAnnotationsClick');
+        this.setState({
+            annotationsOnly: !this.state.annotationsOnly
+        })
+    },
+    
+    render: function() {
+
+        var that = this;
+        var pathways = this.state.annotationsOnly ? this.props.data.pathways.annotated : this.props.data.pathways.predicted;
+
+        pathways = _.filter(pathways, function(pathway) {
+            return pathway.term.database.toUpperCase() === that.props.db
+        });
+
+        if (this.state.annotationsOnly) {
+            pathways = _.sortBy(pathways, 'pValue')
+        }
+
+        var rows = _.map(pathways, function(pathway, i) {
+
+            var isAnnotated = that.state.annotationsOnly || pathway.annotated;
+
+            var key= pathway.term.id;
+            var gene= that.props.data.gene;
+            var data= pathway;
+            var isAnnotated= isAnnotated;
+            var num= i;
+        //       <Link className='nodecoration black' title={data.term.numAnnotatedGenes + ' annotated genes, prediction accuracy ' + Math.round(100 * data.term.auc) / 100} to={`/term/${data.term.id}`}>
+                    // {data.term.name}
+                    // </Link>
+            return (
+
+                React.createElement(Tr, {key: key}, 
+                React.createElement(Td, {column: "TERM", className: "text"}, 
+                    /*<Link className='nodecoration black' title={data.term.numAnnotatedGenes + ' annotated genes, prediction accuracy ' + Math.round(100 * data.term.auc) / 100} to={`/term/${data.term.id}`}>
+                    {data.term.name}
+                    </Link>*/
+                    React.createElement("a", {href: GN.urls.networkPage + data.term.id, className: "nodecoration", target: "_blank", style: {color: color.colors.gnblack}}, 
+                    data.term.name
+                    )
+                ), 
+                React.createElement(Td, {column: "P-VALUE", style: {whiteSpace: 'nowrap', textAlign: 'center'}}, unsafe(htmlutil.pValueToReadable(data.pValue))), 
+                React.createElement(Td, {column: "DIRECTION", style: {textAlign: 'center'}}, 
+                    data.zScore > 0 ? React.createElement(SVGCollection.TriangleUp, {className: "directiontriangleup"}) : React.createElement(SVGCollection.TriangleDown, {className: "directiontriangledown"})
+                ), 
+                React.createElement(Td, {column: "ANNOTATED", style: {textAlign: 'center'}}, 
+                    isAnnotated ? React.createElement(SVGCollection.Annotated, null) : React.createElement(SVGCollection.NotAnnotated, null)
+                ), 
+                React.createElement(Td, {column: "NETWORK", style: {textAlign: 'center'}}, 
+                    React.createElement("a", {title: 'Open network ' + (data.annotated ? 'highlighting ' : 'with ') + gene.name, href: GN.urls.networkPage + data.term.id + ',0!' + gene.name, target: "_blank"}, 
+                        React.createElement(SVGCollection.NetworkIcon, null)
+                    )
+                )
+                )
+            )
+        });
+
+        if (rows.length === 0) {
+            rows = (React.createElement("tr", null, React.createElement("td", null, "No ", this.props.db, " ", this.state.annotationsOnly ? 'annotations' : 'predictions', " for ", this.props.data.gene.name)))
+        }
+
+        if (false && rows.length === 0) {
+            return (
+                React.createElement("div", null, 'No ' + this.props.db + (this.props.type == 'prediction' ? ' predictions' : ' annotations') + ' for ' + this.props.data.gene.name)
+                )
+        } else {
+            var annotatedClass = this.state.annotationsOnly ? 'clickable underline' : 'clickable';
+            // <Table className='gn-gene-table datatable'
+
+            return (
+
+            React.createElement(Table, {className: "rowcolors table gene-term-table", 
+
+            sortable: [
+
+                {
+                    column: 'TERM',
+                    sortFunction: function (a, b) {
+                        var newA = a.props.children;
+                        var newB = b.props.children;
+                        return newA.localeCompare(newB)
+                    }
+                },
+
+                {
+                    column: "P-VALUE",
+                    sortFunction: function(a, b) {
+
+                        if (a.length < 5) {
+                            if (b.length < 5) {             {/* a ?? b */}
+                                return a - b
+                            } else if (b[0] != '<') {    {/* a > b */}
+                                return 1
+                            } else {                        {/* a > b */}
+                                return 1
+                            }
+                        } else if (a[0] != '<') {
+                            if (b.length < 5) {             {/* a < b */}
+                                return -1
+                            } else if (b[0] != '<') {    {/* a ?? b */}
+
+                                a = a.toString();
+                                var aExponent = a.slice(53);
+                                var aExp = aExponent.slice(0, aExponent.indexOf("<"));
+                                var aNumber = a.slice(0,3);
+
+                                b = b.toString();
+                                var bExponent = b.slice(53);
+                                var bExp = bExponent.slice(0, bExponent.indexOf("<"));
+                                var bNumber = b.slice(0,3);
+
+                                return aExp - bExp || aNumber - bNumber
+
+                            } else {                        {/* a > b */}
+                                return 1
+                            }
+                        } else {
+                            if (b.length < 5) {             {/* a < b */}
+                                return -1
+                            } else if (b[0] != '<') {    {/* a <b */}
+                                return -1
+                            } else {
+
+                                a = a.toString();
+                                var aExponent = a.slice(55);
+                                var aExp = aExponent.slice(0, aExponent.indexOf("<"));
+                                var aNumber = a.slice(2,5);
+
+                                b = b.toString();
+                                var bExponent = b.slice(55);
+                                var bExp = bExponent.slice(0, bExponent.indexOf("<"));
+                                var bNumber = b.slice(2,5);
+
+                                return aExp - bExp || aNumber - bNumber
+
+                            }
+                        }
+
+                        return b - a
+                    }
+                },
+
+                {
+                    column: 'DIRECTION',
+                    sortFunction: function(a, b) {
+
+                        console.log(a.props.className);
+                        return a.props.className.localeCompare(b.props.className)
+                    }
+                },
+
+                {
+                    column: 'ANNOTATED',
+                    sortFunction: function(a, b) {
+
+                        console.log(a.props.className);
+                        return a.props.className.localeCompare(b.props.className)
+                    }
+                }
+
+            ]
+            }, 
+
+            React.createElement(Thead, null, 
+                React.createElement(Th, {column: "TERM"}, "TERM"), 
+                React.createElement(Th, {column: "P-VALUE"}, "P-VALUE"), 
+                React.createElement(Th, {column: "DIRECTION"}, "DIRECTION"), 
+                React.createElement(Th, {column: "ANNOTATED", className: annotatedClass, onClick: this.handleAnnotationsClick}, "ANNOTATED"), 
+                React.createElement(Th, {column: "NETWORK"}, "NETWORK")
+            ), 
+
+
+            rows
+            )
+
+
+            );
+                {/* <table className='gn-gene-table datatable'>
+                <tbody>
+                <tr>
+                <th className='tabletextheader'>TERM</th>
+                <th>P-VALUE</th>
+                <th>DIRECTION</th>
+                <th className={annotatedClass} onClick={this.handleAnnotationsClick}>ANNOTATED</th> // still need to get this back!!
+                <th>NETWORK</th>
+                </tr>
+                {rows}
+                </tbody>
+                </table> */}
+            
+        }
+    }
+});
+
+module.exports = DataTable;
 
 },{"../../js/color":4,"../../js/htmlutil":5,"./PredictionRow":44,"./SVGCollection":45,"lodash":130,"react":333,"react-router":164,"reactable":334}],33:[function(require,module,exports){
-"use strict";function HSVtoRGB(e,t,a){var r,n,l,s,o,i,c,p;switch(1===arguments.length&&(t=e.s,a=e.v,e=e.h),s=Math.floor(6*e),o=6*e-s,i=a*(1-t),c=a*(1-o*t),p=a*(1-(1-o)*t),s%6){case 0:r=a,n=p,l=i;break;case 1:r=c,n=a,l=i;break;case 2:r=i,n=a,l=p;break;case 3:r=i,n=c,l=a;break;case 4:r=p,n=i,l=a;break;case 5:r=a,n=i,l=c}return{r:Math.round(255*r),g:Math.round(255*n),b:Math.round(255*l)}}function getRGB(e){var t=1-parseFloat(e)/20,a=.6+parseFloat(Math.abs(e))/7;if(parseFloat(e)>=0){var r=HSVtoRGB(.0389,a,t);return"rgb("+r.r+","+r.g+", "+r.b+")"}var r=HSVtoRGB(.58,a,t);return"rgb("+r.r+","+r.g+", "+r.b+")"}var _=require("lodash"),async=require("async"),color=require("../../js/color"),htmlutil=require("../../js/htmlutil"),genstats=require("genstats"),prob=genstats.probability,React=require("react"),Router=require("react-router"),DocumentTitle=require("react-document-title"),SVGCollection=require("./SVGCollection"),I=SVGCollection.I,htmlutil=require("../../js/htmlutil"),color=require("../../js/color"),D3Heatmap=require("../../js/D3Heatmap"),reactable=require("reactable"),Tr=reactable.Tr,Td=reactable.Td,Th=reactable.Th,Thead=reactable.Thead,Tbody=reactable.Tbody,Table=reactable.Table,unsafe=reactable.unsafe,NetworkButton=React.createClass({displayName:"NetworkButton",render:function(){var e=this.props.prioFiltered,t="";if(e)for(var a=0;a<e.length;a++)t=t+e[a].gene.id+",";else for(var a=0;a<this.props.prio.results.length;a++)t=t+this.props.prio.results[a].gene.id+",";var r=GN.urls.networkPage+t;return React.createElement("a",{href:r,target:"_blank"},React.createElement("span",{className:"button clickable noselect"},"100 GENES NETWORK"))}}),ShowPhenotypes3=React.createClass({displayName:"ShowPhenotypes3",render:function(){var e=(this.props.hoverItem,[]),t=this.props.prio.terms,a=_.map(t,"term.id"),r=this.props.orderedTerms;if(r){for(var n=[],l=0;l<r.length;l++){var s=a.indexOf(r[l]);n.push(t[s])}t=n}for(var l=0;l<t.length;l++)e.push(React.createElement(Tr,{key:t[l].term.name,style:t[l].term.id===this.props.hoverRow||t[l].term.id===this.props.hoverCol?{backgroundColor:color.colors.gnyellow}:{}},React.createElement(Td,{column:"PHENOTYPE"},t[l].term.name),React.createElement(Td,{column:"ANNOTATED",style:{textAlign:"center"}},t[l].term.numAnnotatedGenes),React.createElement(Td,{column:"HPOTERM",style:{textAlign:"center"}},React.createElement("a",{className:"externallink",href:t[l].term.url,target:"_blank"},t[l].term.id))));return React.createElement(Table,{id:"phenTab",className:"sortable rowcolors table pheno-table",style:{width:"100%"}},React.createElement(Thead,null,React.createElement(Th,{column:"PHENOTYPE",style:{textAlign:"left"}},"PHENOTYPE"),React.createElement(Th,{column:"ANNOTATED",style:{textAlign:"center"}},"ANNOTATED GENES"),React.createElement(Th,{column:"HPOTERM",style:{textAlign:"center"}},"HPO-TERM")),e)}}),GeneTable=React.createClass({displayName:"GeneTable",render:function(){var e=this.props.prioFiltered;if(e)for(var t=[],a=0;a<e.length;a++){for(var r=a%2==0?"datarow evenrow":"datarow oddrow",n="",l=0;l<this.props.prio.terms.length;l++)n=n.concat(this.props.prio.terms[l].term.id+",");var s="0!"+e[a].gene.name,o=GN.urls.networkPage+n+s,i=null;i=e[a].gene.score||""===e[a].gene.score?React.createElement(Td,{column:"IMPACT",style:{textAlign:"center"}},e[a].gene.score):null;var c=GN.urls.genePage+e[a].gene.name;t.push(React.createElement(Tr,{key:a,className:r,onMouseOver:this.props.onMouseOver.bind(null,e[a].predicted)},React.createElement(Td,{column:"RANK",style:{textAlign:"center"}},a+1),React.createElement(Td,{column:"GENE",style:{textAlign:"left"}},React.createElement("a",{className:"nodecoration black",href:c,target:"_blank"},e[a].gene.name)),React.createElement(Td,{column:"P-VALUE",style:{textAlign:"center"}},unsafe(e[a].weightedZScore)),React.createElement(Td,{column:"DIRECTION",style:{textAlign:"center"}},e[a].weightedZScore>0?React.createElement(SVGCollection.TriangleUp,{className:"directiontriangleup"}):React.createElement(SVGCollection.TriangleDown,{className:"directiontriangledown"})),React.createElement(Td,{column:"ANNOTATION",style:{textAlign:"center"}},React.createElement("div",{title:0==e[a].annotated.length?"Not annotated to any of the phenotypes.":e[a].annotated},e[a].annotated.length)),React.createElement(Td,{column:"NETWORK",style:{textAlign:"center"}},React.createElement("a",{href:o,target:"_blank"},React.createElement(SVGCollection.NetworkIcon,null))),i))}else for(var t=[],a=0;a<this.props.prio.results.length;a++){for(var n="",l=0;l<this.props.prio.terms.length;l++)n=n.concat(this.props.prio.terms[l].term.id+",");for(var s="0!"+this.props.prio.results[a].gene.name,o=GN.urls.networkPage+n+s,c=(React.createElement("div",{style:this.props.style,title:this.props.prio.results[a].gene.biotype},React.createElement("svg",{viewBox:"0 0 10 10",width:12,height:12},React.createElement("rect",{x1:"0",y1:"0",width:"10",height:"10",style:{fill:color.biotype2color[this.props.prio.results[a].gene.biotype]||color.colors.default}}))),GN.urls.genePage+this.props.prio.results[a].gene.name),p=[],m=0;m<this.props.prio.results[a].predicted.length;m++)p.push(React.createElement(Td,{column:this.props.prio.terms[m].term.id},Math.round(10*this.props.prio.results[a].predicted[m])/10));t.push(React.createElement(Tr,{key:a,onMouseOver:this.props.onMouseOver.bind(null,this.props.prio.results[a])},React.createElement(Td,{column:"RANK",style:{textAlign:"center"}},a+1),React.createElement(Td,{column:"GENE",style:{textAlign:"left"}},React.createElement("a",{className:"nodecoration black",href:c,target:"_blank",title:this.props.prio.results[a].gene.description},this.props.prio.results[a].gene.name)),React.createElement(Td,{column:"Z-SCORE",style:{textAlign:"center"}},Math.round(10*unsafe(this.props.prio.results[a].weightedZScore))/10),React.createElement(Td,{column:"NETWORK",style:{textAlign:"center"}},React.createElement("a",{href:o,target:"_blank"},React.createElement(SVGCollection.NetworkIcon,null))),p))}e&&e.length>0&&((e[0].gene.score||""===e[0].gene.score)&&React.createElement(Th,{column:"impact",style:{textAlign:"center"}},"VAR. IMPACT")),e&&0==e.length&&t.push(React.createElement(Tr,{key:"1"},React.createElement(Td,{column:""},"Your list of genes did not match any of the results.")));var h=this.props.prio.terms,d=this.props.orderedTerms;if(d){for(var u=_.map(h,"term.id"),g=[],a=0;a<d.length;a++){var E=u.indexOf(d[a]);g.push(h[E])}h=g}for(var R=[],f=0;f<h.length;f++)R.push(React.createElement(Th,{column:h[f].term.id},React.createElement(SVGCollection.DiagonalText,{text:h[f].term.id})));return React.createElement(Table,{id:"gentab",className:"sortable rowcolors table diag-table",sortable:[{column:"GENE",sortFunction:function(e,t){return e.props.children.localeCompare(t.props.children)}},{column:"Z-SCORE",sortFunction:function(e,t){return t-e}}]},React.createElement(Thead,null,React.createElement(Th,{column:"RANK",style:{textAlign:"center"}},"RANK"),React.createElement(Th,{column:"GENE"},"GENE"),React.createElement(Th,{column:"Z-SCORE",style:{textAlign:"center"}},"Z-SCORE"),React.createElement(Th,{column:"NETWORK",style:{textAlign:"center"}},"NETWORK"),R),t)}}),compareGenes=function(e,t){e=e.replace(/\n/g," "),e=e.replace(/;/g," "),e=e.replace(/,/g," "),e=e.replace(/\t/g," ");for(var a=e.split(" "),r=[],n=0;n<a.length;n++)0!==a[n].length&&r.push(a[n]);var l=[];for(n=0;n<r.length;n++)l.push(r[n].toUpperCase());var s=[],o=[];for(n=0;n<l.length;n++)isNaN(Number(l[n]))&&(o.push(l[n]),isNaN(Number(l[n+1]))?s.push(""):s.push(l[n+1]));for(var i=[],n=0;n<o.length;n++)if("ENSG"==o[n].slice(0,4)||"ensg"==o[n].slice(0,4))for(var c=0;c<t.results.length;c++)o[n]==t.results[c].gene.id&&i.push(t.results[c]);else for(var c=0;c<t.results.length;c++)o[n]===t.results[c].gene.name&&i.push(t.results[c]);for(var p=[],n=0;n<s.length;n++)0!==s[n].length&&p.push(s[n]);for(n=0;n<s.length;n++)0!==p.length&&(i[n].gene.score=s[n]);return i},PasteBox=React.createClass({displayName:"PasteBox",getInitialState:function(){return{newTable:""}},handleClick:function(e){},render:function(){for(var e=this.state.value,t="",a=0;a<this.props.prio.terms.length;a++)t=t.concat(this.props.prio.terms[a].term.id+",");var r=GN.urls.main+"/diagnosis/"+t,n=this.props.prioFiltered?React.createElement("a",{href:r},React.createElement("span",{className:"button clickable noselect"},"UNFILTER")):null;return React.createElement("form",null,React.createElement("textarea",{className:"textarea-flex",id:"pastegenes",placeholder:"\n\n\tPaste a list of genes here to filter the results... \n\n\tYou can also add variant impact scores if \n\tavailable, following the gene name or ID.\n\n\t(E.g. MYOM1 3, BRCA1 2, etc.)",value:e,onChange:this.handlePasteGenesChange,rows:"10"}),React.createElement("br",null),React.createElement("span",{className:"button clickable noselect",onClick:this.props.onFilter},this.props.prioFiltered?"FILTER AGAIN":"FILTER"," "),n)}}),Diagnosis=React.createClass({displayName:"Diagnosis",getInitialState:function(){return{useCustomGeneSet:null!==this.props.location.state&&this.props.location.state.useCustomGeneSet,message:"",hoverRow:null,hoverCol:null,orderedTerms:null}},handleMouseOver:function(e){var t=e.predicted;this.setState({hoverItem:t})},componentDidMount:function(){async.waterfall([this.loadData,this.createHeatmap],function(e){e&&console.log(e)})},componentWillReceiveProps:function(e){},handleSubmit:function(e){this.setState({submitList:e})},parseGeneList:function(e){return e=e.trim().replace(/(\r\n|\n|\r|\t|\s)/g,","),e.split(",").filter(function(e){return e}).join(",")},handleHover:function(e,t){this.setState({hoverRow:e,hoverCol:t})},createHeatmap:function(e,t){if(e.hpoCorrelation.termsFound.length>1){var a=document.getElementById("heatmap"),r=new D3Heatmap(a,{cormat:e.hpoCorrelation.hpoCorrelationMatrix,terms:e.hpoCorrelation.termsFound,distance:"euclidean",linkage:"avg",colorscale:["#000080","#FFFFFF","#CD2626"],cellsize:20,strokeWidth:1,handleHover:this.handleHover});this.setState({orderedTerms:r._props.orderedTerms})}},loadData:function(e){var t=this.state.useCustomGeneSet?this.parseGeneList(this.props.location.state.genes):void 0;$.ajax({url:GN.urls.prioritization+"/"+this.props.params.id+"?verbose",dataType:"json",data:t,success:function(t){this.setState({data:t}),e(null,t)}.bind(this),error:function(e,t,a){console.log(e),"Not Found"===a?this.setState({error:"Pathways "+this.props.params.id+" not found",errorTitle:"Error "+e.status}):this.setState({error:"Please try again later ("+e.status+")",errorTitle:"Error "+e.status})}.bind(this)})},download:function(){document.getElementById("gn-diagnosis-downloadform").submit()},onFilter:function(e){var t=document.getElementById("pastegenes").value,a=compareGenes(t,this.state.data);this.setState({newTable:a}),document.getElementById("pastegenes").value=""},render:function(){if(!this.state.data)return React.createElement("div",{style:{paddingTop:"250px",paddingLeft:"45%",backgroundColor:"#fff"},className:"flex10 hflex"},React.createElement("span",{style:{fontWeight:"bold",fontFamily:"GG",fontSize:"1.5em"}},"Loading"));var e=(this.state.data.terms.length,this.state.data.terms.length,this.state.useCustomGeneSet&&0!=this.props.location.state.genes.length?this.state.data.genesNotFound.join(", "):void 0);return React.createElement(DocumentTitle,{title:"Diagnosis"+GN.pageTitleSuffix},React.createElement("div",{style:{backgroundColor:"#ffffff"}},React.createElement("div",{className:"prio-tables"},React.createElement("div",{className:"hflex"},React.createElement("div",{className:"flex11",style:{maxWidth:"730px"}},React.createElement(ShowPhenotypes3,{prio:this.state.data,orderedTerms:this.state.orderedTerms,hoverItem:this.state.hoverItem,hoverRow:this.state.hoverRow,hoverCol:this.state.hoverCol})),this.state.data.hpoCorrelation.termsFound.length>1?React.createElement("div",{className:"vflex",style:{paddingLeft:"20px",width:"100%",maxWidth:"400px"}},React.createElement("div",{id:"heatmap-title",style:{paddingTop:"7px",paddingBottom:"7px",fontWeight:"bold"}},"PHENOTYPE CORRELATION"),React.createElement("div",{id:"heatmap",className:"flex11",style:{width:"100%",minWidth:"300px"}})):null),this.state.useCustomGeneSet?React.createElement("div",null,React.createElement("div",{style:{padding:"20px 0px 10px 0px",marginTop:"20px"}},React.createElement("h3",null,"Genes not found"),e),React.createElement("div",{style:{padding:"10px 0px 10px 0px"}},React.createElement("h3",null,"Gene prioritization"))):React.createElement("div",{style:{padding:"20px 0px 10px 0px",marginTop:"20px"}},React.createElement("h3",null,"Gene prioritization")),React.createElement("div",{style:{overflow:"auto",display:"inline"}},React.createElement(GeneTable,{prio:this.state.data,orderedTerms:this.state.orderedTerms,prioFiltered:this.state.newTable,onMouseOver:this.handleMouseOver,hoverRow:this.state.hoverRow})),React.createElement("div",{style:{padding:"10px 0px",marginTop:"10px"}},React.createElement("div",{className:"button clickable noselect",style:{marginRight:"10px"},onClick:this.download},"DOWNLOAD COMPLETE RESULTS"),React.createElement(NetworkButton,{prio:this.state.data,prioFiltered:this.state.newTable}),React.createElement("div",null,React.createElement("form",{id:"gn-diagnosis-downloadform",method:"post",encType:"multipart/form-data",action:GN.urls.tabdelim},React.createElement("input",{type:"hidden",id:"what",name:"what",value:"diagnosis"}),React.createElement("input",{type:"hidden",id:"terms",name:"terms",value:this.props.params.id})))))))}});module.exports=Diagnosis;
+'use strict';
+
+var _ = require('lodash');
+var async = require('async');
+var color = require('../../js/color');
+var htmlutil = require('../../js/htmlutil');
+var genstats = require('genstats');
+var prob = genstats.probability;
+
+var React = require('react');
+var Router = require('react-router');
+var DocumentTitle = require('react-document-title');
+
+var SVGCollection = require('./SVGCollection');
+var I = SVGCollection.I;
+var htmlutil = require('../../js/htmlutil');
+var color = require('../../js/color');
+var D3Heatmap = require('../../js/D3Heatmap');
+
+var reactable = require('reactable');
+var Tr = reactable.Tr;
+var Td = reactable.Td;
+var Th = reactable.Th;
+var Thead = reactable.Thead;
+var Tbody = reactable.Tbody;
+var Table = reactable.Table;
+var unsafe = reactable.unsafe;
+
+
+/* For the Z-score colours in the phenotype table: */
+
+function HSVtoRGB(h, s, v) {
+    var r, g, b, i, f, p, q, t;
+    if (arguments.length === 1) {
+        s = h.s, v = h.v, h = h.h;
+    }
+    i = Math.floor(h * 6);
+    f = h * 6 - i;
+    p = v * (1 - s);
+    q = v * (1 - f * s);
+    t = v * (1 - (1 - f) * s);
+    switch (i % 6) {
+        case 0: r = v, g = t, b = p; break;
+        case 1: r = q, g = v, b = p; break;
+        case 2: r = p, g = v, b = t; break;
+        case 3: r = p, g = q, b = v; break;
+        case 4: r = t, g = p, b = v; break;
+        case 5: r = v, g = p, b = q; break;
+    }
+    return {
+        r: Math.round(r * 255),
+        g: Math.round(g * 255),
+        b: Math.round(b * 255)
+    };
+}
+
+
+/* For the Z-score colours in the phenotype table: */
+
+function getRGB(avg){
+    var v = 1-(parseFloat(avg)/20);
+    var s = 0.6 + (parseFloat(Math.abs(avg))/7);
+    if (parseFloat(avg) >= 0){
+        var colors = HSVtoRGB(0.0389, s, v);
+        return 'rgb(' + colors.r + ',' + colors.g + ', ' + colors.b + ')'
+    } else {
+        var colors = HSVtoRGB(0.58, s, v);
+        return 'rgb(' + colors.r + ',' + colors.g + ', ' + colors.b + ')'
+    }
+}
+
+/*Shows a table of the phenotypes used as input, with colours depending on the Z-scores: */
+
+var NetworkButton = React.createClass({displayName: "NetworkButton",
+
+    render: function() {
+
+        var subTable = this.props.prioFiltered;
+        var urlGenes = '';
+
+        if (subTable) {
+            for (var i = 0; i < subTable.length; i++) {
+                urlGenes = urlGenes + subTable[i].gene.id + ','
+            }
+        } else {
+            for (var i = 0; i < this.props.prio.results.length; i++) {
+                urlGenes = urlGenes + this.props.prio.results[i].gene.id + ','
+            }        
+        }
+        var networkLink = GN.urls.networkPage + urlGenes;
+
+        return(React.createElement("a", {href: networkLink, target: "_blank"}, React.createElement("span", {className: "button clickable noselect"}, "100 GENES NETWORK")));
+
+        {/*return(<a href={networkLink} target="_blank"><button type="button" >View network of prioritized genes!</button></a>)*/}
+    }
+});
+
+var ShowPhenotypes3 = React.createClass({displayName: "ShowPhenotypes3",
+
+    render: function() {
+        var hoverZScores = this.props.hoverItem;
+        var rows = [];
+
+        var terms = this.props.prio.terms;
+        var termslist = _.map(terms, 'term.id');
+        var orderedTerms = this.props.orderedTerms;
+
+        if (orderedTerms){
+            // if heatmap clustering is done, replace terms array by ordered terms array (based on clustering)
+            var newTerms = [];
+            for (var i = 0; i < orderedTerms.length; i++){
+                var index = termslist.indexOf(orderedTerms[i]);
+                newTerms.push(terms[index])
+            }
+            terms = newTerms
+        }
+
+
+        /* Getting the colour: */
+        for (var i = 0; i < terms.length; i++) {
+            /* The actual phenotype information: */
+            rows.push(
+                React.createElement(Tr, {key: terms[i].term.name, style: terms[i].term.id === this.props.hoverRow || terms[i].term.id === this.props.hoverCol ? {backgroundColor: color.colors.gnyellow} : {}}, 
+                    React.createElement(Td, {column: "PHENOTYPE"}, terms[i].term.name), 
+                    React.createElement(Td, {column: "ANNOTATED", style: {textAlign: 'center'}}, terms[i].term.numAnnotatedGenes), 
+                    React.createElement(Td, {column: "HPOTERM", style: {textAlign: 'center'}}, React.createElement("a", {className: "externallink", href: terms[i].term.url, target: "_blank"}, terms[i].term.id))
+                )
+            )
+        }
+
+        return (
+            React.createElement(Table, {id: "phenTab", className: "sortable rowcolors table pheno-table", style: {width: '100%'}}, 
+            React.createElement(Thead, null, 
+                React.createElement(Th, {column: "PHENOTYPE", style: {textAlign: 'left'}}, "PHENOTYPE"), 
+                React.createElement(Th, {column: "ANNOTATED", style: {textAlign: 'center'}}, "ANNOTATED GENES"), 
+                React.createElement(Th, {column: "HPOTERM", style: {textAlign: 'center'}}, "HPO-TERM")
+            ), 
+            rows
+            )
+        )
+    }
+});
+
+
+
+/* Shows a table of all of the prioritized genes: */
+
+var GeneTable = React.createClass({displayName: "GeneTable",
+
+    render: function() {
+
+        var subTable = this.props.prioFiltered;
+
+        /* if geneslist is submitted */
+
+        if (subTable) {
+
+            var newRows = []; // Rows in the table
+
+            for (var i = 0; i < subTable.length; i++) {
+
+                var rowtype = i % 2 === 0 ? 'datarow evenrow' : 'datarow oddrow';
+
+                /* network urls: */
+                var phens = "";
+                for (var j = 0; j < this.props.prio.terms.length; j++) {
+                    phens = phens.concat(this.props.prio.terms[j].term.id + ',')
+                }
+                var gene = "0!" + subTable[i].gene.name;
+                var networkLink = GN.urls.networkPage + phens + gene;
+
+                /* If impact scorses provided, include column in rows: */
+                var impactScore = null;
+                if (subTable[i].gene.score || subTable[i].gene.score === "") {
+                    impactScore = React.createElement(Td, {column: "IMPACT", style: {textAlign: 'center'}}, subTable[i].gene.score)
+                } else {
+                    impactScore = null
+                }
+
+                var geneLink = GN.urls.genePage + subTable[i].gene.name;
+
+                newRows.push(
+                    React.createElement(Tr, {key: i, className: rowtype, onMouseOver: this.props.onMouseOver.bind(null, subTable[i].predicted)}, 
+                    React.createElement(Td, {column: "RANK", style: {textAlign: 'center'}}, i + 1), 
+                    React.createElement(Td, {column: "GENE", style: {textAlign: 'left'}}, React.createElement("a", {className: "nodecoration black", href: geneLink, target: "_blank"}, subTable[i].gene.name)), 
+                    React.createElement(Td, {column: "P-VALUE", style: {textAlign: 'center'}}, unsafe(subTable[i].weightedZScore)), 
+                    React.createElement(Td, {column: "DIRECTION", style: {textAlign: 'center'}}, subTable[i].weightedZScore > 0 ? React.createElement(SVGCollection.TriangleUp, {className: "directiontriangleup"}) : React.createElement(SVGCollection.TriangleDown, {className: "directiontriangledown"})), 
+                    React.createElement(Td, {column: "ANNOTATION", style: {textAlign: 'center'}}, React.createElement("div", {title: subTable[i].annotated.length == 0 ? "Not annotated to any of the phenotypes." : subTable[i].annotated}, subTable[i].annotated.length)), 
+                    React.createElement(Td, {column: "NETWORK", style: {textAlign: 'center'}}, React.createElement("a", {href: networkLink, target: "_blank"}, React.createElement(SVGCollection.NetworkIcon, null))), 
+                    impactScore
+                    )
+                )
+            }
+
+        } else {
+
+            var newRows = [];        // Rows in the table
+
+            for (var i = 0; i < this.props.prio.results.length; i++) {
+
+                /* network urls: */
+                var phens = "";
+                for (var j = 0; j < this.props.prio.terms.length; j++) {
+                    phens = phens.concat(this.props.prio.terms[j].term.id + ',')
+                }
+                var gene = "0!" + this.props.prio.results[i].gene.name;
+                var networkLink = GN.urls.networkPage + phens + gene;
+
+                /* biotype squares: */
+                var square =
+                    React.createElement("div", {style: this.props.style, title: this.props.prio.results[i].gene.biotype}, 
+                    React.createElement("svg", {viewBox: "0 0 10 10", width: 12, height: 12}, 
+                    React.createElement("rect", {x1: "0", y1: "0", width: "10", height: "10", style: {fill: color.biotype2color[this.props.prio.results[i].gene.biotype] || color.colors.default}})
+                    )
+                    );
+
+                var geneLink = GN.urls.genePage + this.props.prio.results[i].gene.name;
+
+                var hpoZscores = [];
+                for (var e = 0; e < this.props.prio.results[i].predicted.length; e++){
+                    hpoZscores.push(React.createElement(Td, {column: this.props.prio.terms[e].term.id}, Math.round(this.props.prio.results[i].predicted[e] * 10)/10))
+                }
+
+                newRows.push(
+                    React.createElement(Tr, {key: i, onMouseOver: this.props.onMouseOver.bind(null, this.props.prio.results[i])}, 
+                    React.createElement(Td, {column: "RANK", style: {textAlign: 'center'}}, i + 1), 
+                    React.createElement(Td, {column: "GENE", style: {textAlign: 'left'}}, React.createElement("a", {className: "nodecoration black", href: geneLink, target: "_blank", title: this.props.prio.results[i].gene.description}, this.props.prio.results[i].gene.name)), 
+                    React.createElement(Td, {column: "Z-SCORE", style: {textAlign: 'center'}}, Math.round(unsafe(this.props.prio.results[i].weightedZScore)*10)/10), 
+                    React.createElement(Td, {column: "NETWORK", style: {textAlign: 'center'}}, React.createElement("a", {href: networkLink, target: "_blank"}, React.createElement(SVGCollection.NetworkIcon, null))), 
+                    hpoZscores
+                    )
+                )
+            }
+        }
+
+        /* If variant impact is provided, include header in table: */
+        var scoreHeader = null;
+        if (subTable && subTable.length > 0) {
+            if (subTable[0].gene.score || subTable[0].gene.score === "") {
+                scoreHeader = React.createElement(Th, {column: "impact", style: {textAlign: 'center'}}, "VAR. IMPACT")
+            } else {
+                scoreHeader = null
+            }
+        }
+
+        if (subTable && subTable.length == 0) {
+            newRows.push(React.createElement(Tr, {key: "1"}, React.createElement(Td, {column: ""}, "Your list of genes did not match any of the results.")))
+        }
+
+        var terms = this.props.prio.terms;
+        var orderedTerms = this.props.orderedTerms;
+        
+        if (orderedTerms){
+        	var termslist = _.map(terms, 'term.id');
+        	var array = [];
+	        for (var i = 0; i < orderedTerms.length; i++){
+	            var index = termslist.indexOf(orderedTerms[i]);
+	            array.push(terms[index])
+	        }
+	        terms = array
+        }
+        
+        var hpoIds = [];
+        for (var n = 0; n < terms.length; n++){
+            hpoIds.push(React.createElement(Th, {column: terms[n].term.id}, React.createElement(SVGCollection.DiagonalText, {text: terms[n].term.id})))
+        }
+
+
+        /* The actual table, with custom sorting: */
+        return (React.createElement(Table, {id: "gentab", className: "sortable rowcolors table diag-table", 
+
+
+            sortable: [
+                {
+                    column: 'GENE',
+                    sortFunction: function(a, b) {
+                        return a.props.children.localeCompare(b.props.children)
+                    }
+                }
+                    ,
+
+                {
+                //P-val: not really necessary (can simply sort using 'rank'), but the user doesn't know that..
+                    column: 'Z-SCORE',
+
+                    sortFunction: function(a, b) {
+                        return b - a
+                    }
+                },
+            ]
+
+            }, 
+            React.createElement(Thead, null, 
+                /*<Th>{""}</Th>*/
+                React.createElement(Th, {column: "RANK", style: {textAlign: 'center'}}, "RANK"), 
+                React.createElement(Th, {column: "GENE"}, "GENE"), 
+                React.createElement(Th, {column: "Z-SCORE", style: {textAlign: 'center'}}, 
+                    "Z-SCORE"
+                ), 
+                React.createElement(Th, {column: "NETWORK", style: {textAlign: 'center'}}, "NETWORK"), 
+                hpoIds
+            ), 
+            newRows
+            ))
+    }
+});
+
+// Uses geneslist (& variant scores) provided by user to return new (filtered) data for the GenesTable:
+
+var compareGenes = function (newList, data) {
+
+    /* Splitting submitted geneslist at \n ; , and \t --> into (uppercase) array */
+    newList = newList.replace(/\n/g, ' ');
+    newList = newList.replace(/;/g, ' ');
+    newList = newList.replace(/,/g, ' ');
+    newList = newList.replace(/\t/g, ' ');
+    var newArray = newList.split(' ');
+
+    var neatArray = [];
+    for (var i = 0; i < newArray.length; i++) {
+        if (newArray[i].length !== 0) {
+            neatArray.push(newArray[i])
+        }
+    }
+
+    var upperCaseArray = [];
+    for (i = 0; i < neatArray.length; i++) {
+        upperCaseArray.push(neatArray[i].toUpperCase())
+    }
+
+    /* Storing genesList in two seperate arrays (genes & scores, if available) */
+    var snpScores = [];
+    var neaterArray = [];
+
+    for (i = 0; i < upperCaseArray.length; i++) {
+        if (isNaN(Number(upperCaseArray[i]))) {
+            neaterArray.push(upperCaseArray[i]);
+            if (isNaN(Number(upperCaseArray[i+1]))) {
+                snpScores.push('')
+                
+            } else {
+                snpScores.push(upperCaseArray[i+1])
+            }
+        } else {
+        }
+    }
+
+    /* ENSG --> gene-name, pushing results to newTableData array */
+    var newTableData = [];
+    for (var i = 0; i < neaterArray.length; i++) {
+        if (neaterArray[i].slice(0,4) == 'ENSG' || neaterArray[i].slice(0,4) == 'ensg') {
+            for (var j = 0; j < data.results.length; j++) {
+                if (neaterArray[i] == data.results[j].gene.id) {
+                    newTableData.push(data.results[j])              /* all info on gene pushed to new array */
+                }
+            }
+        } else {
+            for (var j = 0; j < data.results.length; j++) {
+                if (neaterArray[i] === data.results[j].gene.name) {
+                    newTableData.push(data.results[j])              /* all info on gene pushed to new array */
+                }
+            }
+        }
+    }
+
+    /* Checking whether any variant impact scores were provided:*/
+    var snpScoresEmptied = [];
+        for (var i = 0; i < snpScores.length; i++) {
+        if (snpScores[i].length !== 0) {
+            snpScoresEmptied.push(snpScores[i])
+        }
+    }
+
+    /* Adding snpScores to gene object (if they're there) */
+    for (i = 0; i < snpScores.length; i++) {
+        if (snpScoresEmptied.length !== 0) {
+            newTableData[i].gene.score = snpScores[i]
+        }
+    }
+
+    return (newTableData)
+};
+
+
+/* Textbox to paste a list of genes in, to filter the table: */
+
+var PasteBox = React.createClass({displayName: "PasteBox",
+
+    getInitialState: function() {
+        return {newTable: ''}
+    },
+
+    handleClick: function(e) {
+    },
+
+    render: function() {
+        var value = this.state.value;
+
+        var phens = "";
+        for (var j = 0; j < this.props.prio.terms.length; j++) {
+            phens = phens.concat(this.props.prio.terms[j].term.id + ',')
+        }
+
+        var url = GN.urls.main + "/diagnosis/" + phens;
+
+        var unfilterButton = this.props.prioFiltered ? React.createElement("a", {href: url}, React.createElement("span", {className: "button clickable noselect"}, "UNFILTER")) : null; // Results in error: Invariant Violation: Expected onClick listener to be a function, instead got type string
+
+        return (
+            React.createElement("form", null, 
+            React.createElement("textarea", {className: "textarea-flex", id: "pastegenes", placeholder: "\n\n\tPaste a list of genes here to filter the results... \n\n\tYou can also add variant impact scores if \n\tavailable, following the gene name or ID.\n\n\t(E.g. MYOM1 3, BRCA1 2, etc.)", 
+                value: value, onChange: this.handlePasteGenesChange, rows: "10"}), 
+
+            React.createElement("br", null), 
+
+            React.createElement("span", {className: "button clickable noselect", onClick: this.props.onFilter}, 
+                this.props.prioFiltered ? 'FILTER AGAIN' : 'FILTER', " "), 
+
+            unfilterButton
+            )
+        )
+    }
+});
+
+
+var Diagnosis = React.createClass({displayName: "Diagnosis",
+
+    getInitialState: function() {
+        var useCustomGeneSet = this.props.location.state === null ? false : this.props.location.state.useCustomGeneSet;
+        return {
+            useCustomGeneSet: useCustomGeneSet,
+            message: '',
+            hoverRow: null,
+            hoverCol: null,
+            orderedTerms: null
+        }
+    },
+
+    handleMouseOver: function(item) {
+        var predicted = item.predicted;
+        this.setState({
+            hoverItem: predicted,
+        })
+    },
+    
+    componentDidMount: function() {
+       async.waterfall([
+            this.loadData,
+            this.createHeatmap
+        ], function(err){
+            if (err) console.log(err)
+        })
+    },
+
+    componentWillReceiveProps: function(nextProps) {
+    },
+
+    handleSubmit: function(submitted) {
+        this.setState({
+            submitList: submitted
+        })
+    },
+
+    parseGeneList: function(geneList) {
+        geneList = geneList.trim().replace(/(\r\n|\n|\r|\t|\s)/g, ',');
+        var genes = geneList.split(',').filter(function(e){return e}).join(',');
+        return(genes);
+    },
+
+    handleHover: function(row, col){
+    	this.setState({
+    		hoverRow: row,
+    		hoverCol: col
+    	})
+    },
+
+    createHeatmap: function(data, callback) {
+
+        var correlationMatrix = data.hpoCorrelation.hpoCorrelationMatrix;
+
+        if (data.hpoCorrelation.termsFound.length > 1) {
+            // Create heatmap
+            var div = document.getElementById('heatmap');
+            var heatmap = new D3Heatmap(div, {
+                cormat: data.hpoCorrelation.hpoCorrelationMatrix,
+                terms: data.hpoCorrelation.termsFound,
+                distance: 'euclidean',
+                linkage: 'avg',
+                colorscale: ['#000080', '#FFFFFF', '#CD2626'],
+                cellsize: 20,
+                strokeWidth: 1,
+                handleHover: this.handleHover
+            });
+            // Determine closely correlated terms
+            var correlatedTerms = [];
+            for (var i = 0; i < correlationMatrix.length ; i++) {
+                for (var j = 1 + i; j < correlationMatrix[i].length; j++) {
+                    var correlation = correlationMatrix[i][j];
+                    if (i !== j && correlation > 0.95) {
+                        correlatedTerms.push(data.terms[i]);
+                        correlatedTerms.push(data.terms[j]);
+                    }
+                }
+            }
+
+            this.setState({
+                orderedTerms: heatmap._props.orderedTerms,
+                correlatedTerms: correlatedTerms
+            })
+
+
+        }        
+    },
+
+    loadData: function(callback) {
+        
+        var genes = this.state.useCustomGeneSet ? this.parseGeneList(this.props.location.state.genes) : undefined;
+        
+        // var genes = this.props.location.state.useCustomGeneSet ? this.props.location.state.genes : undefined
+        $.ajax({
+            url: GN.urls.prioritization + '/' + this.props.params.id + '?verbose',
+            dataType: 'json',
+            data: genes,
+            // processData: 
+            success: function(data) {
+                this.setState({
+                    data: data
+                });
+                callback(null, data)
+            }.bind(this),
+            error: function(xhr, status, err) {
+                console.log(xhr);
+                if (err === 'Not Found') {
+                    this.setState({
+                        error: 'Pathways ' + this.props.params.id + ' not found',
+                        errorTitle: 'Error ' + xhr.status
+                    })
+                } else {
+                    this.setState({
+                        error: 'Please try again later (' + xhr.status + ')',
+                        errorTitle: 'Error ' + xhr.status
+                    })
+                }
+            }.bind(this)
+        })
+    },
+
+    download: function(){
+        var form = document.getElementById('gn-diagnosis-downloadform');
+        form.submit()
+    },
+    
+    onFilter: function(e) {
+
+        var text = document.getElementById('pastegenes').value;
+        var newTableInfo = compareGenes(text, this.state.data);
+
+        this.setState({
+            newTable: newTableInfo
+        });
+
+        document.getElementById('pastegenes').value = ''
+    },
+
+    render: function() {
+
+        if (!this.state.data) {
+            return (
+                React.createElement("div", {style: {paddingTop: '250px', paddingLeft: '45%', backgroundColor: '#fff'}, className: "flex10 hflex"}, 
+                    React.createElement("span", {style: {fontWeight: 'bold', fontFamily: 'GG', fontSize: '1.5em'}}, "Loading")
+                )
+            )
+        }
+
+        var thisThese = this.state.data.terms.length == 1 ? 'this ' : 'these ';
+        var phenotypePhenotypes = this.state.data.terms.length == 1 ? ' phenotype:' : ' phenotypes:';
+        var genesNotFound = this.state.useCustomGeneSet && this.props.location.state.genes.length != 0 ? this.state.data.genesNotFound.join(', ') : undefined;
+        console.log(this.state.correlatedTerms);
+
+        return (
+            React.createElement(DocumentTitle, {title: 'Diagnosis' + GN.pageTitleSuffix}, 
+                React.createElement("div", {style: {backgroundColor: '#ffffff'}}, 
+                    React.createElement("div", {className: "prio-tables"}, 
+
+                        React.createElement("div", {className: "hflex"}, 
+                            React.createElement("div", {className: "flex11", style: {maxWidth: '730px'}}, 
+                                React.createElement(ShowPhenotypes3, {prio: this.state.data, orderedTerms: this.state.orderedTerms, hoverItem: this.state.hoverItem, hoverRow: this.state.hoverRow, hoverCol: this.state.hoverCol})
+                            ), 
+                            this.state.data.hpoCorrelation.termsFound.length > 1 ?
+                                React.createElement("div", {className: "vflex", style: {paddingLeft: '20px', width: '100%', maxWidth: '400px'}}, 
+                                    React.createElement("div", {id: "heatmap-title", style: {paddingTop: '7px', paddingBottom: '7px', fontWeight: 'bold'}}, "PHENOTYPE CORRELATION"), 
+                                    React.createElement("div", {id: "heatmap", className: "flex11", style: {width: '100%', minWidth: '300px'}})
+                                )
+                                :
+                                null
+                            
+                        ), 
+
+                        this.state.correlatedTerms ?
+                            React.createElement("div", {id: "warning-correlated-terms", style: {paddingLeft: '10px'}}, 
+                                React.createElement("span", {style: {verticalAlign: 'middle', display: 'inline-block'}}, 
+                                    React.createElement(SVGCollection.Warning, null)
+                                ), 
+                                React.createElement("span", {style: {fontWeight: 'bold', fontFamily: 'GG', fontSize: '1.2em', marginLeft:'4px' ,verticalAlign: 'middle', display: 'inline-block'}}, 
+                                    "Warning"
+                                ), 
+                                React.createElement("br", null), 
+                                React.createElement("br", null), 
+                                "The terms", 
+                                _.map(this.state.correlatedTerms, function (term, i) {
+                                    return React.createElement("span", {key: term.term.id}, React.createElement("strong", null, " ", term.term.name), " (", term.term.id, "), ")
+                                }), 
+                                "are highly similar.", React.createElement("br", null), 
+                                React.createElement("i", null, "Using two similar terms might bias the prioritization toward these terms. It is recommended to select one of these terms.")
+
+                            )
+                            :
+                            null, 
+                        
+
+
+
+                        this.state.useCustomGeneSet ?
+                            React.createElement("div", null, 
+                                React.createElement("div", {style: {padding: '20px 0px 10px 0px', marginTop: '20px'}}, 
+                                    React.createElement("h3", null, "Genes not found"), 
+                                    genesNotFound
+                                ), 
+                                React.createElement("div", {style: {padding: '10px 0px 10px 0px'}}, 
+                                    React.createElement("h3", null, "Gene prioritization")
+
+                                )
+                            )
+                            :
+                            React.createElement("div", {style: {padding: '20px 0px 10px 0px', marginTop: '20px'}}, 
+                                React.createElement("h3", null, "Gene prioritization")
+                            ), 
+                        
+
+                        React.createElement("div", {style: {overflow: "auto", display: 'inline'}}, 
+
+                            React.createElement(GeneTable, {prio: this.state.data, orderedTerms: this.state.orderedTerms, prioFiltered: this.state.newTable, onMouseOver: this.handleMouseOver, hoverRow: this.state.hoverRow})
+
+                        ), 
+
+                        React.createElement("div", {style: {padding: '10px 0px', marginTop: '10px'}}, 
+                            React.createElement("div", {className: "button clickable noselect", style: {marginRight: '10px'}, onClick: this.download}, "DOWNLOAD COMPLETE RESULTS"), 
+                            React.createElement(NetworkButton, {prio: this.state.data, prioFiltered: this.state.newTable}), 
+
+                            React.createElement("div", null, 
+                                React.createElement("form", {id: "gn-diagnosis-downloadform", method: "post", encType: "multipart/form-data", action: GN.urls.tabdelim}, 
+                                    React.createElement("input", {type: "hidden", id: "what", name: "what", value: "diagnosis"}), 
+                                    React.createElement("input", {type: "hidden", id: "terms", name: "terms", value: this.props.params.id})
+                                )
+                            )
+
+                        )
+
+                    )
+                )
+            )
+        )
+    }
+});
+
+module.exports = Diagnosis;
 
 },{"../../js/D3Heatmap":1,"../../js/color":4,"../../js/htmlutil":5,"./SVGCollection":45,"async":54,"genstats":97,"lodash":130,"react":333,"react-document-title":142,"react-router":164,"reactable":334}],34:[function(require,module,exports){
-"use strict";var _=require("lodash"),React=require("react"),DocumentTitle=require("react-document-title"),color=require("../../js/color.js"),Select=require("react-select"),Async=Select.Async,reactable=require("reactable"),Tr=reactable.Tr,Td=reactable.Td,Th=reactable.Th,Thead=reactable.Thead,Table=reactable.Table,SVGCollection=require("./SVGCollection"),UploadPanel=require("./UploadPanel"),Back=require("./Back"),TermTable=React.createClass({displayName:"TermTable",componentDidUpdate:function(){},render:function(){var e=this.props.terms,t=[];return e.length<1?t.push(React.createElement(Tr,{id:"no-term-selected",key:"no-term-selected"},React.createElement(Td,{column:"TERM",className:"text"},React.createElement("span",{style:{color:color.colors.gngray,fontStyle:"italic"}},"No terms selected")),React.createElement(Td,{column:"ID",style:{whiteSpace:"nowrap",textAlign:"center"},data:""}),React.createElement(Td,{column:"REMOVE",data:""}))):_.map(e,function(e){t.push(React.createElement(Tr,{id:e.value,key:e.value},React.createElement(Td,{column:"TERM",style:{width:"100%"},className:"text",data:e.name}),React.createElement(Td,{column:"ID",style:{whiteSpace:"nowrap",minWidth:"110px",textAlign:"center"},data:e.value}),React.createElement(Td,{column:"REMOVE",style:{minWidth:"80px",textAlign:"center"}},React.createElement("span",{className:"clickable",style:{color:"red",fontWeight:"bold"},onClick:this.props.removeTerm.bind(null,e.value)},"X"))))}.bind(this)),React.createElement("div",null,React.createElement(Table,{id:"hpo-table",className:"table rowcolors",style:{margin:"0px 0 30px 0"}},React.createElement(Thead,null,React.createElement(Th,{column:"TERM",style:{width:"100%"}},"TERM"),React.createElement(Th,{column:"ID",style:{minWidth:"110px",textAlign:"center"}},"ID"),React.createElement(Th,{column:"REMOVE",style:{minWidth:"80px",textAlign:"center"}})),t))}}),DiagnosisMain=React.createClass({displayName:"DiagnosisMain",getInitialState:function(){return{isOpen:!1,selectedTerms:Array(),termsNotFound:Array(),checkbox:!1,genefilename:"CHOOSE A FILE...",termfilename:"CHOOSE A FILE..."}},getSuggestions:function(e,t){if(!e||e.length<2)return t(null,{});io.socket.get(GN.urls.diagnosisSuggest,{q:e},function(e,a){if(200===a.statusCode){var n=_.compact(_.map(e,function(e){return{value:e._source.id,label:e._source.name+" - "+e._source.id,name:e._source.name,isSignificantTerm:e._source.isSignificantTerm}}));return t(null,{options:n,complete:!1})}return t(null,{})})},onSelectChange:function(e,t){if(e.isSignificantTerm){var a=this.state.selectedTerms;a.push({value:e.value,name:e.name}),a=_.uniqBy(a,"value"),this.setState({selectedTerms:a})}else io.socket.get(GN.urls.diagnosisParentTerms,{id:e.value},function(t,a){t.forEach(function(e){e.selected=!0}),this.setState({isOpen:!0,parentTerms:t,modalTerm:e})}.bind(this))},removeTerm:function(e){var t=_.filter(this.state.selectedTerms,function(t){return t.value!=e});this.setState({selectedTerms:t})},onCheckboxClick:function(){var e=!this.state.checkbox;this.setState({checkbox:e})},onTextAreaChange:function(){var e=document.getElementById("textarea-genelist").value.length,t=e>0;this.setState({checkbox:t})},onGeneFileUploadClick:function(){document.getElementById("file-genelist").onchange=function(){var e=document.getElementById("file-genelist").files[0].name;e=e.length>30?e.slice(0,15)+"...":e,this.setState({genefilename:e,checkbox:!0})}.bind(this)},onTermFileUploadClick:function(){document.getElementById("file-termlist").onchange=function(){var e=document.getElementById("file-termlist").files[0],t=new FormData;t.append("genelist",e),$.ajax({url:GN.urls.fileupload,data:t,processData:!1,contentType:!1,type:"POST",success:function(e){var t=e.split(",");this.digestHpoTermsFromUpload(t)}.bind(this)})}.bind(this)},onSubmit:function(){var e=document.getElementById("textarea-genelist").value,t=_.map(this.state.selectedTerms,function(e){return e.value}).join(","),a=!!this.state.checkbox,n=document.getElementById("file-genelist").files[0];if(n){var l=new FormData;l.append("genelist",n),$.ajax({url:GN.urls.fileupload,data:l,processData:!1,contentType:!1,type:"POST",success:function(e){this.props.history.pushState({genes:e,useCustomGeneSet:a},GN.urls.diagnosisPage+"/"+t)}.bind(this)})}else this.props.history.pushState({genes:e,useCustomGeneSet:a},GN.urls.diagnosisPage+"/"+t)},onSubmitModal:function(){var e=this.state.parentTerms.filter(function(e){return e.selected}).map(function(e){return{value:e.id,name:e.name}}),t=this.state.selectedTerms;t=t.concat(e),t=_.uniqBy(t,"value"),this.setState({isOpen:!this.state.isOpen,selectedTerms:t})},handleTermClick:function(e){var t=this.state.parentTerms,a=t.filter(function(t){return t.id===e.target.value})[0];a.selected=!a.selected,this.setState({parentTerms:t})},onCancelModal:function(){this.setState({isOpen:!1,parentTerms:null})},renderModal:function(){if(this.state.isOpen){const e={position:"absolute",zIndex:"1",top:0,bottom:0,left:0,right:0,backgroundColor:"rgba(0,0,0,0.3)",padding:50};var t={backgroundColor:"#fff",maxWidth:500,minHeight:200,margin:"0 auto",padding:30},a=this.state.parentTerms.map(function(e){return React.createElement("tr",null,React.createElement("td",null,React.createElement("input",{onClick:this.handleTermClick,type:"checkbox",name:e.name,key:e.id,value:e.id,ref:e.id,checked:e.selected})),React.createElement("td",{className:"text"},e.id),React.createElement("td",{className:"text"},e.name))}.bind(this));return React.createElement("div",{style:e},React.createElement("div",{style:t},React.createElement("h2",{style:{display:"inline"}},"Unable to use this phenotype"),React.createElement("h3",{style:{color:"#999999"}},this.state.modalTerm.name),React.createElement("div",{style:{margin:"15px 10px 10px 10px",padding:"8px",backgroundColor:color.colors.gnyellow,fontSize:"11pt",fontWeight:"bold"}},"This term (",this.state.modalTerm.value,", ",this.state.modalTerm.name,") cannot be used for gene prioritization.",a.length>1?React.createElement("span",null," We suggest using the combination of the more generic HPO terms listed below."):React.createElement("span",null," We suggest using the more generic HPO term listed below.")),React.createElement("form",null,React.createElement("table",{className:"rowcolors table"},React.createElement("thead",null,React.createElement("tr",null,React.createElement("th",{style:{width:"5%"}}),React.createElement("th",{className:"tabletextheader",style:{width:"10%"}},"TERM"),React.createElement("th",{className:"tabletextheader",style:{width:"60%"}},"NAME"))),React.createElement("tbody",null,a))),a.length>1?React.createElement("span",{onClick:this.onSubmitModal,className:"button noselect clickable",style:{marginTop:"20px"}},"ADD TERMS"):React.createElement("span",{onClick:this.onSubmitModal,className:"button noselect clickable",style:{marginTop:"20px"}},"ADD TERM"),React.createElement("span",{onClick:this.onCancelModal,className:"button noselect clickable",style:{marginTop:"20px",marginLeft:"5px"}},"CANCEL")))}},render:function(){var e=this.state.checkbox?"#000":color.colors.gngray,t=this.state.checkbox?{transition:"all .5s ease-in-out",height:"100px",overflow:"hidden"}:{transition:"all .5s ease-in-out",overflow:"hidden",height:"0px"},a={fontSize:"10pt"};return React.createElement(DocumentTitle,{title:"Diagnosis"+GN.pageTitleSuffix},React.createElement("div",null,this.renderModal(),React.createElement("div",{className:"flex10",style:{backgroundColor:color.colors.gnwhite,marginTop:"10px",padding:"40px"}},React.createElement("div",{style:{width:"100%"}},React.createElement("h2",{style:{display:"inline"}},"GADO: GeneNetwork Assisted Diagnostic Optimization")," ",React.createElement(Back,{url:GN.urls.main}),React.createElement("h4",null,"Using the HPO gene prioritization it is possible to rank genes based on a patient’s phenotypes.")),React.createElement("div",{className:"hflex",style:{marginTop:"40px"}},React.createElement("div",{className:"",style:{width:"55%",minWidth:"600px",paddingRight:"60px"}},React.createElement("ol",{className:"simple-list"},React.createElement("li",null,React.createElement("h3",null,"Select HPO terms"),React.createElement("div",{className:"hflex",style:{paddingTop:"20px"}},React.createElement("div",{className:"flex10",style:{float:"left",paddingBottom:"20px",width:"calc(100% - 200px)"}},React.createElement(Async,{name:"diagnosis-search",autoload:!1,cacheAsyncResults:!1,loadOptions:this.getSuggestions,onChange:this.onSelectChange}))),React.createElement(TermTable,{terms:this.state.selectedTerms,removeTerm:this.removeTerm})),React.createElement("li",null,React.createElement("label",{htmlFor:"checkbox",onClick:this.onCheckboxClick,style:{position:"absolute"}},React.createElement(SVGCollection.CheckBox,{selected:this.state.checkbox})),React.createElement("div",null,React.createElement("h3",{style:{paddingLeft:"30px",color:e,cursor:"pointer"},onClick:this.onCheckboxClick},"OPTIONAL: filter output on candidate genes")),React.createElement("input",{type:"checkbox",id:"checkbox",style:{display:"none"}}),React.createElement("div",{style:t,className:"hflex"},React.createElement("div",{className:"flex10",style:{paddingTop:"20px",width:"calc(100% - 200px)"}},React.createElement("textarea",{id:"textarea-genelist",placeholder:"Paste a list of genes here...",onChange:this.onTextAreaChange,cols:"40",rows:"5",className:"textarea-genes",style:{width:"100%",height:"65px",border:"1px solid "+color.colors.gngray,color:e,outline:"none"}})))),React.createElement("form",{encType:"multipart/form-data"},React.createElement("input",{id:"file-genelist",type:"file",style:{display:"none"}})),React.createElement("form",{encType:"multipart/form-data"},React.createElement("input",{id:"file-termlist",type:"file",style:{display:"none"}})),React.createElement("span",{onClick:this.onSubmit,className:"button noselect clickable",style:{marginTop:"20px"}},"Prioritize genes for given HPO terms"))),React.createElement("div",{id:"text-right",style:{width:"45%",padding:"20px",backgroundColor:color.colors.gnyellow,lineHeight:"1"}},React.createElement("ol",{className:"simple-list"},React.createElement("li",null,React.createElement("span",{style:a},"Fill in the phenotypes of a patient as HPO terms (",React.createElement("a",{href:"http://compbio.charite.de/hpoweb/showterm?id=HP:0000118",className:"externallink",target:"_blank"},"compbio.charite.de/hpoweb/showterm?id=HP:0000118"),"). Try to be as specific as possible, if a term cannot be used then a more generic can be selected. If the exact phenotype of a patient is unclear it is better to use a more general term, as a wrongly assigned specific term might hinder accurate ranking. For example, there are many subclasses of seizures (",React.createElement("a",{href:"http://compbio.charite.de/hpoweb/showterm?id=HP:0001250",className:"externallink",target:"_blank"},"compbio.charite.de/hpoweb/showterm?id=HP:0001250"),"), if it clear that a patient shows a specific subclass then the HPO term for this subclass should be used, if this is not clear then it is best to use the general seizures term. It is also best to only use distinct HPO terms to describe a patient’s phenotypes. If two close related terms are used to describe the same phenotype, then these will result in some bias towards this phenotype in the prioritization. Please use the HPO number or the primary name, synonyms are not supported at the moment.")),React.createElement("li",null,React.createElement("span",{style:a},"Optional list of genes to be ranked using the HPO terms. This could for instance be the genes in which a patient has candidate disease causing mutations that require classification or follow-up analysis. The genes that prioritize on top are the most likely candidates based on our HPO term predictions. If no gene list is provided we will simply rank all genes based on the provided HPO terms."))),"See the ",React.createElement("a",{href:"/faq",target:"blank"},"FAQ page")," for additional support")))))}});module.exports=DiagnosisMain;
+'use strict';
+
+var _ = require('lodash');
+var React = require('react');
+var DocumentTitle = require('react-document-title');
+var color = require('../../js/color.js');
+var Select = require('react-select');
+var Async = Select.Async;
+var reactable = require('reactable');
+var Tr = reactable.Tr;
+var Td = reactable.Td;
+var Th = reactable.Th;
+var Thead = reactable.Thead;
+var Table = reactable.Table;
+
+var SVGCollection = require('./SVGCollection');
+var UploadPanel = require('./UploadPanel');
+var Back = require('./Back');
+
+var TermTable = React.createClass({displayName: "TermTable",
+
+    componentDidUpdate: function() {
+        // var terms = this.props.terms
+        // if (!terms.length < 1){
+        //     var lastTerm = terms.slice(-1)[0]
+        //     var row = document.getElementById(lastTerm.value)
+        //     row.scrollIntoView()
+        // }
+    },
+
+    render: function() {
+
+        var terms = this.props.terms;
+        var rows = [];
+
+        if (terms.length < 1){
+            rows.push(
+                React.createElement(Tr, {id: "no-term-selected", key: "no-term-selected"}, 
+                    React.createElement(Td, {column: "TERM", className: "text"}, 
+                        React.createElement("span", {style: {color: color.colors.gngray, fontStyle: 'italic'}}, "No terms selected")
+                    ), 
+                    React.createElement(Td, {column: "ID", style: {whiteSpace: 'nowrap', textAlign: 'center'}, data: ""}), 
+                    React.createElement(Td, {column: "REMOVE", data: ""})
+                )
+            )
+        } else {
+            _.map(terms, function(term){
+                rows.push(
+                    React.createElement(Tr, {id: term.value, key: term.value}, 
+                        React.createElement(Td, {column: "TERM", style: {width: '100%'}, className: "text", data: term.name}), 
+                        React.createElement(Td, {column: "ID", style: {whiteSpace: 'nowrap', minWidth: '110px', textAlign: 'center'}, data: term.value}), 
+                        React.createElement(Td, {column: "REMOVE", style: {minWidth: '80px', textAlign: 'center'}}, React.createElement("span", {className: "clickable", style: {color: "red", fontWeight: "bold"}, onClick: this.props.removeTerm.bind(null, term.value)}, "X"))
+                    )
+                )
+            }.bind(this))
+        }
+
+        return (
+            React.createElement("div", null, 
+                React.createElement(Table, {id: "hpo-table", className: "table rowcolors", style: {margin: '0px 0 30px 0'}}, 
+                    React.createElement(Thead, null, 
+                    React.createElement(Th, {column: "TERM", style: {width: '100%'}}, "TERM"), 
+                    React.createElement(Th, {column: "ID", style: {minWidth: '110px', textAlign: 'center'}}, "ID"), 
+                    React.createElement(Th, {column: "REMOVE", style: {minWidth: '80px', textAlign: 'center'}})
+                    ), 
+                    rows
+                )
+
+            )
+        )
+    }
+});
+
+var DiagnosisMain = React.createClass({displayName: "DiagnosisMain",
+
+    getInitialState: function() {
+        return {
+            isOpen: false,
+            selectedTerms: Array(),
+            termsNotFound: Array(),
+            checkbox: false,
+            genefilename: 'CHOOSE A FILE...',
+            termfilename: 'CHOOSE A FILE...'
+        }
+    },
+
+    getSuggestions: function(input, callback) {
+
+        if (!input || input.length < 2) {
+            return callback(null, {})
+        }
+
+        io.socket.get(GN.urls.diagnosisSuggest,
+            {
+                q: input
+            },
+            function(res, jwres) {
+                if (jwres.statusCode === 200) {
+                    var options = _.compact(_.map(res, function(result) {
+                        return {
+                            value: result._source.id,
+                            label: result._source.name + ' - ' + result._source.id,
+                            name: result._source.name,
+                            isSignificantTerm: result._source.isSignificantTerm
+                        }
+                    }));
+                    //var sorted = _.chain(options)
+                    //    .sortBy(function(item){return item.label}) //sorts on name of gene/term/network
+                    //    .value();
+                    return callback(null, {options: options, complete: false})
+                } else {
+                    return callback(null, {})
+                }
+            })
+    },
+
+    onSelectChange: function(selectedOption, callback) {
+        if (!selectedOption.isSignificantTerm) {
+            io.socket.get(GN.urls.diagnosisParentTerms, { id: selectedOption.value },
+                function(res, jwres) {
+
+                    res.forEach(function(obj) { obj.selected = true; });
+
+                    this.setState({
+                        isOpen: true,
+                        parentTerms: res,
+                        modalTerm: selectedOption
+                    })
+                }.bind(this));
+        } else {
+            var terms = this.state.selectedTerms;
+            terms.push({value: selectedOption.value, name: selectedOption.name});
+            terms = _.uniqBy(terms, 'value');
+            this.setState({
+                selectedTerms: terms
+            })
+        }
+    },
+
+    removeTerm: function(value) {
+        var terms = _.filter(this.state.selectedTerms, function(term){
+            return term.value != value
+        });
+        this.setState({
+            selectedTerms: terms
+        })
+    },
+
+    onCheckboxClick: function(){
+        var checkbox = this.state.checkbox ? false : true;
+        this.setState({
+            checkbox: checkbox
+        })
+    },
+
+    onTextAreaChange: function(){
+        var textlen = document.getElementById('textarea-genelist').value.length;
+        var checkbox = textlen > 0 ? true : false;
+        this.setState({
+            checkbox: checkbox
+        })
+    },
+
+    onGeneFileUploadClick: function() {
+        document.getElementById('file-genelist').onchange = function(){
+            var genefilename = document.getElementById('file-genelist').files[0].name;
+            genefilename = genefilename.length > 30 ? (genefilename.slice(0, 15) + '...') : genefilename;
+            this.setState({
+                genefilename: genefilename,
+                checkbox: true
+            })
+        }.bind(this)
+    },
+
+    onTermFileUploadClick: function(){
+        document.getElementById('file-termlist').onchange = function(){
+            var termfile = document.getElementById('file-termlist').files[0];
+            var fd = new FormData();
+            fd.append('genelist', termfile);
+            $.ajax({
+                url: GN.urls.fileupload,
+                data: fd,
+                processData: false,
+                contentType: false,
+                type: 'POST',
+                success: function(data) {
+                    var terms = data.split(',');
+                    this.digestHpoTermsFromUpload(terms);
+                }.bind(this)
+            })
+        }.bind(this)
+    },
+
+    onSubmit: function(){
+        var genes = document.getElementById('textarea-genelist').value;
+        var terms = _.map(this.state.selectedTerms, function(term){ return term.value }).join(',');
+        var useCustomGeneSet = this.state.checkbox ? true : false;
+        var genefile = document.getElementById('file-genelist').files[0];
+
+        if (!genefile){
+            this.props.history.pushState({
+                genes: genes,
+                useCustomGeneSet: useCustomGeneSet
+            }, GN.urls.diagnosisPage + '/' + terms)
+        } else {
+            var fd = new FormData();
+            fd.append('genelist', genefile);
+
+            $.ajax({
+                url: GN.urls.fileupload,
+                data: fd,
+                processData: false,
+                contentType: false,
+                type: 'POST',
+                success: function(data){
+                    this.props.history.pushState({
+                        genes: data,
+                        useCustomGeneSet: useCustomGeneSet
+                    }, GN.urls.diagnosisPage + '/' + terms)
+                }.bind(this)
+            })
+        }
+    },
+
+    onSubmitModal: function() {
+        var selectedParentTerms = this.state.parentTerms
+            .filter(function(o) {return o.selected;})
+            .map(function(o) {return { value: o.id, name: o.name }});
+
+        var terms = this.state.selectedTerms;
+
+        terms = terms.concat(selectedParentTerms);
+        terms = _.uniqBy(terms, 'value');
+
+        this.setState({
+            isOpen: !this.state.isOpen,
+            selectedTerms: terms
+        })
+    },
+
+    handleTermClick: function(event) {
+        var parentTerms = this.state.parentTerms;
+        var term = parentTerms.filter(function( obj ) {
+            return obj.id === event.target.value;
+        })[0];
+        term.selected = !term.selected;
+
+        this.setState({ parentTerms: parentTerms });
+    },
+
+    onCancelModal: function() {
+        this.setState({
+            isOpen: false,
+            parentTerms: null
+        })
+    },
+
+    renderModal: function () {
+        if (this.state.isOpen) {
+            const backdropStyle = {
+                position: 'absolute',
+                zIndex: '1',
+                top: 0,
+                bottom: 0,
+                left: 0,
+                right: 0,
+                backgroundColor: 'rgba(0,0,0,0.3)',
+                padding: 50
+            };
+
+            var modalStyle = {
+                backgroundColor: '#fff',
+                maxWidth: 500,
+                minHeight: 200,
+                margin: '0 auto',
+                padding: 30
+            };
+
+            var terms = this.state.parentTerms.map(function(term) {
+                return (
+                    React.createElement("tr", null, 
+                        React.createElement("td", null, 
+                            React.createElement("input", {onClick: this.handleTermClick, type: "checkbox", name: term.name, key: term.id, 
+                                   value: term.id, ref: term.id, checked:  term.selected})
+                        ), 
+                        React.createElement("td", {className: "text"}, term.id), 
+                        React.createElement("td", {className: "text"}, term.name)
+                        /*<td className='text'>{term.depth}</td>*/
+                    )
+                );
+            }.bind(this));
+
+            return React.createElement("div", {style: backdropStyle}, 
+                React.createElement("div", {style: modalStyle}, 
+                    React.createElement("h2", {style: {display: 'inline'}}, "Unable to use this phenotype"), 
+                    React.createElement("h3", {style: {color: '#999999'}}, this.state.modalTerm.name), 
+
+                    React.createElement("div", {style: {margin: '15px 10px 10px 10px', padding: '8px', backgroundColor: color.colors.gnyellow, fontSize: '11pt',  fontWeight: 'bold'}}, 
+                        "This term (", this.state.modalTerm.value, ", ", this.state.modalTerm.name, ") cannot be used for gene prioritization.", 
+                        
+                            terms.length > 1 ?
+                            React.createElement("span", null, " We suggest using the combination of the more generic HPO terms listed below.")
+                            : React.createElement("span", null, " We suggest using the more generic HPO term listed below.")
+                        
+                    ), 
+
+                    React.createElement("form", null, 
+                        React.createElement("table", {className: "rowcolors table"}, 
+                            React.createElement("thead", null, 
+                            React.createElement("tr", null, 
+                                React.createElement("th", {style: {width: '5%'}}), 
+                                React.createElement("th", {className: "tabletextheader", style: {width: '10%'}}, "TERM"), 
+                                React.createElement("th", {className: "tabletextheader", style: {width: '60%'}}, "NAME")
+                                /*<th className='tabletextheader' style={{width: '10%'}}>DEPTH</th>*/
+                            )
+                            ), 
+                            React.createElement("tbody", null, 
+                                terms
+                            )
+                        )
+
+                    ), 
+
+                    
+                        terms.length > 1 ?
+                            React.createElement("span", {onClick: this.onSubmitModal, className: "button noselect clickable", style: {marginTop: '20px'}}, "ADD TERMS")
+                            : React.createElement("span", {onClick: this.onSubmitModal, className: "button noselect clickable", style: {marginTop: '20px'}}, "ADD TERM"), 
+                    
+                    React.createElement("span", {onClick: this.onCancelModal, className: "button noselect clickable", style: {marginTop: '20px', marginLeft: '5px'}}, "CANCEL")
+
+                )
+            )
+        }
+    },
+
+    render: function() {
+        var textcolor = this.state.checkbox ? '#000' : color.colors.gngray;
+        var style = this.state.checkbox ? {transition: 'all .5s ease-in-out', height: '100px', overflow: 'hidden'} : {transition: 'all .5s ease-in-out', overflow: 'hidden', height: '0px'};
+        var textsize = {fontSize: '10pt'};
+
+
+        // <div id='step1' className='hflex'>
+
+        //                     <div style={{width: '40px'}}><h2>1.</h2></div>
+
+        //                     <div id='step1content' style={{width: '100%',  paddingTop: '4px'}}>
+
+
+        return (
+            React.createElement(DocumentTitle, {title: 'Diagnosis' + GN.pageTitleSuffix}, 
+
+                React.createElement("div", null, 
+                    this.renderModal(), 
+                    React.createElement("div", {className: "flex10", style: { backgroundColor: color.colors.gnwhite, marginTop: '10px', padding: '40px'}}, 
+
+                        React.createElement("div", {style: {width: '100%'}}, 
+                            React.createElement("h2", {style: {display: 'inline'}}, "GADO: GeneNetwork Assisted Diagnostic Optimization"), " ", React.createElement(Back, {url: GN.urls.main}), 
+                            React.createElement("h4", null, "Using the HPO gene prioritization it is possible to rank genes based on a patient’s phenotypes.")
+                        ), 
+
+                        React.createElement("div", {className: "hflex", style: {marginTop: '40px'}}, 
+                            React.createElement("div", {className: "", style: {width: '55%', minWidth: '600px', paddingRight: '60px'}}, 
+                                React.createElement("ol", {className: "simple-list"}, 
+                                    React.createElement("li", null, React.createElement("h3", null, "Select HPO terms"), 
+
+                                        React.createElement("div", {className: "hflex", style: {paddingTop: '20px'}}, 
+                                            React.createElement("div", {className: "flex10", style: {float: 'left', paddingBottom: '20px', width: 'calc(100% - 200px)'}}, 
+
+                                                React.createElement(Async, {
+                                                    name: "diagnosis-search", 
+                                                    autoload: false, 
+                                                    cacheAsyncResults: false, 
+                                                    loadOptions: this.getSuggestions, 
+                                                    onChange: this.onSelectChange}
+                                                )
+
+                                            )
+                                            /*<div className='flex10'>*/
+                                                /*<label htmlFor='file-termlist' onClick={this.onTermFileUploadClick} style={{float: 'right'}}>*/
+                                                    /*<UploadPanel text={this.state.termfilename} />*/
+                                                /*</label>*/
+                                            /*</div>*/
+                                        ), 
+
+                                        React.createElement(TermTable, {terms: this.state.selectedTerms, removeTerm: this.removeTerm})
+
+                                    ), 
+
+                                    React.createElement("li", null, 
+                                        React.createElement("label", {htmlFor: "checkbox", onClick: this.onCheckboxClick, style: {position: 'absolute'}}, 
+                                            React.createElement(SVGCollection.CheckBox, {selected: this.state.checkbox})
+                                        ), 
+
+
+                                        React.createElement("div", null, React.createElement("h3", {style: {paddingLeft: '30px', color: textcolor, cursor: 'pointer'}, onClick: this.onCheckboxClick}, "OPTIONAL: filter output on candidate genes")), 
+
+                                        React.createElement("input", {type: "checkbox", id: "checkbox", style: {display: 'none'}}), 
+
+                                        React.createElement("div", {style: style, className: "hflex"}, 
+                                            React.createElement("div", {className: "flex10", style: {paddingTop: '20px', width: 'calc(100% - 200px)'}}, 
+                                                React.createElement("textarea", {id: "textarea-genelist", placeholder: "Paste a list of genes here...", onChange: this.onTextAreaChange, cols: "40", rows: "5", className: "textarea-genes", style: {width: '100%', height: '65px', border: '1px solid ' + color.colors.gngray, color: textcolor, outline: 'none'}})
+                                            )
+                                            /*<div className='flex10' style={{paddingTop: '20px'}}>*/
+                                                /*<label htmlFor='file-genelist' onClick={this.onGeneFileUploadClick} style={{float: 'right'}}>*/
+                                                    /*<UploadPanel text={this.state.genefilename} />*/
+                                                /*</label>*/
+                                            /*</div>*/
+                                        )
+                                    ), 
+
+                                    React.createElement("form", {encType: "multipart/form-data"}, 
+                                        React.createElement("input", {id: "file-genelist", type: "file", style: {display: 'none'}})
+                                    ), 
+
+                                    React.createElement("form", {encType: "multipart/form-data"}, 
+                                        React.createElement("input", {id: "file-termlist", type: "file", style: {display: 'none'}})
+                                    ), 
+
+
+
+                                    React.createElement("span", {onClick: this.onSubmit, className: "button noselect clickable", style: {marginTop: '20px'}}, "Prioritize genes for given HPO terms")
+
+                                )
+                            ), 
+
+                            React.createElement("div", {id: "text-right", style: {width: '45%', padding: '20px', backgroundColor: color.colors.gnyellow, lineHeight: '1'}}, 
+
+                                React.createElement("ol", {className: "simple-list"}, 
+                                    React.createElement("li", null, 
+                                        React.createElement("span", {style: textsize}, 
+                                            "Fill in the phenotypes of a patient as HPO terms" + ' ' +
+                                            "(", React.createElement("a", {href: "http://compbio.charite.de/hpoweb/showterm?id=HP:0000118", className: "externallink", target: "_blank"}, "compbio.charite.de/hpoweb/showterm?id=HP:0000118"), ")." + ' ' +
+                                            "Try to be as specific as possible, if a term cannot be used then a more generic can be selected." + ' ' +
+                                            "If the exact phenotype of a patient is unclear it is better to use a more general term, as a wrongly assigned" + ' ' +
+                                            "specific term might hinder accurate ranking. For example, there are many subclasses of seizures" + ' ' +
+                                            "(", React.createElement("a", {href: "http://compbio.charite.de/hpoweb/showterm?id=HP:0001250", className: "externallink", target: "_blank"}, "compbio.charite.de/hpoweb/showterm?id=HP:0001250"), ")," + ' ' +
+                                            "if it clear that a patient shows a specific subclass then the HPO term for this subclass should be used, if" + ' ' +
+                                            "this is not clear then it is best to use the general seizures term. It is also best to only use distinct HPO" + ' ' +
+                                            "terms to describe a patient’s phenotypes. If two close related terms are used to describe the same phenotype," + ' ' +
+                                            "then these will result in some bias towards this phenotype in the prioritization. Please use the HPO number" + ' ' +
+                                            "or the primary name, synonyms are not supported at the moment."
+                                        )
+                                    ), 
+                                    React.createElement("li", null, 
+                                        React.createElement("span", {style: textsize}, 
+                                            "Optional list of genes to be ranked using the HPO terms. This could for instance be the genes in which a patient" + ' ' +
+                                            "has candidate disease causing mutations that require classification or follow-up analysis. The genes that prioritize" + ' ' +
+                                            "on top are the most likely candidates based on our HPO term predictions. If no gene list is provided we will simply" + ' ' +
+                                            "rank all genes based on the provided HPO terms."
+                                        )
+                                    )
+                                ), 
+
+                                "See the ", React.createElement("a", {href: "/faq", target: "blank"}, "FAQ page"), " for additional support"
+                            )
+
+                        )
+                    )
+                )
+
+            )
+        )
+    }
+});
+
+module.exports = DiagnosisMain;
 
 },{"../../js/color.js":4,"./Back":31,"./SVGCollection":45,"./UploadPanel":48,"lodash":130,"react":333,"react-document-title":142,"react-select":175,"reactable":334}],35:[function(require,module,exports){
-var _=require("lodash"),htmlutil=require("../../js/htmlutil.js"),React=require("react"),Cookies=require("cookies-js"),Disetti=React.createClass({displayName:"Disetti",propTypes:{onClick:React.PropTypes.func},getInitialState:function(){return{}},componentDidMount:function(){},render:function(){return React.createElement("svg",{viewBox:"0 0 16 16",width:"16",height:"16",onClick:this.props.onClick,className:"clickable disetti",style:{strokeWidth:"1px",stroke:"#000000",fill:"none",shapeRendering:"crispEdges"}},React.createElement("polyline",{points:"0,0 0,15 4,15 4,9 12,9 12,15 15,15 15,3 12,0 11,0 11,5 5,5 5,0 0,0",style:{fill:"#999999"}}),React.createElement("polyline",{points:"0,0 0,15 15,15 15,3 12,0 0,0"}),React.createElement("polyline",{points:"5,0 5,5 11,5 11,0"}),React.createElement("polyline",{points:"4,15 4,9 12,9 12,15"}),React.createElement("line",{x1:"6",y1:"11",x2:"11",y2:"11"}),React.createElement("line",{x1:"6",y1:"13",x2:"11",y2:"13"}),React.createElement("line",{x1:"9",y1:"2",x2:"9",y2:"4"}))}});module.exports=Disetti;
+var _ = require('lodash')
+var htmlutil = require('../../js/htmlutil.js')
+var React = require('react')
+var Cookies = require('cookies-js')
+
+var Disetti = React.createClass({displayName: "Disetti",
+    
+    propTypes: {
+        onClick: React.PropTypes.func,
+    },
+    
+    getInitialState: function() {
+        return {}
+    },
+    
+    componentDidMount: function() {
+    },
+    
+    render: function() {
+        return (
+                React.createElement("svg", {viewBox: "0 0 16 16", width: "16", height: "16", onClick: this.props.onClick, className: "clickable disetti", style: {strokeWidth: '1px', stroke: '#000000', fill: 'none', shapeRendering: 'crispEdges'}}, 
+                React.createElement("polyline", {points: "0,0 0,15 4,15 4,9 12,9 12,15 15,15 15,3 12,0 11,0 11,5 5,5 5,0 0,0", style: {fill: '#999999'}}), 
+                React.createElement("polyline", {points: "0,0 0,15 15,15 15,3 12,0 0,0"}), 
+                React.createElement("polyline", {points: "5,0 5,5 11,5 11,0"}), 
+                React.createElement("polyline", {points: "4,15 4,9 12,9 12,15"}), 
+                React.createElement("line", {x1: "6", y1: "11", x2: "11", y2: "11"}), 
+                React.createElement("line", {x1: "6", y1: "13", x2: "11", y2: "13"}), 
+                React.createElement("line", {x1: "9", y1: "2", x2: "9", y2: "4"})
+                )
+        )
+    }
+})
+
+module.exports = Disetti
 
 },{"../../js/htmlutil.js":5,"cookies-js":56,"lodash":130,"react":333}],36:[function(require,module,exports){
-"use strict";var React=require("react"),DownloadPanel=React.createClass({displayName:"DownloadPanel",propTypes:{onClick:React.PropTypes.func.isRequired,text:React.PropTypes.string},render:function(){return React.createElement("div",{id:"downloadpanel",className:"clickable button noselect",style:{position:"relative",marginTop:"20px"},onClick:this.props.onClick},React.createElement("div",{style:{position:"absolute",top:"0px",left:"0px",height:"100%",padding:"0 8px 0 8px",backgroundColor:"rgb(255,225,0)"}},React.createElement("svg",{viewBox:"0 0 100 100",width:"20",height:"20",className:"arrow"},React.createElement("polyline",{points:"10,50 50,100 90,50"}),React.createElement("line",{x1:"50",y1:"0",x2:"50",y2:"100"}))),React.createElement("span",{style:{paddingLeft:"35px"}},this.props.text||"DOWNLOAD"))}});module.exports=DownloadPanel;
+'use strict'
+
+var React = require('react')
+
+var DownloadPanel = React.createClass({displayName: "DownloadPanel",
+
+    propTypes: {
+        
+        onClick: React.PropTypes.func.isRequired,
+        text: React.PropTypes.string
+    },
+    
+    render: function() {
+        
+        return (
+            
+                React.createElement("div", {id: "downloadpanel", className: "clickable button noselect", style: {position: 'relative', marginTop: '20px'}, onClick: this.props.onClick}, 
+                React.createElement("div", {style: {position: 'absolute', top: '0px', left: '0px', height: '100%', padding: '0 8px 0 8px', backgroundColor: 'rgb(255,225,0)'}}, 
+                React.createElement("svg", {viewBox: "0 0 100 100", width: "20", height: "20", className: "arrow"}, 
+                React.createElement("polyline", {points: "10,50 50,100 90,50"}), 
+                React.createElement("line", {x1: "50", y1: "0", x2: "50", y2: "100"})
+                )
+                ), 
+                React.createElement("span", {style: {paddingLeft: '35px'}}, this.props.text || 'DOWNLOAD')
+                )
+        )
+    }
+
+})
+
+module.exports = DownloadPanel
 
 },{"react":333}],37:[function(require,module,exports){
-var React=require("react"),Footer=React.createClass({displayName:"Footer",render:function(){return React.createElement("div",{className:"gn-footer hflex flexcenter flexwrap flexspacebetween"},React.createElement("div",null,"© 2018 ",React.createElement("a",{title:"Department of Genetics",href:"http://www.rug.nl/research/genetics/?lang=en",target:"_blank"},"Department of Genetics"),", ",React.createElement("a",{title:"University Medical Center Groningen",href:"https://www.umcg.nl/EN",target:"_blank"},"University Medical Center Groningen")),React.createElement("div",{className:"flex01 hflex flexcenter flexwrap"},React.createElement("div",{style:{padding:"0 5px 0 5px"}},React.createElement("a",{href:"http://www.cleverfranke.com/cf/en/index.php",target:"_blank"},React.createElement("img",{className:"cleverfranke",title:"CLEVER°FRANKE",src:GN.urls.main+"/images/cleverfranke_small.png",style:{height:"25px"}}))),React.createElement("div",{style:{padding:"0 5px 0 5px"}},React.createElement("a",{href:"https://www.rug.nl",target:"_blank"},React.createElement("img",{className:"rug",title:"Rijksuniversiteit Groningen",src:GN.urls.main+"/images/rug_black.png"}))),React.createElement("div",{style:{padding:"0 5px 0 5px"}},React.createElement("a",{href:"https://www.umcg.nl/EN",target:"_blank"},React.createElement("img",{className:"umcg",title:"University Medical Center Groningen",src:GN.urls.main+"/images/umcg_black.png"}))),React.createElement("div",{style:{padding:"0 5px 0 5px"}},React.createElement("a",{href:"http://www.bbmri.nl",target:"_blank"},React.createElement("img",{className:"bbmri",title:"BBMRI",src:GN.urls.main+"/images/bbmri_nl.png"})))))}});module.exports=Footer;
+var React = require('react')
+
+var Footer = React.createClass({displayName: "Footer",
+
+    // TODO images proper size, optimization, transparency
+    render: function() {
+        return (
+            React.createElement("div", {className: "gn-footer hflex flexcenter flexwrap flexspacebetween"}, 
+
+                React.createElement("div", null, "© 2018 ", React.createElement("a", {title: "Department of Genetics", href: "http://www.rug.nl/research/genetics/?lang=en", target: "_blank"}, 
+                    "Department of Genetics"), ", ", React.createElement("a", {title: "University Medical Center Groningen", href: "https://www.umcg.nl/EN", target: "_blank"}, 
+                    "University Medical Center Groningen")
+                ), 
+
+                React.createElement("div", {className: "flex01 hflex flexcenter flexwrap"}, 
+                    React.createElement("div", {style: {padding: '0 5px 0 5px'}}, 
+                        React.createElement("a", {href: "http://www.cleverfranke.com/cf/en/index.php", target: "_blank"}, 
+                            React.createElement("img", {className: "cleverfranke", title: "CLEVER°FRANKE", src: GN.urls.main + '/images/cleverfranke_small.png', style: {height: '25px'}})
+                        )
+                    ), 
+                    React.createElement("div", {style: {padding: '0 5px 0 5px'}}, 
+                        React.createElement("a", {href: "https://www.rug.nl", target: "_blank"}, 
+                            React.createElement("img", {className: "rug", title: "Rijksuniversiteit Groningen", src: GN.urls.main + '/images/rug_black.png'})
+                        )
+                    ), 
+                    React.createElement("div", {style: {padding: '0 5px 0 5px'}}, 
+                        React.createElement("a", {href: "https://www.umcg.nl/EN", target: "_blank"}, 
+                            React.createElement("img", {className: "umcg", title: "University Medical Center Groningen", src: GN.urls.main + '/images/umcg_black.png'})
+                        )
+                    ), 
+                    React.createElement("div", {style: {padding: '0 5px 0 5px'}}, 
+                        React.createElement("a", {href: "http://www.bbmri.nl", target: "_blank"}, 
+                            React.createElement("img", {className: "bbmri", title: "BBMRI", src: GN.urls.main + '/images/bbmri_nl.png'})
+                        )
+                    )
+                )
+            )
+        )
+    }
+})
+
+module.exports = Footer
 
 },{"react":333}],38:[function(require,module,exports){
-var _=require("lodash"),React=require("react"),TriangleDown=require("./SVGCollection").TriangleDown,color=require("../../js/color"),GeneOpenMenu=React.createClass({displayName:"GeneOpenMenu",propTypes:{gene:React.PropTypes.object},getInitialState:function(){return{isExpanded:!1}},onClick:function(){this.setState({isExpanded:!this.state.isExpanded})},render:function(){var e=this,n=[{id:"GN",name:"Gene Network",url:GN.urls.main+"/#/gene/",useid:"name"},{id:"EXAC",name:"ExAC Browser",url:"http://exac.broadinstitute.org/gene/",useid:"id"},{id:"ENSEMBL",name:"Ensembl",url:"http://www.ensembl.org/Homo_sapiens/Gene/Summary?db=core;g=",useid:"id"},{id:"PUBMED",name:"PubMed search",url:"http://www.ncbi.nlm.nih.gov/pubmed/?term=",useid:"name"}],t=null,a=this.state.isExpanded?"":"invisible";return t=_.map(_.filter(n,function(n){return!e.props.options||_.includes(e.props.options,n.id)}),function(n,t){return React.createElement("div",{key:t,className:a},React.createElement("a",{className:"nodecoration",title:"Open "+e.props.gene.name+" in "+n.name,href:n.url+e.props.gene[n.useid],target:"_blank"},React.createElement("span",{className:"smallbutton noselect fullwidth",style:{display:"block"}},n.name.toUpperCase().replace(/EXAC/,"ExAC"))))}),React.createElement("div",{className:"geneopenmenu clickable noselect",style:this.props.style,onClick:this.onClick},React.createElement("div",{className:"button",style:{minWidth:"130px"}},"OPEN ",this.props.gene.name," IN",React.createElement(TriangleDown,{className:"dropdowntriangle"})),React.createElement("div",{className:"outer"},t))}});module.exports=GeneOpenMenu;
+var _ = require('lodash')
+var React = require('react')
+var TriangleDown = require('./SVGCollection').TriangleDown
+var color = require('../../js/color')
+
+var GeneOpenMenu = React.createClass({displayName: "GeneOpenMenu",
+
+    propTypes: {
+        gene: React.PropTypes.object
+    },
+    
+    getInitialState: function() {
+        return {
+            isExpanded: false
+        }
+    },
+    
+    onClick: function() {
+        this.setState({
+            isExpanded: !this.state.isExpanded
+        })
+    },
+    
+    render: function() {
+
+        var that = this
+
+        var services = [
+            {id: 'GN', name: 'Gene Network', url: GN.urls.main + '/#/gene/', useid: 'name'},
+            {id: 'EXAC', name: 'ExAC Browser', url: 'http://exac.broadinstitute.org/gene/', useid: 'id'},
+            {id: 'ENSEMBL', name: 'Ensembl', url: 'http://www.ensembl.org/Homo_sapiens/Gene/Summary?db=core;g=', useid: 'id'},
+            {id: 'PUBMED', name: 'PubMed search', url: 'http://www.ncbi.nlm.nih.gov/pubmed/?term=', useid: 'name'},
+        ]
+
+        var options = null
+        var cls = this.state.isExpanded ? '' : 'invisible'
+            options = _.map(_.filter(services, function(service) {
+                return !that.props.options || _.includes(that.props.options, service.id)
+            }), function(service, i) {
+                return (
+                        React.createElement("div", {key: i, className: cls}, 
+                        React.createElement("a", {className: "nodecoration", title: 'Open ' + that.props.gene.name + ' in ' + service.name, href: service.url + that.props.gene[service.useid], target: "_blank"}, 
+                        React.createElement("span", {className: "smallbutton noselect fullwidth", style: {display: 'block'}}, service.name.toUpperCase().replace(/EXAC/, 'ExAC')))
+                        )
+                )
+            })
+        
+        return (
+                React.createElement("div", {className: "geneopenmenu clickable noselect", style: this.props.style, onClick: this.onClick}, 
+                React.createElement("div", {className: "button", style: {minWidth: '130px'}}, "OPEN ", this.props.gene.name, " IN", 
+                React.createElement(TriangleDown, {className: "dropdowntriangle"})
+                ), 
+                React.createElement("div", {className: "outer"}, 
+                options
+                )
+                )
+        )
+    }
+})
+
+module.exports = GeneOpenMenu
 
 },{"../../js/color":4,"./SVGCollection":45,"lodash":130,"react":333}],39:[function(require,module,exports){
-"use strict";var _=require("lodash"),async=require("async"),React=require("react"),ReactDOM=require("react-dom"),Router=require("react-router"),Link=Router.Link,DocumentTitle=require("react-document-title"),color=require("../../js/color"),SVGCollection=require("./SVGCollection"),color=require("../../js/color"),htmlutil=require("../../js/htmlutil"),reactable=require("reactable"),Tr=reactable.Tr,Td=reactable.Td,Th=reactable.Th,Thead=reactable.Thead,Tbody=reactable.Tbody,Table=reactable.Table,AnnotatedGeneRow=React.createClass({displayName:"AnnotatedGeneRow",propTypes:{data:React.PropTypes.object.isRequired},render:function(){var e=this.props.data,t=(e.gene.description||"no description").replace(/\[[^\]]+\]/g,"");return React.createElement("tr",{className:this.props.num%2==0?"datarow evenrow":"datarow oddrow"},React.createElement("td",{className:"text"},React.createElement(Link,{className:"nodecoration black",title:t,to:"/gene/"+e.gene.id},React.createElement(SVGCollection.Rectangle,{className:"tablerectangle",title:e.gene.biotype.replace(/_/g," "),fill:color.biotype2color[e.gene.biotype]||color.colors.gnblack}),e.gene.name)),React.createElement("td",{className:"text"},React.createElement(Link,{className:"nodecoration black",title:t,to:"/gene/"+e.gene.name},React.createElement("span",null,t))))}}),PredictedGeneRow=React.createClass({displayName:"PredictedGeneRow",propTypes:{data:React.PropTypes.object.isRequired},render:function(){var e=this.props.data,t=(e.gene.description||"no description").replace(/\[[^\]]+\]/g,""),a=e.pValue?e.pValue:e.p,l=e.zScore?e.zScore:e.z;return React.createElement("tr",null,React.createElement("td",{className:"text"},React.createElement(Link,{className:"nodecoration black",target:"_blank",title:t,to:"/gene/"+e.gene.id},React.createElement(SVGCollection.Rectangle,{className:"tablerectangle",title:e.gene.biotype.replace(/_/g," "),fill:color.biotype2color[e.gene.biotype]||color.colors.gnblack}),React.createElement("span",null,e.gene.name))),React.createElement("td",{className:"text"},React.createElement(Link,{className:"nodecoration black",target:"_blank",title:t,to:"/gene/"+e.gene.name},React.createElement("span",null,t))),React.createElement("td",{style:{textAlign:"center"},dangerouslySetInnerHTML:{__html:htmlutil.pValueToReadable(a)}}),React.createElement("td",{style:{textAlign:"center"}},l>0?React.createElement(SVGCollection.TriangleUp,{className:"directiontriangleup"}):React.createElement(SVGCollection.TriangleDown,{className:"directiontriangledown"})),React.createElement("td",{style:{textAlign:"center"}},e.annotated?React.createElement(SVGCollection.Annotated,null):React.createElement(SVGCollection.NotAnnotated,null)))}}),GeneTable=React.createClass({displayName:"GeneTable",propTypes:{},render:function(){var e=null,t=this.props.termId;return!this.props.genes&&this.props.gpMessage?React.createElement("div",null,this.props.gpMessage):(e="prediction"==this.props.type?_.map(this.props.genes,function(e,a){return React.createElement(PredictedGeneRow,{data:e,termId:t,key:e.gene.id})}):_.map(this.props.genes,function(e,a){return React.createElement(AnnotatedGeneRow,{data:e,termId:t,key:e.gene.id})}),React.createElement("div",null,React.createElement("table",{className:"rowcolors table"},React.createElement("thead",null,React.createElement("tr",null,React.createElement("th",{className:"tabletextheader",style:{width:"10%"}},"GENE"),React.createElement("th",{className:"tabletextheader",style:{width:"60%"}},"DESCRIPTION"),"prediction"==this.props.type?React.createElement("th",null,"P-VALUE"):null,"prediction"==this.props.type?React.createElement("th",null,"DIRECTION"):null,"prediction"==this.props.type?React.createElement("th",null,"ANNOTATED"):null)),React.createElement("tbody",null,e))))}});module.exports=GeneTable;
+'use strict'
+
+var _ = require('lodash')
+var async = require('async')
+var React = require('react')
+var ReactDOM = require('react-dom')
+var Router = require('react-router')
+var Link = Router.Link
+var DocumentTitle = require('react-document-title')
+var color = require('../../js/color')
+
+var SVGCollection = require('./SVGCollection')
+
+var color = require('../../js/color')
+var htmlutil = require('../../js/htmlutil')
+
+var reactable = require('reactable')
+var Tr = reactable.Tr
+var Td = reactable.Td
+var Th = reactable.Th
+var Thead = reactable.Thead
+var Tbody = reactable.Tbody
+var Table = reactable.Table
+
+var AnnotatedGeneRow = React.createClass({displayName: "AnnotatedGeneRow",
+
+    propTypes: {
+        
+        data: React.PropTypes.object.isRequired,
+        // termId: React.PropTypes.string.isRequired,
+
+    },
+    
+    render: function() {
+        
+        var data = this.props.data;
+        var desc = (data.gene.description || 'no description').replace(/\[[^\]]+\]/g, '');
+
+        // console.log("pvalue", data.pvalue);
+        
+        return React.createElement("tr", {className: this.props.num % 2 === 0 ? 'datarow evenrow' : 'datarow oddrow'}, 
+                 React.createElement("td", {className: "text"}, 
+                 React.createElement(Link, {className: "nodecoration black", title: desc, to: "/gene/" + data.gene.id + ""}, 
+                 React.createElement(SVGCollection.Rectangle, {className: "tablerectangle", title: data.gene.biotype.replace(/_/g, ' '), fill: color.biotype2color[data.gene.biotype] || color.colors.gnblack}), 
+                 data.gene.name
+                 )
+                 ), 
+                 React.createElement("td", {className: "text"}, 
+                 React.createElement(Link, {className: "nodecoration black", title: desc, to: "/gene/" + data.gene.name + ""}, 
+                 React.createElement("span", null, desc)
+                 )
+                 )
+                 /*<td style={{textAlign: 'center'}}>TBA</td>*/
+
+                 /* data.pvalue ?  <td style={{textAlign: 'center'}} dangerouslySetInnerHTML={{__html: htmlutil.pValueToReadable(data.pValue)}}></td> :  null */
+                 /*<td style={{textAlign: 'center'}}>TBA</td>*/
+                 /*<td style={{textAlign: 'center'}}><SVGCollection.Annotated /></td>*/
+                 /*<td style={{textAlign: 'center'}}>
+                 <a title={'Open network highlighting ' + data.gene.name} href={GN.urls.networkPage + '0!' + data.gene.name + '|' + this.props.termId + ',0!' + data.gene.name} target='_blank'>
+                 <SVGCollection.NetworkIcon />
+                 </a>
+                 </td>*/
+                 );
+    }
+})
+
+var PredictedGeneRow = React.createClass({displayName: "PredictedGeneRow",
+
+    propTypes: {
+        data: React.PropTypes.object.isRequired,
+        // termId: React.PropTypes.string.isRequired
+    },
+    
+    render: function() {
+        
+        var data = this.props.data
+        var desc = (data.gene.description || 'no description').replace(/\[[^\]]+\]/g, '')
+        var pValue = data.pValue ? data.pValue : data.p
+        var zScore = data.zScore ? data.zScore : data.z
+        return React.createElement("tr", null, 
+                 React.createElement("td", {className: "text"}, 
+                 React.createElement(Link, {className: "nodecoration black", target: "_blank", title: desc, to: "/gene/" + data.gene.id + ""}, 
+                 React.createElement(SVGCollection.Rectangle, {className: "tablerectangle", title: data.gene.biotype.replace(/_/g, ' '), fill: color.biotype2color[data.gene.biotype] || color.colors.gnblack}), 
+                 React.createElement("span", null, data.gene.name)
+                 )
+                 ), 
+                 React.createElement("td", {className: "text"}, 
+                 React.createElement(Link, {className: "nodecoration black", target: "_blank", title: desc, to: "/gene/" + data.gene.name + ""}, 
+                 React.createElement("span", null, desc)
+                 )
+                 ), 
+                 React.createElement("td", {style: {textAlign: 'center'}, dangerouslySetInnerHTML: {__html: htmlutil.pValueToReadable(pValue)}}), 
+                 React.createElement("td", {style: {textAlign: 'center'}}, zScore > 0 ? React.createElement(SVGCollection.TriangleUp, {className: "directiontriangleup"}) : React.createElement(SVGCollection.TriangleDown, {className: "directiontriangledown"})), 
+                 React.createElement("td", {style: {textAlign: 'center'}}, data.annotated ? React.createElement(SVGCollection.Annotated, null) : React.createElement(SVGCollection.NotAnnotated, null))
+                 /*<td style={{textAlign: 'center'}}>
+                 <a title={'Open network ' + (data.annotated ? 'highlighting ' : 'with ') + data.gene.name} href={GN.urls.networkPage + '0!' + data.gene.name + '|' + this.props.termId + ',0!' + data.gene.name} target='_blank'>
+                 <SVGCollection.NetworkIcon />
+                 </a>
+                 </td>*/
+                 );
+    }
+})
+
+var GeneTable = React.createClass({displayName: "GeneTable",
+
+    propTypes: {
+        // genes: React.PropTypes.array.isRequired,
+        // type: React.Proptypes.string.isRequired
+    },
+
+    render: function() {
+        var that = this
+        var rows = null
+        var termId = this.props.termId
+
+        if (!this.props.genes && this.props.gpMessage){
+            return (React.createElement("div", null, this.props.gpMessage))
+        }
+
+        if (this.props.type == 'prediction'){
+            rows = _.map(this.props.genes, function(data, i) {
+                return (React.createElement(PredictedGeneRow, {data: data, termId: termId, key: data.gene.id}))
+            })
+        } else {
+            rows = _.map(this.props.genes, function(data, i) {
+                return (React.createElement(AnnotatedGeneRow, {data: data, termId: termId, key: data.gene.id}))
+            })
+        }
+
+        return (
+                React.createElement("div", null, 
+                    React.createElement("table", {className: "rowcolors table"}, 
+                    React.createElement("thead", null, 
+                        React.createElement("tr", null, 
+                            React.createElement("th", {className: "tabletextheader", style: {width: '10%'}}, "GENE"), 
+                            React.createElement("th", {className: "tabletextheader", style: {width: '60%'}}, "DESCRIPTION"), 
+                             this.props.type == 'prediction' ? React.createElement("th", null, "P-VALUE") : null, 
+                             this.props.type == 'prediction' ? React.createElement("th", null, "DIRECTION") : null, 
+                             this.props.type == 'prediction' ? React.createElement("th", null, "ANNOTATED") : null
+                        )
+                    ), 
+                    React.createElement("tbody", null, 
+                        rows
+                    )
+                    )
+                )
+            )
+
+        // return (
+        //     <div>
+        //         <Table className='table'>
+        //         <Thead>
+        //             <Th column="GENE"></Th>
+        //             <Th column="DESCRIPTION"></Th>
+        //             {this.props.type == 'prediction' ? <Th column="PVALUE"></Th> : <>}
+        //         </Thead>
+        //         </Table>
+        //     </div>
+        // )
+
+
+        // return (
+        //     <div>
+        //         <table className='table'>
+        //         <tbody>
+        //         <tr>
+        //           <th className='tabletextheader' style={{width: '10%'}}>GENE</th>
+        //           <th className='tabletextheader' style={{width: '60%'}}>DESCRIPTION</th>
+        //             { this.props.type == 'prediction' ? <th>P-VALUE</th> : null}
+        //             { this.props.type == 'prediction' ? <th>DIRECTION</th> : null}
+        //             { this.props.type == 'prediction' ? <th>ANNOTATED</th> : null}
+        //           {/*<th>NETWORK</th>*/}
+        //           </tr>
+        //           {rows}
+        //         </tbody>
+        //         </table>
+        //     </div>
+        //     )
+    }
+})
+
+module.exports = GeneTable
 
 },{"../../js/color":4,"../../js/htmlutil":5,"./SVGCollection":45,"async":54,"lodash":130,"react":333,"react-document-title":142,"react-dom":143,"react-router":164,"reactable":334}],40:[function(require,module,exports){
-var _=require("lodash"),React=require("react"),Logo=React.createClass({displayName:"Logo",propTypes:{w:React.PropTypes.number.isRequired,h:React.PropTypes.number.isRequired,style:React.PropTypes.object,progress:React.PropTypes.array,mirrored:React.PropTypes.bool},componentDidMount:function(){},componentWillReceiveProps:function(e){},render:function(){var e=["#4d4d4d","#4d4d4d","#4d4d4d"];this.props.progress&&(e=["#4d4d4d","#4d4d4d","#999999"]);var t=[30,5,50,26,34,50,34,20,50,22,5,22,34,5],r=[3,28,72,97,12,28,44,28,28,88,72,56,72,72];return this.props.mirrored&&(t=_.map(t,function(e){return 55-e})),React.createElement("div",{style:this.props.style,title:"Gene Network"},React.createElement("svg",{viewBox:"0 0 55 100",width:this.props.w,height:this.props.h,fill:"none",strokeWidth:6},React.createElement("polyline",{points:t[0]+","+r[0]+" "+t[1]+","+r[1]+" "+t[2]+","+r[2]+" "+t[3]+","+r[3],style:{stroke:e[2]}}),React.createElement("polyline",{points:t[4]+","+r[4]+" "+t[5]+","+r[5]+" "+t[6]+","+r[6],style:{stroke:e[0]}}),React.createElement("line",{x1:t[7],y1:r[7],x2:t[8],y2:r[8],style:{stroke:e[0]}}),React.createElement("polyline",{points:t[9]+","+r[9]+" "+t[10]+","+r[10]+" "+t[11]+","+r[11],style:{stroke:e[1]}}),React.createElement("line",{x1:t[12],y1:r[12],x2:t[13],y2:r[13],style:{stroke:e[1]}})))}});module.exports=Logo;
+var _ = require('lodash')
+var React = require('react')
+
+var Logo = React.createClass({displayName: "Logo",
+
+    propTypes: {
+        w: React.PropTypes.number.isRequired,
+        h: React.PropTypes.number.isRequired,
+        style: React.PropTypes.object,
+        progress: React.PropTypes.array,
+        mirrored: React.PropTypes.bool,
+    },
+    
+    componentDidMount: function() {
+    },
+
+    componentWillReceiveProps: function(nextProps) {
+        //console.log(nextProps.initProgress, nextProps.layoutProgress)
+        //this.forceUpdate()
+    },
+    
+    render: function() {
+        var strokes = ['#4d4d4d', '#4d4d4d', '#4d4d4d']
+        if (this.props.progress) {
+            strokes = ['#4d4d4d', '#4d4d4d', '#999999']
+        }
+        var x = [30, 5, 50, 26, 34, 50, 34, 20, 50, 22, 5, 22, 34, 5]
+        var y = [3, 28, 72, 97, 12, 28, 44, 28, 28, 88, 72, 56, 72, 72]
+        if (this.props.mirrored) {
+            x = _.map(x, function(c) {
+                return 55 - c
+            })
+        }
+        return (
+                React.createElement("div", {style: this.props.style, title: "Gene Network"}, 
+                React.createElement("svg", {viewBox: "0 0 55 100", width: this.props.w, height: this.props.h, fill: "none", strokeWidth: 6}, 
+                React.createElement("polyline", {points: x[0] + ',' + y[0] + ' ' + x[1] + ',' + y[1] + ' ' + x[2] + ',' + y[2] + ' ' + x[3] + ',' + y[3], style: {stroke: strokes[2]}}), 
+                React.createElement("polyline", {points: x[4] + ',' + y[4] + ' ' + x[5] + ',' + y[5] + ' ' + x[6] + ',' + y[6], style: {stroke: strokes[0]}}), 
+                React.createElement("line", {x1: x[7], y1: y[7], x2: x[8], y2: y[8], style: {stroke: strokes[0]}}), 
+                React.createElement("polyline", {points: x[9] + ',' + y[9] + ' ' + x[10] + ',' + y[10] + ' ' + x[11] + ',' + y[11], style: {stroke: strokes[1]}}), 
+                React.createElement("line", {x1: x[12], y1: y[12], x2: x[13], y2: y[13], style: {stroke: strokes[1]}})
+                )
+                )
+        )
+        // return (
+        //         <div style={this.props.style} title='Gene Network' >
+        //         <svg viewBox='0 0 55 100' width={this.props.w} height={this.props.h} fill='none' strokeWidth={6}>
+        //         <polyline points='30,3 5,28 50,72 26,97' style={{stroke: strokes[2]}} />
+        //         <polyline points='34,12 50,28 34,44' style={{stroke: strokes[0]}} />
+        //         <line x1='20' y1='28' x2='50' y2='28' style={{stroke: strokes[0]}} />
+        //         <polyline points='22,88 5,72 22,56' style={{stroke: strokes[1]}} />
+        //         <line x1='34' y1='72' x2='5' y2='72' style={{stroke: strokes[1]}} />
+        //         </svg>
+        //         </div>
+        // )
+    }
+})
+
+module.exports = Logo
 
 },{"lodash":130,"react":333}],41:[function(require,module,exports){
-"use strict";var _=require("lodash"),color=require("../../js/color"),htmlutil=require("../../js/htmlutil"),React=require("react"),Router=require("react-router"),DocumentTitle=require("react-document-title"),Footer=require("./Footer"),D3Network=require("../../js/D3Network.js"),Ontology=React.createClass({displayName:"Ontology",mixins:[Router.Navigation,Router.State],getInitialState:function(){return{data:{ontology:{name:"HPO"}}}},componentDidMount:function(){var e=document.getElementById("network"),t=D3Network(e,{width:e.offsetWidth,height:e.offsetHeight,labelSize:"12pt",labelColor:color.colors.gnwhite,nodeHeight:30,charge:-3e3,gravity:1});this.setState({w:e.offsetWidth,h:e.offsetHeight,network:t}),this.load("HPO")},componentWillReceiveProps:function(e){},load:function(e){$.ajax({url:"/js/networks/"+e+".json",dataType:"json",success:function(e){this.isMounted()?(this.setState({data:e,error:null}),this.state.network.draw(e)):console.log("Data for Ontology received but the component is not mounted.")}.bind(this),error:function(e,t,r){console.log("Error: "+e),this.isMounted()?"Not Found"===r?this.setState({data:null,error:"Term "+this.props.params.termId+" not found",errorTitle:"Error "+e.status}):this.setState({data:null,error:"Please try again later ("+e.status+")",errorTitle:"Error "+e.status}):console.log("Error getting data for Onotology and the component is not mounted.")}.bind(this)})},render:function(){if(console.log(this.state),this.state.error)return React.createElement(DocumentTitle,{title:this.state.errorTitle+GN.pageTitleSuffix},React.createElement("div",null,React.createElement("span",null,this.state.error),React.createElement(Footer,null)));if(this.state.data){this.state.data;return React.createElement(DocumentTitle,{title:"HPO "+GN.pageTitleSuffix},React.createElement("div",null,React.createElement("div",{className:"networkcontainer"},React.createElement("div",{id:"network",className:"network"})),React.createElement(Footer,null)))}return this.state.h?React.createElement(DocumentTitle,{title:"Loading"+GN.pageTitleSuffix},React.createElement("div",null,React.createElement("div",{className:"networkcontainer"},React.createElement("div",{id:"network",className:"network"},React.createElement("div",{style:{position:"absolute",top:(this.state.h-100)/2+"px",width:this.state.w+"px",textAlign:"center"}},"loading"))),React.createElement(Footer,null))):React.createElement(DocumentTitle,{title:"Loading"+GN.pageTitleSuffix},React.createElement("div",null,React.createElement("div",{className:"networkcontainer"},React.createElement("div",{id:"network",className:"network"})),React.createElement(Footer,null)))}});module.exports=Ontology;
+'use strict';
+
+var _ = require('lodash')
+var color = require('../../js/color')
+var htmlutil = require('../../js/htmlutil')
+
+var React = require('react')
+var Router = require('react-router')
+var DocumentTitle = require('react-document-title')
+var Footer = require('./Footer')
+var D3Network = require('../../js/D3Network.js')
+
+var Ontology = React.createClass({displayName: "Ontology",
+
+    mixins: [Router.Navigation, Router.State],
+
+    getInitialState: function() {
+        return {
+            data: {
+                ontology: {
+                    name: 'HPO'
+                }
+            }
+        }
+    },
+    
+    componentDidMount: function() {
+        var el = document.getElementById('network')
+        // console.log(el.offsetWidth, el.offsetHeight)
+        var Network = D3Network(el, {
+            width: el.offsetWidth,
+            height: el.offsetHeight,
+            labelSize: '12pt',
+            labelColor: color.colors.gnwhite,
+            nodeHeight: 30,
+            charge: -3000,
+//            linkDistance: 50,
+//            theta: 0.2,
+            gravity: 1,
+            
+        })
+        this.setState({
+            w: el.offsetWidth,
+            h: el.offsetHeight,
+            network: Network,
+        })
+        this.load('HPO')
+    },
+
+    componentWillReceiveProps: function(nextProps) {
+    },
+
+    load: function(ontologyName) {
+        $.ajax({
+            url: '/js/networks/' + ontologyName + '.json',
+            dataType: 'json',
+            success: function(data) {
+                if (this.isMounted()) {
+                    this.setState({
+                        data: data,
+                        error: null
+                    })
+                    this.state.network.draw(data)
+                } else {
+                    console.log('Data for Ontology received but the component is not mounted.')
+                }
+            }.bind(this),
+            error: function(xhr, status, err) {
+		console.log('Error: ' + xhr)
+                if (this.isMounted()) {
+                    if (err === 'Not Found') {
+                        this.setState({
+                            data: null,
+                            error: 'Term ' + this.props.params.termId + ' not found',
+			    errorTitle: 'Error ' + xhr.status
+                        })
+                    } else {
+                        this.setState({
+                            data: null,
+                            error: 'Please try again later (' + xhr.status + ')',
+			    errorTitle: 'Error ' + xhr.status
+                        })
+                    }
+                } else {
+                    console.log('Error getting data for Onotology and the component is not mounted.')
+                }
+            }.bind(this)
+        })
+    },
+    
+    render: function() {
+        console.log(this.state)
+        if (this.state.error) {
+            return (
+		    React.createElement(DocumentTitle, {title: this.state.errorTitle + GN.pageTitleSuffix}, 
+                    React.createElement("div", null, 
+                    React.createElement("span", null, this.state.error), 
+                    React.createElement(Footer, null)
+                    )
+		    )
+            )
+        } else if (this.state.data) {
+            var data = this.state.data
+            return (
+		    React.createElement(DocumentTitle, {title: 'HPO ' + GN.pageTitleSuffix}, 
+                    React.createElement("div", null, 
+                    React.createElement("div", {className: "networkcontainer"}, 
+                    React.createElement("div", {id: "network", className: "network"}
+                    )
+                    ), 
+                    React.createElement(Footer, null)
+                    )
+		    )
+            )
+        } else {
+            if (!this.state.h) {
+                return (
+		        React.createElement(DocumentTitle, {title: 'Loading' + GN.pageTitleSuffix}, 
+                        React.createElement("div", null, 
+                        React.createElement("div", {className: "networkcontainer"}, 
+                        React.createElement("div", {id: "network", className: "network"}
+                        )
+                        ), 
+                        React.createElement(Footer, null)
+                        )
+		        )
+                )
+            } else {
+                return (
+		        React.createElement(DocumentTitle, {title: 'Loading' + GN.pageTitleSuffix}, 
+                        React.createElement("div", null, 
+                        React.createElement("div", {className: "networkcontainer"}, 
+                        React.createElement("div", {id: "network", className: "network"}, 
+                        React.createElement("div", {style: {position: 'absolute', top: (this.state.h - 100) / 2 + 'px', width: this.state.w + 'px', textAlign: 'center'}}, 
+                        "loading")
+                        )
+                        ), 
+                        React.createElement(Footer, null)
+                        )
+		        )
+                )
+            }
+        }
+    }
+})
+
+module.exports = Ontology
 
 },{"../../js/D3Network.js":2,"../../js/color":4,"../../js/htmlutil":5,"./Footer":37,"lodash":130,"react":333,"react-document-title":142,"react-router":164}],42:[function(require,module,exports){
-var _=require("lodash"),React=require("react"),TriangleDown=require("./SVGCollection").TriangleDown,TriangleUp=require("./SVGCollection").TriangleUp,color=require("../../js/color"),OpenMenu=React.createClass({displayName:"OpenMenu",propTypes:{options:React.PropTypes.array,style:React.PropTypes.object,selected:React.PropTypes.string},getInitialState:function(){return{isExpanded:!1}},onClick:function(){this.setState({isExpanded:!this.state.isExpanded})},onMouseLeave:function(e){e.currentTarget.getAttribute("data-openmenu")||this.setState({isExpanded:!1})},render:function(){var e=this,t="bug",a=this.state.isExpanded?"":"invisible";return options=_.map(this.props.options,function(n,o){var s="dropupoption noselect";n.key===e.props.selected&&(t=n.label,s+=" selectedbutton");var r=o===e.props.options.length-1?{borderBottom:"1px solid #dcdcdc"}:{};return React.createElement("div",{"data-openmenu":"true",key:o,className:a,style:r,onMouseLeave:e.onMouseLeave},React.createElement("span",{"data-openmenu":"true",className:s,style:{display:"block"},onClick:e.props.onSelect.bind(null,n.key)},n.label.toUpperCase().replace(/EXAC/,"ExAC")))}),React.createElement("div",{className:"dropup clickable noselect",style:this.props.style,onClick:this.onClick,onMouseLeave:this.onMouseLeave},React.createElement("div",{className:"outer"},options),React.createElement("div",{"data-openmenu":"true",style:{minWidth:"150px"}},React.createElement("span",null,t.toUpperCase()),React.createElement(TriangleUp,{"data-openmenu":"true",className:"dropuptriangle"})))}});module.exports=OpenMenu;
+var _ = require('lodash')
+var React = require('react')
+var TriangleDown = require('./SVGCollection').TriangleDown
+var TriangleUp = require('./SVGCollection').TriangleUp
+var color = require('../../js/color')
+
+var OpenMenu = React.createClass({displayName: "OpenMenu",
+
+    propTypes: {
+        options: React.PropTypes.array,
+        style: React.PropTypes.object,
+        selected: React.PropTypes.string
+    },
+    
+    getInitialState: function() {
+        return {
+            isExpanded: false
+        }
+    },
+    
+    onClick: function() {
+        this.setState({
+            isExpanded: !this.state.isExpanded
+        })
+    },
+
+    onMouseLeave: function(e) {
+        if (!e.currentTarget.getAttribute('data-openmenu')) {
+            this.setState({
+                isExpanded: false
+            })
+        }
+    },
+    
+    render: function() {
+        var that = this
+        var text = 'bug'
+        var cls = this.state.isExpanded ? '' : 'invisible'
+        options = _.map(this.props.options, function(opt, i) {
+            var className = 'dropupoption noselect'
+            if (opt.key === that.props.selected) {
+                text = opt.label
+                className += ' selectedbutton'
+            }
+            var style = (i === that.props.options.length - 1) ? {borderBottom: '1px solid #dcdcdc'} : {}
+            return (
+                    React.createElement("div", {"data-openmenu": "true", key: i, className: cls, style: style, onMouseLeave: that.onMouseLeave}, 
+                    React.createElement("span", {"data-openmenu": "true", className: className, style: {display: 'block'}, onClick: that.props.onSelect.bind(null, opt.key)}, 
+                    opt.label.toUpperCase().replace(/EXAC/, 'ExAC'))
+                    )
+            )
+        })
+        
+        return (
+                React.createElement("div", {className: "dropup clickable noselect", style: this.props.style, onClick: this.onClick, onMouseLeave: this.onMouseLeave}, 
+                React.createElement("div", {className: "outer"}, 
+                options
+            ), 
+                React.createElement("div", {"data-openmenu": "true", style: {minWidth: '150px'}}, React.createElement("span", null, text.toUpperCase()), 
+                React.createElement(TriangleUp, {"data-openmenu": "true", className: "dropuptriangle"})
+                )
+                )
+        )
+    }
+})
+
+module.exports = OpenMenu
 
 },{"../../js/color":4,"./SVGCollection":45,"lodash":130,"react":333}],43:[function(require,module,exports){
-"use strict";var _=require("lodash"),htmlutil=require("../../js/htmlutil.js"),React=require("react"),SVGCollection=require("./SVGCollection"),Disetti=require("./Disetti"),color=require("../../js/color"),AddGeneSVG=React.createClass({displayName:"AddGeneSVG",propTypes:{gene:React.PropTypes.object.isRequired},render:function(){return React.createElement("div",{style:this.props.style},React.createElement("svg",{viewBox:"0 0 10 10",width:this.props.w,height:this.props.h},React.createElement("rect",{x1:"0",y1:"0",width:"10",height:"10",style:{fill:color.biotype2color[this.props.gene.biotype]||color.colors.default}}),React.createElement("line",{x1:"5",y1:"2",x2:"5",y2:"8",style:{stroke:color.colors.gnwhite,shapeRendering:"crispEdges",strokeWidth:2}}),React.createElement("line",{x1:"2",y1:"5",x2:"8",y2:"5",style:{stroke:color.colors.gnwhite,shapeRendering:"crispEdges",strokeWidth:2}})))}}),RemoveGeneSVG=React.createClass({displayName:"RemoveGeneSVG",propTypes:{gene:React.PropTypes.object.isRequired},render:function(){return React.createElement("div",{style:this.props.style},React.createElement("svg",{viewBox:"0 0 10 10",width:this.props.w,height:this.props.h},React.createElement("rect",{x1:"0",y1:"0",width:"10",height:"10",style:{fill:color.biotype2color[this.props.gene.biotype]||color.colors.default}}),React.createElement("line",{x1:"2",y1:"5",x2:"8",y2:"5",style:{stroke:color.colors.gnyellow,shapeRendering:"crispEdges",strokeWidth:2}})))}}),PredictedGenesPanel=React.createClass({displayName:"PredictedGenesPanel",propTypes:{group:React.PropTypes.object,onGeneAdd:React.PropTypes.func,onGeneRemove:React.PropTypes.func,addedGenes:React.PropTypes.array,d3fd:React.PropTypes.object},getInitialState:function(){return{}},componentDidMount:function(){this.setSocketListeners()},componentWillUnmount:function(){io.socket._raw.removeListener("geneprediction.queueEvent",this._onIOQueueEvent),io.socket._raw.removeListener("geneprediction.error",this._onIOError),io.socket._raw.removeListener("geneprediction.result",this._onIOResult),io.socket._raw.removeListener("geneprediction.end",this._onIOEnd)},_onIOQueueEvent:function(e){if(e.queueLength||0===e.queueLength){var t=htmlutil.intToStr(e.queueLength)+" analyses";t=0===e.queueLength?"Starting analysis...":e.queueLength<2?"Your analysis will start in a few seconds...":e.queueLength<10?"Your analysis will start in less than a minute, please be patient.I'm "+htmlutil.intToOrdinalStr(e.queueLength)+" in the queue.":"This will take some time as our servers are busy right now, please be patient. I'm "+htmlutil.intToOrdinalStr(e.queueLength)+" in the queue.",this.setState({gpMessage:t})}else console.log("PredictedGenesPanel.setSocketListeners: unhandled queueEvent")},_onIOResult:function(e){if(e.gpResults.auc&&e.gpResults.auc>0)this.setState({gpAUC:e.gpResults.auc});else{var t=this.state.gpResults;t||(t=[]);for(var s=[],n=0,r=e.gpResults.results,i=0;i<t.length;i++){for(;n<r.length&&r[n].p<t[i].p;)this.props.d3fd.getNodeById(r[n].gene.id)||s.push(r[n]),++n;s.push(t[i])}for(var i=n;i<r.length;i++)this.props.d3fd.getNodeById(r[i].gene.id)||s.push(r[i]);this.setState({gpMessage:null,gpResults:s,gpStatus:e.gpStatus,gpRunning:!0,gpAUC:e.gpResults.auc})}},_onIOError:function(e){this.setState({gpMessage:e.gpMessage,gpRunning:!1})},_onIOEnd:function(e){this.props.onPredFinish(),this.setState({gpMessage:e.gpMessage,gpRunning:!1})},setSocketListeners:function(){io.socket.on("geneprediction.queueEvent",this._onIOQueueEvent),io.socket.on("geneprediction.error",this._onIOError),io.socket.on("geneprediction.result",this._onIOResult),io.socket.on("geneprediction.end",this._onIOEnd)},gpRequest:function(e,t){if(e=e||this.props.group){if(!0===this.state.gpRunning)window.alert("Gene prediction requested but one is already running, not starting a new one.");else{console.log("PredictedGenesPanel.gpRequest: sending gene prediction request");var s=_.map(e.nodes,function(e){return e});io.socket.get(GN.urls.geneprediction,{genes:s,geneOfInterest:t},function(e,t){200!==t.statusCode&&window.alert("Please try again later.")})}this.props.onPredStart(),this.setState({gpMessage:"Analysis requested...",gpStatus:null,gpResults:null,gpRunning:!0})}else console.log("PredictedGenesPanel.gpRequest: no group!")},download:function(){var e=document.getElementById("gn-network-gpform");e.data.value=JSON.stringify(this.state.gpResults),e.name.value=this.props.group.name,e.genes.value=JSON.stringify(this.props.group.nodes),e.submit()},addGene:function(e){},shouldComponentUpdate:function(e,t){return t.gpMessage!=this.state.gpMessage||t.gpRunning!=this.state.gpRunning||t.gpResults!=this.state.gpResults||e.addedGenes&&this.props.addedGenes&&e.addedGenes.length!=this.props.addedGenes.length||e.style.display!=this.props.style.display},render:function(){if(!this.props.group)return null;if(!this.state.gpResults&&this.state.gpMessage)return React.createElement("div",{style:this.props.style},React.createElement("div",null,this.state.gpMessage));if(this.state.gpResults){for(var e=[React.createElement("tr",{key:"gpheader",className:"headerrow"},React.createElement("th",{style:{textAlign:"center"}}),React.createElement("th",null,"GENE"),React.createElement("th",{className:"pvalueheader"},"P-VALUE"))],t=0;t<this.state.gpResults.length;t++){var s=this.state.gpResults[t],n=(s.gene.description||"no description").replace(/\[[^\]]+\]/g,"");e.push(React.createElement("tr",{key:t},this.props.addedGenes.indexOf(s.gene.id)<0?React.createElement("td",{title:s.gene.biotype.replace(/_/g," "),className:"clickable addremove",onClick:this.props.onGeneAdd.bind(null,s.gene)},React.createElement(AddGeneSVG,{gene:s.gene,w:20,h:20,style:{marginRight:"8px"}})):React.createElement("td",{title:s.gene.biotype.replace(/_/g," "),className:"clickable addremove",onClick:this.props.onGeneRemove.bind(null,s.gene)},React.createElement(RemoveGeneSVG,{gene:s.gene,w:20,h:20,style:{marginRight:"8px"}})),React.createElement("td",null,React.createElement("a",{title:n,className:"black nodecoration",href:GN.urls.genePage+s.gene.id,target:"_blank"},s.gene.name)),React.createElement("td",{className:"pvalue",dangerouslySetInnerHTML:{__html:htmlutil.pValueToReadable(s.p)}})))}React.createElement("div",null,this.state.gpAUC>0?" AUC "+Math.round(1e3*this.state.gpAUC)/1e3:" (AUC not calculated)");return React.createElement("div",{className:"scrollable",style:this.props.style},React.createElement("p",null,"These genes are the most similar to ",React.createElement("strong",null,this.props.group.name)," ",React.createElement("br",null)," outside of the shown network."),React.createElement("table",{className:"gptable fullwidth"},React.createElement("tbody",null,e)))}return React.createElement("div",null,"Loading...")}});module.exports=PredictedGenesPanel;
+'use strict'
+
+var _ = require('lodash')
+var htmlutil = require('../../js/htmlutil.js')
+var React = require('react')
+var SVGCollection = require('./SVGCollection')
+var Disetti = require('./Disetti')
+var color = require('../../js/color')
+
+var AddGeneSVG = React.createClass({displayName: "AddGeneSVG",
+
+    propTypes: {
+        gene: React.PropTypes.object.isRequired
+    },
+    
+    render: function() {
+        
+        return (
+                React.createElement("div", {style: this.props.style}, 
+                React.createElement("svg", {viewBox: "0 0 10 10", width: this.props.w, height: this.props.h}, 
+                React.createElement("rect", {x1: "0", y1: "0", width: "10", height: "10", style: {fill: color.biotype2color[this.props.gene.biotype] || color.colors.default}}), 
+                React.createElement("line", {x1: "5", y1: "2", x2: "5", y2: "8", style: {stroke: color.colors.gnwhite, shapeRendering: 'crispEdges', strokeWidth: 2}}), 
+                React.createElement("line", {x1: "2", y1: "5", x2: "8", y2: "5", style: {stroke: color.colors.gnwhite, shapeRendering: 'crispEdges', strokeWidth: 2}})
+                )
+                )
+        )
+    }
+})
+
+var RemoveGeneSVG = React.createClass({displayName: "RemoveGeneSVG",
+
+    propTypes: {
+        gene: React.PropTypes.object.isRequired
+    },
+    
+    render: function() {
+
+        return (
+                React.createElement("div", {style: this.props.style}, 
+                React.createElement("svg", {viewBox: "0 0 10 10", width: this.props.w, height: this.props.h}, 
+                React.createElement("rect", {x1: "0", y1: "0", width: "10", height: "10", style: {fill: color.biotype2color[this.props.gene.biotype] || color.colors.default}}), 
+                React.createElement("line", {x1: "2", y1: "5", x2: "8", y2: "5", style: {stroke: color.colors.gnyellow, shapeRendering: 'crispEdges', strokeWidth: 2}})
+                )
+                )
+        )
+    }
+})
+    
+var PredictedGenesPanel = React.createClass({displayName: "PredictedGenesPanel",
+
+    propTypes: {
+        group: React.PropTypes.object,
+        onGeneAdd: React.PropTypes.func,
+        onGeneRemove: React.PropTypes.func,
+        addedGenes: React.PropTypes.array,
+        d3fd: React.PropTypes.object, // TODO remove, put getNodeById() in the data object itself?
+    },
+
+    getInitialState: function() {
+
+        return {}
+    },
+    
+    componentDidMount: function() {
+
+        this.setSocketListeners()
+        // this.gpRequest()
+    },
+
+    componentWillUnmount: function() {
+
+        io.socket._raw.removeListener('geneprediction.queueEvent', this._onIOQueueEvent)
+        io.socket._raw.removeListener('geneprediction.error', this._onIOError)
+        io.socket._raw.removeListener('geneprediction.result', this._onIOResult)
+        io.socket._raw.removeListener('geneprediction.end', this._onIOEnd)
+    },
+    
+    _onIOQueueEvent: function(msg) {
+
+        if (msg.queueLength || msg.queueLength === 0) {
+            var str = htmlutil.intToStr(msg.queueLength) + ' analyses'
+            if (msg.queueLength === 0) str = 'Starting analysis...'
+            else if (msg.queueLength < 2) str = 'Your analysis will start in a few seconds...'
+            else if (msg.queueLength < 10) str = 'Your analysis will start in less than a minute, please be patient.'
+                + 'I\'m ' + htmlutil.intToOrdinalStr(msg.queueLength) + ' in the queue.'
+            else str = 'This will take some time as our servers are busy right now, please be patient. '
+                + 'I\'m ' + htmlutil.intToOrdinalStr(msg.queueLength) + ' in the queue.'
+            this.setState({
+                gpMessage: str
+            })
+        } else {
+            console.log('PredictedGenesPanel.setSocketListeners: unhandled queueEvent')
+        }
+    },
+
+    _onIOResult: function(msg) {
+
+        if (msg.gpResults.auc && msg.gpResults.auc > 0) {
+            
+            this.setState({
+                gpAUC: msg.gpResults.auc
+            })
+            
+        } else {
+            
+            var oldResults = this.state.gpResults
+            if (!oldResults) {
+                oldResults = []
+            }
+            var newResults = []
+            var curI = 0
+            // maintain results sorted
+            var r = msg.gpResults.results
+            for (var i = 0; i < oldResults.length; i++) {
+                while (curI < r.length && r[curI].p < oldResults[i].p) {
+                    //TODO inefficient
+                    if (!this.props.d3fd.getNodeById(r[curI].gene.id)) {
+                        newResults.push(r[curI])
+                    } else {
+                        // console.log(r[curI].gene.name + ' already in network')
+                    }
+                    ++curI
+                }
+                newResults.push(oldResults[i])
+            }
+
+            for (var i = curI; i < r.length; i++) {
+                if (!this.props.d3fd.getNodeById(r[i].gene.id)) {
+                    newResults.push(r[i])
+                } else {
+                    // console.log('Gene ' + r[i].gene.name + ' already in network!')
+                }
+            }
+
+            this.setState({
+                gpMessage: null,
+                gpResults: newResults,
+                gpStatus: msg.gpStatus,
+                gpRunning: true,
+                gpAUC: msg.gpResults.auc
+            })
+        }
+    },
+    
+    _onIOError: function(msg) {
+
+        this.setState({
+            gpMessage: msg.gpMessage,
+            gpRunning: false
+        })
+    },
+
+    _onIOEnd: function(msg) {
+
+        this.props.onPredFinish()
+
+        this.setState({
+            gpMessage: msg.gpMessage,
+            gpRunning: false
+        })
+    },
+    
+    setSocketListeners: function() {
+        io.socket.on('geneprediction.queueEvent', this._onIOQueueEvent)
+        io.socket.on('geneprediction.error', this._onIOError)
+        io.socket.on('geneprediction.result', this._onIOResult)
+        io.socket.on('geneprediction.end', this._onIOEnd)
+    },
+    
+    gpRequest: function(group, geneOfInterest) {
+        group = group || this.props.group
+
+
+        if (!group) {
+            
+            console.log('PredictedGenesPanel.gpRequest: no group!')
+            
+        } else {
+
+            if (this.state.gpRunning === true) {
+                window.alert('Gene prediction requested but one is already running, not starting a new one.')
+            } else {
+                console.log('PredictedGenesPanel.gpRequest: sending gene prediction request')
+                var genes = _.map(group.nodes, function(gene) { return gene })
+                io.socket.get(GN.urls.geneprediction, {genes: genes, geneOfInterest: geneOfInterest}, function(res, jwres) {
+                    if (jwres.statusCode !== 200) {
+                        window.alert('Please try again later.')
+                    }
+                    //console.log('gp res:', res, jwres)
+                })
+            }
+            
+            this.props.onPredStart()
+            
+            this.setState({
+                gpMessage: 'Analysis requested...',
+                gpStatus: null,
+                gpResults: null,
+                gpRunning: true
+            })
+        }
+    },
+
+    download: function() {
+
+        var form = document.getElementById('gn-network-gpform')
+        form['data'].value = JSON.stringify(this.state.gpResults)
+        form['name'].value = this.props.group.name
+        form['genes'].value = JSON.stringify(this.props.group.nodes)
+        form.submit()
+    },
+    
+    addGene: function(gene) {
+    },
+
+    shouldComponentUpdate: function(nextProps, nextState) {
+
+        return nextState.gpMessage != this.state.gpMessage
+            || nextState.gpRunning != this.state.gpRunning
+            || nextState.gpResults != this.state.gpResults
+            || (nextProps.addedGenes && this.props.addedGenes
+                && nextProps.addedGenes.length != this.props.addedGenes.length)
+            || nextProps.style.display != this.props.style.display
+    },
+    
+    render: function() {
+        if (!this.props.group) return null
+        if (!this.state.gpResults && this.state.gpMessage) {
+            return (React.createElement("div", {style: this.props.style}, 
+                    React.createElement("div", null, this.state.gpMessage)
+                    )
+                   )
+        } else if (this.state.gpResults) {
+            var rows = [(React.createElement("tr", {key: "gpheader", className: "headerrow"}, 
+                         React.createElement("th", {style: {textAlign: 'center'}}), 
+                         React.createElement("th", null, "GENE"), 
+                         React.createElement("th", {className: "pvalueheader"}, "P-VALUE")
+                         ))]
+            var rowNum = 0
+            for (var i = 0; i < this.state.gpResults.length; i++) {
+                var result = this.state.gpResults[i]
+                var desc = (result.gene.description || 'no description').replace(/\[[^\]]+\]/g, '')
+                //TODO efficiency
+                rows.push(
+                    (
+	                    React.createElement("tr", {key: i}, 
+                            this.props.addedGenes.indexOf(result.gene.id) < 0 ?
+                             (React.createElement("td", {title: result.gene.biotype.replace(/_/g, ' '), className: "clickable addremove", onClick: this.props.onGeneAdd.bind(null, result.gene)}, 
+                              React.createElement(AddGeneSVG, {gene: result.gene, w: 20, h: 20, style: {marginRight: '8px'}})
+                              )) :
+                             (React.createElement("td", {title: result.gene.biotype.replace(/_/g, ' '), className: "clickable addremove", onClick: this.props.onGeneRemove.bind(null, result.gene)}, 
+                              React.createElement(RemoveGeneSVG, {gene: result.gene, w: 20, h: 20, style: {marginRight: '8px'}})
+                              )), 
+        	            React.createElement("td", null, React.createElement("a", {title: desc, className: "black nodecoration", href: GN.urls.genePage + result.gene.id, target: "_blank"}, result.gene.name)), 
+                            React.createElement("td", {className: "pvalue", dangerouslySetInnerHTML: {__html: htmlutil.pValueToReadable(result.p)}})
+    		            )
+                    ))
+            }
+            
+            var aucDiv = (React.createElement("div", null, 
+                          this.state.gpAUC > 0 ? ' AUC ' + Math.round(1000 * this.state.gpAUC) / 1000 : ' (AUC not calculated)'
+                          ))
+
+            return (
+                    React.createElement("div", {className: "scrollable", style: this.props.style}, 
+                    React.createElement("p", null, "These genes are the most similar to ", React.createElement("strong", null, this.props.group.name), " ", React.createElement("br", null), " outside of the shown network."), 
+                    React.createElement("table", {className: "gptable fullwidth"}, 
+                    React.createElement("tbody", null, 
+                    rows
+                )
+                    )
+      	            )
+            )
+        } else {
+            return(React.createElement("div", null, "Loading..."))
+        }
+    }
+})
+
+module.exports = PredictedGenesPanel
 
 },{"../../js/color":4,"../../js/htmlutil.js":5,"./Disetti":35,"./SVGCollection":45,"lodash":130,"react":333}],44:[function(require,module,exports){
-var _=require("lodash"),React=require("react"),Router=require("react-router"),Link=Router.Link,reactable=require("reactable"),Tr=reactable.Tr,Td=reactable.Td,Th=reactable.Th,Thead=reactable.Thead,Table=reactable.Table,unsafe=reactable.unsafe,SVGCollection=require("./SVGCollection"),htmlutil=require("../../js/htmlutil"),PredictionRow=React.createClass({displayName:"PredictionRow",propTypes:{data:React.PropTypes.object},render:function(){return React.createElement(Tr,{className:"clickable"},React.createElement(Td,{className:"text"},React.createElement(Link,{className:"nodecoration black",title:this.props.data.term.numAnnotatedGenes+" annotated genes, prediction accuracy "+Math.round(100*this.props.data.term.auc)/100,to:"/term/"+this.props.data.term.id},this.props.data.term.name)),React.createElement(Td,{style:{whiteSpace:"nowrap",textAlign:"center"}},unsafe(htmlutil.pValueToReadable(this.props.data.pValue))),React.createElement(Td,{style:{textAlign:"center"}},this.props.data.zScore>0?React.createElement(SVGCollection.TriangleUp,{className:"directiontriangleup"}):React.createElement(SVGCollection.TriangleDown,{className:"directiontriangledown"})),React.createElement(Td,{style:{textAlign:"center"}},this.props.isAnnotated?React.createElement(SVGCollection.Annotated,null):React.createElement(SVGCollection.NotAnnotated,null)),React.createElement(Td,{style:{textAlign:"center"}},React.createElement("a",{title:"Open network "+(this.props.data.annotated?"highlighting ":"with ")+this.props.gene.name,href:GN.urls.networkPage+this.props.data.term.id+",0!"+this.props.gene.name,target:"_blank"},React.createElement(SVGCollection.NetworkIcon,null))))}});module.exports=PredictionRow;
+var _ = require('lodash')
+var React = require('react')
+var Router = require('react-router')
+var Link = Router.Link
+
+var reactable = require('reactable')
+var Tr = reactable.Tr
+var Td = reactable.Td
+var Th = reactable.Th
+var Thead = reactable.Thead
+var Table = reactable.Table
+var unsafe = reactable.unsafe
+
+var SVGCollection = require('./SVGCollection')
+var htmlutil = require('../../js/htmlutil')
+
+var PredictionRow = React.createClass({displayName: "PredictionRow",
+
+	propTypes: {
+        data: React.PropTypes.object
+    },
+
+	render: function() {
+		return React.createElement(Tr, {className: "clickable"}, 
+            React.createElement(Td, {className: "text"}, 
+                React.createElement(Link, {className: "nodecoration black", title: this.props.data.term.numAnnotatedGenes + ' annotated genes, prediction accuracy ' + Math.round(100 * this.props.data.term.auc) / 100, to: "/term/" + this.props.data.term.id + ""}, 
+                this.props.data.term.name
+                )
+            ), 
+        React.createElement(Td, {style: {whiteSpace: 'nowrap', textAlign: 'center'}}, unsafe(htmlutil.pValueToReadable(this.props.data.pValue))), 
+            React.createElement(Td, {style: {textAlign: 'center'}}, 
+                this.props.data.zScore > 0 ? React.createElement(SVGCollection.TriangleUp, {className: "directiontriangleup"}) : React.createElement(SVGCollection.TriangleDown, {className: "directiontriangledown"})
+            ), 
+            React.createElement(Td, {style: {textAlign: 'center'}}, 
+                this.props.isAnnotated ? React.createElement(SVGCollection.Annotated, null) : React.createElement(SVGCollection.NotAnnotated, null)
+            ), 
+            React.createElement(Td, {style: {textAlign: 'center'}}, 
+                React.createElement("a", {title: 'Open network ' + (this.props.data.annotated ? 'highlighting ' : 'with ') + this.props.gene.name, href: GN.urls.networkPage + this.props.data.term.id + ',0!' + this.props.gene.name, target: "_blank"}, 
+                    React.createElement(SVGCollection.NetworkIcon, null)
+                )
+            )
+        );
+	}
+})
+
+module.exports = PredictionRow
 
 },{"../../js/htmlutil":5,"./SVGCollection":45,"lodash":130,"react":333,"react-router":164,"reactable":334}],45:[function(require,module,exports){
-var _=require("lodash"),React=require("react"),ReactTooltip=require("react-tooltip"),Chr=require("../../js/chr"),htmlutil=require("../../js/htmlutil.js"),color=require("../../js/color.js"),exp={};exp.X=React.createClass({displayName:"X",propTypes:{size:React.PropTypes.number.isRequired},render:function(){return React.createElement("svg",{viewBox:"0 0 24 24",width:this.props.size,height:this.props.size,strokeWidth:4},React.createElement("line",{x1:"2",y1:"2",x2:"22",y2:"22"}),React.createElement("line",{x1:"22",y1:"2",x2:"2",y2:"22"}))}}),exp.SquareSVG=React.createClass({displayName:"SquareSVG",propTypes:{size:React.PropTypes.number.isRequired,biotype:React.PropTypes.string,color:React.PropTypes.string,padding:React.PropTypes.string},render:function(){var e=this.props.color||this.props.biotype&&color.biotype2color[this.props.biotype]||color.colors.gnblack;return React.createElement("div",{style:{float:"left",padding:this.props.padding||"2px 2px 0 0"}},React.createElement("svg",{viewBox:"0 0 10 10",width:this.props.size,height:this.props.size},React.createElement("rect",{x1:"0",y1:"0",width:"10",height:"10",style:{fill:e}})))}}),exp.Download=React.createClass({displayName:"Download",propTypes:{text:React.PropTypes.string,size:React.PropTypes.number},render:function(){return React.createElement("svg",{fill:"none",width:this.props.size||28,height:this.props.size||28,viewBox:"0 0 100 100",strokeWidth:"6",stroke:"#4d4d4d",style:{cursor:"pointer"}},React.createElement("text",{x:"10",y:"40",fill:"#4d4d4d",style:{fontSize:"3em"},strokeWidth:"4"},this.props.text),React.createElement("polyline",{points:"25,72 50,98 75,72"}),React.createElement("line",{x1:"50",y1:"50",x2:"50",y2:"100"}))}}),exp.Upload=React.createClass({displayName:"Upload",getInitialState:function(){return{hover:!1}},hover:function(){this.setState({hover:!this.state.hover})},render:function(){return React.createElement("svg",{className:"clickable",fill:this.state.hover?color.colors.gngray:color.colors.gndarkgray,onMouseOver:this.hover,onMouseOut:this.hover,width:40,height:40,style:{float:"right",padding:"0 20px"}},React.createElement("path",{d:"M42.8,25.6c0,3.9,0,7.9,0,11.8c0.4-0.4,0.8-0.8,1.2-1.2c-12.2,0-24.5,0-36.7,0c0.4,0.4,0.8,0.8,1.2,1.2 c0-3.9,0-7.9,0-11.8c0-1.6-2.5-1.6-2.5,0c0,3.9,0,7.9,0,11.8c0,0.7,0.6,1.2,1.2,1.2c12.2,0,24.5,0,36.7,0c0.7,0,1.2-0.6,1.2-1.2 c0-3.9,0-7.9,0-11.8C45.3,24,42.8,24,42.8,25.6L42.8,25.6z M24.1,3.9c2.3,2.8,4.6,5.6,6.8,8.3c1,1.2,2.8-0.5,1.8-1.8c-2.3-2.8-4.6-5.6-6.8-8.3C24.9,0.9,23.1,2.6,24.1,3.9L24.1,3.9z M26.2,27.2c0-8.1,0-16.1,0-24.2c0-1-1.4-1.8-2.1-0.9c-2.3,2.8-4.6,5.6-6.8,8.3c-1,1.2,0.7,3,1.8,1.8 c2.3-2.8,4.6-5.6,6.8-8.3c-0.7-0.3-1.4-0.6-2.1-0.9c0,8.1,0,16.1,0,24.2C23.8,28.8,26.2,28.8,26.2,27.2L26.2,27.2z"}))}}),exp.Plus=React.createClass({displayName:"Plus",render:function(){return React.createElement("svg",{fill:"4d4d4d",width:"28",height:"28",viewBox:"0 0 24 24",strokeWidth:"2",stroke:"#4d4d4d"},React.createElement("line",{x1:"12",x2:"12",y1:"3",y2:"21"}),React.createElement("line",{x1:"3",x2:"21",y1:"12",y2:"12"}))}}),exp.Minus=React.createClass({displayName:"Minus",render:function(){return React.createElement("svg",{fill:"4d4d4d",width:"28",height:"28",viewBox:"0 0 24 24",strokeWidth:"2",stroke:"#4d4d4d"},React.createElement("line",{x1:"3",x2:"21",y1:"12",y2:"12"}))}}),exp.Move=React.createClass({displayName:"Move",render:function(){return React.createElement("svg",{xmlns:"http://www.w3.org/2000/svg",fill:"#4d4d4d",height:"28",viewBox:"0 0 24 24",width:"28"},React.createElement("path",{d:"M10 9h4V6h3l-5-5-5 5h3v3zm-1 1H6V7l-5 5 5 5v-3h3v-4zm14 2l-5-5v3h-3v4h3v3l5-5zm-9 3h-4v3H7l5 5 5-5h-3v-3z"}),React.createElement("path",{d:"M0 0h24v24H0z",fill:"none"}))}}),exp.Hand=React.createClass({displayName:"Hand",render:function(){return React.createElement("svg",{height:"36",width:"36",viewBox:"0 0 300 300"},React.createElement("path",{style:{fill:"none",fillRule:"evenodd",stroke:"#000000",strokeWidth:"7.5",strokeLinecap:"butt",strokeLinejoin:"miter",strokeMiterlimit:"4",strokeDasharray:"none",strokeOpacity:1},d:"M 155.66475,205.40012 C 162.29804,186.8186 184.02023,183.2838 200.1093,176.71493 C 214.86791,167.97579 225.48561,144.22372 246.93551,148.87873 C 257.42104,149.67278 270.65218,155.22101 263.60925,170.45861 C 242.65503,180.13389 236.41826,197.78511 220.96681,209.34493 C 208.75081,225.63782 199.41313,245.73169 180.08046,254.96632 C 168.5305,260.58598 155.61581,271.06227 159.46703,285.46537 C 163.81526,302.83559 145.26883,301.48405 134.16765,305.075 C 124.82793,306.37898 115.53581,305.62481 106.27465,304.28886 C 97.013492,302.9529 87.783287,301.03516 78.567389,300.01198 C 60.403329,292.95427 80.076399,271.2916 66.548699,260.89913 C 54.058629,250.28831 46.740169,233.10105 44.662149,217.27493 C 41.159419,201.65288 43.253559,187.8889 46.175509,172.2701 C 45.820579,152.18293 28.624989,137.40605 20.783949,121.39782 C 12.331184,105.60719 1.8726552,88.953055 5.2691996,72.694558 C 13.899079,57.256918 28.393725,72.589302 35.345795,81.990552 C 44.412135,94.673242 57.054439,117.22761 71.388049,131.97772 C 84.893279,135.8026 72.463829,117.0155 70.714059,108.55962 C 63.339543,84.702532 57.678489,65.903928 55.192939,46.063408 C 54.432139,30.181408 71.480609,18.169858 80.656439,34.307338 C 88.993565,54.437748 92.210335,77.110478 99.695385,99.221193 C 103.80077,107.55448 103.79039,119.75478 113.35538,122.45524 C 124.29964,123.96397 118.01258,84.810088 115.93524,65.165308 C 114.06143,49.440538 107.65961,15.700488 122.27625,5.4471909 C 140.86642,-2.6608651 146.49028,16.275868 148.23513,40.771738 C 149.76238,60.962948 150.09066,80.549668 150.30593,98.388908 C 152.16583,111.0501 152.89182,131.73698 161.92993,114.29675 C 166.50619,102.30624 169.5236,87.357158 175.25437,68.885248 C 179.53377,46.618638 186.29739,35.341908 200.20226,43.927318 C 211.91729,55.713348 204.24927,77.777708 200.42034,93.052488 C 196.02693,112.4188 188.86438,132.50474 184.63462,150.45798 C 183.29467,160.27456 183.0596,171.03998 188.53624,179.74432"}))}}),exp.ZoomIn=React.createClass({displayName:"ZoomIn",render:function(){return React.createElement("svg",{xmlns:"http://www.w3.org/2000/svg",fill:"#000000",height:"36",viewBox:"0 0 24 24",width:"36"},React.createElement("path",{d:"M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"}),React.createElement("path",{d:"M0 0h24v24H0V0z",fill:"none"}),React.createElement("path",{d:"M12 10h-2v2H9v-2H7V9h2V7h1v2h2v1z"}))}}),exp.ZoomOut=React.createClass({displayName:"ZoomOut",render:function(){return React.createElement("svg",{xmlns:"http://www.w3.org/2000/svg",fill:"#000000",height:"36",viewBox:"0 0 24 24",width:"36"},React.createElement("path",{d:"M0 0h24v24H0V0z",fill:"none"}),React.createElement("path",{d:"M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14zM7 9h5v1H7z"}))}}),exp.Crop=React.createClass({displayName:"Crop",render:function(){return React.createElement("svg",{xmlns:"http://www.w3.org/2000/svg",fill:"#4d4d4d",height:"28",viewBox:"0 0 24 24",width:"28"},React.createElement("path",{d:"M0 0h24v24H0z",fill:"none"}),React.createElement("path",{d:"M3 5v4h2V5h4V3H5c-1.1 0-2 .9-2 2zm2 10H3v4c0 1.1.9 2 2 2h4v-2H5v-4zm14 4h-4v2h4c1.1 0 2-.9 2-2v-4h-2v4zm0-16h-4v2h4v4h2V5c0-1.1-.9-2-2-2z"}))}}),exp.Rectangle=React.createClass({displayName:"Rectangle",render:function(){return React.createElement("div",{className:this.props.className,title:this.props.title},React.createElement("svg",{viewBox:"0 0 16 16",width:"12",height:"12"},React.createElement("rect",{x:"0",y:"0",width:"16",height:"16",style:{strokeWidth:0,fill:this.props.fill},shapeRendering:"crispEdges"})))}}),exp.TriangleUp=React.createClass({displayName:"TriangleUp",render:function(){return React.createElement("div",{className:this.props.className,style:this.props.divStyle},React.createElement("svg",{style:this.props.svgStyle,viewBox:"0 0 16 16",width:"14",height:"14"},React.createElement("polyline",{points:"1,15 8,5 15,15"})))}}),exp.TriangleDown=React.createClass({displayName:"TriangleDown",render:function(){return React.createElement("div",{className:this.props.className,style:this.props.divStyle},React.createElement("svg",{viewBox:"0 0 16 16",width:"14",height:"14"},React.createElement("polyline",{points:"1,6 8,15 15,6"})))}}),exp.Annotated=React.createClass({displayName:"Annotated",render:function(){return React.createElement("svg",{viewBox:"0 0 16 16",width:"16",height:"16"},React.createElement("polyline",{points:"1,11 6,15 15,6",style:{strokeWidth:"2.5px",stroke:color.colors.gngreen,fill:"none"}}))}}),exp.CheckBox=React.createClass({displayName:"CheckBox",render:function(){return React.createElement("svg",{viewBox:"0 0 25 25",width:"25",height:"25",style:{position:"absolute"}},React.createElement("rect",{style:{strokeWidth:"1.5px",stroke:color.colors.gngray,fill:"none"},width:"20px",height:"20px",y:"2px",x:"2px"}),this.props.selected?React.createElement("polyline",{points:"1,11 6,15 15,6",style:{strokeWidth:"2.5px",stroke:color.colors.gngreen,fill:"none"},transform:"translate(4,2)"}):null)}}),exp.NotAnnotated=React.createClass({displayName:"NotAnnotated",render:function(){return React.createElement("svg",{viewBox:"0 0 16 16",width:"16",height:"16"},React.createElement("polyline",{points:"1,10 15,10",style:{strokeWidth:"2.5px",stroke:color.colors.gnred,fill:"none"}}))}}),exp.NetworkIcon=React.createClass({displayName:"NetworkIcon",render:function(){return React.createElement("svg",{viewBox:"0 0 16 16",width:"16",height:"16",style:{stroke:color.colors.gndarkgray,strokeWidth:"1px",fill:"none"}},React.createElement("polyline",{points:"2,10 9,8 14,3"}),React.createElement("polyline",{points:"14,14 9,8 7,14"}),React.createElement("circle",{cx:"2",cy:"10",r:"1.5",style:{fill:color.colors.gndarkgray}}),React.createElement("circle",{cx:"9",cy:"8",r:"1.5",style:{fill:color.colors.gnred,stroke:color.colors.gnred}}),React.createElement("circle",{cx:"14",cy:"3",r:"1.5",style:{fill:color.colors.gndarkgray}}),React.createElement("circle",{cx:"14",cy:"14",r:"1.5",style:{fill:color.colors.gndarkgray}}),React.createElement("circle",{cx:"7",cy:"14",r:"1.5",style:{fill:color.colors.gndarkgray}}))}}),exp.DiagonalText=React.createClass({displayName:"DiagonalText",render:function(){return React.createElement("svg",{width:"90",height:"90",style:{position:"absolute",transform:"translate(0, -75px)"}},React.createElement("text",{y:"70",x:"-50",style:{transform:"rotate(-45deg)"}},this.props.text))}}),exp.ListIcon=React.createClass({displayName:"ListIcon",propTypes:{w:React.PropTypes.number.isRequired,h:React.PropTypes.number.isRequired,n:React.PropTypes.number,color:React.PropTypes.string},render:function(){for(var e=[],t=this.props.n,r=5*t,s="0 0 "+r+" "+r,o=0;o<this.props.n;o++)e.push(React.createElement("line",{key:o,x1:"0",y1:2+t*o*1.5,x2:r,y2:2+t*o*1.5}));return React.createElement("div",{style:{display:"inline-block"}},React.createElement("svg",{viewBox:s,width:this.props.w,height:this.props.h,style:{shapeRendering:"crispEdges",strokeWidth:1.5,stroke:this.props.color||color.colors.gngray}},e))}}),exp.Chromosome=React.createClass({displayName:"Chromosome",propTypes:{chr:React.PropTypes.oneOfType([React.PropTypes.number,React.PropTypes.string]).isRequired,position:React.PropTypes.number},render:function(){if(!Chr.arms[this.props.chr])return null;var e=this.props.chr,t=(Chr.arms[e][1]+Chr.arms[e][2])/2/Chr.arms[e][3]*100,r=t-4,s=t+4,o=this.props.position>=0&&Math.round(this.props.position/Chr.arms[e][3]*100);return lineElem=React.createElement("line",{x1:o,y1:"0",x2:o,y2:"16",className:"chrline"}),React.createElement("div",{style:this.props.style||{},title:this.props.start>0&&this.props.stop>0&&"Gene length: "+htmlutil.prettyNumber(this.props.stop-this.props.start+1)+" base pairs"},React.createElement("svg",{viewBox:"-5 0 110 16",preserveAspectRatio:"none",width:100,height:this.props.h||"12"},React.createElement("path",{className:"chrpath",d:"M0,0 L"+r+",0 C"+(r+5)+",0 "+(s-5)+",16 "+s+",16 L100,16 C105,16 105,0 100,0 L"+s+",0 C"+(s-5)+",0 "+(r+5)+",16 "+r+",16 L0,16 C-5,16 -5,0 0,0"}),6==this.props.chr?React.createElement("rect",{x:Math.round(2e7/Chr.arms[6][3]*100),y:"0",width:Math.round(2e7/Chr.arms[6][3]*100),height:"16",className:"hlarect"}):null,lineElem))}}),exp.TranscriptBars=React.createClass({displayName:"TranscriptBars",render:function(){var e=_.map(this.props.values,function(e,t){return React.createElement("g",{key:t},React.createElement("title",null,this.props.transcripts[t]),React.createElement("rect",{style:{transform:"translate(x,y)"},fill:this.props.hoverItem===this.props.transcripts[t]?color.colors.gndarkgray:this.props.selectedTranscript===this.props.transcripts[t]?color.colors.gndarkgray:color.colors.gngray,width:"5",height:16*e,y:20-16*e,x:7*t+14,onMouseOver:this.props.onMouseOver.bind(null,this.props.transcripts[t]),onMouseOut:this.props.onMouseOver.bind(null,void 0),onClick:this.props.onTranscriptBarClick.bind(null,this.props.transcripts[t])}))}.bind(this)),t=this.props.showBars?React.createElement("g",null,React.createElement("g",{fill:color.colors.gndarkgray},e,React.createElement("line",{x1:"14",y1:"20",x2:7*this.props.values.length+9,y2:"20",stroke:color.colors.gngray})),this.props.showTranscriptBarArrows?React.createElement("g",null,React.createElement("polygon",{fill:"left"===this.props.endTranscriptbars?color.colors.gnlightgray:"left"===this.props.hoverItem?color.colors.gndarkgray:color.colors.gngray,onMouseOver:this.props.onMouseOver.bind(null,"left"),onMouseOut:this.props.onMouseOver.bind(null,void 0),onClick:"left"===this.props.endTranscriptbars?void 0:this.props.onTranscriptArrowClick.bind(null,"left"),points:"0.9,14 7.7,10.1 7.7,18 "}),React.createElement("polygon",{fill:"right"===this.props.endTranscriptbars?color.colors.gnlightgray:"right"===this.props.hoverItem?color.colors.gndarkgray:color.colors.gngray,onMouseOver:this.props.onMouseOver.bind(null,"right"),onMouseOut:this.props.onMouseOver.bind(null,void 0),onClick:"right"===this.props.endTranscriptbars?void 0:this.props.onTranscriptArrowClick.bind(null,"right"),points:"95.1,14 88.3,18 88.3,10.1 "})):null):null;return React.createElement("div",{style:{display:"inline-block"}},React.createElement("svg",{width:"150",height:"20"},t))}}),exp.I=React.createClass({displayName:"I",propTypes:{title:React.PropTypes.string.isRequired},render:function(){return React.createElement("div",{style:{display:"inline-block",position:"relative",top:"5px"}},React.createElement("svg",{"data-tip":this.props.title,width:"20",height:"20",viewBox:"0 0 22 22",style:{cursor:"pointer"}},React.createElement("g",null,React.createElement("circle",{fill:color.colors.gnlightgray,cx:"9.8",cy:"9.5",r:"9.2"}),React.createElement("text",{fill:color.colors.gndarkgray,transform:"matrix(1 0 0 1 7.761 14.583)"},"i"))),React.createElement(ReactTooltip,{multiline:!0}))}}),exp.ArrowRight=React.createClass({displayName:"ArrowRight",render:function(){return React.createElement("svg",{width:13,height:13},React.createElement("g",null,React.createElement("path",{fill:this.props.color,onMouseOver:this.onMouseOver,onMouseOut:this.onMouseOut,d:"M11.6,7.7c-1.2,1.5-2.5,3-3.7,4.5c-0.5,0.7,0.2,1.8,0.8,1.2c1.2-1.5,2.5-3,3.7-4.5C12.9,8.2,12.1,7,11.6,7.7L11.6,7.7zM1.1,9c3.6,0,7.1,0,10.8,0c0.5,0,0.8-0.9,0.4-1.4c-1.2-1.5-2.5-3-3.7-4.5C8.1,2.5,7.3,3.7,7.8,4.4c1.2,1.5,2.5,3,3.7,4.5c0.1-0.5,0.3-0.9,0.4-1.4c-3.6,0-7.1,0-10.8,0C0.5,7.5,0.5,9,1.1,9L1.1,9z"})))}}),exp.ArrowLeft=React.createClass({displayName:"ArrowLeft",render:function(){return React.createElement("svg",{width:13,height:13},React.createElement("g",null,React.createElement("path",{fill:this.props.color,onMouseOver:this.onMouseOver,onMouseOut:this.onMouseOut,d:"M1.6,7.7C1.1,7,0.3,8.2,0.8,8.8c1.2,1.4,2.4,3,3.7,4.5c0.6,0.7,1.3-0.5,0.8-1.2C4.1,10.7,2.9,9.2,1.6,7.7L1.6,7.7z M12,9c0.7,0,0.7-1.6,0-1.6c-3.6,0-7.1,0-10.8,0c0.1,0.5,0.3,0.9,0.4,1.4c1.2-1.4,2.4-3,3.7-4.5c0.5-0.7-0.3-1.8-0.8-1.2c-1.2,1.4-2.4,3-3.7,4.5C0.5,8.1,0.8,9,1.3,9C4.9,9,8.4,9,12,9L12,9z"})))}}),module.exports=exp;
+var _ = require('lodash')
+var React = require('react')
+var ReactTooltip = require('react-tooltip')
+var Chr = require('../../js/chr')
+var htmlutil = require('../../js/htmlutil.js')
+var color = require('../../js/color.js')
+var exp = {}
+
+exp.X = React.createClass({displayName: "X",
+
+    propTypes: {
+        size: React.PropTypes.number.isRequired
+    },
+    
+    render : function() {
+        return (
+                React.createElement("svg", {viewBox: "0 0 24 24", width: this.props.size, height: this.props.size, strokeWidth: 4}, 
+                React.createElement("line", {x1: "2", y1: "2", x2: "22", y2: "22"}), 
+                React.createElement("line", {x1: "22", y1: "2", x2: "2", y2: "22"})
+                )
+        )
+    }
+})
+
+exp.SquareSVG = React.createClass({displayName: "SquareSVG",
+
+    propTypes: {
+        size: React.PropTypes.number.isRequired,
+        biotype: React.PropTypes.string,
+        color: React.PropTypes.string,
+        padding: React.PropTypes.string
+    },
+    
+    render : function() {
+        var clr = this.props.color || (this.props.biotype && color.biotype2color[this.props.biotype]) || color.colors.gnblack
+        return (
+                React.createElement("div", {style: {float: 'left', padding: this.props.padding || '2px 2px 0 0'}}, 
+                React.createElement("svg", {viewBox: "0 0 10 10", width: this.props.size, height: this.props.size}, 
+                React.createElement("rect", {x1: "0", y1: "0", width: "10", height: "10", style: {fill: clr}})
+                )
+                )
+        )
+    }
+})
+
+exp.Download = React.createClass({displayName: "Download",
+    propTypes: {
+        text: React.PropTypes.string,
+        size: React.PropTypes.number
+    },
+    render: function() {
+        return (
+                React.createElement("svg", {fill: "none", width: this.props.size || 28, height: this.props.size || 28, viewBox: "0 0 100 100", strokeWidth: "6", stroke: "#4d4d4d", style: {cursor: 'pointer'}}, 
+                React.createElement("text", {x: "10", y: "40", fill: "#4d4d4d", style: {fontSize: '3em'}, strokeWidth: "4"}, this.props.text), 
+                React.createElement("polyline", {points: "25,72 50,98 75,72"}), 
+                React.createElement("line", {x1: "50", y1: "50", x2: "50", y2: "100"})
+                )
+        )
+    }
+})
+
+exp.Upload = React.createClass({displayName: "Upload",
+
+    getInitialState: function() {
+        return {
+            hover: false
+        }
+    },
+
+    hover: function() {
+        this.setState({
+            hover: !this.state.hover
+        })
+    },
+
+    render: function() {
+        return (
+                React.createElement("svg", {className: "clickable", fill: this.state.hover ? color.colors.gngray : color.colors.gndarkgray, onMouseOver: this.hover, onMouseOut: this.hover, width: 40, height: 40, style: {float: 'right', padding: '0 20px'}}, 
+                    React.createElement("path", {d: "M42.8,25.6c0,3.9,0,7.9,0,11.8c0.4-0.4,0.8-0.8,1.2-1.2c-12.2,0-24.5,0-36.7,0c0.4,0.4,0.8,0.8,1.2,1.2" + ' ' +
+                            "c0-3.9,0-7.9,0-11.8c0-1.6-2.5-1.6-2.5,0c0,3.9,0,7.9,0,11.8c0,0.7,0.6,1.2,1.2,1.2c12.2,0,24.5,0,36.7,0c0.7,0,1.2-0.6,1.2-1.2" + ' ' +
+                            "c0-3.9,0-7.9,0-11.8C45.3,24,42.8,24,42.8,25.6L42.8,25.6z" + ' ' +
+                            "M24.1,3.9c2.3,2.8,4.6,5.6,6.8,8.3c1,1.2,2.8-0.5,1.8-1.8c-2.3-2.8-4.6-5.6-6.8-8.3C24.9,0.9,23.1,2.6,24.1,3.9L24.1,3.9z" + ' ' +
+                            "M26.2,27.2c0-8.1,0-16.1,0-24.2c0-1-1.4-1.8-2.1-0.9c-2.3,2.8-4.6,5.6-6.8,8.3c-1,1.2,0.7,3,1.8,1.8" + ' ' +
+                            "c2.3-2.8,4.6-5.6,6.8-8.3c-0.7-0.3-1.4-0.6-2.1-0.9c0,8.1,0,16.1,0,24.2C23.8,28.8,26.2,28.8,26.2,27.2L26.2,27.2z"})
+                )
+            )
+    }
+})
+
+exp.Plus = React.createClass({displayName: "Plus",
+    render: function() {
+        return (
+                React.createElement("svg", {fill: "4d4d4d", width: "28", height: "28", viewBox: "0 0 24 24", strokeWidth: "2", stroke: "#4d4d4d"}, 
+                React.createElement("line", {x1: "12", x2: "12", y1: "3", y2: "21"}), 
+                React.createElement("line", {x1: "3", x2: "21", y1: "12", y2: "12"})
+                )
+        )
+    }
+})
+
+exp.Minus = React.createClass({displayName: "Minus",
+    render: function() {
+        return (
+                React.createElement("svg", {fill: "4d4d4d", width: "28", height: "28", viewBox: "0 0 24 24", strokeWidth: "2", stroke: "#4d4d4d"}, 
+                React.createElement("line", {x1: "3", x2: "21", y1: "12", y2: "12"})
+                )
+        )
+    }
+})
+
+exp.Move = React.createClass({displayName: "Move",
+    // https://www.google.com/design/icons/
+    render: function() {
+        return (
+                React.createElement("svg", {xmlns: "http://www.w3.org/2000/svg", fill: "#4d4d4d", height: "28", viewBox: "0 0 24 24", width: "28"}, 
+                React.createElement("path", {d: "M10 9h4V6h3l-5-5-5 5h3v3zm-1 1H6V7l-5 5 5 5v-3h3v-4zm14 2l-5-5v3h-3v4h3v3l5-5zm-9 3h-4v3H7l5 5 5-5h-3v-3z"}), 
+                React.createElement("path", {d: "M0 0h24v24H0z", fill: "none"})
+                )
+        )
+    }
+})
+
+exp.Hand = React.createClass({displayName: "Hand",
+    
+    render: function() {
+        return (
+                React.createElement("svg", {height: "36", width: "36", viewBox: "0 0 300 300"}, 
+                React.createElement("path", {style: {fill:'none', fillRule:'evenodd', stroke:'#000000', strokeWidth:'7.5', strokeLinecap:'butt', strokeLinejoin:'miter', strokeMiterlimit:'4', strokeDasharray:'none', strokeOpacity:1}, d: "M 155.66475,205.40012 C 162.29804,186.8186 184.02023,183.2838 200.1093,176.71493 C 214.86791,167.97579 225.48561,144.22372 246.93551,148.87873 C 257.42104,149.67278 270.65218,155.22101 263.60925,170.45861 C 242.65503,180.13389 236.41826,197.78511 220.96681,209.34493 C 208.75081,225.63782 199.41313,245.73169 180.08046,254.96632 C 168.5305,260.58598 155.61581,271.06227 159.46703,285.46537 C 163.81526,302.83559 145.26883,301.48405 134.16765,305.075 C 124.82793,306.37898 115.53581,305.62481 106.27465,304.28886 C 97.013492,302.9529 87.783287,301.03516 78.567389,300.01198 C 60.403329,292.95427 80.076399,271.2916 66.548699,260.89913 C 54.058629,250.28831 46.740169,233.10105 44.662149,217.27493 C 41.159419,201.65288 43.253559,187.8889 46.175509,172.2701 C 45.820579,152.18293 28.624989,137.40605 20.783949,121.39782 C 12.331184,105.60719 1.8726552,88.953055 5.2691996,72.694558 C 13.899079,57.256918 28.393725,72.589302 35.345795,81.990552 C 44.412135,94.673242 57.054439,117.22761 71.388049,131.97772 C 84.893279,135.8026 72.463829,117.0155 70.714059,108.55962 C 63.339543,84.702532 57.678489,65.903928 55.192939,46.063408 C 54.432139,30.181408 71.480609,18.169858 80.656439,34.307338 C 88.993565,54.437748 92.210335,77.110478 99.695385,99.221193 C 103.80077,107.55448 103.79039,119.75478 113.35538,122.45524 C 124.29964,123.96397 118.01258,84.810088 115.93524,65.165308 C 114.06143,49.440538 107.65961,15.700488 122.27625,5.4471909 C 140.86642,-2.6608651 146.49028,16.275868 148.23513,40.771738 C 149.76238,60.962948 150.09066,80.549668 150.30593,98.388908 C 152.16583,111.0501 152.89182,131.73698 161.92993,114.29675 C 166.50619,102.30624 169.5236,87.357158 175.25437,68.885248 C 179.53377,46.618638 186.29739,35.341908 200.20226,43.927318 C 211.91729,55.713348 204.24927,77.777708 200.42034,93.052488 C 196.02693,112.4188 188.86438,132.50474 184.63462,150.45798 C 183.29467,160.27456 183.0596,171.03998 188.53624,179.74432"})
+                )
+        )
+    }
+})
+
+exp.ZoomIn = React.createClass({displayName: "ZoomIn",
+    // https://www.google.com/design/icons/
+    render: function() {
+        return (
+                React.createElement("svg", {xmlns: "http://www.w3.org/2000/svg", fill: "#000000", height: "36", viewBox: "0 0 24 24", width: "36"}, 
+                React.createElement("path", {d: "M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"}), 
+                React.createElement("path", {d: "M0 0h24v24H0V0z", fill: "none"}), 
+                React.createElement("path", {d: "M12 10h-2v2H9v-2H7V9h2V7h1v2h2v1z"})
+                )
+        )
+    }
+}),
+
+exp.ZoomOut = React.createClass({displayName: "ZoomOut",
+    // https://www.google.com/design/icons/
+    render: function() {
+        return (
+                React.createElement("svg", {xmlns: "http://www.w3.org/2000/svg", fill: "#000000", height: "36", viewBox: "0 0 24 24", width: "36"}, 
+                React.createElement("path", {d: "M0 0h24v24H0V0z", fill: "none"}), 
+                React.createElement("path", {d: "M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14zM7 9h5v1H7z"})
+                )
+        )
+    }
+}),
+
+exp.Crop = React.createClass({displayName: "Crop",
+    // https://www.google.com/design/icons/
+    render: function() {
+        return (
+                React.createElement("svg", {xmlns: "http://www.w3.org/2000/svg", fill: "#4d4d4d", height: "28", viewBox: "0 0 24 24", width: "28"}, 
+                React.createElement("path", {d: "M0 0h24v24H0z", fill: "none"}), 
+                React.createElement("path", {d: "M3 5v4h2V5h4V3H5c-1.1 0-2 .9-2 2zm2 10H3v4c0 1.1.9 2 2 2h4v-2H5v-4zm14 4h-4v2h4c1.1 0 2-.9 2-2v-4h-2v4zm0-16h-4v2h4v4h2V5c0-1.1-.9-2-2-2z"})
+                )
+        )
+    }
+})
+
+exp.Rectangle = React.createClass({displayName: "Rectangle",
+    render: function() {
+            return (
+                    React.createElement("div", {className: this.props.className, title: this.props.title}, 
+                    React.createElement("svg", {viewBox: "0 0 16 16", width: "12", height: "12"}, 
+                    React.createElement("rect", {x: "0", y: "0", width: "16", height: "16", style: {strokeWidth: 0, fill: this.props.fill}, shapeRendering: "crispEdges"})
+                    )
+                    )
+            )
+    }
+})
+
+exp.TriangleUp = React.createClass({displayName: "TriangleUp",
+    render: function() {
+        return (
+                React.createElement("div", {className: this.props.className, style: this.props.divStyle}, 
+                React.createElement("svg", {style: this.props.svgStyle, viewBox: "0 0 16 16", width: "14", height: "14"}, 
+                React.createElement("polyline", {points: "1,15 8,5 15,15"})
+                )
+                )
+        )
+    }
+})
+
+exp.TriangleDown = React.createClass({displayName: "TriangleDown",
+    render: function() {
+        return (
+                React.createElement("div", {className: this.props.className, style: this.props.divStyle}, 
+                React.createElement("svg", {viewBox: "0 0 16 16", width: "14", height: "14"}, 
+                React.createElement("polyline", {points: "1,6 8,15 15,6"})
+                )
+                )
+        )
+    }
+})
+
+exp.Annotated = React.createClass({displayName: "Annotated",
+    render: function() {
+        return (
+                React.createElement("svg", {viewBox: "0 0 16 16", width: "16", height: "16"}, 
+                React.createElement("polyline", {points: "1,11 6,15 15,6", style: {strokeWidth: '2.5px', stroke: color.colors.gngreen, fill: 'none'}})
+                )
+        )
+    }
+})
+
+exp.CheckBox = React.createClass({displayName: "CheckBox",
+    render: function() {
+        return (
+                React.createElement("svg", {viewBox: "0 0 25 25", width: "25", height: "25", style: {position: 'absolute'}}, 
+                    React.createElement("rect", {style: {strokeWidth: '1.5px', stroke: color.colors.gngray, fill: 'none'}, width: "20px", height: "20px", y: "2px", x: "2px"}), 
+                    
+                    this.props.selected ? 
+                        React.createElement("polyline", {points: "1,11 6,15 15,6", style: {strokeWidth: '2.5px', stroke: color.colors.gngreen, fill: 'none'}, transform: "translate(4,2)"})
+                    :
+                        null
+                    
+                )
+        )
+    }
+})
+
+exp.NotAnnotated = React.createClass({displayName: "NotAnnotated",
+    render: function() {
+        return (
+                React.createElement("svg", {viewBox: "0 0 16 16", width: "16", height: "16"}, 
+                React.createElement("polyline", {points: "1,10 15,10", style: {strokeWidth: '2.5px', stroke: color.colors.gnred, fill: 'none'}})
+                )
+        )
+    }
+})
+
+exp.NetworkIcon = React.createClass({displayName: "NetworkIcon",
+    render: function() {
+        return (
+                React.createElement("svg", {viewBox: "0 0 16 16", width: "16", height: "16", style: {stroke: color.colors.gndarkgray, strokeWidth: '1px', fill: 'none'}}, 
+                React.createElement("polyline", {points: "2,10 9,8 14,3"}), 
+                React.createElement("polyline", {points: "14,14 9,8 7,14"}), 
+                React.createElement("circle", {cx: "2", cy: "10", r: "1.5", style: {fill: color.colors.gndarkgray}}), 
+                React.createElement("circle", {cx: "9", cy: "8", r: "1.5", style: {fill: color.colors.gnred, stroke: color.colors.gnred}}), 
+                React.createElement("circle", {cx: "14", cy: "3", r: "1.5", style: {fill: color.colors.gndarkgray}}), 
+                React.createElement("circle", {cx: "14", cy: "14", r: "1.5", style: {fill: color.colors.gndarkgray}}), 
+                React.createElement("circle", {cx: "7", cy: "14", r: "1.5", style: {fill: color.colors.gndarkgray}})
+                )
+        )
+    }
+})
+
+exp.DiagonalText = React.createClass({displayName: "DiagonalText",
+    render: function(){
+        return (
+            React.createElement("svg", {width: "90", height: "90", style: {position: 'absolute', transform: 'translate(0, -75px)'}}, 
+                React.createElement("text", {y: "70", x: "-50", style: {transform: 'rotate(-45deg)'}}, this.props.text)
+            )
+        )
+    }
+})
+
+exp.ListIcon = React.createClass({displayName: "ListIcon",
+
+    propTypes: {
+        w: React.PropTypes.number.isRequired,
+        h: React.PropTypes.number.isRequired,
+        n: React.PropTypes.number,
+        color: React.PropTypes.string
+    },
+    
+    render: function() {
+
+        var lines = [];
+        var n = this.props.n;
+        var size = n * 5;
+        var viewBox = '0 0 ' + size + ' ' + size;
+
+        for (var i = 0; i < this.props.n; i++) {
+            lines.push(React.createElement("line", {key: i, x1: "0", y1: 2 + n * i * 1.5, x2: size, y2: 2 + n * i * 1.5}));
+        }
+
+        return (
+            React.createElement("div", {style: {display: 'inline-block'}}, 
+                React.createElement("svg", {viewBox: viewBox, width: this.props.w, height: this.props.h, style: {shapeRendering: 'crispEdges', strokeWidth: 1.5, stroke: this.props.color || color.colors.gngray}}, 
+                    lines
+                )
+            )
+        )
+    }
+})
+
+exp.Chromosome = React.createClass({displayName: "Chromosome",
+
+    propTypes: {
+        chr: React.PropTypes.oneOfType([
+            React.PropTypes.number,
+            React.PropTypes.string
+        ]).isRequired,
+        position: React.PropTypes.number
+    },
+
+    render: function() {
+
+        if (!Chr.arms[this.props.chr]) {
+            return null
+        }
+
+        var c = this.props.chr
+        var w = 100 // Chr.arms[c][3] / Chr.arms[1][3] * 100
+        var cm = (Chr.arms[c][1] + Chr.arms[c][2]) / 2 / Chr.arms[c][3] * 100
+        var cm1 = cm - 4
+        var cm2 = cm + 4
+        
+        var relPosition = this.props.position >= 0 && Math.round(this.props.position / Chr.arms[c][3] * 100)
+        // TODO proper drawing if gene is next to centromere
+        // if (relPosition === 49) relPosition = 48
+        // if (relPosition === 50) relPosition = 51
+        // var lineElem = null
+        // if (relPosition === 48) {
+        //     lineElem = (<path className='chrlinethin' d={'M' + cm1 + ',0 ' +
+        //                                                  'C' + (cm1 + 5) + ',0 ' + (cm1 + 5) + ',16 ' + cm1 + ',16 ' +
+        //                                                  'L' + cm1 + ',0'}
+        //                 />)
+        // } else if (relPosition === 51) {
+        //     lineElem = (<path className='chrlinethin' d={'M' + cm2 + ',0 ' +
+        //                                                  'C' + (cm2 - 5) + ',0 ' + (cm2 - 5) + ',16 ' + cm2 + ',16 ' +
+        //                                                  'L' + cm2 + ',0'}
+        //                 />)
+        // } else {
+        lineElem = (React.createElement("line", {x1: relPosition, y1: "0", x2: relPosition, y2: "16", className: "chrline"}))
+        // }
+
+        return (
+                React.createElement("div", {style: this.props.style || {}, title: this.props.start > 0 && this.props.stop > 0 && 'Gene length: ' + htmlutil.prettyNumber(this.props.stop - this.props.start + 1) + ' base pairs'}, 
+                React.createElement("svg", {viewBox: "-5 0 110 16", preserveAspectRatio: "none", width: w || '100', height: this.props.h || '12'}, 
+                React.createElement("path", {className: "chrpath", d: 'M0,0 L' + cm1 + ',0 ' +
+                                             'C' + (cm1 + 5) + ',0 ' + (cm2 - 5) + ',16 ' + cm2 + ',16 ' +
+                                             'L100,16 ' +
+                                             'C105,16 105,0 100,0 ' +
+                                             'L' + cm2 +',0 ' +
+                                             'C' + (cm2 - 5) + ',0 ' + (cm1 + 5) + ',16 ' + cm1 + ',16 ' +
+                                             'L0,16 ' +
+                                             'C-5,16 -5,0 0,0'
+                                            }), 
+                this.props.chr == 6 ? (React.createElement("rect", {x: Math.round(20*1000*1000 / Chr.arms[6][3] * 100), y: "0", width: Math.round(20*1000*1000 / Chr.arms[6][3] * 100), height: "16", className: "hlarect"})) : null, 
+                lineElem
+                )
+                )
+        )
+    }
+})
+
+exp.TranscriptBars = React.createClass({displayName: "TranscriptBars",
+
+    render: function() {
+        var bars = _.map(this.props.values, function(value, i){
+            return (
+                    React.createElement("g", {key: i}, 
+                        React.createElement("title", null, this.props.transcripts[i]), 
+                        React.createElement("rect", {style: {transform: 'translate(x,y)'}, fill: this.props.hoverItem === this.props.transcripts[i] ? color.colors.gndarkgray : this.props.selectedTranscript === this.props.transcripts[i] ? color.colors.gndarkgray : color.colors.gngray, width: "5", height: value*16, y: 20-(value*16), x: (7*i)+14, onMouseOver: this.props.onMouseOver.bind(null, this.props.transcripts[i]), onMouseOut: this.props.onMouseOver.bind(null, undefined), onClick: this.props.onTranscriptBarClick.bind(null, this.props.transcripts[i])})
+                    )
+                )
+        }.bind(this))
+
+        var graph = this.props.showBars ? (
+            React.createElement("g", null, 
+                React.createElement("g", {fill: color.colors.gndarkgray}, 
+                            bars, 
+                            React.createElement("line", {x1: "14", y1: "20", x2: (this.props.values.length*7)+9, y2: "20", stroke: color.colors.gngray})
+                        ), 
+                        this.props.showTranscriptBarArrows ? React.createElement("g", null, 
+                            React.createElement("polygon", {fill: this.props.endTranscriptbars === 'left' ? color.colors.gnlightgray : this.props.hoverItem === 'left' ? color.colors.gndarkgray : color.colors.gngray, onMouseOver: this.props.onMouseOver.bind(null, 'left'), onMouseOut: this.props.onMouseOver.bind(null, undefined), onClick: this.props.endTranscriptbars === 'left' ? undefined : this.props.onTranscriptArrowClick.bind(null, 'left'), points: "0.9,14 7.7,10.1 7.7,18 "}), 
+                            React.createElement("polygon", {fill: this.props.endTranscriptbars === 'right' ? color.colors.gnlightgray : this.props.hoverItem === 'right' ? color.colors.gndarkgray : color.colors.gngray, onMouseOver: this.props.onMouseOver.bind(null, 'right'), onMouseOut: this.props.onMouseOver.bind(null, undefined), onClick: this.props.endTranscriptbars === 'right' ? undefined : this.props.onTranscriptArrowClick.bind(null, 'right'), points: "95.1,14 88.3,18 88.3,10.1 "})
+                ) : null
+            )
+        ) : null
+
+        return (
+            React.createElement("div", {style: {display: 'inline-block'}}, 
+                React.createElement("svg", {width: "150", height: "20"}, 
+                    graph
+                )
+            )
+        )
+    }
+})
+
+exp.I = React.createClass({displayName: "I",
+
+    propTypes: {
+        title: React.PropTypes.string.isRequired
+    },
+
+    render: function() {
+        return (
+            React.createElement("div", {style: {display: 'inline-block', position: 'relative', top: '5px'}}, 
+                React.createElement("svg", {"data-tip": this.props.title, width: "20", height: "20", viewBox: "0 0 22 22", style: {cursor: 'pointer'}}, 
+                    React.createElement("g", null, 
+                        React.createElement("circle", {fill: color.colors.gnlightgray, cx: "9.8", cy: "9.5", r: "9.2"}), 
+                        React.createElement("text", {fill: color.colors.gndarkgray, transform: "matrix(1 0 0 1 7.761 14.583)"}, "i")
+                    )
+                ), 
+                React.createElement(ReactTooltip, {multiline: true})
+                /*<ReactTooltip multiline={true} place="bottom" effect="solid" class='tooltip'/>*/
+            )
+        )
+    }
+})
+
+exp.ArrowRight = React.createClass({displayName: "ArrowRight",
+
+    render: function() {
+        return (
+
+                React.createElement("svg", {width: 13, height: 13}, 
+                    React.createElement("g", null, 
+                        React.createElement("path", {fill: this.props.color, onMouseOver: this.onMouseOver, onMouseOut: this.onMouseOut, d: "M11.6,7.7c-1.2,1.5-2.5,3-3.7,4.5c-0.5,0.7,0.2,1.8,0.8,1.2c1.2-1.5,2.5-3,3.7-4.5C12.9,8.2,12.1,7,11.6,7.7L11.6,7.7zM1.1,9c3.6,0,7.1,0,10.8,0c0.5,0,0.8-0.9,0.4-1.4c-1.2-1.5-2.5-3-3.7-4.5C8.1,2.5,7.3,3.7,7.8,4.4c1.2,1.5,2.5,3,3.7,4.5c0.1-0.5,0.3-0.9,0.4-1.4c-3.6,0-7.1,0-10.8,0C0.5,7.5,0.5,9,1.1,9L1.1,9z"})
+                    )
+                )
+        )
+    }
+})
+
+exp.ArrowLeft = React.createClass({displayName: "ArrowLeft",
+
+    render: function() {
+        return (
+                
+                React.createElement("svg", {width: 13, height: 13}, 
+                    React.createElement("g", null, 
+                        React.createElement("path", {fill: this.props.color, onMouseOver: this.onMouseOver, onMouseOut: this.onMouseOut, d: "M1.6,7.7C1.1,7,0.3,8.2,0.8,8.8c1.2,1.4,2.4,3,3.7,4.5c0.6,0.7,1.3-0.5,0.8-1.2C4.1,10.7,2.9,9.2,1.6,7.7L1.6,7.7z M12,9c0.7,0,0.7-1.6,0-1.6c-3.6,0-7.1,0-10.8,0c0.1,0.5,0.3,0.9,0.4,1.4c1.2-1.4,2.4-3,3.7-4.5c0.5-0.7-0.3-1.8-0.8-1.2c-1.2,1.4-2.4,3-3.7,4.5C0.5,8.1,0.8,9,1.3,9C4.9,9,8.4,9,12,9L12,9z"})
+                    )
+                )
+        )
+    }
+});
+
+exp.Warning = React.createClass({displayName: "Warning",
+    render: function() {
+        return (
+            React.createElement("svg", {width: 24, height: 24, x: "0px", y: "0px", viewBox: "0 0 512 512", style: {enableBackground:'new 0 0 512 512'}}, 
+                React.createElement("g", null, 
+                    React.createElement("g", null, 
+                        React.createElement("path", {d: "M505.403,406.394L295.389,58.102c-8.274-13.721-23.367-22.245-39.39-22.245c-16.023,0-31.116,8.524-39.391,22.246" + ' ' +
+                            "L6.595,406.394c-8.551,14.182-8.804,31.95-0.661,46.37c8.145,14.42,23.491,23.378,40.051,23.378h420.028" + ' ' +
+                            "c16.56,0,31.907-8.958,40.052-23.379C514.208,438.342,513.955,420.574,505.403,406.394z M477.039,436.372" + ' ' +
+                            "c-2.242,3.969-6.467,6.436-11.026,6.436H45.985c-4.559,0-8.784-2.466-11.025-6.435c-2.242-3.97-2.172-8.862,0.181-12.765" + ' ' +
+                            "L245.156,75.316c2.278-3.777,6.433-6.124,10.844-6.124c4.41,0,8.565,2.347,10.843,6.124l210.013,348.292" + ' ' +
+                            "C479.211,427.512,479.281,432.403,477.039,436.372z"})
+                    )
+                ), 
+                React.createElement("g", null, 
+                    React.createElement("g", null, 
+                        React.createElement("path", {d: "M256.154,173.005c-12.68,0-22.576,6.804-22.576,18.866c0,36.802,4.329,89.686,4.329,126.489" + ' ' +
+                            "c0.001,9.587,8.352,13.607,18.248,13.607c7.422,0,17.937-4.02,17.937-13.607c0-36.802,4.329-89.686,4.329-126.489" + ' ' +
+                            "C278.421,179.81,268.216,173.005,256.154,173.005z"})
+                    )
+                ), 
+                React.createElement("g", null, 
+                    React.createElement("g", null, 
+                        React.createElement("path", {d: "M256.465,353.306c-13.607,0-23.814,10.824-23.814,23.814c0,12.68,10.206,23.814,23.814,23.814" + ' ' +
+                            "c12.68,0,23.505-11.134,23.505-23.814C279.97,364.13,269.144,353.306,256.465,353.306z"})
+                    )
+                )
+            )
+        )
+    }
+});
+
+module.exports = exp;
 
 },{"../../js/chr":3,"../../js/color.js":4,"../../js/htmlutil.js":5,"lodash":130,"react":333,"react-tooltip":199}],46:[function(require,module,exports){
-"use strict;";var React=require("react"),d3=require("d3"),StatusBar=React.createClass({displayName:"StatusBar",getInitialState:function(){return{progress:0,transition:null}},propTypes:{id:React.PropTypes.string.isRequired,w:React.PropTypes.number.isRequired,h:React.PropTypes.number.isRequired,progress:React.PropTypes.number.isRequired,done:React.PropTypes.bool},componentWillReceiveProps:function(e){var t=this.props.progress,s=this.state.transition||d3.select("#"+this.props.id),r=this,i=s.transition().duration(500).ease("easeOutExpo").tween("animation",function(){var s=d3.interpolate(t,e.progress);return function(e){r.setState({progress:s(e)})}}).each("end",function(){r.setState({transition:null})});this.setState({transition:i})},render:function(){return this.props.done?null:React.createElement("div",{className:"statusbar"},React.createElement("svg",{viewBox:"0 0 100 10",width:this.props.w,height:this.props.h,preserveAspectRatio:"xMinYMin slice",style:{width:this.props.w,height:this.props.h}},React.createElement("rect",{x:"0",y:"0",width:"100",height:"10",style:{fill:"#dcdcdc"}}),React.createElement("rect",{x:"0",y:"0",id:this.props.id,width:this.state.progress,height:"10",style:{fill:"#999999"}})))}});module.exports=StatusBar;
+"use strict;"
+
+var React = require('react')
+var d3 = require('d3')
+
+var StatusBar = React.createClass({displayName: "StatusBar",
+
+    getInitialState: function() {
+        return {
+            progress: 0,
+            transition: null
+        }
+    },
+    
+    propTypes: {
+        id: React.PropTypes.string.isRequired,
+        w: React.PropTypes.number.isRequired,
+        h: React.PropTypes.number.isRequired,
+        progress: React.PropTypes.number.isRequired,
+        done: React.PropTypes.bool
+    },
+    
+    componentWillReceiveProps: function(nextProps) {
+        var curProgress = this.props.progress
+        var base = this.state.transition || d3.select('#' + this.props.id) // chain transitions
+        var that = this
+        var transition = base.transition().duration(500).ease("easeOutExpo").tween('animation', function() {
+            var i = d3.interpolate(curProgress, nextProps.progress)
+            return function(t) {
+                that.setState({
+                    progress: i(t)
+                })
+            }
+        }).each('end', function() {
+            that.setState({
+                transition: null
+            })
+        })
+        this.setState({
+            transition: transition
+        })
+    },
+    
+    render: function() {
+
+        if (!this.props.done) {
+            return (
+                    React.createElement("div", {className: "statusbar"}, 
+                    React.createElement("svg", {viewBox: "0 0 100 10", width: this.props.w, height: this.props.h, preserveAspectRatio: "xMinYMin slice", style: {width: this.props.w, height: this.props.h}}, 
+                    React.createElement("rect", {x: "0", y: "0", width: "100", height: "10", style: {fill: '#dcdcdc'}}), 
+                    React.createElement("rect", {x: "0", y: "0", id: this.props.id, width: this.state.progress, height: "10", style: {fill: '#999999'}})
+                    )
+                    )
+            )
+        } else {
+            return null
+        }
+    }
+})
+
+module.exports = StatusBar
 
 },{"d3":60,"react":333}],47:[function(require,module,exports){
-"use strict";var _=require("lodash"),color=require("../../js/color"),htmlutil=require("../../js/htmlutil"),React=require("react"),ReactDOM=require("react-dom"),Router=require("react-router"),Link=Router.Link,Select=require("react-select"),DocumentTitle=require("react-document-title"),DownloadPanel=require("./DownloadPanel"),Cookies=require("cookies-js"),SVGCollection=require("./SVGCollection.js"),PredictedGeneRow=React.createClass({displayName:"PredictedGeneRow",propTypes:{data:React.PropTypes.object.isRequired,termId:React.PropTypes.string.isRequired,num:React.PropTypes.number},render:function(){var e=this.props.data,t=(e.gene.description||"no description").replace(/\[[^\]]+\]/g,"");return React.createElement("tr",null,React.createElement("td",{className:"text"},React.createElement(Link,{className:"nodecoration black",title:t,to:"/gene/"+e.gene.id},React.createElement(SVGCollection.Rectangle,{className:"tablerectangle",title:e.gene.biotype.replace(/_/g," "),fill:color.biotype2color[e.gene.biotype]||color.colors.gnblack}),React.createElement("span",null,e.gene.name))),React.createElement("td",{className:"text"},React.createElement(Link,{className:"nodecoration black",title:t,to:"/gene/"+e.gene.name},React.createElement("span",null,t))),React.createElement("td",{style:{textAlign:"center"},dangerouslySetInnerHTML:{__html:htmlutil.pValueToReadable(e.pValue)}}),React.createElement("td",{style:{textAlign:"center"}},e.zScore>0?React.createElement(SVGCollection.TriangleUp,{className:"directiontriangleup"}):React.createElement(SVGCollection.TriangleDown,{className:"directiontriangledown"})),React.createElement("td",{style:{textAlign:"center"}},e.annotated?React.createElement(SVGCollection.Annotated,null):React.createElement(SVGCollection.NotAnnotated,null)),React.createElement("td",{style:{textAlign:"center"}},React.createElement("a",{title:"Open network "+(e.annotated?"highlighting ":"with ")+e.gene.name,href:GN.urls.networkPage+"0!"+e.gene.name+"|"+this.props.termId+",0!"+e.gene.name,target:"_blank"},React.createElement(SVGCollection.NetworkIcon,null))))}}),AnnotatedGeneRow=React.createClass({displayName:"AnnotatedGeneRow",propTypes:{data:React.PropTypes.object.isRequired,termId:React.PropTypes.string.isRequired,num:React.PropTypes.number},render:function(){var e=this.props.data,t=(e.gene.description||"no description").replace(/\[[^\]]+\]/g,"");return React.createElement("tr",{className:this.props.num%2==0?"datarow evenrow":"datarow oddrow"},React.createElement("td",{className:"text"},React.createElement(Link,{className:"nodecoration black",title:t,to:"/gene/"+e.gene.id},React.createElement(SVGCollection.Rectangle,{className:"tablerectangle",title:e.gene.biotype.replace(/_/g," "),fill:color.biotype2color[e.gene.biotype]||color.colors.gnblack}),e.gene.name)),React.createElement("td",{className:"text"},React.createElement(Link,{className:"nodecoration black",title:t,to:"/gene/"+e.gene.name},React.createElement("span",null,t))),React.createElement("td",{style:{textAlign:"center"},dangerouslySetInnerHTML:{__html:htmlutil.pValueToReadable(e.pValue)}}),React.createElement("td",{style:{textAlign:"center"}},e.zScore>0?React.createElement(SVGCollection.TriangleUp,{className:"directiontriangleup"}):React.createElement(SVGCollection.TriangleDown,{className:"directiontriangledown"})),React.createElement("td",{style:{textAlign:"center"}},React.createElement(SVGCollection.Annotated,null)),React.createElement("td",{style:{textAlign:"center"}},React.createElement("a",{title:"Open network highlighting "+e.gene.name,href:GN.urls.networkPage+"0!"+e.gene.name+"|"+this.props.termId+",0!"+e.gene.name,target:"_blank"},React.createElement(SVGCollection.NetworkIcon,null))))}}),GeneTable=React.createClass({displayName:"GeneTable",propTypes:{data:React.PropTypes.object.isRequired,listType:React.PropTypes.string},render:function(){var e=this,t=null,a=null;return"annotation"==this.props.listType?(t=React.createElement("tr",null,React.createElement("th",{className:"tabletextheader",style:{width:"10%"}},"GENE"),React.createElement("th",{className:"tabletextheader",style:{width:"60%"}},"DESCRIPTION"),React.createElement("th",null,"P-VALUE"),React.createElement("th",null,"DIRECTION"),React.createElement("th",null,"ANNOTATED"),React.createElement("th",null,"NETWORK")),a=_.map(this.props.data.genes.annotated,function(t,a){return React.createElement(AnnotatedGeneRow,{key:t.gene.id,termId:e.props.data.pathway.id,data:t,num:a})})):(t=React.createElement("tr",null,React.createElement("th",{className:"tabletextheader",style:{width:"10%"}},"GENE"),React.createElement("th",{className:"tabletextheader",style:{width:"60%"}},"DESCRIPTION"),React.createElement("th",null,"P-VALUE"),React.createElement("th",null,"DIRECTION"),React.createElement("th",null,"ANNOTATED"),React.createElement("th",null,"NETWORK")),a=_.map(this.props.data.genes.predicted,function(t,a){return React.createElement(PredictedGeneRow,{key:t.gene.id,termId:e.props.data.pathway.id,data:t,num:a})})),React.createElement("table",{className:"gn-term-table datatable"},React.createElement("tbody",null,t,a))}}),Term=React.createClass({displayName:"Term",mixins:[Router.Navigation,Router.State],getInitialState:function(){return{listType:Cookies.get("termlist")||"prediction"}},loadData:function(e){console.log(GN.urls.pathway+"/"+e.params.termId+"?verbose"),$.ajax({url:GN.urls.pathway+"/"+e.params.termId+"?verbose",dataType:"json",success:function(e){this.setState({data:e,error:null})}.bind(this),error:function(t,a,n){console.error(t),"Not Found"===n?this.setState({data:null,error:"Term "+e.params.termId+" not found",errorTitle:"Error "+t.status}):this.setState({data:null,error:"Please try again later ("+t.status+")",errorTitle:"Error "+t.status})}.bind(this)})},componentDidMount:function(){this.loadData(this.props)},componentWillReceiveProps:function(e){this.loadData(e)},onListTypeClick:function(e){Cookies.set("termlist",e),this.setState({listType:e})},download:function(){document.getElementById("gn-term-downloadform").submit()},render:function(){if(this.state.error)return React.createElement(DocumentTitle,{title:this.state.errorTitle+GN.pageTitleSuffix},React.createElement("div",{className:"flex10"},React.createElement("div",{className:"gn-term-description-outer",style:{backgroundColor:color.colors.gnwhite,padding:"20px"}},React.createElement("div",{className:"gn-term-description-inner hflex flexcenter maxwidth"},React.createElement("div",{className:"gn-term-description-name"},React.createElement("span",{style:{fontWeight:"bold",fontFamily:"GG",fontSize:"1.5em"}},this.props.params.termId," not found"))))));if(this.state.data){var e=this.state.data;return console.log(this.state),React.createElement(DocumentTitle,{title:e.pathway.name+GN.pageTitleSuffix},React.createElement("div",{className:"flex10"},React.createElement("div",{className:"gn-term-description-outer",style:{backgroundColor:color.colors.gnwhite,padding:"20px"}},React.createElement("div",{className:"gn-term-description-inner hflex flexcenter maxwidth"},React.createElement("div",{className:"gn-term-description-name"},React.createElement("span",{style:{fontWeight:"bold",fontFamily:"GG",fontSize:"1.5em"}},e.pathway.database,": ",e.pathway.name)),React.createElement("div",{className:"flex11"}),React.createElement("div",{className:"gn-term-description-stats",style:{textAlign:"right"}},React.createElement("span",null,e.pathway.numAnnotatedGenes," annotated genes"),React.createElement("br",null),React.createElement("span",null,"Prediction accuracy ",(Math.round(100*e.pathway.auc)/100).toPrecision(2)),React.createElement("br",null)),React.createElement("div",{className:"gn-term-description-networkbutton flexend",style:{padding:"0 0 3px 10px"}},React.createElement("a",{className:"clickable button noselect",title:"Open network: "+e.pathway.name,href:GN.urls.networkPage+e.pathway.id,target:"_blank"},"OPEN NETWORK")))),React.createElement("div",{className:"gn-term-container-outer",style:{backgroundColor:color.colors.gnwhite,marginTop:"10px"}},React.createElement("div",{className:"gn-term-container-inner maxwidth",style:{padding:"20px"}},React.createElement("div",{className:"gn-term-menu noselect",style:{paddingBottom:"20px"}},React.createElement("span",{style:{cursor:"default",paddingRight:"10px"}},"SHOW"),React.createElement("div",{className:"prediction"==this.state.listType?"clickable button selectedbutton":"clickable button",onClick:this.onListTypeClick.bind(null,"prediction")},"PREDICTED GENES"),React.createElement("div",{className:"annotation"==this.state.listType?"clickable button selectedbutton":"clickable button",onClick:this.onListTypeClick.bind(null,"annotation")},"ANNOTATED GENES")),React.createElement(GeneTable,{data:e,listType:this.state.listType}),React.createElement(DownloadPanel,{onClick:this.download,text:"DOWNLOAD PREDICTIONS"}))),React.createElement("form",{id:"gn-term-downloadform",method:"post",encType:"multipart/form-data",action:GN.urls.tabdelim},React.createElement("input",{type:"hidden",id:"termId",name:"termId",value:e.pathway.id}),React.createElement("input",{type:"hidden",id:"db",name:"db",value:e.pathway.database}),React.createElement("input",{type:"hidden",id:"what",name:"what",value:"termprediction"}))))}return React.createElement(DocumentTitle,{title:"Loading"+GN.pageTitleSuffix},React.createElement("div",{className:"flex10"},React.createElement("div",{className:"gn-term-description-outer",style:{backgroundColor:color.colors.gnwhite,padding:"20px"}},React.createElement("div",{className:"gn-term-description-inner hflex flexcenter maxwidth"},React.createElement("div",{className:"gn-term-description-name"},React.createElement("span",{style:{fontWeight:"bold",fontFamily:"GG",fontSize:"1.5em"}},"Loading"))))))}});module.exports=Term;
+"use strict";
+
+var _ = require('lodash');
+var color = require('../../js/color');
+var htmlutil = require('../../js/htmlutil');
+
+var React = require('react');
+var ReactDOM = require('react-dom');
+var Router = require('react-router');
+var Link = Router.Link;
+var Select = require('react-select');
+var DocumentTitle = require('react-document-title');
+var DownloadPanel = require('./DownloadPanel');
+var Cookies = require('cookies-js');
+var SVGCollection = require('./SVGCollection.js');
+
+var PredictedGeneRow = React.createClass({displayName: "PredictedGeneRow",
+
+    propTypes: {
+        data: React.PropTypes.object.isRequired,
+        termId: React.PropTypes.string.isRequired,
+        num: React.PropTypes.number,
+    },
+    
+    render: function() {
+        
+        var data = this.props.data;
+        var desc = (data.gene.description || 'no description').replace(/\[[^\]]+\]/g, '');
+        
+        return React.createElement("tr", null, 
+                 React.createElement("td", {className: "text"}, 
+                 React.createElement(Link, {className: "nodecoration black", title: desc, to: "/gene/" + data.gene.id + ""}, 
+                 React.createElement(SVGCollection.Rectangle, {className: "tablerectangle", title: data.gene.biotype.replace(/_/g, ' '), fill: color.biotype2color[data.gene.biotype] || color.colors.gnblack}), 
+                 React.createElement("span", null, data.gene.name)
+                 )
+                 ), 
+                 React.createElement("td", {className: "text"}, 
+                 React.createElement(Link, {className: "nodecoration black", title: desc, to: "/gene/" + data.gene.name + ""}, 
+                 React.createElement("span", null, desc)
+                 )
+                 ), 
+                 React.createElement("td", {style: {textAlign: 'center'}, dangerouslySetInnerHTML: {__html: htmlutil.pValueToReadable(data.pValue)}}), 
+                 React.createElement("td", {style: {textAlign: 'center'}}, data.zScore > 0 ? React.createElement(SVGCollection.TriangleUp, {className: "directiontriangleup"}) : React.createElement(SVGCollection.TriangleDown, {className: "directiontriangledown"})), 
+                 React.createElement("td", {style: {textAlign: 'center'}}, data.annotated ? React.createElement(SVGCollection.Annotated, null) : React.createElement(SVGCollection.NotAnnotated, null)), 
+                 React.createElement("td", {style: {textAlign: 'center'}}, 
+                 React.createElement("a", {title: 'Open network ' + (data.annotated ? 'highlighting ' : 'with ') + data.gene.name, href: GN.urls.networkPage + '0!' + data.gene.name + '|' + this.props.termId + ',0!' + data.gene.name, target: "_blank"}, 
+                 React.createElement(SVGCollection.NetworkIcon, null)
+                 )
+                 )
+                 );
+    }
+});
+
+var AnnotatedGeneRow = React.createClass({displayName: "AnnotatedGeneRow",
+
+    propTypes: {
+        data: React.PropTypes.object.isRequired,
+        termId: React.PropTypes.string.isRequired,
+        num: React.PropTypes.number
+    },
+    
+    render: function() {
+        
+        var data = this.props.data;
+        var desc = (data.gene.description || 'no description').replace(/\[[^\]]+\]/g, '');
+        
+        return React.createElement("tr", {className: this.props.num % 2 === 0 ? 'datarow evenrow' : 'datarow oddrow'}, 
+                 React.createElement("td", {className: "text"}, 
+                 React.createElement(Link, {className: "nodecoration black", title: desc, to: "/gene/" + data.gene.id + ""}, 
+                 React.createElement(SVGCollection.Rectangle, {className: "tablerectangle", title: data.gene.biotype.replace(/_/g, ' '), fill: color.biotype2color[data.gene.biotype] || color.colors.gnblack}), 
+                 data.gene.name
+                 )
+                 ), 
+                 React.createElement("td", {className: "text"}, 
+                 React.createElement(Link, {className: "nodecoration black", title: desc, to: "/gene/" + data.gene.name + ""}, 
+                 React.createElement("span", null, desc)
+                 )
+                 ), 
+                React.createElement("td", {style: {textAlign: 'center'}, dangerouslySetInnerHTML: {__html: htmlutil.pValueToReadable(data.pValue)}}), 
+                React.createElement("td", {style: {textAlign: 'center'}}, data.zScore > 0 ? React.createElement(SVGCollection.TriangleUp, {className: "directiontriangleup"}) : React.createElement(SVGCollection.TriangleDown, {className: "directiontriangledown"})), 
+                 React.createElement("td", {style: {textAlign: 'center'}}, React.createElement(SVGCollection.Annotated, null)), 
+                 React.createElement("td", {style: {textAlign: 'center'}}, 
+                 React.createElement("a", {title: 'Open network highlighting ' + data.gene.name, href: GN.urls.networkPage + '0!' + data.gene.name + '|' + this.props.termId + ',0!' + data.gene.name, target: "_blank"}, 
+                 React.createElement(SVGCollection.NetworkIcon, null)
+                 )
+                 )
+                 );
+    }
+});
+
+var GeneTable = React.createClass({displayName: "GeneTable",
+
+    propTypes: {
+        data: React.PropTypes.object.isRequired,
+        listType: React.PropTypes.string
+    },
+
+    render: function() {
+
+        var that = this;
+        var header = null;
+        var rows = null;
+        if (this.props.listType == 'annotation') {
+            header = (React.createElement("tr", null, 
+                      React.createElement("th", {className: "tabletextheader", style: {width: '10%'}}, "GENE"), 
+                      React.createElement("th", {className: "tabletextheader", style: {width: '60%'}}, "DESCRIPTION"), 
+                      React.createElement("th", null, "P-VALUE"), 
+                      React.createElement("th", null, "DIRECTION"), 
+                      React.createElement("th", null, "ANNOTATED"), 
+                      React.createElement("th", null, "NETWORK")
+                      ));
+            rows = _.map(this.props.data.genes.annotated, function(data, i) {
+                return (React.createElement(AnnotatedGeneRow, {key: data.gene.id, termId: that.props.data.pathway.id, data: data, num: i}))
+            })
+        } else {
+            header = (React.createElement("tr", null, 
+                      React.createElement("th", {className: "tabletextheader", style: {width: '10%'}}, "GENE"), 
+                      React.createElement("th", {className: "tabletextheader", style: {width: '60%'}}, "DESCRIPTION"), 
+                      React.createElement("th", null, "P-VALUE"), 
+                      React.createElement("th", null, "DIRECTION"), 
+                      React.createElement("th", null, "ANNOTATED"), 
+                      React.createElement("th", null, "NETWORK")
+                      ));
+            rows = _.map(this.props.data.genes.predicted, function(data, i) {
+                return (React.createElement(PredictedGeneRow, {key: data.gene.id, termId: that.props.data.pathway.id, data: data, num: i}))
+            })
+        }
+
+        return (
+                React.createElement("table", {className: "gn-term-table datatable"}, 
+                React.createElement("tbody", null, 
+                header, 
+            rows
+            )
+                )
+        )
+    }
+});
+
+var Term = React.createClass({displayName: "Term",
+
+    mixins: [Router.Navigation, Router.State],
+
+    getInitialState: function() {
+
+        return {
+            listType: Cookies.get('termlist') || 'prediction'
+        }
+    },
+    
+    loadData: function(props) {
+        console.log(GN.urls.pathway + '/' + props.params.termId + '?verbose');
+
+        $.ajax({
+
+            url: GN.urls.pathway + '/' + props.params.termId + '?verbose',
+            dataType: 'json',
+            
+            success: function(data) {
+                this.setState({
+                    data: data,
+                    error: null
+                })
+            }.bind(this),
+            
+            error: function(xhr, status, err) {
+                console.error(xhr);
+                
+                if (err === 'Not Found') {
+                    
+                    this.setState({
+                        data: null,
+                        error: 'Term ' + props.params.termId + ' not found',
+			                  errorTitle: 'Error ' + xhr.status
+                    })
+                    
+                } else {
+                    
+                    this.setState({
+                        data: null,
+                        error: 'Please try again later (' + xhr.status + ')',
+			                  errorTitle: 'Error ' + xhr.status
+                    })
+                    
+                }
+            }.bind(this)
+        })
+    },
+
+    componentDidMount: function() {
+
+        this.loadData(this.props)
+    },
+
+    componentWillReceiveProps: function(nextProps) {
+
+        this.loadData(nextProps)
+    },
+
+    onListTypeClick: function(type) {
+        
+        Cookies.set('termlist', type);
+        
+        this.setState({
+            listType: type
+        })
+    },
+    
+    download: function() {
+        var form = document.getElementById('gn-term-downloadform');
+        form.submit()
+    },
+    
+    render: function() {
+        
+        if (this.state.error) {
+            
+            return (
+		            React.createElement(DocumentTitle, {title: this.state.errorTitle + GN.pageTitleSuffix}, 
+                    React.createElement("div", {className: "flex10"}, 
+                    React.createElement("div", {className: "gn-term-description-outer", style: {backgroundColor: color.colors.gnwhite, padding: '20px'}}, 
+                    React.createElement("div", {className: "gn-term-description-inner hflex flexcenter maxwidth"}, 
+                    React.createElement("div", {className: "gn-term-description-name"}, 
+                    React.createElement("span", {style: {fontWeight: 'bold', fontFamily: 'GG', fontSize: '1.5em'}}, 
+                    this.props.params.termId, " not found"
+                )
+                    )
+                    )
+                    )
+                    )
+		    )
+            )
+            
+        } else if (this.state.data) {
+            
+            var data = this.state.data;
+            console.log(this.state);
+            
+            return (
+		            React.createElement(DocumentTitle, {title: data.pathway.name + GN.pageTitleSuffix}, 
+                    React.createElement("div", {className: "flex10"}, 
+                      React.createElement("div", {className: "gn-term-description-outer", style: {backgroundColor: color.colors.gnwhite, padding: '20px'}}, 
+                        React.createElement("div", {className: "gn-term-description-inner hflex flexcenter maxwidth"}, 
+                          React.createElement("div", {className: "gn-term-description-name"}, 
+                          React.createElement("span", {style: {fontWeight: 'bold', fontFamily: 'GG', fontSize: '1.5em'}}, data.pathway.database, ": ", data.pathway.name)
+                        ), 
+                        React.createElement("div", {className: "flex11"}), 
+                          React.createElement("div", {className: "gn-term-description-stats", style: {textAlign: 'right'}}, 
+                            React.createElement("span", null, data.pathway.numAnnotatedGenes, " annotated genes"), React.createElement("br", null), 
+                            React.createElement("span", null, "Prediction accuracy ", (Math.round(100 * data.pathway.auc) / 100).toPrecision(2)), React.createElement("br", null)
+                          ), 
+                        React.createElement("div", {className: "gn-term-description-networkbutton flexend", style: {padding: '0 0 3px 10px'}}, 
+                          React.createElement("a", {className: "clickable button noselect", title: 'Open network: ' + data.pathway.name, href: GN.urls.networkPage + data.pathway.id, target: "_blank"}, 
+                          "OPEN NETWORK")
+                        )
+                        )
+                    ), 
+                    React.createElement("div", {className: "gn-term-container-outer", style: {backgroundColor: color.colors.gnwhite, marginTop: '10px'}}, 
+                      React.createElement("div", {className: "gn-term-container-inner maxwidth", style: {padding: '20px'}}, 
+                        React.createElement("div", {className: "gn-term-menu noselect", style: {paddingBottom: '20px'}}, 
+                          React.createElement("span", {style: {cursor: 'default', paddingRight: '10px'}}, "SHOW"), 
+                          
+                              React.createElement("div", {className: (this.state.listType == 'prediction') ? 'clickable button selectedbutton' : 'clickable button', 
+                              onClick: this.onListTypeClick.bind(null, 'prediction')}, 
+                                "PREDICTED GENES"), 
+                                React.createElement("div", {className: (this.state.listType == 'annotation') ? 'clickable button selectedbutton' : 'clickable button', 
+                                onClick: this.onListTypeClick.bind(null, 'annotation')}, 
+                                "ANNOTATED GENES")
+
+                         ), 
+
+                        React.createElement(GeneTable, {data: data, listType: this.state.listType}), 
+                        React.createElement(DownloadPanel, {onClick: this.download, text: "DOWNLOAD PREDICTIONS"})
+   
+                    )
+                    ), 
+                    React.createElement("form", {id: "gn-term-downloadform", method: "post", encType: "multipart/form-data", action: GN.urls.tabdelim}, 
+                    React.createElement("input", {type: "hidden", id: "termId", name: "termId", value: data.pathway.id}), 
+                    React.createElement("input", {type: "hidden", id: "db", name: "db", value: data.pathway.database}), 
+                    React.createElement("input", {type: "hidden", id: "what", name: "what", value: "termprediction"})
+                    )
+                    )
+		    )
+            )
+        } else {
+            return (
+		            React.createElement(DocumentTitle, {title: 'Loading' + GN.pageTitleSuffix}, 
+                    React.createElement("div", {className: "flex10"}, 
+                    React.createElement("div", {className: "gn-term-description-outer", style: {backgroundColor: color.colors.gnwhite, padding: '20px'}}, 
+                    React.createElement("div", {className: "gn-term-description-inner hflex flexcenter maxwidth"}, 
+                    React.createElement("div", {className: "gn-term-description-name"}, 
+                    React.createElement("span", {style: {fontWeight: 'bold', fontFamily: 'GG', fontSize: '1.5em'}}, "Loading")
+                    )
+                    )
+                    )
+                    )
+		    )
+            )
+        }
+    }
+});
+
+module.exports = Term;
 
 },{"../../js/color":4,"../../js/htmlutil":5,"./DownloadPanel":36,"./SVGCollection.js":45,"cookies-js":56,"lodash":130,"react":333,"react-document-title":142,"react-dom":143,"react-router":164,"react-select":175}],48:[function(require,module,exports){
-"use strict";var React=require("react"),UploadPanel=React.createClass({displayName:"UploadPanel",propTypes:{text:React.PropTypes.string},render:function(){return React.createElement("div",{id:"uploadpanel",className:"clickable button noselect",style:{position:"relative",width:"100%"},onClick:this.props.onClick},React.createElement("div",{style:{position:"absolute",top:"0px",left:"0px",height:"100%",padding:"0 8px 0 8px",backgroundColor:"rgb(255,225,0)"}},React.createElement("svg",{viewBox:"0 0 100 100",width:"20",height:"20",className:"arrow"},React.createElement("polyline",{points:"10,50 50,0 90,50"}),React.createElement("line",{x1:"50",y1:"0",x2:"50",y2:"100"}))),React.createElement("span",{style:{paddingLeft:"35px"}},this.props.text||"UPLOAD"))}});module.exports=UploadPanel;
+'use strict'
+
+var React = require('react')
+
+var UploadPanel = React.createClass({displayName: "UploadPanel",
+
+    propTypes: {
+        
+        //onClick: React.PropTypes.func.isRequired,
+        text: React.PropTypes.string,
+    },
+    
+    render: function() {
+        
+        return (
+            
+                React.createElement("div", {id: "uploadpanel", className: "clickable button noselect", style: {position: 'relative', width: '100%'}, onClick: this.props.onClick}, 
+                    React.createElement("div", {style: {position: 'absolute', top: '0px', left: '0px', height: '100%', padding: '0 8px 0 8px', backgroundColor: 'rgb(255,225,0)'}}, 
+                    React.createElement("svg", {viewBox: "0 0 100 100", width: "20", height: "20", className: "arrow"}, 
+                        React.createElement("polyline", {points: "10,50 50,0 90,50"}), 
+                        React.createElement("line", {x1: "50", y1: "0", x2: "50", y2: "100"})
+                    )
+                    ), 
+                    React.createElement("span", {style: {paddingLeft: '35px'}}, this.props.text || 'UPLOAD')
+                )
+        )
+    }
+
+})
+
+module.exports = UploadPanel
 
 },{"react":333}],49:[function(require,module,exports){
-var React=require("react"),Box=require("./Box"),BoxFunctionEnrichment=require("./BoxFunctionEnrichment"),GN=require("../../config/gn"),color=require("../js/color"),Tools=React.createClass({displayName:"Tools",render:function(){return React.createElement("div",{style:{backgroundColor:color.colors.gnwhite,marginTop:"10px",padding:"20px",flex:"1"}},React.createElement("h2",{style:{display:"inline"}},"TOOLS"),React.createElement(Box,{title:"GADO: GeneNetwork Assisted Diagnostic Optimization",text:"Prioritize genes based on one or multiple HPO phenotypes.",url:GN.urls.diagnosisPage}),React.createElement(BoxFunctionEnrichment,{title:"Function enrichment",text:"Predict which pathways are enriched for a set of genes.",onClick:this.props.onClick}))}});module.exports=Tools;
+var React = require('react');
+var Box = require('./Box');
+var BoxFunctionEnrichment = require('./BoxFunctionEnrichment');
+var GN = require("../../config/gn");
+var color = require('../js/color');
+
+var Tools = React.createClass({displayName: "Tools",
+
+    render: function() {
+        return (
+            React.createElement("div", {style: {backgroundColor: color.colors.gnwhite, marginTop: '10px', padding: '20px', flex: '1'}}, 
+                React.createElement("h2", {style: {display: 'inline'}}, "TOOLS"), 
+                React.createElement(Box, {
+                    title: "GADO: GeneNetwork Assisted Diagnostic Optimization", 
+                    text: "Prioritize genes based on one or multiple HPO phenotypes.", 
+                    url: GN.urls.diagnosisPage}), 
+                React.createElement(BoxFunctionEnrichment, {
+                    title: "Function enrichment", 
+                    text: "Predict which pathways are enriched for a set of genes.", 
+                    onClick: this.props.onClick}
+                )
+            )
+        )
+    }
+});
+
+module.exports = Tools;
 
 },{"../../config/gn":51,"../js/color":4,"./Box":8,"./BoxFunctionEnrichment":9,"react":333}],50:[function(require,module,exports){
-module.exports={domain:"https://www.genenetwork.nl"};
+module.exports = {
+    domain: 'https://www.genenetwork.nl'
+};
 
 },{}],51:[function(require,module,exports){
-var DOMAIN=require("./domain").domain;module.exports.domain=DOMAIN,module.exports.menuItems=[{name:"HOME",route:"/"},{name:"FAQ",route:"/faq"},{name:"API",route:"/api"}],module.exports.urls={main:module.exports.domain,gene:DOMAIN+"/api/v1/gene",genes:DOMAIN+"/api/v1/genes",transcript:DOMAIN+"/api/v1/transcript",transcriptBars:DOMAIN+"/api/v1/transcriptBars",pathway:DOMAIN+"/api/v1/pathway",coregulation:DOMAIN+"/api/v1/coregulation",tissues:DOMAIN+"/api/v1/tissues",cofunction:DOMAIN+"/api/v1/cofunction",pc:DOMAIN+"/api/v1/pc",suggest:DOMAIN+"/socketapi/suggest",diagnosisSuggest:DOMAIN+"/socketapi/diagnosisSuggest",diagnosisParentTerms:DOMAIN+"/socketapi/diagnosisParentTerms",pathwayanalysis:DOMAIN+"/socketapi/pathwayanalysis",geneprediction:DOMAIN+"/socketapi/geneprediction",network:DOMAIN+"/socketapi/network",genescores:DOMAIN+"/socketapi/genescores",genevsnetwork:DOMAIN+"/socketapi/genevsnetwork",prioritization:DOMAIN+"/api/v1/prioritization",genePage:DOMAIN+"/gene/",termPage:DOMAIN+"/term/",networkPage:DOMAIN+"/network/",diagnosisPage:DOMAIN+"/gado",faqPage:DOMAIN+"/faq",svg2pdf:DOMAIN+"/api/v1/svg2pdf",tabdelim:DOMAIN+"/api/v1/tabdelim",fileupload:DOMAIN+"/api/v1/fileupload",diagnosisVCF:DOMAIN+"/api/v1/vcf"},module.exports.pageTitleSuffix=" - Gene Network";
+var DOMAIN = require('./domain').domain;
+
+module.exports.domain = DOMAIN;
+
+module.exports.menuItems = [{
+    name: 'HOME',
+    route: '/'
+},
+    {
+    name: 'FAQ',
+    route: '/faq'
+},
+//     {
+//     name: 'ABOUT',
+//     route: '/about'
+// },
+    {
+    name: 'API',
+    route: '/api'
+}];
+
+module.exports.urls = {
+    main: module.exports.domain,
+    gene: DOMAIN + '/api/v1/gene',
+    genes: DOMAIN + '/api/v1/genes',
+    transcript: DOMAIN + '/api/v1/transcript',
+    transcriptBars: DOMAIN + '/api/v1/transcriptBars',
+    pathway: DOMAIN + '/api/v1/pathway',
+    coregulation: DOMAIN + '/api/v1/coregulation',
+    tissues: DOMAIN + '/api/v1/tissues',
+    cofunction: DOMAIN + '/api/v1/cofunction',
+    pc: DOMAIN + '/api/v1/pc',
+
+    suggest: DOMAIN + '/socketapi/suggest',
+    diagnosisSuggest: DOMAIN + '/socketapi/diagnosisSuggest',
+    diagnosisParentTerms: DOMAIN + '/socketapi/diagnosisParentTerms',
+    pathwayanalysis: DOMAIN + '/socketapi/pathwayanalysis',
+    geneprediction: DOMAIN + '/socketapi/geneprediction',
+    network: DOMAIN + '/socketapi/network',
+    genescores: DOMAIN + '/socketapi/genescores',
+    genevsnetwork: DOMAIN + '/socketapi/genevsnetwork',
+
+    prioritization: DOMAIN + '/api/v1/prioritization',
+
+    genePage: DOMAIN + '/gene/',
+    termPage: DOMAIN + '/term/',
+    networkPage: DOMAIN + '/network/',
+    diagnosisPage: DOMAIN + '/gado',
+    faqPage: DOMAIN + '/faq',
+
+    svg2pdf: DOMAIN + '/api/v1/svg2pdf',
+    // diagnosisResults: domain + '/api/v1/diagnosisResults',
+    tabdelim: DOMAIN + '/api/v1/tabdelim',
+    fileupload: DOMAIN + '/api/v1/fileupload',
+
+    diagnosisVCF: DOMAIN + '/api/v1/vcf',
+};
+
+module.exports.pageTitleSuffix = ' - Gene Network';
 
 },{"./domain":50}],52:[function(require,module,exports){
 (function (global){
