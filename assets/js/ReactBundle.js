@@ -6580,8 +6580,7 @@ var Diagnosis = React.createClass({displayName: "Diagnosis",
 
         var thisThese = this.state.data.terms.length == 1 ? 'this ' : 'these ';
         var phenotypePhenotypes = this.state.data.terms.length == 1 ? ' phenotype:' : ' phenotypes:';
-        var genesNotFound = this.state.useCustomGeneSet && this.props.location.state.genes.length != 0 ? this.state.data.genesNotFound.join(', ') : undefined;
-        console.log(this.state.correlatedTerms);
+        var genesNotFound = this.state.useCustomGeneSet && this.props.location.state.genes.length != 0  ? this.state.data.genesNotFound.join(', ') : undefined;
 
         return (
             React.createElement(DocumentTitle, {title: 'Diagnosis' + GN.pageTitleSuffix}, 
@@ -6592,7 +6591,7 @@ var Diagnosis = React.createClass({displayName: "Diagnosis",
                             React.createElement("div", {className: "flex11", style: {maxWidth: '730px'}}, 
                                 React.createElement(ShowPhenotypes3, {prio: this.state.data, orderedTerms: this.state.orderedTerms, hoverItem: this.state.hoverItem, hoverRow: this.state.hoverRow, hoverCol: this.state.hoverCol})
                             ), 
-                            this.state.data.hpoCorrelation.termsFound.length > 1 ?
+                             this.state.data.hpoCorrelation.termsFound.length > 1 ?
                                 React.createElement("div", {className: "vflex", style: {paddingLeft: '20px', width: '100%', maxWidth: '400px'}}, 
                                     React.createElement("div", {id: "heatmap-title", style: {paddingTop: '7px', paddingBottom: '7px', fontWeight: 'bold'}}, "PHENOTYPE CORRELATION"), 
                                     React.createElement("div", {id: "heatmap", className: "flex11", style: {width: '100%', minWidth: '300px'}})
@@ -6602,7 +6601,7 @@ var Diagnosis = React.createClass({displayName: "Diagnosis",
                             
                         ), 
 
-                        this.state.correlatedTerms ?
+                         this.state.correlatedTerms && this.state.correlatedTerms.length > 0 ?
                             React.createElement("div", {id: "warning-correlated-terms", style: {paddingLeft: '10px'}}, 
                                 React.createElement("span", {style: {verticalAlign: 'middle', display: 'inline-block'}}, 
                                     React.createElement(SVGCollection.Warning, null)
@@ -6624,24 +6623,28 @@ var Diagnosis = React.createClass({displayName: "Diagnosis",
                             null, 
                         
 
+                        React.createElement("div", null, 
 
-
-                        this.state.useCustomGeneSet ?
-                            React.createElement("div", null, 
+                             this.state.useCustomGeneSet && this.state.data.genesNotFound.length > 0 ?
                                 React.createElement("div", {style: {padding: '20px 0px 10px 0px', marginTop: '20px'}}, 
                                     React.createElement("h3", null, "Genes not found"), 
                                     genesNotFound
-                                ), 
+                                ) :
+                                null, 
+                            
+
+                             this.state.useCustomGeneSet ?
+
                                 React.createElement("div", {style: {padding: '10px 0px 10px 0px'}}, 
                                     React.createElement("h3", null, "Gene prioritization")
 
                                 )
-                            )
-                            :
-                            React.createElement("div", {style: {padding: '20px 0px 10px 0px', marginTop: '20px'}}, 
-                                React.createElement("h3", null, "Gene prioritization")
-                            ), 
-                        
+                                :
+                                React.createElement("div", {style: {padding: '20px 0px 10px 0px', marginTop: '20px'}}, 
+                                    React.createElement("h3", null, "Gene prioritization")
+                                )
+                            
+                        ), 
 
                         React.createElement("div", {style: {overflow: "auto", display: 'inline'}}, 
 

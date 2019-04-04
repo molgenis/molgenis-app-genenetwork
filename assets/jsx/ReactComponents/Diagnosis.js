@@ -573,8 +573,7 @@ var Diagnosis = React.createClass({
 
         var thisThese = this.state.data.terms.length == 1 ? 'this ' : 'these ';
         var phenotypePhenotypes = this.state.data.terms.length == 1 ? ' phenotype:' : ' phenotypes:';
-        var genesNotFound = this.state.useCustomGeneSet && this.props.location.state.genes.length != 0 ? this.state.data.genesNotFound.join(', ') : undefined;
-        console.log(this.state.correlatedTerms);
+        var genesNotFound = this.state.useCustomGeneSet && this.props.location.state.genes.length != 0  ? this.state.data.genesNotFound.join(', ') : undefined;
 
         return (
             <DocumentTitle title={'Diagnosis' + GN.pageTitleSuffix}>
@@ -585,7 +584,7 @@ var Diagnosis = React.createClass({
                             <div className='flex11' style={{maxWidth: '730px'}}>
                                 <ShowPhenotypes3 prio={this.state.data} orderedTerms={this.state.orderedTerms} hoverItem={this.state.hoverItem} hoverRow={this.state.hoverRow} hoverCol={this.state.hoverCol}/>
                             </div>
-                            {this.state.data.hpoCorrelation.termsFound.length > 1 ?
+                            { this.state.data.hpoCorrelation.termsFound.length > 1 ?
                                 <div className='vflex' style={{paddingLeft: '20px', width: '100%', maxWidth: '400px'}}>
                                     <div id='heatmap-title' style={{paddingTop: '7px', paddingBottom: '7px', fontWeight: 'bold'}}>PHENOTYPE CORRELATION</div>
                                     <div id='heatmap' className='flex11' style={{width: '100%', minWidth: '300px'}}></div>
@@ -595,7 +594,7 @@ var Diagnosis = React.createClass({
                             }
                         </div>
 
-                        {this.state.correlatedTerms ?
+                        { this.state.correlatedTerms && this.state.correlatedTerms.length > 0 ?
                             <div id='warning-correlated-terms' style={{paddingLeft: '10px'}}>
                                 <span style={{verticalAlign: 'middle', display: 'inline-block'}}>
                                     <SVGCollection.Warning />
@@ -617,24 +616,28 @@ var Diagnosis = React.createClass({
                             null
                         }
 
+                        <div>
 
-
-                        {this.state.useCustomGeneSet ?
-                            <div>
+                            { this.state.useCustomGeneSet && this.state.data.genesNotFound.length > 0 ?
                                 <div style={{padding: '20px 0px 10px 0px', marginTop: '20px'}}>
                                     <h3>Genes not found</h3>
                                     {genesNotFound}
-                                </div>
+                                </div> :
+                                null
+                            }
+
+                            { this.state.useCustomGeneSet ?
+
                                 <div style={{padding: '10px 0px 10px 0px'}}>
                                     <h3>Gene prioritization</h3>
 
                                 </div>
-                            </div>
-                            :
-                            <div style={{padding: '20px 0px 10px 0px', marginTop: '20px'}}>
-                                <h3>Gene prioritization</h3>
-                            </div>
-                        }
+                                :
+                                <div style={{padding: '20px 0px 10px 0px', marginTop: '20px'}}>
+                                    <h3>Gene prioritization</h3>
+                                </div>
+                            }
+                        </div>
 
                         <div style={{overflow: "auto", display: 'inline'}}>
 
