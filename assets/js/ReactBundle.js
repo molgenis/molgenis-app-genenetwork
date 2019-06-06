@@ -1732,7 +1732,7 @@ var Box = React.createClass({displayName: "Box",
         return (
             React.createElement("div", null, 
                 React.createElement(Link, {className: "nodecoration black clickable", to: this.props.url}, 
-                React.createElement("div", {className: "box-sizing", style: {backgroundColor: color.colors.gnlightergray, border: '20px solid #fff', padding: '40px', width: '33.33333%', float: 'left', minWidth: '350px'}}, 
+                React.createElement("div", {className: "box-sizing", style: {backgroundColor: color.colors.gnlightergray, border: '20px solid #fff', padding: '40px', width: '33.33333%', float: 'left', minWidth: '350px', minHeight: '255px'}}, 
                     React.createElement("h3", {style: {color: color.colors.gndarkgray}}, this.props.title), 
                     React.createElement("p", {style: {color: color.colors.gndarkgray}}, this.props.text), 
                     React.createElement("div", {style: {float: 'right'}}, 
@@ -1780,7 +1780,7 @@ var BoxFunctionEnrichment = React.createClass({displayName: "BoxFunctionEnrichme
         // padding: '40px 40px 40px 40px', margin: '10px',
         return (
             React.createElement("div", null, 
-                React.createElement("div", {onClick: this.props.onClick, className: "box-sizing", style: {cursor: "pointer", backgroundColor: color.colors.gnlightergray, border: '20px solid #fff', padding: '40px', width: '33.33333%', float: 'left', minWidth: '350px'}}, 
+                React.createElement("div", {onClick: this.props.onClick, className: "box-sizing", style: {cursor: "pointer", backgroundColor: color.colors.gnlightergray, border: '20px solid #fff', padding: '40px', width: '33.33333%', float: 'left', minWidth: '350px', minHeight: '255px'}}, 
                     React.createElement("h3", {style: {color: color.colors.gndarkgray}}, this.props.title), 
                     React.createElement("p", {style: {color: color.colors.gndarkgray}}, this.props.text), 
                     React.createElement("div", {style: {float: 'right'}}, 
@@ -1796,6 +1796,87 @@ var BoxFunctionEnrichment = React.createClass({displayName: "BoxFunctionEnrichme
 module.exports = BoxFunctionEnrichment;
 
 },{"../js/color":4,"./ReactComponents/SVGCollection":45,"react":333,"react-router":164}],10:[function(require,module,exports){
+var React = require('react');
+var DocumentTitle = require('react-document-title');
+var color = require('../js/color.js');
+
+var How = React.createClass({displayName: "How",
+    render: function() {
+        return (
+            React.createElement(DocumentTitle, {title: 'FAQ' + GN.pageTitleSuffix}, 
+                React.createElement("div", {style: {backgroundColor: color.colors.gnwhite, marginTop: '10px', padding: '20px'}}, 
+                    React.createElement("h2", {style: {marginBottom: '10px'}}, "FAQ"), 
+
+                    React.createElement("ul", null, 
+                        React.createElement("li", null, React.createElement("a", {href: "#what-is-genenetwork"}, "What is GeneNetwork?")), 
+                        React.createElement("li", null, React.createElement("a", {href: "#what-is-gado"}, "What is GADO?")), 
+                        React.createElement("li", null, React.createElement("a", {href: "#why-cant-my-term-be-used"}, "Why can’t my term be used?")), 
+                        React.createElement("li", null, React.createElement("a", {href: "#why-is-my-term-not-found"}, "Why is my term not found?")), 
+                        React.createElement("li", null, React.createElement("a", {href: "#gene-not-found"}, "My favorite candidate gene for patient is not found back in the top of the results?")), 
+                        React.createElement("li", null, React.createElement("a", {href: "#gene-predict-score"}, "What is the gene predictability score?")), 
+                        React.createElement("li", null, React.createElement("a", {href: "#how-to-cite"}, "How to cite?"))
+                    ), 
+
+                    React.createElement("h3", {id: "what-is-genenetwork"}, "What is GeneNetwork?"), 
+                    React.createElement("p", null, 
+                        "GeneNetwork uses gene co-regulation to predict pathway membership and HPO term associations." + ' ' +
+                        "This is done by integrating 31,499 public RNA-seq sample."
+                    ), 
+                    React.createElement("img", {title: "GeneNetwork", style: {width: '1000px'}, src: GN.urls.main + '/images/genenetwork.png'}), 
+
+
+                    React.createElement("h3", {id: "what-is-gado"}, "What is GADO?"), 
+                    React.createElement("p", null, 
+                        "GADO (GeneNetwork Assisted Diagnostic Optimization) is a method that can predict phenotypic" + ' ' +
+                        "consequences of genes when mutated, using public RNA-seq data of 31,499 samples. Using the" + ' ' +
+                        "phenotypes of a patient denoted as Human Phenotype Ontology (HPO) terms we can prioritize genes" + ' ' +
+                        "harbouring candidate mutations. This saves time interpreting identified variants and aids in" + ' ' +
+                        "the discovery of new disease-causing genes."
+                    ), 
+                    React.createElement("img", {title: "GeneNetwork", style: {width: '800px'}, src: GN.urls.main + '/images/gado.png'}), 
+
+                    React.createElement("h3", {id: "why-cant-my-term-be-used"}, "Why can’t my term be used?"), 
+                    React.createElement("p", null, 
+                        "We do not have significant predictions for all HPO terms. Either because very few genes are" + ' ' +
+                        "known for a term, or because our current dataset is unable to reliable predict back the known" + ' ' +
+                        "genes for a term. In these cases, we suggest using the more generic parent terms."
+                    ), 
+
+                    React.createElement("h3", {id: "why-is-my-term-not-found"}, "Why is my term not found?"), 
+                    React.createElement("p", null, 
+                        "At the moment we don’t support searching using the synonym names of HPO terms, this will be" + ' ' +
+                        "resolved in a future version. Try searching by the HPO number"
+                    ), 
+
+                    React.createElement("h3", {id: "gene-not-found"}, "My favorite candidate gene for patient is not found back in the top of the results?"), 
+                    React.createElement("p", null, 
+                        "Gene expression patterns are not informative for all genes. If an expected gene is not found" + ' ' +
+                        "back this is the most likely explanation."
+                    ), 
+
+                    React.createElement("h3", {id: "gene-predict-score"}, "What is the gene predictability score?"), 
+                    React.createElement("p", null, 
+                        "The gene predictability score is an indicator on how informative gene expression is in" + ' ' +
+                        "predicting gene functions. For details please see: ", React.createElement("a", {href: "https://www.biorxiv.org/content/early/2018/07/25/375766", target: "_blank"}, "Improving the diagnostic yield of exome-sequencing, by predicting gene-phenotype" + ' ' +
+                        "associations using large-scale gene expression analysis")
+                    ), 
+
+                    React.createElement("h3", {id: "how-to-cite"}, "How to cite?"), 
+                    React.createElement("p", null, 
+                        React.createElement("a", {href: "https://www.biorxiv.org/content/early/2018/07/25/375766", target: "_blank"}, "Improving the diagnostic yield of exome-sequencing, by predicting gene-phenotype" + ' ' +
+                            "associations using large-scale gene expression analysis")
+                    )
+
+
+                )
+            )
+        );
+    }
+});
+
+module.exports = How;
+
+},{"../js/color.js":4,"react":333,"react-document-title":142}],11:[function(require,module,exports){
 'use strict';
 
 var _ = require('lodash');
@@ -1944,9 +2025,10 @@ var Gene = React.createClass({displayName: "Gene",
             contentTop = React.createElement(GeneHeader, {notFound: this.props.params.geneId});
             pageTitle = this.state.errorTitle + GN.pageTitleSuffix
         } else {
+
             var data = this.state.topMenuSelection == 'prediction' ? this.state.prediction : this.state.similar;
-        
             if (data) {
+
                 var tableContent = null;
                 if (this.state.topMenuSelection == 'prediction') {
                     tableContent = React.createElement(DataTable, {data: data, db: this.state.databaseSelection})
@@ -1999,12 +2081,12 @@ var Gene = React.createClass({displayName: "Gene",
 
 module.exports = Gene;
 
-},{"../../js/color":4,"../ReactComponents/DataTable":32,"../ReactComponents/DownloadPanel":36,"./GeneHeader":11,"./GeneMenu":12,"./SimilarGenesTable":14,"./Tissues":15,"cookies-js":56,"lodash":130,"react":333,"react-document-title":142,"react-router":164}],11:[function(require,module,exports){
-'use strict'
+},{"../../js/color":4,"../ReactComponents/DataTable":32,"../ReactComponents/DownloadPanel":36,"./GeneHeader":12,"./GeneMenu":13,"./SimilarGenesTable":15,"./Tissues":16,"cookies-js":56,"lodash":130,"react":333,"react-document-title":142,"react-router":164}],12:[function(require,module,exports){
+'use strict';
 
-var React = require('react')
-var SVGCollection = require('../ReactComponents/SVGCollection')
-var color = require('../../js/color.js')
+var React = require('react');
+var SVGCollection = require('../ReactComponents/SVGCollection');
+var color = require('../../js/color.js');
 
 var GeneHeader = React.createClass({displayName: "GeneHeader",
     
@@ -2017,60 +2099,64 @@ var GeneHeader = React.createClass({displayName: "GeneHeader",
 
         if (this.props.loading === true) {
             return (
-                    React.createElement("div", {className: "gn-gene-description-outer", style: {backgroundColor: color.colors.gnwhite, padding: '20px'}}, 
+                React.createElement("div", {className: "gn-gene-description-outer", style: {backgroundColor: color.colors.gnwhite, padding: '20px'}}, 
                     React.createElement("div", {className: "gn-gene-description-inner hflex flexcenter maxwidth"}, 
-                    React.createElement("div", {className: "gn-gene-description-name"}, 
-                    React.createElement("span", {style: {fontWeight: 'bold', fontFamily: 'GG', fontSize: '1.5em', paddingRight: '10px'}}, 
-                    "Loading"
+                        React.createElement("div", {className: "gn-gene-description-name"}, 
+                            React.createElement("span", {style: {fontWeight: 'bold', fontFamily: 'GG', fontSize: '1.5em', paddingRight: '10px'}}, 
+                            "Loading"
+                            )
+                        )
+                    )
                 )
-                    )
-                    )
-                    )
             )
         }
         
         if (this.props.notFound) {
             return (
-                    React.createElement("div", {className: "gn-gene-description-outer", style: {backgroundColor: color.colors.gnwhite, padding: '20px'}}, 
+                React.createElement("div", {className: "gn-gene-description-outer", style: {backgroundColor: color.colors.gnwhite, padding: '20px'}}, 
                     React.createElement("div", {className: "gn-gene-description-inner hflex flexcenter maxwidth"}, 
-                    React.createElement("div", {className: "gn-gene-description-name"}, 
-                    React.createElement("span", {style: {fontWeight: 'bold', fontFamily: 'GG', fontSize: '1.5em', paddingRight: '10px'}}, 
-                    this.props.notFound, " not found"
+                        React.createElement("div", {className: "gn-gene-description-name"}, 
+                            React.createElement("span", {style: {fontWeight: 'bold', fontFamily: 'GG', fontSize: '1.5em', paddingRight: '10px'}}, 
+                            this.props.notFound, " not found"
+                            )
+                        )
+                    )
                 )
-                    )
-                    )
-                    )
             )
         }
         
-	var desc = (this.props.gene.description || 'no description').replace(/\[[^\]]+\]/g, '')
+        var description = (this.props.gene.description || 'no description').replace(/\[[^\]]+]/g, '');
         return (
                 React.createElement("div", {className: "gn-gene-description-outer", style: {backgroundColor: color.colors.gnwhite, padding: '20px'}}, 
-                React.createElement("div", {className: "gn-gene-description-inner hflex flexcenter maxwidth"}, 
-                React.createElement("div", {className: "gn-gene-description-name"}, 
-                React.createElement("span", {style: {fontWeight: 'bold', fontFamily: 'GG', fontSize: '1.5em', paddingRight: '10px'}}, this.props.gene.name + ' '), 
-                React.createElement("span", null, desc)
-                ), 
-                React.createElement("div", {className: "flex11"}), 
-                React.createElement("div", {className: "gn-gene-description-chr", style: {textAlign: 'right'}}, 
-                React.createElement("span", null, "chromosome ", this.props.gene.chr), 
-                React.createElement(SVGCollection.Chromosome, {
-            chr: this.props.gene.chr, 
-            start: this.props.gene.start, 
-            stop: this.props.gene.stop, 
-            position: (this.props.gene.stop + this.props.gene.start) / 2}
-                ), 
-                React.createElement("div", null, this.props.gene.biotype.replace(/_/g, ' '))
-                )
-                )
+                    React.createElement("div", {className: "gn-gene-description-inner hflex flexcenter maxwidth"}, 
+                        React.createElement("div", {className: "gn-gene-description-name", style: {display: 'flex'}}, 
+                            React.createElement("span", {style: {fontWeight: 'bold', fontFamily: 'GG', fontSize: '1.5em', paddingRight: '10px'}}, this.props.gene.name + ' '), 
+                            React.createElement("div", {style: { flexGrow: 1}}, 
+                                React.createElement("span", null, description), React.createElement("br", null), 
+                                React.createElement("span", {style: { marginRight: '5px'}}, "Gene predictability score: ", Math.round(this.props.gene.genePredScore * 100) / 100), 
+                                React.createElement(SVGCollection.I, {title: "Please see the FAQ for more information.", style: { marginLeft: '5px'}})
+                            )
+                        ), 
+                        React.createElement("div", {className: "flex11"}), 
+                            React.createElement("div", {className: "gn-gene-description-chr", style: {textAlign: 'right'}}, 
+                                React.createElement("span", null, "chromosome ", this.props.gene.chr), 
+                                React.createElement(SVGCollection.Chromosome, {
+                                    chr: this.props.gene.chr, 
+                                    start: this.props.gene.start, 
+                                    stop: this.props.gene.stop, 
+                                    position: (this.props.gene.stop + this.props.gene.start) / 2}), 
+                                React.createElement("div", null, this.props.gene.biotype.replace(/_/g, ' ')
+                                )
+                            )
+                    )
                 )
         )
     }
-})
+});
 
-module.exports = GeneHeader
+module.exports = GeneHeader;
 
-},{"../../js/color.js":4,"../ReactComponents/SVGCollection":45,"react":333}],12:[function(require,module,exports){
+},{"../../js/color.js":4,"../ReactComponents/SVGCollection":45,"react":333}],13:[function(require,module,exports){
 'use strict'
 
 var _ = require('lodash')
@@ -2156,7 +2242,7 @@ var GeneMenu = React.createClass({displayName: "GeneMenu",
 
 module.exports = GeneMenu
 
-},{"../ReactComponents/GeneOpenMenu":38,"../ReactComponents/SVGCollection":45,"lodash":130,"react":333}],13:[function(require,module,exports){
+},{"../ReactComponents/GeneOpenMenu":38,"../ReactComponents/SVGCollection":45,"lodash":130,"react":333}],14:[function(require,module,exports){
 'use strict'
 
 var React = require('react')
@@ -2463,7 +2549,7 @@ module.exports = React.createClass({displayName: "exports",
 	}
 })
 
-},{"lodash":130,"react":333}],14:[function(require,module,exports){
+},{"lodash":130,"react":333}],15:[function(require,module,exports){
 var _ = require('lodash');
 var React = require('react');
 var Link = require('react-router').Link;
@@ -2593,7 +2679,7 @@ var SimilarGenesTable = React.createClass({displayName: "SimilarGenesTable",
 
 module.exports = SimilarGenesTable;
 
-},{"../../js/color":4,"../../js/htmlutil":5,"../ReactComponents/SVGCollection":45,"lodash":130,"react":333,"react-router":164,"reactable":334}],15:[function(require,module,exports){
+},{"../../js/color":4,"../../js/htmlutil":5,"../ReactComponents/SVGCollection":45,"lodash":130,"react":333,"react-router":164,"reactable":334}],16:[function(require,module,exports){
 'use strict'
 
 var _ = require('lodash')
@@ -2832,7 +2918,7 @@ var Tissues = React.createClass({displayName: "Tissues",
 
 module.exports = Tissues
 
-},{"../../js/htmlutil":5,"../ReactComponents/OpenMenu":42,"../ReactComponents/SVGCollection":45,"./HomoSapiens":13,"lodash":130,"react":333,"reactable":334}],16:[function(require,module,exports){
+},{"../../js/htmlutil":5,"../ReactComponents/OpenMenu":42,"../ReactComponents/SVGCollection":45,"./HomoSapiens":14,"lodash":130,"react":333,"reactable":334}],17:[function(require,module,exports){
 var _ = require('lodash');
 var React = require('react');
 var ReactTable = require('react-table').default;
@@ -2858,7 +2944,8 @@ var GeneList = React.createClass({displayName: "GeneList",
 
     parseGeneList: function(geneList) {
         geneList = geneList.trim().replace(/(\r\n|\n|\r|\t|\s|;)/g, ',');
-        let genes = geneList.split(',').filter(function(e){return e});
+        var genes = geneList.split(',').filter(function(e){return e});
+        genes = _.uniq(genes);
         return(genes);
     },
 
@@ -2868,8 +2955,8 @@ var GeneList = React.createClass({displayName: "GeneList",
     },
 
     handleDbResponse: function (data) {
-        let notFound = _.compact(_.map(data, 'not_found'));
-        let genes = _.compact(_.flatten(_.map(data, 'genes'))); // this also flattens the genes from a given pathway // TODO: cluster genes searched by pathway id
+        var notFound = _.compact(_.map(data, 'not_found'));
+        var genes = _.compact(_.flatten(_.map(data, 'genes'))); // this also flattens the genes from a given pathway // TODO: cluster genes searched by pathway id
 
         this.setState({
             genes: genes,
@@ -2952,7 +3039,7 @@ var GeneList = React.createClass({displayName: "GeneList",
 
 module.exports = GeneList;
 
-},{"../js/color":4,"lodash":130,"react":333,"react-document-title":142,"react-table":185}],17:[function(require,module,exports){
+},{"../js/color":4,"lodash":130,"react":333,"react-document-title":142,"react-table":185}],18:[function(require,module,exports){
 'use strict';
 
 
@@ -2966,7 +3053,7 @@ var Route = ReactRouter.Route;
 var createBrowserHistory = require('history/lib/createBrowserHistory');
 
 var Landing = require('./Landing');
-var How = require('./How');
+var FAQ = require('./FAQ');
 var About = require('./About');
 var GeneList = require('./GeneList');
 var API = require('./ReactComponents/API');
@@ -2984,7 +3071,7 @@ var history = createBrowserHistory();
 ReactDOM.render(React.createElement(Router, {history: history}, 
                     React.createElement(Route, null, 
                         React.createElement(Route, {path: "/", component: Landing}, 
-                            React.createElement(Route, {path: "/how", component: How}), 
+                            React.createElement(Route, {path: "/faq", component: FAQ}), 
                             React.createElement(Route, {path: "/about", component: About}), 
                             React.createElement(Route, {path: "/api", component: API}), 
                             React.createElement(Route, {path: "/gene-list", component: GeneList}), 
@@ -2992,30 +3079,15 @@ ReactDOM.render(React.createElement(Router, {history: history},
                             React.createElement(Route, {path: "/term/:termId", component: Term}), 
                             React.createElement(Route, {path: "/network/:ids", component: Network}), 
                             React.createElement(Route, {path: "/ontology/:id", component: Ontology}), 
-                            React.createElement(Route, {path: "/diagnosis", component: DiagnosisMain}), 
-                            React.createElement(Route, {path: "/diagnosis/:id", component: Diagnosis})
+                            React.createElement(Route, {path: "/gado", component: DiagnosisMain}), 
+                            React.createElement(Route, {path: "/gado/:id", component: Diagnosis})
                         )
                     )
                 ),
                 document.getElementById('reactcontainer')
                );
 
-},{"../../config/gn.js":51,"./About":7,"./Gene/Gene":10,"./GeneList":16,"./How":18,"./Landing":19,"./Network/Network":27,"./ReactComponents/API":30,"./ReactComponents/Diagnosis":33,"./ReactComponents/DiagnosisMain":34,"./ReactComponents/Ontology":41,"./ReactComponents/Term":47,"history/lib/createBrowserHistory":114,"react":333,"react-dom":143,"react-router":164}],18:[function(require,module,exports){
-var React = require('react');
-
-var How = React.createClass({displayName: "How",
-    render: function() {
-        return (
-            React.createElement("div", null, 
-                React.createElement("div", null, "TBA")
-            )
-        );
-    }
-});
-
-module.exports = How;
-
-},{"react":333}],19:[function(require,module,exports){
+},{"../../config/gn.js":51,"./About":7,"./FAQ":10,"./Gene/Gene":11,"./GeneList":17,"./Landing":19,"./Network/Network":27,"./ReactComponents/API":30,"./ReactComponents/Diagnosis":33,"./ReactComponents/DiagnosisMain":34,"./ReactComponents/Ontology":41,"./ReactComponents/Term":47,"history/lib/createBrowserHistory":114,"react":333,"react-dom":143,"react-router":164}],19:[function(require,module,exports){
 var _ = require('lodash');
 var React = require('react');
 var ReactRouter = require('react-router');
@@ -3124,7 +3196,7 @@ var Landing = React.createClass({displayName: "Landing",
      * @param options
      */
     onSelectChange: function(selectedOption) {
-        let value = selectedOption.value;
+        var value = selectedOption.value;
         if (value.indexOf('!') > -1) {
             var type = value.substring(0, value.indexOf('!'));
             var id = value.substring(value.indexOf('!') + 1);
@@ -3228,13 +3300,13 @@ var Landing = React.createClass({displayName: "Landing",
      * Necessary to maintain focus at the end of the search bar when the state.geneList == true
      * @param event
      */
-    moveCaretAtEnd(event) {
+    moveCaretAtEnd: function(event) {
         var temp_value = event.target.value;
         event.target.value = '';
         event.target.value = temp_value
     },
 
-    renderSearchBar() {
+    renderSearchBar: function() {
         if (this.state.pasteGeneList && _.size(this.props.params) === 0) {
             return (
                 React.createElement(TextareaAutosize, {
@@ -3274,7 +3346,7 @@ var Landing = React.createClass({displayName: "Landing",
         var topBanner = null;
 
         if (_.size(this.props.params) === 0) {
-            if (this.props.location.pathname.indexOf('diagnosis') === 1) {
+            if (this.props.location.pathname.indexOf('gado') === 1) {
                 topBanner = (null)
             } else {
                 topBanner = (React.createElement("div", {className: "searchcontainer"}, 
@@ -3319,8 +3391,8 @@ var Landing = React.createClass({displayName: "Landing",
                     React.createElement("div", {className: "examples noselect defaultcursor"}, "For example: ", 
                         React.createElement(Link, {className: "clickable", title: "SMIM1", to: "/gene/SMIM1"}, "SMIM1"), ", ", 
                         React.createElement(Link, {className: "clickable", title: "Interferon signaling", to: "/network/REACTOME:R-HSA-913531"}, "Interferon signaling"), ", ", 
-                        React.createElement(Link, {className: "clickable", title: "Migraine", to: "/network/3ZLYoS", params: {ids: 'Migraine'}}, "Migraine"), ", ", 
-                        React.createElement(Link, {className: "clickable", title: "Autism", to: "/network/2iGTR8", params: {ids: 'Autism'}}, "Autism")
+                        React.createElement(Link, {className: "clickable", title: "Migraine", to: "/network/HP:0002076"}, "Migraine"), ", ", 
+                        React.createElement(Link, {className: "clickable", title: "Autism", to: "/network/HP:0000717"}, "Autism")
                     )
                 ))
             }
@@ -3335,6 +3407,9 @@ var Landing = React.createClass({displayName: "Landing",
                         React.createElement(Logo, {w: 33, h: 60, mirrored: true, style: {float: 'left', paddingRight: '10px'}}), 
                         React.createElement("div", {className: "noselect", style: {fontSize: '1.5em', color: color.colors.gndarkgray, float: 'left'}}, 
                             "GENE", React.createElement("br", null), "NETWORK"
+                        ), 
+                        React.createElement("div", {className: "noselect", style: {fontSize: '1em', color: color.colors.gndarkgray, float: 'left', marginTop: '37px', marginLeft: '7px'}}, 
+                            "v2.0"
                         )
                     ), 
                     topSearch, 
@@ -3710,7 +3785,7 @@ var GroupPanel = React.createClass({displayName: "GroupPanel",
      * Start pathway analysis automatically
      */
     componentDidMount: function() {
-        this.props.onAnalyse(this.props.activeGroup);
+        // this.props.onAnalyse(this.props.activeGroup);
     },
 
     download: function() {
@@ -4003,8 +4078,9 @@ var EdgeLegend = require('./EdgeLegend');
 var LegendPanel = require('./LegendPanel');
 var Footer = require('../ReactComponents/Footer');
 var GeneTable = require('../ReactComponents/GeneTable');
+var DownloadPanel = require('../ReactComponents/DownloadPanel');
 
-var Cookies = require('cookies-js');
+
 var D3Network = require('../../js/D3Network.js');
 var color = require('../../js/color');
 var htmlutil = require('../../js/htmlutil');
@@ -4320,23 +4396,23 @@ var Network = React.createClass({displayName: "Network",
         callback(null)
     },
 
-    setTissueSocketListener: function() {
-        io.socket.on('network', function(network) {
-            this.setState({
-                error: null,
-                progressText: 'creating visualization'
-            });
-            // allow state change
-            setTimeout(function() {
-                // var view = new DataView(network.buffer)
-                var js = network2js(network);
-                this.setState({
-                    [network.tissue]: js,
-                    url: GN.urls.networkPage + network.shortURL
-                })
-            }.bind(this), 10) 
-        }.bind(this))
-    },
+    // setTissueSocketListener: function() {
+    //     io.socket.on('network', function(network) {
+    //         this.setState({
+    //             error: null,
+    //             progressText: 'creating visualization'
+    //         });
+    //         // allow state change
+    //         setTimeout(function() {
+    //             // var view = new DataView(network.buffer)
+    //             var js = network2js(network);
+    //             this.setState({
+    //                 [network.tissue]: js,
+    //                 url: GN.urls.networkPage + network.shortURL
+    //             })
+    //         }.bind(this), 10)
+    //     }.bind(this))
+    // },
 
     loadTissueData: function(tissue) {
         var ids = this.props.params.ids.replace(/(\r\n|\n|\r)/g, ',');
@@ -4615,6 +4691,7 @@ var Network = React.createClass({displayName: "Network",
         
         var geneIndices = _.map(this.state.data.elements.nodes, function(node) { return node.data.index_ });
         var ts = new Date();
+
         io.socket.get(GN.urls.genescores, {term: term, geneIndices: geneIndices}, function(res, jwres) {
             if (!res || !res.zScores) {
                 console.error('could not get z-scores for ' + term)
@@ -4625,7 +4702,7 @@ var Network = React.createClass({displayName: "Network",
                     this.state.data.elements.nodes[i].data.annotated = res.annotations[i]
                 }
                 this.handleColoring('term');
-                if (!_.includes(_.pluck(this.state.coloringOptions, 'key'), 'term')) {
+                if (!_.includes(_.map(this.state.coloringOptions, 'key'), 'term')) {
                     this.state.coloringOptions.push({key: 'term', label: term.database === 'HPO' ? 'Phenotype' : 'Pathway'})
                 }
                 this.setState({
@@ -4756,6 +4833,11 @@ var Network = React.createClass({displayName: "Network",
         type == 'network' ? this.state.network.show() : this.state.network.hide()
     },
 
+    downloadPredictions: function() {
+        var form = document.getElementById('gn-term-downloadform');
+        form.submit()
+    },
+
     render: function() {
         var pageTitle = this.state.error ? this.state.errorTitle : 'Loading' + GN.pageTitleSuffix;
         if (!this.state.progressDone || !this.state.data) {
@@ -4799,11 +4881,24 @@ var Network = React.createClass({displayName: "Network",
 
             pageTitle = this.state.data.elements.nodes.length + ' genes' + GN.pageTitleSuffix;
             var title = this.state.data.pathway != null ? (this.state.data.pathway.database + ': ' + this.state.data.pathway.name) : null;
+
+            var downloadButton = this.state.data.pathway != null ? (
+                React.createElement("div", null, 
+                React.createElement(DownloadPanel, {onClick: this.downloadPredictions, text: "DOWNLOAD ALL"}), 
+                React.createElement("form", {id: "gn-term-downloadform", method: "post", encType: "multipart/form-data", action: GN.urls.tabdelim}, 
+                    React.createElement("input", {type: "hidden", id: "termId", name: "termId", value: this.state.data.pathway.id}), 
+                    React.createElement("input", {type: "hidden", id: "db", name: "db", value: this.state.data.pathway.database}), 
+                    React.createElement("input", {type: "hidden", id: "what", name: "what", value: "termprediction"})
+                )
+                )
+            ) : null;
+
             var predictedgenes = (
                     React.createElement("div", null, 
                         React.createElement("div", {className: "gn-term-container-outer", style: {backgroundColor: color.colors.gnwhite}}, 
                         React.createElement("div", {className: "gn-term-container-inner maxwidth", style: {padding: '20px'}}, 
-                            React.createElement(GeneTable, {genes: this.state.genes.genes.predicted ? this.state.genes.genes.predicted : null, type: "prediction", gpMessage: this.state.gpMessage})
+                            React.createElement(GeneTable, {genes: this.state.genes.genes.predicted ? this.state.genes.genes.predicted : null, type: "prediction", gpMessage: this.state.gpMessage}), 
+                             downloadButton 
                         )
                         ), 
                         React.createElement(Footer, null)
@@ -4838,27 +4933,26 @@ var Network = React.createClass({displayName: "Network",
 
                         React.createElement("div", {className: "gn-network-panelcontainer noselect smallscreensmallfont"}, 
                         
-                                React.createElement(GroupPanel, {data: this.state.data, 
-                            activeGroup: this.state.activeGroup, 
-                            coloring: this.state.coloring, 
-                            onGroupClick: this.updateGroup, 
-                            onAnalyse: this.onAnalyse, 
-                            style: {maxHeight: 1 / 3 * this.state.height - 30, paddingRight: '0px'}}
-                                ), 
+                            React.createElement(GroupPanel, {data: this.state.data, 
+                                        activeGroup: this.state.activeGroup, 
+                                        coloring: this.state.coloring, 
+                                        onGroupClick: this.updateGroup, 
+                                        onAnalyse: this.onAnalyse, 
+                                        style: {maxHeight: 1 / 3 * this.state.height - 30, paddingRight: '0px'}}
+                            ), 
                                 
                             this.state.analysisGroup ?
-                             React.createElement(AnalysisPanel, {
-                             style: {padding: '10px 0 10px 10px', maxHeight: 2 / 3 * this.state.height - 70}, 
-                             onClose: this.handleAnalysisPanelClose, 
-                             analysisGroup: this.state.analysisGroup, 
-                             selectedTerm: this.state.selectedTerm, 
-                             termColoring: this.state.termColoring, 
-                             coloring: this.state.coloring, 
-                             onTermSelect: this.selectTerm, 
-                             onGeneAdd: this.addGeneRequest, 
-                             onGeneRemove: this.removeGene, 
-                             addedGenes: this.state.addedGenes}
-                             ) : null
+                                React.createElement(AnalysisPanel, {
+                                     style: {padding: '10px 0 10px 10px', maxHeight: 2 / 3 * this.state.height - 70}, 
+                                     onClose: this.handleAnalysisPanelClose, 
+                                     analysisGroup: this.state.analysisGroup, 
+                                     selectedTerm: this.state.selectedTerm, 
+                                     termColoring: this.state.termColoring, 
+                                     coloring: this.state.coloring, 
+                                     onTermSelect: this.selectTerm, 
+                                     onGeneAdd: this.addGeneRequest, 
+                                     onGeneRemove: this.removeGene, 
+                                     addedGenes: this.state.addedGenes}) : null
 
                         ), 
 
@@ -4953,10 +5047,10 @@ var Network = React.createClass({displayName: "Network",
 
 module.exports = Network;
 
-},{"../../js/D3Network.js":2,"../../js/color":4,"../../js/htmlutil":5,"../../js/sort/quicksort":6,"../ReactComponents/Footer":37,"../ReactComponents/GeneTable":39,"./AnalysisPanel":21,"./EdgeLegend":22,"./EdgePanel":23,"./GenePanel":24,"./GroupPanel":25,"./LegendPanel":26,"./NetworkControlPanel":28,"affinity-propagation":53,"async":54,"cookies-js":56,"lodash":130,"react":333,"react-document-title":142,"react-dom":143}],28:[function(require,module,exports){
-var React = require('react')
-var SVGCollection =  require('../ReactComponents/SVGCollection')
-var color = require('../../js/color')
+},{"../../js/D3Network.js":2,"../../js/color":4,"../../js/htmlutil":5,"../../js/sort/quicksort":6,"../ReactComponents/DownloadPanel":36,"../ReactComponents/Footer":37,"../ReactComponents/GeneTable":39,"./AnalysisPanel":21,"./EdgeLegend":22,"./EdgePanel":23,"./GenePanel":24,"./GroupPanel":25,"./LegendPanel":26,"./NetworkControlPanel":28,"affinity-propagation":53,"async":54,"lodash":130,"react":333,"react-document-title":142,"react-dom":143}],28:[function(require,module,exports){
+var React = require('react');
+var SVGCollection =  require('../ReactComponents/SVGCollection');
+var color = require('../../js/color');
 
 var NetworkControlPanel = React.createClass({displayName: "NetworkControlPanel",
 
@@ -4971,49 +5065,49 @@ var NetworkControlPanel = React.createClass({displayName: "NetworkControlPanel",
 
     render: function() {
         
-        var zoomInStyle = {padding: '10px', borderBottom: '1px solid #dcdcdc'}
-        if (this.props.isZoomedMax) zoomInStyle.backgroundColor = '#f5f5f5'
-        var zoomOutStyle = {padding: '10px', borderBottom: '1px solid #dcdcdc'}
-        if (this.props.isZoomedMin) zoomOutStyle.backgroundColor = '#f5f5f5'
+        var zoomInStyle = {padding: '10px', borderBottom: '1px solid #dcdcdc'};
+        if (this.props.isZoomedMax) zoomInStyle.backgroundColor = '#f5f5f5';
+        var zoomOutStyle = {padding: '10px', borderBottom: '1px solid #dcdcdc'};
+        if (this.props.isZoomedMin) zoomOutStyle.backgroundColor = '#f5f5f5';
 
-        var selectIconStyles = [{padding: '10px'}, {backgroundColor: color.colors.gnyellow, padding: '10px'}]
+        var selectIconStyles = [{padding: '10px'}, {backgroundColor: color.colors.gnyellow, padding: '10px'}];
         if (this.props.selectionMode === 'move') {
             selectIconStyles.reverse()
         }
-        selectIconStyles[0].borderBottom = '1px solid #dcdcdc'
+        selectIconStyles[0].borderBottom = '1px solid #dcdcdc';
         
         return (
-                React.createElement("div", {className: "gn-network-controlpanel"}, 
+            React.createElement("div", {className: "gn-network-controlpanel"}, 
                 React.createElement("div", {className: "gn-network-controlpanel-group bordered"}, 
-                React.createElement("div", {className: "gn-network-controlpanel-control clickable", style: zoomInStyle, onClick: this.props.isZoomedMax ? null : this.props.onZoom.bind(null, 1.5)}, 
-                React.createElement(SVGCollection.Plus, null)
-                ), 
-                React.createElement("div", {className: "gn-network-controlpanel-control clickable", style: zoomOutStyle, onClick: this.props.isZoomedMin ? null : this.props.onZoom.bind(null, 1/1.5)}, 
-                React.createElement(SVGCollection.Minus, null)
-                )
-                ), 
-                React.createElement("div", {className: "gn-network-controlpanel-group bordered", style: {marginTop: '10px'}}, 
-                React.createElement("div", {style: selectIconStyles[0], className: "gn-network-controlpanel-selectionmode clickable", onClick: this.props.onSelectionModeChange.bind(null, 'move')}, 
-                React.createElement(SVGCollection.Move, null)
-                ), 
-                React.createElement("div", {style: selectIconStyles[1], className: "gn-network-controlpanel-selectionmode clickable", onClick: this.props.onSelectionModeChange.bind(null, 'select')}, 
-                React.createElement(SVGCollection.Crop, null)
-                )
+                    React.createElement("div", {className: "gn-network-controlpanel-control clickable", style: zoomInStyle, onClick: this.props.isZoomedMax ? null : this.props.onZoom.bind(null, 1.5)}, 
+                        React.createElement(SVGCollection.Plus, null)
+                    ), 
+                    React.createElement("div", {className: "gn-network-controlpanel-control clickable", style: zoomOutStyle, onClick: this.props.isZoomedMin ? null : this.props.onZoom.bind(null, 1/1.5)}, 
+                        React.createElement(SVGCollection.Minus, null)
+                    )
                 ), 
                 React.createElement("div", {className: "gn-network-controlpanel-group bordered", style: {marginTop: '10px'}}, 
-                React.createElement("div", {className: "gn-network-controlpanel-control clickable noselect", style: {padding: '10px', borderBottom: '1px solid #dcdcdc'}, onClick: this.props.download.bind(null, 'pdf')}, 
-                React.createElement(SVGCollection.Download, {text: "PDF"})
+                    React.createElement("div", {style: selectIconStyles[0], className: "gn-network-controlpanel-selectionmode clickable", onClick: this.props.onSelectionModeChange.bind(null, 'move')}, 
+                        React.createElement(SVGCollection.Move, null)
+                    ), 
+                    React.createElement("div", {style: selectIconStyles[1], className: "gn-network-controlpanel-selectionmode clickable", onClick: this.props.onSelectionModeChange.bind(null, 'select')}, 
+                        React.createElement(SVGCollection.Crop, null)
+                    )
                 ), 
-                React.createElement("div", {className: "gn-network-controlpanel-control clickable noselect", style: {padding: '10px'}, onClick: this.props.download.bind(null, 'png')}, 
-                React.createElement(SVGCollection.Download, {text: "PNG"})
+                React.createElement("div", {className: "gn-network-controlpanel-group bordered", style: {marginTop: '10px'}}, 
+                    React.createElement("div", {className: "gn-network-controlpanel-control clickable noselect", style: {padding: '10px', borderBottom: '1px solid #dcdcdc'}, onClick: this.props.download.bind(null, 'pdf')}, 
+                        React.createElement(SVGCollection.Download, {text: "PDF"})
+                    ), 
+                    React.createElement("div", {className: "gn-network-controlpanel-control clickable noselect", style: {padding: '10px'}, onClick: this.props.download.bind(null, 'png')}, 
+                        React.createElement(SVGCollection.Download, {text: "PNG"})
+                    )
                 )
-                )
-                )
+            )
         )
     }
-})
+});
 
-module.exports = NetworkControlPanel
+module.exports = NetworkControlPanel;
 
 },{"../../js/color":4,"../ReactComponents/SVGCollection":45,"react":333}],29:[function(require,module,exports){
 'use strict'
@@ -5400,10 +5494,10 @@ var PWAPanel = React.createClass({displayName: "PWAPanel",
                 }
                 return (
                         React.createElement("div", {key: db.id, onClick: that.handleDatabaseClick.bind(that, db.id), className: cls, style: {float: 'left'}}, 
-                        db.id.replace('-', ' ')
+                        db.id.replace('_', ' ')
                     )
                 )
-            })
+            });
 
 
 //            var message = {These are <strong>pathways</strong})
@@ -5721,7 +5815,6 @@ var DataTable = React.createClass({displayName: "DataTable",
     
     render: function() {
 
-        // console.log('pdt render, state:', this.state)
         var that = this;
         var pathways = this.state.annotationsOnly ? this.props.data.pathways.annotated : this.props.data.pathways.predicted;
 
@@ -5912,33 +6005,33 @@ var DataTable = React.createClass({displayName: "DataTable",
 module.exports = DataTable;
 
 },{"../../js/color":4,"../../js/htmlutil":5,"./PredictionRow":44,"./SVGCollection":45,"lodash":130,"react":333,"react-router":164,"reactable":334}],33:[function(require,module,exports){
-'use strict'
+'use strict';
 
-var _ = require('lodash')
+var _ = require('lodash');
 var async = require('async');
-var color = require('../../js/color')
-var htmlutil = require('../../js/htmlutil')
-var genstats = require('genstats')
-var prob = genstats.probability
+var color = require('../../js/color');
+var htmlutil = require('../../js/htmlutil');
+var genstats = require('genstats');
+var prob = genstats.probability;
 
-var React = require('react')
-var Router = require('react-router')
-var DocumentTitle = require('react-document-title')
+var React = require('react');
+var Router = require('react-router');
+var DocumentTitle = require('react-document-title');
 
-var SVGCollection = require('./SVGCollection')
-var I = SVGCollection.I
-var htmlutil = require('../../js/htmlutil')
-var color = require('../../js/color')
-var D3Heatmap = require('../../js/D3Heatmap')
+var SVGCollection = require('./SVGCollection');
+var I = SVGCollection.I;
+var htmlutil = require('../../js/htmlutil');
+var color = require('../../js/color');
+var D3Heatmap = require('../../js/D3Heatmap');
 
-var reactable = require('reactable')
-var Tr = reactable.Tr
-var Td = reactable.Td
-var Th = reactable.Th
-var Thead = reactable.Thead
-var Tbody = reactable.Tbody
-var Table = reactable.Table
-var unsafe = reactable.unsafe
+var reactable = require('reactable');
+var Tr = reactable.Tr;
+var Td = reactable.Td;
+var Th = reactable.Th;
+var Thead = reactable.Thead;
+var Tbody = reactable.Tbody;
+var Table = reactable.Table;
+var unsafe = reactable.unsafe;
 
 
 /* For the Z-score colours in the phenotype table: */
@@ -5972,13 +6065,13 @@ function HSVtoRGB(h, s, v) {
 /* For the Z-score colours in the phenotype table: */
 
 function getRGB(avg){
-    var v = 1-(parseFloat(avg)/20)
-    var s = 0.6 + (parseFloat(Math.abs(avg))/7)
+    var v = 1-(parseFloat(avg)/20);
+    var s = 0.6 + (parseFloat(Math.abs(avg))/7);
     if (parseFloat(avg) >= 0){
-        var colors = HSVtoRGB(0.0389, s, v)
+        var colors = HSVtoRGB(0.0389, s, v);
         return 'rgb(' + colors.r + ',' + colors.g + ', ' + colors.b + ')'
     } else {
-        var colors = HSVtoRGB(0.58, s, v)
+        var colors = HSVtoRGB(0.58, s, v);
         return 'rgb(' + colors.r + ',' + colors.g + ', ' + colors.b + ')'
     }
 }
@@ -5989,8 +6082,8 @@ var NetworkButton = React.createClass({displayName: "NetworkButton",
 
     render: function() {
 
-        var subTable = this.props.prioFiltered
-        var urlGenes = ''
+        var subTable = this.props.prioFiltered;
+        var urlGenes = '';
 
         if (subTable) {
             for (var i = 0; i < subTable.length; i++) {
@@ -6001,37 +6094,34 @@ var NetworkButton = React.createClass({displayName: "NetworkButton",
                 urlGenes = urlGenes + this.props.prio.results[i].gene.id + ','
             }        
         }
-        var networkLink = GN.urls.networkPage + urlGenes
+        var networkLink = GN.urls.networkPage + urlGenes;
 
-        return(React.createElement("a", {href: networkLink, target: "_blank"}, React.createElement("span", {className: "button clickable noselect"}, "100 GENES NETWORK")))
+        return(React.createElement("a", {href: networkLink, target: "_blank"}, React.createElement("span", {className: "button clickable noselect"}, "100 GENES NETWORK")));
 
         {/*return(<a href={networkLink} target="_blank"><button type="button" >View network of prioritized genes!</button></a>)*/}
     }
-})
+});
 
 var ShowPhenotypes3 = React.createClass({displayName: "ShowPhenotypes3",
 
-
     render: function() {
-        var hoverZScores = this.props.hoverItem
-        var rows = []
+        var hoverZScores = this.props.hoverItem;
+        var rows = [];
 
-        var terms = this.props.prio.terms
-        var termslist = _.map(terms, 'term.id')
-        var orderedTerms = this.props.orderedTerms
+        var terms = this.props.prio.terms;
+        var termslist = _.map(terms, 'term.id');
+        var orderedTerms = this.props.orderedTerms;
 
         if (orderedTerms){
-            // console.log(this.props.prio)
             // if heatmap clustering is done, replace terms array by ordered terms array (based on clustering)
-            var newTerms = []
+            var newTerms = [];
             for (var i = 0; i < orderedTerms.length; i++){
-                var index = termslist.indexOf(orderedTerms[i])
+                var index = termslist.indexOf(orderedTerms[i]);
                 newTerms.push(terms[index])
             }
             terms = newTerms
         }
 
-        // console.log(this.props.hoverRow, this.props.hoverCol)
 
         /* Getting the colour: */
         for (var i = 0; i < terms.length; i++) {
@@ -6045,9 +6135,6 @@ var ShowPhenotypes3 = React.createClass({displayName: "ShowPhenotypes3",
             )
         }
 
-        // <Th column="ZSCORE" style={{textAlign: 'center'}}>{"Z-SCORE"}</Th>
-        /* The table itself & headers: */
-        // <Th column="COLOR">{""}</Th>
         return (
             React.createElement(Table, {id: "phenTab", className: "sortable rowcolors table pheno-table", style: {width: '100%'}}, 
             React.createElement(Thead, null, 
@@ -6059,7 +6146,7 @@ var ShowPhenotypes3 = React.createClass({displayName: "ShowPhenotypes3",
             )
         )
     }
-})
+});
 
 
 
@@ -6069,50 +6156,40 @@ var GeneTable = React.createClass({displayName: "GeneTable",
 
     render: function() {
 
-        var subTable = this.props.prioFiltered
+        var subTable = this.props.prioFiltered;
 
         /* if geneslist is submitted */
 
         if (subTable) {
 
-            var newRows = []        // Rows in the table
+            var newRows = []; // Rows in the table
 
             for (var i = 0; i < subTable.length; i++) {
 
-                var rowtype = i % 2 === 0 ? 'datarow evenrow' : 'datarow oddrow'
+                var rowtype = i % 2 === 0 ? 'datarow evenrow' : 'datarow oddrow';
 
                 /* network urls: */
-                var phens = ""
+                var phens = "";
                 for (var j = 0; j < this.props.prio.terms.length; j++) {
                     phens = phens.concat(this.props.prio.terms[j].term.id + ',')
                 }
-                var gene = "0!" + subTable[i].gene.name
-                var networkLink = GN.urls.networkPage + phens + gene
-
-                /* biotype squares: */
-                var square =
-                    React.createElement("div", {style: this.props.style, title: subTable[i].gene.biotype}, 
-                    React.createElement("svg", {viewBox: "0 0 10 10", width: 10, height: 10}, 
-                    React.createElement("rect", {x1: "0", y1: "0", width: "10", height: "10", style: {fill: color.biotype2color[subTable[i].gene.biotype] || color.colors.default}})
-                    )
-                    )
+                var gene = "0!" + subTable[i].gene.name;
+                var networkLink = GN.urls.networkPage + phens + gene;
 
                 /* If impact scorses provided, include column in rows: */
-                var impactScore = null
+                var impactScore = null;
                 if (subTable[i].gene.score || subTable[i].gene.score === "") {
                     impactScore = React.createElement(Td, {column: "IMPACT", style: {textAlign: 'center'}}, subTable[i].gene.score)
                 } else {
                     impactScore = null
                 }
 
-                var geneLink = GN.urls.genePage + subTable[i].gene.name
+                var geneLink = GN.urls.genePage + subTable[i].gene.name;
 
                 newRows.push(
                     React.createElement(Tr, {key: i, className: rowtype, onMouseOver: this.props.onMouseOver.bind(null, subTable[i].predicted)}, 
-                    React.createElement(Td, {column: "BIOTYPE", style: {textAlign: 'center'}}, square), 
                     React.createElement(Td, {column: "RANK", style: {textAlign: 'center'}}, i + 1), 
                     React.createElement(Td, {column: "GENE", style: {textAlign: 'left'}}, React.createElement("a", {className: "nodecoration black", href: geneLink, target: "_blank"}, subTable[i].gene.name)), 
-                    /*<Td column="P-VALUE" style={{textAlign: 'center'}}>{unsafe(htmlutil.pValueToReadable(prob.zToP(subTable[i].weightedZScore)))}</Td>*/
                     React.createElement(Td, {column: "P-VALUE", style: {textAlign: 'center'}}, unsafe(subTable[i].weightedZScore)), 
                     React.createElement(Td, {column: "DIRECTION", style: {textAlign: 'center'}}, subTable[i].weightedZScore > 0 ? React.createElement(SVGCollection.TriangleUp, {className: "directiontriangleup"}) : React.createElement(SVGCollection.TriangleDown, {className: "directiontriangledown"})), 
                     React.createElement(Td, {column: "ANNOTATION", style: {textAlign: 'center'}}, React.createElement("div", {title: subTable[i].annotated.length == 0 ? "Not annotated to any of the phenotypes." : subTable[i].annotated}, subTable[i].annotated.length)), 
@@ -6124,17 +6201,17 @@ var GeneTable = React.createClass({displayName: "GeneTable",
 
         } else {
 
-            var newRows = []        // Rows in the table
+            var newRows = [];        // Rows in the table
 
             for (var i = 0; i < this.props.prio.results.length; i++) {
 
                 /* network urls: */
-                var phens = ""
+                var phens = "";
                 for (var j = 0; j < this.props.prio.terms.length; j++) {
                     phens = phens.concat(this.props.prio.terms[j].term.id + ',')
                 }
-                var gene = "0!" + this.props.prio.results[i].gene.name
-                var networkLink = GN.urls.networkPage + phens + gene
+                var gene = "0!" + this.props.prio.results[i].gene.name;
+                var networkLink = GN.urls.networkPage + phens + gene;
 
                 /* biotype squares: */
                 var square =
@@ -6142,22 +6219,20 @@ var GeneTable = React.createClass({displayName: "GeneTable",
                     React.createElement("svg", {viewBox: "0 0 10 10", width: 12, height: 12}, 
                     React.createElement("rect", {x1: "0", y1: "0", width: "10", height: "10", style: {fill: color.biotype2color[this.props.prio.results[i].gene.biotype] || color.colors.default}})
                     )
-                    )
+                    );
 
-                var geneLink = GN.urls.genePage + this.props.prio.results[i].gene.name
+                var geneLink = GN.urls.genePage + this.props.prio.results[i].gene.name;
 
-                var hpoZscores = []
+                var hpoZscores = [];
                 for (var e = 0; e < this.props.prio.results[i].predicted.length; e++){
                     hpoZscores.push(React.createElement(Td, {column: this.props.prio.terms[e].term.id}, Math.round(this.props.prio.results[i].predicted[e] * 10)/10))
                 }
 
                 newRows.push(
                     React.createElement(Tr, {key: i, onMouseOver: this.props.onMouseOver.bind(null, this.props.prio.results[i])}, 
-                    React.createElement(Td, {column: "", style: {textAlign: 'center'}}, square), 
                     React.createElement(Td, {column: "RANK", style: {textAlign: 'center'}}, i + 1), 
                     React.createElement(Td, {column: "GENE", style: {textAlign: 'left'}}, React.createElement("a", {className: "nodecoration black", href: geneLink, target: "_blank", title: this.props.prio.results[i].gene.description}, this.props.prio.results[i].gene.name)), 
                     React.createElement(Td, {column: "Z-SCORE", style: {textAlign: 'center'}}, Math.round(unsafe(this.props.prio.results[i].weightedZScore)*10)/10), 
-                        /*<Td column="P-VALUE" style={{textAlign: 'center'}}>{unsafe(htmlutil.pValueToReadable(prob.zToP(this.props.prio.results[i].weightedZScore)))}</Td>*/
                     React.createElement(Td, {column: "NETWORK", style: {textAlign: 'center'}}, React.createElement("a", {href: networkLink, target: "_blank"}, React.createElement(SVGCollection.NetworkIcon, null))), 
                     hpoZscores
                     )
@@ -6166,7 +6241,7 @@ var GeneTable = React.createClass({displayName: "GeneTable",
         }
 
         /* If variant impact is provided, include header in table: */
-        var scoreHeader = null
+        var scoreHeader = null;
         if (subTable && subTable.length > 0) {
             if (subTable[0].gene.score || subTable[0].gene.score === "") {
                 scoreHeader = React.createElement(Th, {column: "impact", style: {textAlign: 'center'}}, "VAR. IMPACT")
@@ -6179,20 +6254,20 @@ var GeneTable = React.createClass({displayName: "GeneTable",
             newRows.push(React.createElement(Tr, {key: "1"}, React.createElement(Td, {column: ""}, "Your list of genes did not match any of the results.")))
         }
 
-        var terms = this.props.prio.terms
-        var orderedTerms = this.props.orderedTerms
+        var terms = this.props.prio.terms;
+        var orderedTerms = this.props.orderedTerms;
         
         if (orderedTerms){
-        	var termslist = _.map(terms, 'term.id')
-        	var array = []
+        	var termslist = _.map(terms, 'term.id');
+        	var array = [];
 	        for (var i = 0; i < orderedTerms.length; i++){
-	            var index = termslist.indexOf(orderedTerms[i])
+	            var index = termslist.indexOf(orderedTerms[i]);
 	            array.push(terms[index])
 	        }
 	        terms = array
         }
         
-        var hpoIds = []
+        var hpoIds = [];
         for (var n = 0; n < terms.length; n++){
             hpoIds.push(React.createElement(Th, {column: terms[n].term.id}, React.createElement(SVGCollection.DiagonalText, {text: terms[n].term.id})))
         }
@@ -6201,26 +6276,6 @@ var GeneTable = React.createClass({displayName: "GeneTable",
         /* The actual table, with custom sorting: */
         return (React.createElement(Table, {id: "gentab", className: "sortable rowcolors table diag-table", 
 
-
-            // Attempt at not showing the first two headers, doesn't work???
-            // column={[{key: " ", label: 'BIOTYPE'}, {key: " ", label: 'RANK'}, {key: "P-VALUE", label: 'PVALUE'}, {key: "DIRECTION", label: 'DIRECTION'}, {key: "ANNOTATION", label: 'ANNOTATION'}, {key: "NETWORK", label: 'NETWORK'}]}
-
-             // {
-             //        column: 'DIRECTION',
-             //        sortFunction: function(a, b) {
-             //            return a.props.className.localeCompare(b.props.className)        // Strange: when sorting: 2nd row changes (2 -> 100 -> 51), but all are 'directiontriangleup'
-             //        }
-             //    },
-
-             //    {
-             //        column: 'ANNOTATION',
-             //        sortFunction: function(a,b) {
-             //            return b.props.children - a.props.children
-             //        }
-             //    },
-
-             // <Th column="DIRECTION" style={{textAlign: 'center'}}><span title="???">{"DIRECTION"}</span> <I title="???"/></Th>
-            // <Th column="ANNOTATION" style={{textAlign: 'center'}}> <span title="The number of inputted phenotypes the gene is annotated to">{"ANNOTATION"}</span> <I title="The number of inputted phenotypes the gene is annotated to"/></Th>
 
             sortable: [
                 {
@@ -6236,57 +6291,6 @@ var GeneTable = React.createClass({displayName: "GeneTable",
                     column: 'Z-SCORE',
 
                     sortFunction: function(a, b) {
-
-                        // if (a.length < 5) {
-                        //     if (b.length < 5) {             {/* a ?? b */}
-                        //         return a - b
-                        //     } else if (b[0] != '<') {    {/* a > b */}
-                        //         return 1
-                        //     } else {                        {/* a > b */}
-                        //         return 1
-                        //     }
-                        // } else if (a[0] != '<') {
-                        //     if (b.length < 5) {             {/* a < b */}
-                        //         return -1
-                        //     } else if (b[0] != '<') {    {/* a ?? b */}
-
-                        //         a = a.toString()
-                        //         var aExponent = a.slice(53)
-                        //         var aExp = aExponent.slice(0, aExponent.indexOf("<"))
-                        //         var aNumber = a.slice(0,3)
-
-                        //         b = b.toString()
-                        //         var bExponent = b.slice(53)
-                        //         var bExp = bExponent.slice(0, bExponent.indexOf("<"))
-                        //         var bNumber = b.slice(0,3)
-
-                        //         return aExp - bExp || aNumber - bNumber
-
-                        //     } else {                        {/* a > b */}
-                        //         return 1
-                        //     }
-                        // } else {
-                        //     if (b.length < 5) {             {/* a < b */}
-                        //         return -1
-                        //     } else if (b[0] != '<') {    {/* a <b */}
-                        //         return -1
-                        //     } else {
-
-                        //         a = a.toString()
-                        //         var aExponent = a.slice(55)
-                        //         var aExp = aExponent.slice(0, aExponent.indexOf("<"))
-                        //         var aNumber = a.slice(2,5)
-
-                        //         b = b.toString()
-                        //         var bExponent = b.slice(55)
-                        //         var bExp = bExponent.slice(0, bExponent.indexOf("<"))
-                        //         var bNumber = b.slice(2,5)
-
-                        //         return aExp - bExp || aNumber - bNumber
-
-                        //     }
-                        // }
-
                         return b - a
                     }
                 },
@@ -6294,7 +6298,7 @@ var GeneTable = React.createClass({displayName: "GeneTable",
 
             }, 
             React.createElement(Thead, null, 
-                React.createElement(Th, null, ""), 
+                /*<Th>{""}</Th>*/
                 React.createElement(Th, {column: "RANK", style: {textAlign: 'center'}}, "RANK"), 
                 React.createElement(Th, {column: "GENE"}, "GENE"), 
                 React.createElement(Th, {column: "Z-SCORE", style: {textAlign: 'center'}}, 
@@ -6306,38 +6310,38 @@ var GeneTable = React.createClass({displayName: "GeneTable",
             newRows
             ))
     }
-})
+});
 
 // Uses geneslist (& variant scores) provided by user to return new (filtered) data for the GenesTable:
 
 var compareGenes = function (newList, data) {
 
     /* Splitting submitted geneslist at \n ; , and \t --> into (uppercase) array */
-    newList = newList.replace(/\n/g, ' ')
-    newList = newList.replace(/;/g, ' ')
-    newList = newList.replace(/,/g, ' ')
-    newList = newList.replace(/\t/g, ' ')
-    var newArray = newList.split(' ')
+    newList = newList.replace(/\n/g, ' ');
+    newList = newList.replace(/;/g, ' ');
+    newList = newList.replace(/,/g, ' ');
+    newList = newList.replace(/\t/g, ' ');
+    var newArray = newList.split(' ');
 
-    var neatArray = []
+    var neatArray = [];
     for (var i = 0; i < newArray.length; i++) {
         if (newArray[i].length !== 0) {
             neatArray.push(newArray[i])
         }
     }
 
-    var upperCaseArray = []
+    var upperCaseArray = [];
     for (i = 0; i < neatArray.length; i++) {
         upperCaseArray.push(neatArray[i].toUpperCase())
     }
 
     /* Storing genesList in two seperate arrays (genes & scores, if available) */
-    var snpScores = []
-    var neaterArray = []
+    var snpScores = [];
+    var neaterArray = [];
 
     for (i = 0; i < upperCaseArray.length; i++) {
         if (isNaN(Number(upperCaseArray[i]))) {
-            neaterArray.push(upperCaseArray[i])
+            neaterArray.push(upperCaseArray[i]);
             if (isNaN(Number(upperCaseArray[i+1]))) {
                 snpScores.push('')
                 
@@ -6349,7 +6353,7 @@ var compareGenes = function (newList, data) {
     }
 
     /* ENSG --> gene-name, pushing results to newTableData array */
-    var newTableData = []
+    var newTableData = [];
     for (var i = 0; i < neaterArray.length; i++) {
         if (neaterArray[i].slice(0,4) == 'ENSG' || neaterArray[i].slice(0,4) == 'ensg') {
             for (var j = 0; j < data.results.length; j++) {
@@ -6367,7 +6371,7 @@ var compareGenes = function (newList, data) {
     }
 
     /* Checking whether any variant impact scores were provided:*/
-    var snpScoresEmptied = []
+    var snpScoresEmptied = [];
         for (var i = 0; i < snpScores.length; i++) {
         if (snpScores[i].length !== 0) {
             snpScoresEmptied.push(snpScores[i])
@@ -6382,7 +6386,7 @@ var compareGenes = function (newList, data) {
     }
 
     return (newTableData)
-}
+};
 
 
 /* Textbox to paste a list of genes in, to filter the table: */
@@ -6397,16 +6401,16 @@ var PasteBox = React.createClass({displayName: "PasteBox",
     },
 
     render: function() {
-        var value = this.state.value 
+        var value = this.state.value;
 
-        var phens = ""
+        var phens = "";
         for (var j = 0; j < this.props.prio.terms.length; j++) {
             phens = phens.concat(this.props.prio.terms[j].term.id + ',')
         }
 
-        var url = GN.urls.main + "/diagnosis/" + phens
+        var url = GN.urls.main + "/diagnosis/" + phens;
 
-        var unfilterButton = this.props.prioFiltered ? React.createElement("a", {href: url}, React.createElement("span", {className: "button clickable noselect"}, "UNFILTER")) : null // Results in error: Invariant Violation: Expected onClick listener to be a function, instead got type string
+        var unfilterButton = this.props.prioFiltered ? React.createElement("a", {href: url}, React.createElement("span", {className: "button clickable noselect"}, "UNFILTER")) : null; // Results in error: Invariant Violation: Expected onClick listener to be a function, instead got type string
 
         return (
             React.createElement("form", null, 
@@ -6422,13 +6426,13 @@ var PasteBox = React.createClass({displayName: "PasteBox",
             )
         )
     }
-})
+});
 
 
 var Diagnosis = React.createClass({displayName: "Diagnosis",
 
     getInitialState: function() {
-        var useCustomGeneSet = this.props.location.state === null ? false : this.props.location.state.useCustomGeneSet
+        var useCustomGeneSet = this.props.location.state === null ? false : this.props.location.state.useCustomGeneSet;
         return {
             useCustomGeneSet: useCustomGeneSet,
             message: '',
@@ -6439,7 +6443,7 @@ var Diagnosis = React.createClass({displayName: "Diagnosis",
     },
 
     handleMouseOver: function(item) {
-        var predicted = item.predicted
+        var predicted = item.predicted;
         this.setState({
             hoverItem: predicted,
         })
@@ -6476,9 +6480,13 @@ var Diagnosis = React.createClass({displayName: "Diagnosis",
     	})
     },
 
-    createHeatmap: function(data, callback){
-        if (data.hpoCorrelation.termsFound.length > 1){
-            var div = document.getElementById('heatmap')
+    createHeatmap: function(data, callback) {
+
+        var correlationMatrix = data.hpoCorrelation.hpoCorrelationMatrix;
+
+        if (data.hpoCorrelation.termsFound.length > 1) {
+            // Create heatmap
+            var div = document.getElementById('heatmap');
             var heatmap = new D3Heatmap(div, {
                 cormat: data.hpoCorrelation.hpoCorrelationMatrix,
                 terms: data.hpoCorrelation.termsFound,
@@ -6488,16 +6496,31 @@ var Diagnosis = React.createClass({displayName: "Diagnosis",
                 cellsize: 20,
                 strokeWidth: 1,
                 handleHover: this.handleHover
-            })
+            });
+            // Determine closely correlated terms
+            var correlatedTerms = [];
+            for (var i = 0; i < correlationMatrix.length ; i++) {
+                for (var j = 1 + i; j < correlationMatrix[i].length; j++) {
+                    var correlation = correlationMatrix[i][j];
+                    if (i !== j && correlation > 0.95) {
+                        correlatedTerms.push(data.terms[i]);
+                        correlatedTerms.push(data.terms[j]);
+                    }
+                }
+            }
+
             this.setState({
-                orderedTerms: heatmap._props.orderedTerms
+                orderedTerms: heatmap._props.orderedTerms,
+                correlatedTerms: correlatedTerms
             })
+
+
         }        
     },
 
     loadData: function(callback) {
         
-        var genes = this.state.useCustomGeneSet ? this.parseGeneList(this.props.location.state.genes) : undefined
+        var genes = this.state.useCustomGeneSet ? this.parseGeneList(this.props.location.state.genes) : undefined;
         
         // var genes = this.props.location.state.useCustomGeneSet ? this.props.location.state.genes : undefined
         $.ajax({
@@ -6508,11 +6531,11 @@ var Diagnosis = React.createClass({displayName: "Diagnosis",
             success: function(data) {
                 this.setState({
                     data: data
-                })
+                });
                 callback(null, data)
             }.bind(this),
             error: function(xhr, status, err) {
-                console.log(xhr)
+                console.log(xhr);
                 if (err === 'Not Found') {
                     this.setState({
                         error: 'Pathways ' + this.props.params.id + ' not found',
@@ -6529,25 +6552,25 @@ var Diagnosis = React.createClass({displayName: "Diagnosis",
     },
 
     download: function(){
-        var form = document.getElementById('gn-diagnosis-downloadform')
+        var form = document.getElementById('gn-diagnosis-downloadform');
         form.submit()
     },
     
     onFilter: function(e) {
 
-        var text = document.getElementById('pastegenes').value
-        var newTableInfo = compareGenes(text, this.state.data)
+        var text = document.getElementById('pastegenes').value;
+        var newTableInfo = compareGenes(text, this.state.data);
 
         this.setState({
             newTable: newTableInfo
-        })
+        });
 
         document.getElementById('pastegenes').value = ''
     },
 
     render: function() {
 
-    	if (!this.state.data) {
+        if (!this.state.data) {
             return (
                 React.createElement("div", {style: {paddingTop: '250px', paddingLeft: '45%', backgroundColor: '#fff'}, className: "flex10 hflex"}, 
                     React.createElement("span", {style: {fontWeight: 'bold', fontFamily: 'GG', fontSize: '1.5em'}}, "Loading")
@@ -6555,179 +6578,121 @@ var Diagnosis = React.createClass({displayName: "Diagnosis",
             )
         }
 
-    {/* Idea: 600 px - phenotype height? 
-
-
-    if (tableHeight != null) {
-        var tableHeight = document.getElementById('phenTab').clientHeight
-
-        console.log('height')
-        console.log(tableHeight)
-    }}
-    
-    console.log(document.getElementById('phenTab')) */}
-
-    var thisThese = this.state.data.terms.length == 1 ? 'this ' : 'these '
-    var phenotypePhenotypes = this.state.data.terms.length == 1 ? ' phenotype:' : ' phenotypes:'
-    var genesNotFound = this.state.useCustomGeneSet && this.props.location.state.genes.length != 0 ? this.state.data.genesNotFound.join(', ') : undefined
-
-
-
-            // <div className='hflex'>
-            //     <div className='flex11' style={{maxWidth: '730px'}}>
-            //         <ShowPhenotypes3 prio={this.state.data} hoverItem={this.state.hoverItem} />
-            //     </div>
-            //     <div className='vflex' style={{paddingLeft: '20px', width: '100%'}}>
-            //         <div id='heatmap-title' style={{paddingTop: '7px', paddingBottom: '7px', fontWeight: 'bold'}}>PHENOTYPE CORRELATION</div>
-            //         <div id='heatmap' className='flex11' style={{width: '100%', minWidth: '300px'}}></div>
-            //     </div>
-            // </div>
-
-
-
-
-                // <div style={{padding: '20px 0px 10px 0px', marginTop: '20px', marginBottom: '40px'}}>
-                    // {this.state.data ? 'The ' + this.state.data.results.length + ' highest prioritized genes for the combination of ' + thisThese 
-                 // + this.state.data.terms.length + phenotypePhenotypes : 'loading'}
-                // </div>
-
+        var thisThese = this.state.data.terms.length == 1 ? 'this ' : 'these ';
+        var phenotypePhenotypes = this.state.data.terms.length == 1 ? ' phenotype:' : ' phenotypes:';
+        var genesNotFound = this.state.useCustomGeneSet && this.props.location.state.genes.length != 0  ? this.state.data.genesNotFound.join(', ') : undefined;
 
         return (
-          React.createElement(DocumentTitle, {title: 'Diagnosis' + GN.pageTitleSuffix}, 
-          React.createElement("div", {style: {backgroundColor: '#ffffff'}}, 
-             React.createElement("div", {className: "prio-tables"}, 
+            React.createElement(DocumentTitle, {title: 'Diagnosis' + GN.pageTitleSuffix}, 
+                React.createElement("div", {style: {backgroundColor: '#ffffff'}}, 
+                    React.createElement("div", {className: "prio-tables"}, 
 
-            React.createElement("div", {className: "hflex"}, 
-                React.createElement("div", {className: "flex11", style: {maxWidth: '730px'}}, 
-                    
-                    React.createElement(ShowPhenotypes3, {prio: this.state.data, orderedTerms: this.state.orderedTerms, hoverItem: this.state.hoverItem, hoverRow: this.state.hoverRow, hoverCol: this.state.hoverCol})
-                
-                ), 
+                        React.createElement("div", {className: "hflex"}, 
+                            React.createElement("div", {className: "flex11", style: {maxWidth: '730px'}}, 
+                                React.createElement(ShowPhenotypes3, {prio: this.state.data, orderedTerms: this.state.orderedTerms, hoverItem: this.state.hoverItem, hoverRow: this.state.hoverRow, hoverCol: this.state.hoverCol})
+                            ), 
+                             this.state.data.hpoCorrelation.termsFound.length > 1 ?
+                                React.createElement("div", {className: "vflex", style: {paddingLeft: '20px', width: '100%', maxWidth: '400px'}}, 
+                                    React.createElement("div", {id: "heatmap-title", style: {paddingTop: '7px', paddingBottom: '7px', fontWeight: 'bold'}}, "PHENOTYPE CORRELATION"), 
+                                    React.createElement("div", {id: "heatmap", className: "flex11", style: {width: '100%', minWidth: '300px'}})
+                                )
+                                :
+                                null
+                            
+                        ), 
 
-                this.state.data.hpoCorrelation.termsFound.length > 1 ?
-                    React.createElement("div", {className: "vflex", style: {paddingLeft: '20px', width: '100%', maxWidth: '400px'}}, 
-                        React.createElement("div", {id: "heatmap-title", style: {paddingTop: '7px', paddingBottom: '7px', fontWeight: 'bold'}}, "PHENOTYPE CORRELATION"), 
-                        React.createElement("div", {id: "heatmap", className: "flex11", style: {width: '100%', minWidth: '300px'}})
+                         this.state.correlatedTerms && this.state.correlatedTerms.length > 0 ?
+                            React.createElement("div", {id: "warning-correlated-terms", style: {paddingLeft: '10px'}}, 
+                                React.createElement("span", {style: {verticalAlign: 'middle', display: 'inline-block'}}, 
+                                    React.createElement(SVGCollection.Warning, null)
+                                ), 
+                                React.createElement("span", {style: {fontWeight: 'bold', fontFamily: 'GG', fontSize: '1.2em', marginLeft:'4px' ,verticalAlign: 'middle', display: 'inline-block'}}, 
+                                    "Warning"
+                                ), 
+                                React.createElement("br", null), 
+                                React.createElement("br", null), 
+                                "The terms", 
+                                _.map(this.state.correlatedTerms, function (term, i) {
+                                    return React.createElement("span", {key: term.term.id}, React.createElement("strong", null, " ", term.term.name), " (", term.term.id, "), ")
+                                }), 
+                                "are highly similar.", React.createElement("br", null), 
+                                React.createElement("i", null, "Using two similar terms might bias the prioritization toward these terms. It is recommended to select one of these terms.")
+
+                            )
+                            :
+                            null, 
+                        
+
+                        React.createElement("div", null, 
+
+                             this.state.useCustomGeneSet && this.state.data.genesNotFound.length > 0 ?
+                                React.createElement("div", {style: {padding: '20px 0px 10px 0px', marginTop: '20px'}}, 
+                                    React.createElement("h3", null, "Genes not found"), 
+                                    genesNotFound
+                                ) :
+                                null, 
+                            
+
+                             this.state.useCustomGeneSet ?
+
+                                React.createElement("div", {style: {padding: '10px 0px 10px 0px'}}, 
+                                    React.createElement("h3", null, "Gene prioritization")
+
+                                )
+                                :
+                                React.createElement("div", {style: {padding: '20px 0px 10px 0px', marginTop: '20px'}}, 
+                                    React.createElement("h3", null, "Gene prioritization")
+                                )
+                            
+                        ), 
+
+                        React.createElement("div", {style: {overflow: "auto", display: 'inline'}}, 
+
+                            React.createElement(GeneTable, {prio: this.state.data, orderedTerms: this.state.orderedTerms, prioFiltered: this.state.newTable, onMouseOver: this.handleMouseOver, hoverRow: this.state.hoverRow})
+
+                        ), 
+
+                        React.createElement("div", {style: {padding: '10px 0px', marginTop: '10px'}}, 
+                            React.createElement("div", {className: "button clickable noselect", style: {marginRight: '10px'}, onClick: this.download}, "DOWNLOAD COMPLETE RESULTS"), 
+                            React.createElement(NetworkButton, {prio: this.state.data, prioFiltered: this.state.newTable}), 
+
+                            React.createElement("div", null, 
+                                React.createElement("form", {id: "gn-diagnosis-downloadform", method: "post", encType: "multipart/form-data", action: GN.urls.tabdelim}, 
+                                    React.createElement("input", {type: "hidden", id: "what", name: "what", value: "diagnosis"}), 
+                                    React.createElement("input", {type: "hidden", id: "terms", name: "terms", value: this.props.params.id})
+                                )
+                            )
+
+                        )
+
                     )
-                    :
-                    null
-                
-                
-
-            ), 
-
-            this.state.useCustomGeneSet ? 
-                React.createElement("div", null, 
-                    React.createElement("div", {style: {padding: '20px 0px 10px 0px', marginTop: '20px'}}, 
-                    React.createElement("h3", null, "Genes not found"), 
-                    genesNotFound
-                    ), 
-                    React.createElement("div", {style: {padding: '10px 0px 10px 0px'}}, 
-                    React.createElement("h3", null, "Gene prioritization")
-                         
-                    )
-                )
-                :
-                React.createElement("div", {style: {padding: '20px 0px 10px 0px', marginTop: '20px'}}, 
-                    React.createElement("h3", null, "Gene prioritization")
-                ), 
-
-            
-            
-          React.createElement("div", {style: {overflow: "auto", display: 'inline'}}, 
-          
-              React.createElement(GeneTable, {prio: this.state.data, orderedTerms: this.state.orderedTerms, prioFiltered: this.state.newTable, onMouseOver: this.handleMouseOver, hoverRow: this.state.hoverRow})
-
-          ), 
-
-        React.createElement("div", {style: {padding: '10px 0px', marginTop: '10px'}}, 
-          React.createElement("div", {className: "button clickable noselect", style: {marginRight: '10px'}, onClick: this.download}, "DOWNLOAD COMPLETE RESULTS"), 
-            React.createElement(NetworkButton, {prio: this.state.data, prioFiltered: this.state.newTable}), 
-
-          React.createElement("div", null, 
-               React.createElement("form", {id: "gn-diagnosis-downloadform", method: "post", encType: "multipart/form-data", action: GN.urls.tabdelim}, 
-                React.createElement("input", {type: "hidden", id: "what", name: "what", value: "diagnosis"}), 
-                React.createElement("input", {type: "hidden", id: "terms", name: "terms", value: this.props.params.id})
                 )
             )
-
-          )
-
-        )
-          )
-          )
         )
     }
-})
+});
 
-        // <div className="prio-pastebox diagflex-container">
-
-        //   <div className="pastebox-flex"><PasteBox onSubmit={this.handleSubmit} prio={this.state.data} prioFiltered={this.state.newTable} onFilter={this.onFilter} /></div>
-        // </div>
-
-module.exports = Diagnosis
-
-/*
-
-To do:
-
-- DONE textarea should clear after submitting
-- DONE checking for SnpEff scores NOW BETTER
-- DONE sortable table
-- DONE getting the 'prioFiltered' to the table
-- DONE fixing alignment of header & rows in GeneTable
-- DONE figure out how to not display the biotype & rank headers
-- DONE customize sorting for different columns
-- DONE Unfilter button when filtered --> go back to original list
-
-- FIXED problem: pastebox --> when the input is not a gene in the list/there's no input.
-- FIXED problem: if you first post a row of genes with var. impacts and then add a new list of genes of which the 1st hasn't got a var imp --> var imp header disappears.
-    also: the yellow line disappears at the last column.
-- FIXED Ugly fix for the cursor --> hand over the headers (style={{cursor: 'pointer'}}) --> now as a pointer for the whole table. 
-    Probably need to change smth. in the css of class 'reactable-header-sortable' (in reactable code?) to do it properly
-- FIXED Blue focus border on header when clicked --> 
-- FIXED unfilter button error
-
-
-- have a look at what happens when you sort according to 'direction' --> 2nd row. Weird.
-- sometimes after sorting if you move the cursor over the table, the rows change..??
-- The 'rowtype' doesn't change when the column is sorted! 
-- change colours: grey near score 0
-- size of gene table should depend on how much room is left(?)
-
-*/
-
-
-/*ideas:
-
-- Relationship with the diseases
-- Help user choose phenotypes
-- Seperate samples based on tissue
-
-*/
+module.exports = Diagnosis;
 
 },{"../../js/D3Heatmap":1,"../../js/color":4,"../../js/htmlutil":5,"./SVGCollection":45,"async":54,"genstats":97,"lodash":130,"react":333,"react-document-title":142,"react-router":164,"reactable":334}],34:[function(require,module,exports){
-'use strict'
+'use strict';
 
-var _ = require('lodash')
-var React = require('react')
-var DocumentTitle = require('react-document-title')
-var color = require('../../js/color.js')
+var _ = require('lodash');
+var React = require('react');
+var DocumentTitle = require('react-document-title');
+var color = require('../../js/color.js');
 var Select = require('react-select');
 var Async = Select.Async;
-var reactable = require('reactable')
-var ReactRouter = require('react-router')
-var Router = ReactRouter.Router
-var Link = ReactRouter.Link
-var Tr = reactable.Tr
-var Td = reactable.Td
-var Th = reactable.Th
-var Thead = reactable.Thead
-var Table = reactable.Table
+var reactable = require('reactable');
+var Tr = reactable.Tr;
+var Td = reactable.Td;
+var Th = reactable.Th;
+var Thead = reactable.Thead;
+var Table = reactable.Table;
 
-var SVGCollection = require('./SVGCollection')
-var UploadPanel = require('./UploadPanel')
-var Back = require('./Back')
+var SVGCollection = require('./SVGCollection');
+var UploadPanel = require('./UploadPanel');
+var Back = require('./Back');
 
 var TermTable = React.createClass({displayName: "TermTable",
 
@@ -6739,11 +6704,11 @@ var TermTable = React.createClass({displayName: "TermTable",
         //     row.scrollIntoView()
         // }
     },
-    
+
     render: function() {
 
-        var terms = this.props.terms
-        var rows = []
+        var terms = this.props.terms;
+        var rows = [];
 
         if (terms.length < 1){
             rows.push(
@@ -6754,16 +6719,16 @@ var TermTable = React.createClass({displayName: "TermTable",
                     React.createElement(Td, {column: "ID", style: {whiteSpace: 'nowrap', textAlign: 'center'}, data: ""}), 
                     React.createElement(Td, {column: "REMOVE", data: ""})
                 )
-                )
+            )
         } else {
             _.map(terms, function(term){
                 rows.push(
                     React.createElement(Tr, {id: term.value, key: term.value}, 
                         React.createElement(Td, {column: "TERM", style: {width: '100%'}, className: "text", data: term.name}), 
                         React.createElement(Td, {column: "ID", style: {whiteSpace: 'nowrap', minWidth: '110px', textAlign: 'center'}, data: term.value}), 
-                        React.createElement(Td, {column: "REMOVE", style: {minWidth: '80px', textAlign: 'center'}}, React.createElement("span", {className: "clickable", onClick: this.props.removeTerm.bind(null, term.value)}, "X"))
+                        React.createElement(Td, {column: "REMOVE", style: {minWidth: '80px', textAlign: 'center'}}, React.createElement("span", {className: "clickable", style: {color: "red", fontWeight: "bold"}, onClick: this.props.removeTerm.bind(null, term.value)}, "X"))
                     )
-                    )
+                )
             }.bind(this))
         }
 
@@ -6771,22 +6736,23 @@ var TermTable = React.createClass({displayName: "TermTable",
             React.createElement("div", null, 
                 React.createElement(Table, {id: "hpo-table", className: "table rowcolors", style: {margin: '0px 0 30px 0'}}, 
                     React.createElement(Thead, null, 
-                      React.createElement(Th, {column: "TERM", style: {width: '100%'}}, "TERM"), 
-                      React.createElement(Th, {column: "ID", style: {minWidth: '110px', textAlign: 'center'}}, "ID"), 
-                      React.createElement(Th, {column: "REMOVE", style: {minWidth: '80px', textAlign: 'center'}})
+                    React.createElement(Th, {column: "TERM", style: {width: '100%'}}, "TERM"), 
+                    React.createElement(Th, {column: "ID", style: {minWidth: '110px', textAlign: 'center'}}, "ID"), 
+                    React.createElement(Th, {column: "REMOVE", style: {minWidth: '80px', textAlign: 'center'}})
                     ), 
-                  rows
+                    rows
                 )
 
             )
-            )
+        )
     }
-})
+});
 
 var DiagnosisMain = React.createClass({displayName: "DiagnosisMain",
 
     getInitialState: function() {
         return {
+            isOpen: false,
             selectedTerms: Array(),
             termsNotFound: Array(),
             checkbox: false,
@@ -6800,74 +6766,82 @@ var DiagnosisMain = React.createClass({displayName: "DiagnosisMain",
         if (!input || input.length < 2) {
             return callback(null, {})
         }
-        
-        io.socket.get(GN.urls.suggest,
-                      {
-                          q: input
-                      },
-                      function(res, jwres) {
-                          if (jwres.statusCode === 200) {
-                              var options = _.compact(_.map(res, function(result) {
-                                  if (result._type === 'term') {
-                                    if (result._source.database == 'HPO'){
-                                      return {
-                                          value: result._source.id,                                          
-                                          label: result._source.name + ' - ' + result._source.id,
-                                          name: result._source.name
-                                      }
-                                    }
-                                  } else {
-                                      return null
-                                  }
-                              }))
-                              var sorted = _.chain(options)
-                                  .sortBy(function(item){return item.label.split(' - ')[0]}) //sorts on name of gene/term/network
-                                  // .sortBy(function(item){return item.value.split('!')[0]}) //sorts on type of entry (first gene, then term, then network)
-                                  .value()
-                                // console.log(sorted)
-                              return callback(null, {options: sorted, complete: false})
-                          } else {
-                              return callback(null, {})
-                          }
-                      })
+
+        io.socket.get(GN.urls.diagnosisSuggest,
+            {
+                q: input
+            },
+            function(res, jwres) {
+                if (jwres.statusCode === 200) {
+                    var options = _.compact(_.map(res, function(result) {
+                        return {
+                            value: result._source.id,
+                            label: result._source.name + ' - ' + result._source.id,
+                            name: result._source.name,
+                            isSignificantTerm: result._source.isSignificantTerm
+                        }
+                    }));
+                    //var sorted = _.chain(options)
+                    //    .sortBy(function(item){return item.label}) //sorts on name of gene/term/network
+                    //    .value();
+                    return callback(null, {options: options, complete: false})
+                } else {
+                    return callback(null, {})
+                }
+            })
     },
 
-    onSelectChange: function(selectedOption) {
-        var terms = this.state.selectedTerms;
-        terms.push({value: selectedOption.value, name: selectedOption.name});
+    onSelectChange: function(selectedOption, callback) {
+        if (!selectedOption.isSignificantTerm) {
+            io.socket.get(GN.urls.diagnosisParentTerms, { id: selectedOption.value },
+                function(res, jwres) {
+
+                    res.forEach(function(obj) { obj.selected = true; });
+
+                    this.setState({
+                        isOpen: true,
+                        parentTerms: res,
+                        modalTerm: selectedOption
+                    })
+                }.bind(this));
+        } else {
+            var terms = this.state.selectedTerms;
+            terms.push({value: selectedOption.value, name: selectedOption.name});
+            terms = _.uniqBy(terms, 'value');
+            this.setState({
+                selectedTerms: terms
+            })
+        }
+    },
+
+    removeTerm: function(value) {
+        var terms = _.filter(this.state.selectedTerms, function(term){
+            return term.value != value
+        });
         this.setState({
             selectedTerms: terms
         })
     },
 
-    removeTerm: function(value) {
-      var terms = _.filter(this.state.selectedTerms, function(term){
-        return term.value != value
-      })
-      this.setState({
-        selectedTerms: terms
-      })
-    },
-
     onCheckboxClick: function(){
-      var checkbox = this.state.checkbox ? false : true
-      this.setState({
-        checkbox: checkbox
-      })
+        var checkbox = this.state.checkbox ? false : true;
+        this.setState({
+            checkbox: checkbox
+        })
     },
 
     onTextAreaChange: function(){
-      var textlen = document.getElementById('textarea-genelist').value.length
-      var checkbox = textlen > 0 ? true : false
-       this.setState({
-          checkbox: checkbox
-       })
+        var textlen = document.getElementById('textarea-genelist').value.length;
+        var checkbox = textlen > 0 ? true : false;
+        this.setState({
+            checkbox: checkbox
+        })
     },
 
     onGeneFileUploadClick: function() {
         document.getElementById('file-genelist').onchange = function(){
-            var genefilename = document.getElementById('file-genelist').files[0].name
-            genefilename = genefilename.length > 30 ? (genefilename.slice(0, 15) + '...') : genefilename
+            var genefilename = document.getElementById('file-genelist').files[0].name;
+            genefilename = genefilename.length > 30 ? (genefilename.slice(0, 15) + '...') : genefilename;
             this.setState({
                 genefilename: genefilename,
                 checkbox: true
@@ -6876,215 +6850,299 @@ var DiagnosisMain = React.createClass({displayName: "DiagnosisMain",
     },
 
     onTermFileUploadClick: function(){
-      document.getElementById('file-termlist').onchange = function(){
-        var termfile = document.getElementById('file-termlist').files[0]
-        var fd = new FormData()
-        fd.append('genelist', termfile)
-        $.ajax({
-            url: GN.urls.fileupload,
-            data: fd,
-            processData: false,
-            contentType: false,
-            type: 'POST',
-            success: function(data){
-              var terms = data.split(',')
-              for (var i = 0; i < terms.length; i++){
-                var term = terms[i]
-                
-                io.socket.get(GN.urls.suggest, {
-                  q: term
-                },
-                function(res, jwres){
-                          if (jwres.statusCode === 200) {
-                              var options = _.compact(_.map(res, function(result) {
-                                  if (result._type === 'term') {
-                                    if (result._source.database == 'HPO'){
-                                      return {
-                                          value: result._source.id,                                          
-                                          label: result._source.name + ' - ' + result._source.id,
-                                          name: result._source.name
-                                      }
-                                    }
-                                  } else {
-                                      return null
-                                  }
-                              }))
-                              if (options.length == 1){
-                                this.onSelectChange(options[0])
-                              } else {
-                                  //multiple terms found
-                                  //handle term not found
-                              }
-                          } else {
-                            //handle term not found
-                          }
-                }.bind(this)   
-              )}
-            }.bind(this)
-        })
-      }.bind(this)
+        document.getElementById('file-termlist').onchange = function(){
+            var termfile = document.getElementById('file-termlist').files[0];
+            var fd = new FormData();
+            fd.append('genelist', termfile);
+            $.ajax({
+                url: GN.urls.fileupload,
+                data: fd,
+                processData: false,
+                contentType: false,
+                type: 'POST',
+                success: function(data) {
+                    var terms = data.split(',');
+                    this.digestHpoTermsFromUpload(terms);
+                }.bind(this)
+            })
+        }.bind(this)
     },
 
     onSubmit: function(){
-      var genes = document.getElementById('textarea-genelist').value
-      var terms = _.map(this.state.selectedTerms, function(term){ return term.value }).join(',')
-      var useCustomGeneSet = this.state.checkbox ? true : false
-      var genefile = document.getElementById('file-genelist').files[0]
+        var genes = document.getElementById('textarea-genelist').value;
+        var terms = _.map(this.state.selectedTerms, function(term){ return term.value }).join(',');
+        var useCustomGeneSet = this.state.checkbox ? true : false;
+        var genefile = document.getElementById('file-genelist').files[0];
 
-      if (!genefile){
-        this.props.history.pushState({
-          genes: genes,
-          useCustomGeneSet: useCustomGeneSet
-        }, GN.urls.diagnosisPage + '/' + terms)
-      } else {
-          var fd = new FormData()
-          fd.append('genelist', genefile)
+        if (!genefile){
+            this.props.history.pushState({
+                genes: genes,
+                useCustomGeneSet: useCustomGeneSet
+            }, GN.urls.diagnosisPage + '/' + terms)
+        } else {
+            var fd = new FormData();
+            fd.append('genelist', genefile);
 
-          $.ajax({
-              url: GN.urls.fileupload,
-              data: fd,
-              processData: false,
-              contentType: false,
-              type: 'POST',
-              success: function(data){
-                  this.props.history.pushState({
-                    genes: data,
-                    useCustomGeneSet: useCustomGeneSet
-                  }, GN.urls.diagnosisPage + '/' + terms)
-              }.bind(this)
-          })
-      }
+            $.ajax({
+                url: GN.urls.fileupload,
+                data: fd,
+                processData: false,
+                contentType: false,
+                type: 'POST',
+                success: function(data){
+                    this.props.history.pushState({
+                        genes: data,
+                        useCustomGeneSet: useCustomGeneSet
+                    }, GN.urls.diagnosisPage + '/' + terms)
+                }.bind(this)
+            })
+        }
+    },
 
+    onSubmitModal: function() {
+        var selectedParentTerms = this.state.parentTerms
+            .filter(function(o) {return o.selected;})
+            .map(function(o) {return { value: o.id, name: o.name }});
 
+        var terms = this.state.selectedTerms;
+
+        terms = terms.concat(selectedParentTerms);
+        terms = _.uniqBy(terms, 'value');
+
+        this.setState({
+            isOpen: !this.state.isOpen,
+            selectedTerms: terms
+        })
+    },
+
+    handleTermClick: function(event) {
+        var parentTerms = this.state.parentTerms;
+        var term = parentTerms.filter(function( obj ) {
+            return obj.id === event.target.value;
+        })[0];
+        term.selected = !term.selected;
+
+        this.setState({ parentTerms: parentTerms });
+    },
+
+    onCancelModal: function() {
+        this.setState({
+            isOpen: false,
+            parentTerms: null
+        })
+    },
+
+    renderModal: function () {
+        if (this.state.isOpen) {
+            const backdropStyle = {
+                position: 'absolute',
+                zIndex: '1',
+                top: 0,
+                bottom: 0,
+                left: 0,
+                right: 0,
+                backgroundColor: 'rgba(0,0,0,0.3)',
+                padding: 50
+            };
+
+            var modalStyle = {
+                backgroundColor: '#fff',
+                maxWidth: 500,
+                minHeight: 200,
+                margin: '0 auto',
+                padding: 30
+            };
+
+            var terms = this.state.parentTerms.map(function(term) {
+                return (
+                    React.createElement("tr", null, 
+                        React.createElement("td", null, 
+                            React.createElement("input", {onClick: this.handleTermClick, type: "checkbox", name: term.name, key: term.id, 
+                                   value: term.id, ref: term.id, checked:  term.selected})
+                        ), 
+                        React.createElement("td", {className: "text"}, term.id), 
+                        React.createElement("td", {className: "text"}, term.name)
+                        /*<td className='text'>{term.depth}</td>*/
+                    )
+                );
+            }.bind(this));
+
+            return React.createElement("div", {style: backdropStyle}, 
+                React.createElement("div", {style: modalStyle}, 
+                    React.createElement("h2", {style: {display: 'inline'}}, "Unable to use this phenotype"), 
+                    React.createElement("h3", {style: {color: '#999999'}}, this.state.modalTerm.name), 
+
+                    React.createElement("div", {style: {margin: '15px 10px 10px 10px', padding: '8px', backgroundColor: color.colors.gnyellow, fontSize: '11pt',  fontWeight: 'bold'}}, 
+                        "This term (", this.state.modalTerm.value, ", ", this.state.modalTerm.name, ") cannot be used for gene prioritization.", 
+                        
+                            terms.length > 1 ?
+                            React.createElement("span", null, " We suggest using the combination of the more generic HPO terms listed below.")
+                            : React.createElement("span", null, " We suggest using the more generic HPO term listed below.")
+                        
+                    ), 
+
+                    React.createElement("form", null, 
+                        React.createElement("table", {className: "rowcolors table"}, 
+                            React.createElement("thead", null, 
+                            React.createElement("tr", null, 
+                                React.createElement("th", {style: {width: '5%'}}), 
+                                React.createElement("th", {className: "tabletextheader", style: {width: '10%'}}, "TERM"), 
+                                React.createElement("th", {className: "tabletextheader", style: {width: '60%'}}, "NAME")
+                                /*<th className='tabletextheader' style={{width: '10%'}}>DEPTH</th>*/
+                            )
+                            ), 
+                            React.createElement("tbody", null, 
+                                terms
+                            )
+                        )
+
+                    ), 
+
+                    
+                        terms.length > 1 ?
+                            React.createElement("span", {onClick: this.onSubmitModal, className: "button noselect clickable", style: {marginTop: '20px'}}, "ADD TERMS")
+                            : React.createElement("span", {onClick: this.onSubmitModal, className: "button noselect clickable", style: {marginTop: '20px'}}, "ADD TERM"), 
+                    
+                    React.createElement("span", {onClick: this.onCancelModal, className: "button noselect clickable", style: {marginTop: '20px', marginLeft: '5px'}}, "CANCEL")
+
+                )
+            )
+        }
     },
 
     render: function() {
-        var textcolor = this.state.checkbox ? '#000' : color.colors.gngray
-        var style = this.state.checkbox ? {transition: 'all .5s ease-in-out', height: '100px', overflow: 'hidden'} : {transition: 'all .5s ease-in-out', overflow: 'hidden', height: '0px'}
-        var textsize = {fontSize: '10pt'}
-        
-        console.log(this.state.termsNotFound)
+        var textcolor = this.state.checkbox ? '#000' : color.colors.gngray;
+        var style = this.state.checkbox ? {transition: 'all .5s ease-in-out', height: '100px', overflow: 'hidden'} : {transition: 'all .5s ease-in-out', overflow: 'hidden', height: '0px'};
+        var textsize = {fontSize: '10pt'};
+
+
         // <div id='step1' className='hflex'>
-                            
+
         //                     <div style={{width: '40px'}}><h2>1.</h2></div>
-                          
+
         //                     <div id='step1content' style={{width: '100%',  paddingTop: '4px'}}>
-                            
+
 
         return (
-                React.createElement(DocumentTitle, {title: 'Diagnosis' + GN.pageTitleSuffix}, 
-                React.createElement("div", {className: "flex10", style: {backgroundColor: color.colors.gnwhite, marginTop: '10px', padding: '40px'}}, 
-                React.createElement("div", {style: {width: '100%'}}, 
-                    React.createElement("h2", {style: {display: 'inline'}}, "HPO GENE PRIORITIZATION"), " ", React.createElement(Back, {url: GN.urls.main})
+            React.createElement(DocumentTitle, {title: 'Diagnosis' + GN.pageTitleSuffix}, 
 
-                ), 
-                    React.createElement("div", {className: "hflex", style: {marginTop: '40px'}}, 
-                        React.createElement("div", {className: "", style: {width: '55%', minWidth: '600px', paddingRight: '60px'}}, 
-                          React.createElement("ol", {className: "simple-list"}, 
-                          React.createElement("li", null, React.createElement("h3", null, "Select HPO terms"), 
+                React.createElement("div", null, 
+                    this.renderModal(), 
+                    React.createElement("div", {className: "flex10", style: { backgroundColor: color.colors.gnwhite, marginTop: '10px', padding: '40px'}}, 
 
-                                React.createElement("div", {className: "hflex", style: {paddingTop: '20px'}}, 
-                                  React.createElement("div", {className: "flex10", style: {float: 'left', paddingBottom: '20px', width: 'calc(100% - 200px)'}}, 
+                        React.createElement("div", {style: {width: '100%'}}, 
+                            React.createElement("h2", {style: {display: 'inline'}}, "GADO: GeneNetwork Assisted Diagnostic Optimization"), " ", React.createElement(Back, {url: GN.urls.main}), 
+                            React.createElement("h4", null, "Using the HPO gene prioritization it is possible to rank genes based on a patient’s phenotypes.")
+                        ), 
 
-                                  React.createElement(Async, {
-                                   // ref='select'
-                                   name: "diagnosis-search", 
-                                   // options={options}
-                                   // multi={true}
-                                   // value={'Search here'}
-                                   // matchPos='any'
-                                   // matchProp='label'
-                                   // placeholder=''
-                                   autoload: false, 
-                                   cacheAsyncResults: false, 
-                                   loadOptions: this.getSuggestions, 
-                                   onChange: this.onSelectChange}
-                                   )
+                        React.createElement("div", {className: "hflex", style: {marginTop: '40px'}}, 
+                            React.createElement("div", {className: "", style: {width: '55%', minWidth: '600px', paddingRight: '60px'}}, 
+                                React.createElement("ol", {className: "simple-list"}, 
+                                    React.createElement("li", null, React.createElement("h3", null, "Select HPO terms"), 
 
-                                  ), 
-                                  React.createElement("div", {className: "flex10"}, 
-                                    React.createElement("label", {htmlFor: "file-termlist", onClick: this.onTermFileUploadClick, style: {float: 'right'}}, 
-                                      React.createElement(UploadPanel, {text: this.state.termfilename})
-                                    )
-                                  )
-                                  ), 
+                                        React.createElement("div", {className: "hflex", style: {paddingTop: '20px'}}, 
+                                            React.createElement("div", {className: "flex10", style: {float: 'left', paddingBottom: '20px', width: 'calc(100% - 200px)'}}, 
 
-                                  React.createElement(TermTable, {terms: this.state.selectedTerms, removeTerm: this.removeTerm})
+                                                React.createElement(Async, {
+                                                    name: "diagnosis-search", 
+                                                    autoload: false, 
+                                                    cacheAsyncResults: false, 
+                                                    loadOptions: this.getSuggestions, 
+                                                    onChange: this.onSelectChange}
+                                                )
 
-                          ), 
+                                            )
+                                            /*<div className='flex10'>*/
+                                                /*<label htmlFor='file-termlist' onClick={this.onTermFileUploadClick} style={{float: 'right'}}>*/
+                                                    /*<UploadPanel text={this.state.termfilename} />*/
+                                                /*</label>*/
+                                            /*</div>*/
+                                        ), 
 
-                                
-                            React.createElement("li", null, 
-  
+                                        React.createElement(TermTable, {terms: this.state.selectedTerms, removeTerm: this.removeTerm})
 
-                                React.createElement("label", {htmlFor: "checkbox", onClick: this.onCheckboxClick, style: {position: 'absolute'}}, 
-                                    React.createElement(SVGCollection.CheckBox, {selected: this.state.checkbox})
-                                  ), 
-                                  
-                                    
-                                      React.createElement("div", null, React.createElement("h3", {style: {paddingLeft: '30px', color: textcolor, cursor: 'pointer'}, onClick: this.onCheckboxClick}, "OPTIONAL: filter output on candidate genes")), 
+                                    ), 
 
-                                    React.createElement("input", {type: "checkbox", id: "checkbox", style: {display: 'none'}}), 
+                                    React.createElement("li", null, 
+                                        React.createElement("label", {htmlFor: "checkbox", onClick: this.onCheckboxClick, style: {position: 'absolute'}}, 
+                                            React.createElement(SVGCollection.CheckBox, {selected: this.state.checkbox})
+                                        ), 
 
-                                    React.createElement("div", {style: style, className: "hflex"}, 
-                                      React.createElement("div", {className: "flex10", style: {paddingTop: '20px', width: 'calc(100% - 200px)'}}, 
-                                        React.createElement("textarea", {id: "textarea-genelist", placeholder: "Paste a list of genes here...", onChange: this.onTextAreaChange, cols: "40", rows: "5", className: "textarea-genes", style: {width: '100%', height: '65px', border: '1px solid ' + color.colors.gngray, color: textcolor, outline: 'none'}})
-                                      ), 
-                                      React.createElement("div", {className: "flex10", style: {paddingTop: '20px'}}, 
-                                        React.createElement("label", {htmlFor: "file-genelist", onClick: this.onGeneFileUploadClick, style: {float: 'right'}}, 
-                                          React.createElement(UploadPanel, {text: this.state.genefilename})
+
+                                        React.createElement("div", null, React.createElement("h3", {style: {paddingLeft: '30px', color: textcolor, cursor: 'pointer'}, onClick: this.onCheckboxClick}, "OPTIONAL: filter output on candidate genes")), 
+
+                                        React.createElement("input", {type: "checkbox", id: "checkbox", style: {display: 'none'}}), 
+
+                                        React.createElement("div", {style: style, className: "hflex"}, 
+                                            React.createElement("div", {className: "flex10", style: {paddingTop: '20px', width: 'calc(100% - 200px)'}}, 
+                                                React.createElement("textarea", {id: "textarea-genelist", placeholder: "Paste a list of genes here...", onChange: this.onTextAreaChange, cols: "40", rows: "5", className: "textarea-genes", style: {width: '100%', height: '65px', border: '1px solid ' + color.colors.gngray, color: textcolor, outline: 'none'}})
+                                            )
+                                            /*<div className='flex10' style={{paddingTop: '20px'}}>*/
+                                                /*<label htmlFor='file-genelist' onClick={this.onGeneFileUploadClick} style={{float: 'right'}}>*/
+                                                    /*<UploadPanel text={this.state.genefilename} />*/
+                                                /*</label>*/
+                                            /*</div>*/
                                         )
-                                      )
+                                    ), 
 
-                                  )
-                              ), 
+                                    React.createElement("form", {encType: "multipart/form-data"}, 
+                                        React.createElement("input", {id: "file-genelist", type: "file", style: {display: 'none'}})
+                                    ), 
 
-                                React.createElement("form", {encType: "multipart/form-data"}, 
-                                  React.createElement("input", {id: "file-genelist", type: "file", style: {display: 'none'}})
-                                ), 
-
-                                React.createElement("form", {encType: "multipart/form-data"}, 
-                                  React.createElement("input", {id: "file-termlist", type: "file", style: {display: 'none'}})
-                                ), 
+                                    React.createElement("form", {encType: "multipart/form-data"}, 
+                                        React.createElement("input", {id: "file-termlist", type: "file", style: {display: 'none'}})
+                                    ), 
 
 
 
-                                React.createElement("span", {onClick: this.onSubmit, className: "button noselect clickable", style: {marginTop: '20px'}}, "Prioritize genes for given HPO terms")
-                            
+                                    React.createElement("span", {onClick: this.onSubmit, className: "button noselect clickable", style: {marginTop: '20px'}}, "Prioritize genes for given HPO terms")
+
                                 )
-                              ), 
+                            ), 
 
-                              React.createElement("div", {id: "text-right", style: {width: '45%', padding: '20px', backgroundColor: color.colors.gnyellow, lineHeight: '1'}}, 
+                            React.createElement("div", {id: "text-right", style: {width: '45%', padding: '20px', backgroundColor: color.colors.gnyellow, lineHeight: '1'}}, 
 
-                              React.createElement("span", {style: textsize}, "Using the HPO gene prioritization it is possible to rank genes based on a patient’s phenotypes."), React.createElement("br", null), React.createElement("br", null), 
-                           
-                              React.createElement("ol", {className: "simple-list"}, 
-                                React.createElement("li", null, React.createElement("span", {style: textsize}, "Fill in the phenotypes of a patient as HPO terms (", React.createElement("a", {href: "http://compbio.charite.de/hpoweb/showterm?id=HP:0000118", className: "externallink", target: "_blank"}, "compbio.charite.de/hpoweb/showterm?id=HP:0000118"), "). Try to be as specific as possible, if a term could not be found then a more general term should be used. If the exact phenotype of a patient is unclear it is better to use a more general term, as a wrongly assigned specific term might hinder accurate ranking. For example, there are many subclasses of seizures (", React.createElement("a", {href: "http://compbio.charite.de/hpoweb/showterm?id=HP:0001250", className: "externallink", target: "_blank"}, "compbio.charite.de/hpoweb/showterm?id=HP:0001250"), "), if it clear that a patient shows a specific subclass then the HPO term for this subclass should be used, if this is not clear then it is best to use the general seizures term. It is also best to only use distinct HPO terms to describe a patient’s phenotypes. If two close related terms are used to describe the same phenotype, then these will result in some bias towards this phenotype in the prioritization. Please use the HPO number or the primary name, synonyms are not supported at the moment.")), 
-                                React.createElement("li", null, React.createElement("span", {style: textsize}, "Optional list of genes to be ranked using the HPO terms. This could for instance be the genes in which a patient has candidate disease causing mutations that require classification or follow-up analysis. The genes that prioritize on top are the most likely candidates based on our HPO term predictions. If no gene list is provided we will simply rank all genes based on the provided HPO terms."))
-                              ), 
-                    
-                            React.createElement("h3", {style: {paddingTop: '15px'}}, "FAQ"), 
-                            React.createElement("ul", null, 
-                              React.createElement("li", null, React.createElement("span", {style: textsize}, React.createElement("i", null, "Why is my term not found? "), React.createElement("br", null), 
-                                "We do not have significant predictions for all HPO terms. Either because very few genes are known for a term of because our current dataset is unable to reliable predict back the known genes for a term. At the moment the best course of action is to manually select a more generic term. We are currently working on an extension to automatically suggest more general terms if one of these terms is entered. At the moment we don’t support searching using the synonym names of HPO terms, this will be resolved in a future version.")), React.createElement("br", null), 
-                              React.createElement("li", null, React.createElement("span", {style: textsize}, React.createElement("i", null, "My favorite candidate gene for patient is found back in the top of the results?"), " ", React.createElement("br", null), 
-                              "Gene expression patterns are not informative for all genes. If an expected gene is not found back this is the most likely explanation."))
+                                React.createElement("ol", {className: "simple-list"}, 
+                                    React.createElement("li", null, 
+                                        React.createElement("span", {style: textsize}, 
+                                            "Fill in the phenotypes of a patient as HPO terms" + ' ' +
+                                            "(", React.createElement("a", {href: "http://compbio.charite.de/hpoweb/showterm?id=HP:0000118", className: "externallink", target: "_blank"}, "compbio.charite.de/hpoweb/showterm?id=HP:0000118"), ")." + ' ' +
+                                            "Try to be as specific as possible, if a term cannot be used then a more generic can be selected." + ' ' +
+                                            "If the exact phenotype of a patient is unclear it is better to use a more general term, as a wrongly assigned" + ' ' +
+                                            "specific term might hinder accurate ranking. For example, there are many subclasses of seizures" + ' ' +
+                                            "(", React.createElement("a", {href: "http://compbio.charite.de/hpoweb/showterm?id=HP:0001250", className: "externallink", target: "_blank"}, "compbio.charite.de/hpoweb/showterm?id=HP:0001250"), ")," + ' ' +
+                                            "if it clear that a patient shows a specific subclass then the HPO term for this subclass should be used, if" + ' ' +
+                                            "this is not clear then it is best to use the general seizures term. It is also best to only use distinct HPO" + ' ' +
+                                            "terms to describe a patient’s phenotypes. If two close related terms are used to describe the same phenotype," + ' ' +
+                                            "then these will result in some bias towards this phenotype in the prioritization. Please use the HPO number" + ' ' +
+                                            "or the primary name, synonyms are not supported at the moment."
+                                        )
+                                    ), 
+                                    React.createElement("li", null, 
+                                        React.createElement("span", {style: textsize}, 
+                                            "Optional list of genes to be ranked using the HPO terms. This could for instance be the genes in which a patient" + ' ' +
+                                            "has candidate disease causing mutations that require classification or follow-up analysis. The genes that prioritize" + ' ' +
+                                            "on top are the most likely candidates based on our HPO term predictions. If no gene list is provided we will simply" + ' ' +
+                                            "rank all genes based on the provided HPO terms."
+                                        )
+                                    )
+                                ), 
+
+                                "See the ", React.createElement("a", {href: "/faq", target: "blank"}, "FAQ page"), " for additional support"
                             )
-
-                            
-                        )
 
                         )
                     )
-
                 )
+
+            )
         )
     }
-})
+});
 
-module.exports = DiagnosisMain
+module.exports = DiagnosisMain;
 
-},{"../../js/color.js":4,"./Back":31,"./SVGCollection":45,"./UploadPanel":48,"lodash":130,"react":333,"react-document-title":142,"react-router":164,"react-select":175,"reactable":334}],35:[function(require,module,exports){
+},{"../../js/color.js":4,"./Back":31,"./SVGCollection":45,"./UploadPanel":48,"lodash":130,"react":333,"react-document-title":142,"react-select":175,"reactable":334}],35:[function(require,module,exports){
 var _ = require('lodash')
 var htmlutil = require('../../js/htmlutil.js')
 var React = require('react')
@@ -7163,7 +7221,7 @@ var Footer = React.createClass({displayName: "Footer",
         return (
             React.createElement("div", {className: "gn-footer hflex flexcenter flexwrap flexspacebetween"}, 
 
-                React.createElement("div", null, "© 2017 ", React.createElement("a", {title: "Department of Genetics", href: "http://www.rug.nl/research/genetics/?lang=en", target: "_blank"}, 
+                React.createElement("div", null, "© 2018 ", React.createElement("a", {title: "Department of Genetics", href: "http://www.rug.nl/research/genetics/?lang=en", target: "_blank"}, 
                     "Department of Genetics"), ", ", React.createElement("a", {title: "University Medical Center Groningen", href: "https://www.umcg.nl/EN", target: "_blank"}, 
                     "University Medical Center Groningen")
                 ), 
@@ -7185,8 +7243,8 @@ var Footer = React.createClass({displayName: "Footer",
                         )
                     ), 
                     React.createElement("div", {style: {padding: '0 5px 0 5px'}}, 
-                        React.createElement("a", {href: "http://www.bbmri-eric.eu/services/standardisation/", target: "_blank"}, 
-                            React.createElement("img", {className: "bbmri", title: "BBMRI", src: GN.urls.main + '/images/bbmri.jpg'})
+                        React.createElement("a", {href: "http://www.bbmri.nl", target: "_blank"}, 
+                            React.createElement("img", {className: "bbmri", title: "BBMRI", src: GN.urls.main + '/images/bbmri_nl.png'})
                         )
                     )
                 )
@@ -8333,10 +8391,10 @@ exp.ListIcon = React.createClass({displayName: "ListIcon",
     
     render: function() {
 
-        let lines = [];
-        let n = this.props.n;
-        let size = n * 5;
-        let viewBox = '0 0 ' + size + ' ' + size;
+        var lines = [];
+        var n = this.props.n;
+        var size = n * 5;
+        var viewBox = '0 0 ' + size + ' ' + size;
 
         for (var i = 0; i < this.props.n; i++) {
             lines.push(React.createElement("line", {key: i, x1: "0", y1: 2 + n * i * 1.5, x2: size, y2: 2 + n * i * 1.5}));
@@ -8463,7 +8521,8 @@ exp.I = React.createClass({displayName: "I",
                         React.createElement("text", {fill: color.colors.gndarkgray, transform: "matrix(1 0 0 1 7.761 14.583)"}, "i")
                     )
                 ), 
-                React.createElement(ReactTooltip, {multiline: true, place: "bottom", effect: "solid", class: "tooltip"})
+                React.createElement(ReactTooltip, {multiline: true})
+                /*<ReactTooltip multiline={true} place="bottom" effect="solid" class='tooltip'/>*/
             )
         )
     }
@@ -8493,6 +8552,38 @@ exp.ArrowLeft = React.createClass({displayName: "ArrowLeft",
                         React.createElement("path", {fill: this.props.color, onMouseOver: this.onMouseOver, onMouseOut: this.onMouseOut, d: "M1.6,7.7C1.1,7,0.3,8.2,0.8,8.8c1.2,1.4,2.4,3,3.7,4.5c0.6,0.7,1.3-0.5,0.8-1.2C4.1,10.7,2.9,9.2,1.6,7.7L1.6,7.7z M12,9c0.7,0,0.7-1.6,0-1.6c-3.6,0-7.1,0-10.8,0c0.1,0.5,0.3,0.9,0.4,1.4c1.2-1.4,2.4-3,3.7-4.5c0.5-0.7-0.3-1.8-0.8-1.2c-1.2,1.4-2.4,3-3.7,4.5C0.5,8.1,0.8,9,1.3,9C4.9,9,8.4,9,12,9L12,9z"})
                     )
                 )
+        )
+    }
+});
+
+exp.Warning = React.createClass({displayName: "Warning",
+    render: function() {
+        return (
+            React.createElement("svg", {width: 24, height: 24, x: "0px", y: "0px", viewBox: "0 0 512 512", style: {enableBackground:'new 0 0 512 512'}}, 
+                React.createElement("g", null, 
+                    React.createElement("g", null, 
+                        React.createElement("path", {d: "M505.403,406.394L295.389,58.102c-8.274-13.721-23.367-22.245-39.39-22.245c-16.023,0-31.116,8.524-39.391,22.246" + ' ' +
+                            "L6.595,406.394c-8.551,14.182-8.804,31.95-0.661,46.37c8.145,14.42,23.491,23.378,40.051,23.378h420.028" + ' ' +
+                            "c16.56,0,31.907-8.958,40.052-23.379C514.208,438.342,513.955,420.574,505.403,406.394z M477.039,436.372" + ' ' +
+                            "c-2.242,3.969-6.467,6.436-11.026,6.436H45.985c-4.559,0-8.784-2.466-11.025-6.435c-2.242-3.97-2.172-8.862,0.181-12.765" + ' ' +
+                            "L245.156,75.316c2.278-3.777,6.433-6.124,10.844-6.124c4.41,0,8.565,2.347,10.843,6.124l210.013,348.292" + ' ' +
+                            "C479.211,427.512,479.281,432.403,477.039,436.372z"})
+                    )
+                ), 
+                React.createElement("g", null, 
+                    React.createElement("g", null, 
+                        React.createElement("path", {d: "M256.154,173.005c-12.68,0-22.576,6.804-22.576,18.866c0,36.802,4.329,89.686,4.329,126.489" + ' ' +
+                            "c0.001,9.587,8.352,13.607,18.248,13.607c7.422,0,17.937-4.02,17.937-13.607c0-36.802,4.329-89.686,4.329-126.489" + ' ' +
+                            "C278.421,179.81,268.216,173.005,256.154,173.005z"})
+                    )
+                ), 
+                React.createElement("g", null, 
+                    React.createElement("g", null, 
+                        React.createElement("path", {d: "M256.465,353.306c-13.607,0-23.814,10.824-23.814,23.814c0,12.68,10.206,23.814,23.814,23.814" + ' ' +
+                            "c12.68,0,23.505-11.134,23.505-23.814C279.97,364.13,269.144,353.306,256.465,353.306z"})
+                    )
+                )
+            )
         )
     }
 });
@@ -8772,7 +8863,6 @@ var Term = React.createClass({displayName: "Term",
     },
     
     download: function() {
-        
         var form = document.getElementById('gn-term-downloadform');
         form.submit()
     },
@@ -8910,19 +9000,19 @@ var color = require('../js/color');
 
 var Tools = React.createClass({displayName: "Tools",
 
-
     render: function() {
         return (
-            React.createElement("div", {style: {backgroundColor: color.colors.gnwhite, marginTop: '10px', padding: '20px'}}, 
+            React.createElement("div", {style: {backgroundColor: color.colors.gnwhite, marginTop: '10px', padding: '20px', flex: '1'}}, 
                 React.createElement("h2", {style: {display: 'inline'}}, "TOOLS"), 
                 React.createElement(Box, {
-                    title: "HPO gene prioritisation", 
+                    title: "GADO: GeneNetwork Assisted Diagnostic Optimization", 
                     text: "Prioritize genes based on one or multiple HPO phenotypes.", 
                     url: GN.urls.diagnosisPage}), 
                 React.createElement(BoxFunctionEnrichment, {
                     title: "Function enrichment", 
                     text: "Predict which pathways are enriched for a set of genes.", 
-                    onClick: this.props.onClick})
+                    onClick: this.props.onClick}
+                )
             )
         )
     }
@@ -8932,7 +9022,7 @@ module.exports = Tools;
 
 },{"../../config/gn":51,"../js/color":4,"./Box":8,"./BoxFunctionEnrichment":9,"react":333}],50:[function(require,module,exports){
 module.exports = {
-    domain: 'http://localhost:1337'
+    domain: 'https://www.genenetwork.nl'
 };
 
 },{}],51:[function(require,module,exports){
@@ -8944,10 +9034,10 @@ module.exports.menuItems = [{
     name: 'HOME',
     route: '/'
 },
-//     {
-//     name: 'HOW IT WORKS',
-//     route: '/how'
-// },
+    {
+    name: 'FAQ',
+    route: '/faq'
+},
 //     {
 //     name: 'ABOUT',
 //     route: '/about'
@@ -8971,6 +9061,7 @@ module.exports.urls = {
 
     suggest: DOMAIN + '/socketapi/suggest',
     diagnosisSuggest: DOMAIN + '/socketapi/diagnosisSuggest',
+    diagnosisParentTerms: DOMAIN + '/socketapi/diagnosisParentTerms',
     pathwayanalysis: DOMAIN + '/socketapi/pathwayanalysis',
     geneprediction: DOMAIN + '/socketapi/geneprediction',
     network: DOMAIN + '/socketapi/network',
@@ -8982,7 +9073,8 @@ module.exports.urls = {
     genePage: DOMAIN + '/gene/',
     termPage: DOMAIN + '/term/',
     networkPage: DOMAIN + '/network/',
-    diagnosisPage: DOMAIN + '/diagnosis',
+    diagnosisPage: DOMAIN + '/gado',
+    faqPage: DOMAIN + '/faq',
 
     svg2pdf: DOMAIN + '/api/v1/svg2pdf',
     // diagnosisResults: domain + '/api/v1/diagnosisResults',
@@ -66507,8 +66599,9 @@ exports.default = function (target) {
     var dataEventOff = ele.getAttribute('data-event-off') || eventOff;
 
     dataEvent.split(' ').forEach(function (event) {
-      ele.removeEventListener(event, customListener);
-      customListener = checkStatus.bind(_this, dataEventOff);
+      ele.removeEventListener(event, customListeners.get(ele, event));
+      var customListener = checkStatus.bind(_this, dataEventOff);
+      customListeners.set(ele, event, customListener);
       ele.addEventListener(event, customListener, false);
     });
     if (dataEventOff) {
@@ -66528,10 +66621,12 @@ exports.default = function (target) {
     var dataEvent = event || ele.getAttribute('data-event');
     var dataEventOff = eventOff || ele.getAttribute('data-event-off');
 
-    ele.removeEventListener(dataEvent, customListener);
+    ele.removeEventListener(dataEvent, customListeners.get(ele, event));
     if (dataEventOff) ele.removeEventListener(dataEventOff, this.hideTooltip);
   };
 };
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 /**
  * Custom events to control showing and hiding of tooltip
@@ -66569,7 +66664,27 @@ var setUntargetItems = function setUntargetItems(currentTarget, targetArray) {
   }
 };
 
-var customListener = void 0;
+var customListeners = {
+  id: '9b69f92e-d3fe-498b-b1b4-c5e63a51b0cf',
+  set: function set(target, event, listener) {
+    if (this.id in target) {
+      var map = target[this.id];
+      map[event] = listener;
+    } else {
+      // this is workaround for WeakMap, which is not supported in older browsers, such as IE
+      Object.defineProperty(target, this.id, {
+        configurable: true,
+        value: _defineProperty({}, event, listener)
+      });
+    }
+  },
+  get: function get(target, event) {
+    var map = target[this.id];
+    if (map !== undefined) {
+      return map[event];
+    }
+  }
+};
 },{}],194:[function(require,module,exports){
 'use strict';
 
@@ -66592,8 +66707,7 @@ Object.defineProperty(exports, "__esModule", {
 
 exports.default = function (target) {
   target.prototype.isCapture = function (currentTarget) {
-    var dataIsCapture = currentTarget.getAttribute('data-iscapture');
-    return dataIsCapture && dataIsCapture === 'true' || this.props.isCapture || false;
+    return currentTarget && currentTarget.getAttribute('data-iscapture') === 'true' || this.props.isCapture || false;
   };
 };
 },{}],196:[function(require,module,exports){
@@ -67066,9 +67180,9 @@ var ReactTooltip = (0, _staticMethods2.default)(_class = (0, _windowListener2.de
       var content = void 0;
       if (getContent) {
         if (Array.isArray(getContent)) {
-          content = getContent[0] && getContent[0]();
+          content = getContent[0] && getContent[0](this.state.originTooltip);
         } else {
-          content = getContent();
+          content = getContent(this.state.originTooltip);
         }
       }
 
@@ -67133,9 +67247,10 @@ var ReactTooltip = (0, _staticMethods2.default)(_class = (0, _windowListener2.de
         delayHide: e.currentTarget.getAttribute('data-delay-hide') || this.props.delayHide || 0,
         border: e.currentTarget.getAttribute('data-border') ? e.currentTarget.getAttribute('data-border') === 'true' : this.props.border || false,
         extraClass: e.currentTarget.getAttribute('data-class') || this.props.class || this.props.className || '',
-        disable: e.currentTarget.getAttribute('data-tip-disable') ? e.currentTarget.getAttribute('data-tip-disable') === 'true' : this.props.disable || false
+        disable: e.currentTarget.getAttribute('data-tip-disable') ? e.currentTarget.getAttribute('data-tip-disable') === 'true' : this.props.disable || false,
+        currentTarget: e.currentTarget
       }, function () {
-        if (scrollHide) _this5.addScrollListener(e);
+        if (scrollHide) _this5.addScrollListener(_this5.state.currentTarget);
         _this5.updateTooltip(e);
 
         if (getContent && Array.isArray(getContent)) {
@@ -67172,7 +67287,7 @@ var ReactTooltip = (0, _staticMethods2.default)(_class = (0, _windowListener2.de
 
       var placeholder = this.getTooltipContent();
       var delayTime = show ? 0 : parseInt(delayShow, 10);
-      var eventTarget = e.currentTarget;
+      var eventTarget = e.currentTarget || e.target;
 
       if (this.isEmptyTip(placeholder) || disable) return; // if the tooltip is empty, disable the tooltip
       var updateState = function updateState() {
@@ -67247,8 +67362,8 @@ var ReactTooltip = (0, _staticMethods2.default)(_class = (0, _windowListener2.de
 
   }, {
     key: 'addScrollListener',
-    value: function addScrollListener(e) {
-      var isCaptureMode = this.isCapture(e.currentTarget);
+    value: function addScrollListener(currentTarget) {
+      var isCaptureMode = this.isCapture(currentTarget);
       window.addEventListener('scroll', this.hideTooltip, isCaptureMode);
     }
   }, {
@@ -87135,4 +87250,4 @@ if (process.env.NODE_ENV !== 'production') {
 module.exports = warning;
 
 }).call(this,require('_process'))
-},{"_process":132}]},{},[17]);
+},{"_process":132}]},{},[18]);

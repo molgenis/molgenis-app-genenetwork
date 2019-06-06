@@ -209,7 +209,6 @@ var Term = React.createClass({
     },
     
     download: function() {
-        
         var form = document.getElementById('gn-term-downloadform');
         form.submit()
     },

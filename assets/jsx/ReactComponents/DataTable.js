@@ -40,7 +40,6 @@ var DataTable = React.createClass({
     
     render: function() {
 
-        // console.log('pdt render, state:', this.state)
         var that = this;
         var pathways = this.state.annotationsOnly ? this.props.data.pathways.annotated : this.props.data.pathways.predicted;
 

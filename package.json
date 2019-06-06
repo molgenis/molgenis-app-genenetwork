@@ -47,7 +47,7 @@
     "react-select": "^1.2.1",
     "react-table": "^6.8.5",
     "react-textarea-autosize": "^5.2.1",
-    "react-tooltip": "^3.5.1",
+    "react-tooltip": "^3.6.1",
     "reactable": "^0.12.0",
     "reactify": "^1.1.1",
     "request": "^2.85.0",
@@ -65,7 +65,7 @@
     "start": "node app.js",
     "build": "node_modules/watchify/node_modules/browserify/bin/cmd.js -t reactify -t es6-templates -o assets/js/ReactBundle.js assets/jsx/GeneNetwork.js",
     "build:watch": "node_modules/watchify/bin/cmd.js -t reactify -t es6-templates -o assets/js/ReactBundle.js assets/jsx/GeneNetwork.js -v",
-    "build:prod": "node_modules/watchify/node_modules/browserify/bin/cmd.js -t reactify -t es6-templates -t uglifyify -o assets/js/ReactBundle.js assets/jsx/GeneNetwork.js && node_modules/uglify-js/bin/uglifyjs --compress --mangle -- assets/js/ReactBundle.js > assets/js/ReactBundle.min.js"
+    "build:prod": "node_modules/watchify/bin/cmd.js -t reactify -t es6-templates -t uglifyify -o assets/js/ReactBundle.js assets/jsx/GeneNetwork.js && node_modules/uglify-js/bin/uglifyjs --compress --mangle -- assets/js/ReactBundle.js > assets/js/ReactBundle.min.js"
   },
   "main": "app.js",
   "repository": {

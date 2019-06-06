@@ -4,7 +4,7 @@ module.exports.api = {
     prioritizationMaxNumEntries: 100, //56439 // max for /prioritization
     maxNumGenesCofunction: 1000, // calculate cofunctionality for how many given genes at max
 
-    numPathwaysLimit: 20, // how many pathways to give by default when no specific db given
+    numPathwaysLimit: 40, // how many pathways to give by default when no specific db given
     predictedNumGenesToSend: 200,
 
     numGenesLimit: 20, //20

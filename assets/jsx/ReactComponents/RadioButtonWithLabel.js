@@ -27,6 +27,6 @@ var RadioButtonWithLabel = React.createClass({
             </label>
         )
     }
-})
+});
 
-module.exports = RadioButtonWithLabel
+module.exports = RadioButtonWithLabel;

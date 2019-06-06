@@ -11,6 +11,7 @@ module.exports = {
     mim2gene: '/data/genenetwork/files/new/mim2gene.txt',
 
     geneDescFile: '/data/genenetwork/files/new/ENSGToGeneNameHGNCBiotypeChromosomeStartStopStrandAndDescriptionV83FilteredNonChromosomesRemovedDuplicateTranscriptsRemoved.txt',
+    genePredScoreFile: '/data/genenetwork/files/new/skewnessSummary.txt',
     geneDBPath: '/data/genenetwork/level/new/dbgenes_uint16be',
     pathwayDBPath: '/data/genenetwork/level/new/dbexternal_uint16be',
     

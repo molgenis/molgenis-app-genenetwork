@@ -23,7 +23,8 @@ var GeneList = React.createClass({
 
     parseGeneList: function(geneList) {
         geneList = geneList.trim().replace(/(\r\n|\n|\r|\t|\s|;)/g, ',');
-        let genes = geneList.split(',').filter(function(e){return e});
+        var genes = geneList.split(',').filter(function(e){return e});
+        genes = _.uniq(genes);
         return(genes);
     },
 
@@ -33,8 +34,8 @@ var GeneList = React.createClass({
     },
 
     handleDbResponse: function (data) {
-        let notFound = _.compact(_.map(data, 'not_found'));
-        let genes = _.compact(_.flatten(_.map(data, 'genes'))); // this also flattens the genes from a given pathway // TODO: cluster genes searched by pathway id
+        var notFound = _.compact(_.map(data, 'not_found'));
+        var genes = _.compact(_.flatten(_.map(data, 'genes'))); // this also flattens the genes from a given pathway // TODO: cluster genes searched by pathway id
 
         this.setState({
             genes: genes,

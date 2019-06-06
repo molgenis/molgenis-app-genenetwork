@@ -6,10 +6,10 @@ module.exports.menuItems = [{
     name: 'HOME',
     route: '/'
 },
-//     {
-//     name: 'HOW IT WORKS',
-//     route: '/how'
-// },
+    {
+    name: 'FAQ',
+    route: '/faq'
+},
 //     {
 //     name: 'ABOUT',
 //     route: '/about'
@@ -33,6 +33,7 @@ module.exports.urls = {
 
     suggest: DOMAIN + '/socketapi/suggest',
     diagnosisSuggest: DOMAIN + '/socketapi/diagnosisSuggest',
+    diagnosisParentTerms: DOMAIN + '/socketapi/diagnosisParentTerms',
     pathwayanalysis: DOMAIN + '/socketapi/pathwayanalysis',
     geneprediction: DOMAIN + '/socketapi/geneprediction',
     network: DOMAIN + '/socketapi/network',
@@ -44,7 +45,8 @@ module.exports.urls = {
     genePage: DOMAIN + '/gene/',
     termPage: DOMAIN + '/term/',
     networkPage: DOMAIN + '/network/',
-    diagnosisPage: DOMAIN + '/diagnosis',
+    diagnosisPage: DOMAIN + '/gado',
+    faqPage: DOMAIN + '/faq',
 
     svg2pdf: DOMAIN + '/api/v1/svg2pdf',
     // diagnosisResults: domain + '/api/v1/diagnosisResults',

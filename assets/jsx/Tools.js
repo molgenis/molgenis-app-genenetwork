@@ -6,19 +6,19 @@ var color = require('../js/color');
 
 var Tools = React.createClass({
 
-
     render: function() {
         return (
-            <div style={{backgroundColor: color.colors.gnwhite, marginTop: '10px', padding: '20px'}}>
+            <div style={{backgroundColor: color.colors.gnwhite, marginTop: '10px', padding: '20px', flex: '1'}}>
                 <h2 style={{display: 'inline'}}>TOOLS</h2>
                 <Box
-                    title="HPO gene prioritisation"
+                    title="GADO: GeneNetwork Assisted Diagnostic Optimization"
                     text="Prioritize genes based on one or multiple HPO phenotypes."
                     url={GN.urls.diagnosisPage} />
                 <BoxFunctionEnrichment
                     title="Function enrichment"
                     text="Predict which pathways are enriched for a set of genes."
-                    onClick={this.props.onClick}/>
+                    onClick={this.props.onClick}
+                />
             </div>
         )
     }

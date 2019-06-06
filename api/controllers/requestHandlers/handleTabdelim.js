@@ -194,8 +194,12 @@ module.exports = function(req, res) {
             rows.push('#');
             rows.push('gene_id\tgene_name\tp-value');
             dbutil.getCorrelationsJSON(gene, {limit: sails.config.api.numGenesTotal - 2, verbose: false}, function(err, result) {
-                for (var i = 0; i < result.data.length; i++){
-                    rows.push(result.data[i].gene + '\t' + genedesc.get(result.data[i].gene).name + '\t' + result.data[i].pValue)
+                for (var i = 0; i < result.data.length; i++) {
+                    if (result.data[i]) {
+                        rows.push(result.data[i].gene + '\t' + genedesc.get(result.data[i].gene).name + '\t' + result.data[i].pValue)
+                    } else {
+                        rows.push("EMPTY RECORD")
+                    }
                 }
                 res.setHeader('Content-disposition', 'attachment; filename=GeneNetwork-' + geneName + '-' + req.body.db + '.txt');
                 res.setHeader('Content-type', 'text/plain');

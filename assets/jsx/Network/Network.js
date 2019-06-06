@@ -16,8 +16,9 @@ var EdgeLegend = require('./EdgeLegend');
 var LegendPanel = require('./LegendPanel');
 var Footer = require('../ReactComponents/Footer');
 var GeneTable = require('../ReactComponents/GeneTable');
+var DownloadPanel = require('../ReactComponents/DownloadPanel');
 
-var Cookies = require('cookies-js');
+
 var D3Network = require('../../js/D3Network.js');
 var color = require('../../js/color');
 var htmlutil = require('../../js/htmlutil');
@@ -333,23 +334,23 @@ var Network = React.createClass({
         callback(null)
     },
 
-    setTissueSocketListener: function() {
-        io.socket.on('network', function(network) {
-            this.setState({
-                error: null,
-                progressText: 'creating visualization'
-            });
-            // allow state change
-            setTimeout(function() {
-                // var view = new DataView(network.buffer)
-                var js = network2js(network);
-                this.setState({
-                    [network.tissue]: js,
-                    url: GN.urls.networkPage + network.shortURL
-                })
-            }.bind(this), 10) 
-        }.bind(this))
-    },
+    // setTissueSocketListener: function() {
+    //     io.socket.on('network', function(network) {
+    //         this.setState({
+    //             error: null,
+    //             progressText: 'creating visualization'
+    //         });
+    //         // allow state change
+    //         setTimeout(function() {
+    //             // var view = new DataView(network.buffer)
+    //             var js = network2js(network);
+    //             this.setState({
+    //                 [network.tissue]: js,
+    //                 url: GN.urls.networkPage + network.shortURL
+    //             })
+    //         }.bind(this), 10)
+    //     }.bind(this))
+    // },
 
     loadTissueData: function(tissue) {
         var ids = this.props.params.ids.replace(/(\r\n|\n|\r)/g, ',');
@@ -628,6 +629,7 @@ var Network = React.createClass({
         
         var geneIndices = _.map(this.state.data.elements.nodes, function(node) { return node.data.index_ });
         var ts = new Date();
+
         io.socket.get(GN.urls.genescores, {term: term, geneIndices: geneIndices}, function(res, jwres) {
             if (!res || !res.zScores) {
                 console.error('could not get z-scores for ' + term)
@@ -638,7 +640,7 @@ var Network = React.createClass({
                     this.state.data.elements.nodes[i].data.annotated = res.annotations[i]
                 }
                 this.handleColoring('term');
-                if (!_.includes(_.pluck(this.state.coloringOptions, 'key'), 'term')) {
+                if (!_.includes(_.map(this.state.coloringOptions, 'key'), 'term')) {
                     this.state.coloringOptions.push({key: 'term', label: term.database === 'HPO' ? 'Phenotype' : 'Pathway'})
                 }
                 this.setState({
@@ -769,6 +771,11 @@ var Network = React.createClass({
         type == 'network' ? this.state.network.show() : this.state.network.hide()
     },
 
+    downloadPredictions: function() {
+        var form = document.getElementById('gn-term-downloadform');
+        form.submit()
+    },
+
     render: function() {
         var pageTitle = this.state.error ? this.state.errorTitle : 'Loading' + GN.pageTitleSuffix;
         if (!this.state.progressDone || !this.state.data) {
@@ -812,11 +819,24 @@ var Network = React.createClass({
 
             pageTitle = this.state.data.elements.nodes.length + ' genes' + GN.pageTitleSuffix;
             var title = this.state.data.pathway != null ? (this.state.data.pathway.database + ': ' + this.state.data.pathway.name) : null;
+
+            var downloadButton = this.state.data.pathway != null ? (
+                <div>
+                <DownloadPanel onClick={this.downloadPredictions} text='DOWNLOAD ALL' />
+                <form id='gn-term-downloadform' method='post' encType='multipart/form-data' action={GN.urls.tabdelim}>
+                    <input type='hidden' id='termId' name='termId' value={this.state.data.pathway.id} />
+                    <input type='hidden' id='db' name='db' value={this.state.data.pathway.database} />
+                    <input type='hidden' id='what' name='what' value='termprediction' />
+                </form>
+                </div>
+            ) : null;
+
             var predictedgenes = (
                     <div>
                         <div className='gn-term-container-outer' style={{backgroundColor: color.colors.gnwhite}}>
-                        <div className='gn-term-container-inner maxwidth' style={{padding: '20px'}}>                        
+                        <div className='gn-term-container-inner maxwidth' style={{padding: '20px'}}>
                             <GeneTable genes={this.state.genes.genes.predicted ? this.state.genes.genes.predicted : null} type='prediction' gpMessage={this.state.gpMessage}/>
+                            { downloadButton }
                         </div>
                         </div>
                         <Footer />
@@ -851,27 +871,26 @@ var Network = React.createClass({
 
                         <div className='gn-network-panelcontainer noselect smallscreensmallfont'>
                         
-                                <GroupPanel data={this.state.data}
-                            activeGroup={this.state.activeGroup}
-                            coloring={this.state.coloring}
-                            onGroupClick={this.updateGroup}
-                            onAnalyse={this.onAnalyse}
-                            style={{maxHeight: 1 / 3 * this.state.height - 30, paddingRight: '0px'}}
-                                />
+                            <GroupPanel data={this.state.data}
+                                        activeGroup={this.state.activeGroup}
+                                        coloring={this.state.coloring}
+                                        onGroupClick={this.updateGroup}
+                                        onAnalyse={this.onAnalyse}
+                                        style={{maxHeight: 1 / 3 * this.state.height - 30, paddingRight: '0px'}}
+                            />
                                 
                             {this.state.analysisGroup ?
-                             <AnalysisPanel
-                             style={{padding: '10px 0 10px 10px', maxHeight: 2 / 3 * this.state.height - 70}}
-                             onClose={this.handleAnalysisPanelClose}
-                             analysisGroup={this.state.analysisGroup}
-                             selectedTerm={this.state.selectedTerm}
-                             termColoring={this.state.termColoring}
-                             coloring={this.state.coloring}
-                             onTermSelect={this.selectTerm}
-                             onGeneAdd={this.addGeneRequest}
-                             onGeneRemove={this.removeGene}
-                             addedGenes={this.state.addedGenes}
-                             /> : null}
+                                <AnalysisPanel
+                                     style={{padding: '10px 0 10px 10px', maxHeight: 2 / 3 * this.state.height - 70}}
+                                     onClose={this.handleAnalysisPanelClose}
+                                     analysisGroup={this.state.analysisGroup}
+                                     selectedTerm={this.state.selectedTerm}
+                                     termColoring={this.state.termColoring}
+                                     coloring={this.state.coloring}
+                                     onTermSelect={this.selectTerm}
+                                     onGeneAdd={this.addGeneRequest}
+                                     onGeneRemove={this.removeGene}
+                                     addedGenes={this.state.addedGenes}/> : null}
 
                         </div>
 

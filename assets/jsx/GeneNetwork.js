@@ -11,7 +11,7 @@ var Route = ReactRouter.Route;
 var createBrowserHistory = require('history/lib/createBrowserHistory');
 
 var Landing = require('./Landing');
-var How = require('./How');
+var FAQ = require('./FAQ');
 var About = require('./About');
 var GeneList = require('./GeneList');
 var API = require('./ReactComponents/API');
@@ -29,7 +29,7 @@ var history = createBrowserHistory();
 ReactDOM.render(<Router history={history}>
                     <Route>
                         <Route path='/' component = {Landing}>
-                            <Route path='/how' component = {How} />
+                            <Route path='/faq' component = {FAQ} />
                             <Route path='/about' component = {About} />
                             <Route path='/api' component = {API} />
                             <Route path='/gene-list' component = {GeneList} />
@@ -37,8 +37,8 @@ ReactDOM.render(<Router history={history}>
                             <Route path='/term/:termId' component = {Term} />
                             <Route path='/network/:ids' component = {Network} />
                             <Route path='/ontology/:id' component = {Ontology} />
-                            <Route path='/diagnosis' component = {DiagnosisMain} />
-                            <Route path='/diagnosis/:id' component = {Diagnosis} />
+                            <Route path='/gado' component = {DiagnosisMain} />
+                            <Route path='/gado/:id' component = {Diagnosis} />
                         </Route>
                     </Route>
                 </Router>,

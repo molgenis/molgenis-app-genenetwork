@@ -67,23 +67,18 @@ module.exports.routes = {
         view: 'homepage'
     },
 
-    '/diagnosis*': {
+    '/diagnosis': '/gado',
+
+    '/gado*': {
         view: 'homepage'
     },
 
-    '/how*': {
+    '/faq*': {
         view: 'homepage'
     },
 
     '/about*': {
         view: 'homepage'
     },
-
-    '/biosqtlbrowser': 'https://molgenis58.target.rug.nl/biosqtlbrowser/',
-
-    '/bloodeqtlbrowser': 'https://molgenis58.target.rug.nl/bloodeqtlbrowser/',
-
-    '/cd4cd8eqtlbrowser': 'https://molgenis58.target.rug.nl/cd4cd8eqtlbrowser/'
-
 
 };

@@ -1,6 +1,6 @@
 module.exports.version = {
     serviceName: 'Gene Network',
-    version: '0.1',
+    version: '2.0',
     affiliation: 'Department of Genetics, University Medical Center Groningen',
     mainUrl: 'http://www.genenetwork.nl',
     coregNetworkUrl: 'http://www.genenetwork.nl/#/network/',

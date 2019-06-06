@@ -106,7 +106,7 @@ var Landing = React.createClass({
      * @param options
      */
     onSelectChange: function(selectedOption) {
-        let value = selectedOption.value;
+        var value = selectedOption.value;
         if (value.indexOf('!') > -1) {
             var type = value.substring(0, value.indexOf('!'));
             var id = value.substring(value.indexOf('!') + 1);
@@ -210,13 +210,13 @@ var Landing = React.createClass({
      * Necessary to maintain focus at the end of the search bar when the state.geneList == true
      * @param event
      */
-    moveCaretAtEnd(event) {
+    moveCaretAtEnd: function(event) {
         var temp_value = event.target.value;
         event.target.value = '';
         event.target.value = temp_value
     },
 
-    renderSearchBar() {
+    renderSearchBar: function() {
         if (this.state.pasteGeneList && _.size(this.props.params) === 0) {
             return (
                 <TextareaAutosize
@@ -256,7 +256,7 @@ var Landing = React.createClass({
         var topBanner = null;
 
         if (_.size(this.props.params) === 0) {
-            if (this.props.location.pathname.indexOf('diagnosis') === 1) {
+            if (this.props.location.pathname.indexOf('gado') === 1) {
                 topBanner = (null)
             } else {
                 topBanner = (<div className='searchcontainer'>
@@ -301,8 +301,8 @@ var Landing = React.createClass({
                     <div className='examples noselect defaultcursor'>For example:&nbsp;
                         <Link className='clickable' title='SMIM1' to='/gene/SMIM1'>SMIM1</Link>,&nbsp;
                         <Link className='clickable' title='Interferon signaling' to='/network/REACTOME:R-HSA-913531'>Interferon signaling</Link>,&nbsp;
-                        <Link className='clickable' title='Migraine' to='/network/3ZLYoS' params={{ids: 'Migraine'}}>Migraine</Link>,&nbsp;
-                        <Link className='clickable' title='Autism' to='/network/2iGTR8' params={{ids: 'Autism'}}>Autism</Link>
+                        <Link className='clickable' title='Migraine' to='/network/HP:0002076'>Migraine</Link>,&nbsp;
+                        <Link className='clickable' title='Autism' to='/network/HP:0000717'>Autism</Link>
                     </div>
                 </div>)
             }
@@ -317,6 +317,9 @@ var Landing = React.createClass({
                         <Logo w={33} h={60} mirrored={true} style={{float: 'left', paddingRight: '10px'}} />
                         <div className='noselect' style={{fontSize: '1.5em', color: color.colors.gndarkgray, float: 'left'}}>
                             GENE<br/>NETWORK
+                        </div>
+                        <div className='noselect' style={{fontSize: '1em', color: color.colors.gndarkgray, float: 'left', marginTop: '37px', marginLeft: '7px'}}>
+                            v2.0
                         </div>
                     </div>
                     {topSearch}
