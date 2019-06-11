@@ -34,15 +34,15 @@
     "history": "^1.11.1",
     "include-all": "^0.1.6",
     "json2csv": "^3.11.4",
-    "kue": "^0.9.5",
+    "kue": "^0.11.6",
     "level": "^2.1.2",
     "leveldown": "^3.0.2",
-    "lodash": "^4.17.10",
+    "lodash": "^4.17.11",
+    "n": "^4.1.0",
     "numeric": "^1.2.6",
     "rc": "^0.5.5",
-    "react": "^0.14.1",
     "react-document-title": "^2.0.1",
-    "react-dom": "^0.14.1",
+    "react-dom": "^15.x.x",
     "react-router": "^1.0.0-rc1",
     "react-select": "^1.2.1",
     "react-table": "^6.8.5",
@@ -50,7 +50,7 @@
     "react-tooltip": "^3.6.1",
     "reactable": "^0.12.0",
     "reactify": "^1.1.1",
-    "request": "^2.85.0",
+    "request": "^2.88.0",
     "response-time": "^2.3.1",
     "sails": "^0.11.2",
     "sails-disk": "^0.10.8",
@@ -58,12 +58,12 @@
     "split": "^1.0.1",
     "uglify-js": "^2.6.1",
     "uglifyify": "^3.0.1",
-    "watchify": "^3.11.0"
+    "watchify": "^3.11.1"
   },
   "scripts": {
     "debug": "node debug app.js",
     "start": "node app.js",
-    "build": "node_modules/watchify/node_modules/browserify/bin/cmd.js -t reactify -t es6-templates -o assets/js/ReactBundle.js assets/jsx/GeneNetwork.js",
+    "build": "node_modules/browserify/bin/cmd.js -t reactify -t es6-templates -o assets/js/ReactBundle.js assets/jsx/GeneNetwork.js",
     "build:watch": "node_modules/watchify/bin/cmd.js -t reactify -t es6-templates -o assets/js/ReactBundle.js assets/jsx/GeneNetwork.js -v",
     "build:prod": "node_modules/watchify/bin/cmd.js -t reactify -t es6-templates -t uglifyify -o assets/js/ReactBundle.js assets/jsx/GeneNetwork.js && node_modules/uglify-js/bin/uglifyjs --compress --mangle -- assets/js/ReactBundle.js > assets/js/ReactBundle.min.js"
   },
@@ -80,5 +80,10 @@
   "homepage": "https://github.com/molgenis/gene-network#readme",
   "directories": {
     "test": "test"
+  },
+  "devDependencies": {
+    "acorn": "^6.0.0",
+    "react": "^15.x.x",
+    "xxxxx": "^1.0.3"
   }
 }
