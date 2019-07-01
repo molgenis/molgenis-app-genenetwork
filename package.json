@@ -34,10 +34,11 @@
     "history": "^1.11.1",
     "include-all": "^0.1.6",
     "json2csv": "^3.11.4",
-    "kue": "^0.9.5",
+    "kue": "^0.11.6",
     "level": "^2.1.2",
     "leveldown": "^3.0.2",
-    "lodash": "^4.17.10",
+    "lodash": "^4.17.11",
+    "natives": "^1.1.6",
     "numeric": "^1.2.6",
     "rc": "^0.5.5",
     "react": "^0.14.1",
@@ -50,7 +51,7 @@
     "react-tooltip": "^3.6.1",
     "reactable": "^0.12.0",
     "reactify": "^1.1.1",
-    "request": "^2.85.0",
+    "request": "^2.88.0",
     "response-time": "^2.3.1",
     "sails": "^0.11.2",
     "sails-disk": "^0.10.8",
@@ -58,7 +59,7 @@
     "split": "^1.0.1",
     "uglify-js": "^2.6.1",
     "uglifyify": "^3.0.1",
-    "watchify": "^3.11.0"
+    "watchify": "^3.11.1"
   },
   "scripts": {
     "debug": "node debug app.js",
