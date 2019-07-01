@@ -9,7 +9,10 @@ var GeneList = React.createClass({
     getInitialState: function() {
         return ({
             genes: [],
-            notFound: []
+            notFound: [],
+            duplicates: [],
+            error: false,
+            errorMessage: ""
         })
     },
 
@@ -40,6 +43,7 @@ var GeneList = React.createClass({
         this.setState({
             genes: genes,
             notFound: notFound,
+            error: false
         });
     },
 
@@ -52,10 +56,54 @@ var GeneList = React.createClass({
                     that.handleDbResponse(genes);
                 }.bind(that),
                 error: function(xhr, status, err) {
+                    //inform the user that something went wrong
+                    that.handleErrorDbResponse(xhr.status);
                     console.log(err)
                 }.bind(that)
             })
     },
+
+    /**
+     * handle when the call to the database/API returns an error instead of a result
+     * @param errorCode the error code returned by the API/database
+     */
+    handleErrorDbResponse: function(errorCode){
+        let errorMessageToSet = "";
+        if(errorCode === 414){
+            //this one we know, a too large dataset
+            errorMessageToSet = "the request was too large, try limiting to 500 genes";
+        }
+        else{
+            //no to make it hackers to easy, keep the rest generic
+            errorMessageToSet = "an error occurred during the request";
+        }
+        //set the state, all lists empty since we failed
+        this.setState({
+            genes: [],
+            notFound: [],
+            duplicates: [],
+            error: true,
+            errorMessage: errorMessageToSet
+        });
+    },
+
+    /**
+     * display the errors if necessary
+     * @returns {null} either null, which means no element, or a div with the error message
+     */
+    getErrorDisplay: function(){
+        let display = null;
+        //if there is an error, display it
+        if(this.state.error){
+            display = (
+                <div className='gn-error-container' style={{textAlign: 'left'}}>
+                    <span style={{color: 'orange', fontWeight: 'bold'}}>{this.state.errorMessage}</span>
+                </div>
+            );
+        }
+        return display;
+    },
+
 
     render: function() {
         var notFound = this.state.notFound;
@@ -65,8 +113,11 @@ var GeneList = React.createClass({
             <div className='flex10'>
                 <div className='gn-term-description-outer' style={{backgroundColor: color.colors.gnwhite, padding: '20px'}}>
                     <div className='gn-term-description-inner hflex flexcenter maxwidth'>
-                        <div className='gn-term-description-name'>
-                            <span style={{fontWeight: 'bold', fontFamily: 'GG', fontSize: '1.5em'}}>Gene set enrichment</span>
+                        <div>
+                            <div className='gn-term-description-name'>
+                                <span style={{fontWeight: 'bold', fontFamily: 'GG', fontSize: '1.5em'}}>Gene set enrichment</span>
+                            </div>
+                            {this.getErrorDisplay()}
                         </div>
                         <div className='flex11' />
                         <div className='gn-term-description-stats' style={{textAlign: 'right'}}>
