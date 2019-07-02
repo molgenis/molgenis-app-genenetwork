@@ -72,7 +72,7 @@ var How = React.createClass({
 
                     <h3 id="how-to-cite">How to cite?</h3>
                     <p>
-                        <a href="https://www.biorxiv.org/content/early/2018/07/25/375766" target="_blank">Improving the diagnostic yield of exome-sequencing, by predicting gene-phenotype
+                        <a href="https://www.nature.com/articles/s41467-019-10649-4" target="_blank">Improving the diagnostic yield of exome-sequencing, by predicting gene-phenotype
                             associations using large-scale gene expression analysis</a>
                     </p>
 
