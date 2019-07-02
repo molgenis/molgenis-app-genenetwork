@@ -46,7 +46,7 @@ export LD_LIBRARY_PATH=/opt/gcc/lib64:$LD_LIBRARY_PATH
 ## Packaging
 > TODO:
 >
->- Need to release this project with ```npm version``` in new release train (https://jenkins.molgenis.org)
+>- Need to release this project with ```npm version``` in new release train (https://jenkins.dev.molgenis.org)
 >- Need to have a Docker image to roil out on new kubernetes cluster
 >- Upgrade elasticsearch to at least 5.5.1
 >- Create helm-chart for kubernetes cluster 
