@@ -3,6 +3,7 @@ var React = require('react');
 var ReactTable = require('react-table').default;
 var DocumentTitle = require('react-document-title');
 var color = require('../js/color');
+var sizes = require('../js/sizes');
 
 var GeneList = React.createClass({
 
@@ -44,17 +45,44 @@ var GeneList = React.createClass({
     },
 
     getGenesFromDb: function (genes) {
-        var that = this;
-            $.ajax({
-                url: GN.urls.genes + '/' + genes + '?verbose',
-                dataType: 'json',
-                success: function(genes) {
-                    that.handleDbResponse(genes);
-                }.bind(that),
-                error: function(xhr, status, err) {
-                    console.log(err)
-                }.bind(that)
-            })
+        let getUrl = GN.urls.genes + '/' + genes + '?verbose';
+        if(getUrl.length <= sizes.sizes.httpGetCharacterLimit){
+            this.getGenesFromDbWithGET(genes);
+        }
+        else{
+            this.getGenesFromDbWithPOST(genes);
+        }
+    },
+
+    getGenesFromDbWithGET: function (genes) {
+        let that = this;
+        $.ajax({
+            url: GN.urls.genes + '/' + genes + '?verbose',
+            dataType: 'json',
+            success: function(genes) {
+                that.handleDbResponse(genes);
+            }.bind(that),
+            error: function(xhr, status, err) {
+                console.log(err)
+            }.bind(that)
+        });
+    },
+
+    getGenesFromDbWithPOST: function (genes) {
+        let that = this;
+        $.ajax({
+            url: GN.urls.genes,
+            dataType: 'json',
+            type: 'POST',
+            data: genes,
+            success: function(genes) {
+                that.handleDbResponse(genes);
+            }.bind(that),
+            error: function(xhr, status, err) {
+                console.log(err)
+            }.bind(that)
+        });
+
     },
 
     render: function() {
