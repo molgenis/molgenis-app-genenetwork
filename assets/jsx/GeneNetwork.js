@@ -8,7 +8,7 @@ var ReactDOM = require('react-dom');
 var ReactRouter = require('react-router');
 var Router = ReactRouter.Router;
 var Route = ReactRouter.Route;
-var createBrowserHistory = require('history/lib/createBrowserHistory');
+var createBrowserHistory = require('history/createBrowserHistory');
 
 var Landing = require('./Landing');
 var FAQ = require('./FAQ');
