@@ -47,7 +47,8 @@ module.exports.cors = {
   *                                                                          *
   ***************************************************************************/
 
-  origin: '*',
+  //origin: '*',
+  allowOrigins: '*',
 
   /***************************************************************************
   *                                                                          *
@@ -55,7 +56,8 @@ module.exports.cors = {
   *                                                                          *
   ***************************************************************************/
 
-  credentials: false,
+  //credentials: false,
+  allowCredentials: false,
 
   /***************************************************************************
   *                                                                          *
@@ -64,7 +66,8 @@ module.exports.cors = {
   *                                                                          *
   ***************************************************************************/
 
-  methods: 'GET, POST, PUT, DELETE, OPTIONS, HEAD',
+  //methods: 'GET, POST, PUT, DELETE, OPTIONS, HEAD',
+  allowRequestMethods: 'GET, POST, PUT, DELETE, OPTIONS, HEAD',
 
   /***************************************************************************
   *                                                                          *
@@ -73,7 +76,7 @@ module.exports.cors = {
   *                                                                          *
   ***************************************************************************/
 
-  headers: ['Authorization', 'content-type', 'user-agent']
+  //headers: ['Authorization', 'content-type', 'user-agent']
   // headers: 'content-type'
-
+    allowRequestHeaders: ['Authorization', 'content-type', 'user-agent']
 };
