@@ -3,10 +3,10 @@
   //   "grunt": false
   // },
 
-  "hooks": {
-    "sockets": true,
-    "orm": true
-  }
+//  "hooks": {
+//    "sockets": true,
+//    "orm": true
+//  },
 
   "generators": {
     "modules": {}
