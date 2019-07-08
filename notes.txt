@@ -1,5 +1,26 @@
-server start up:
-redis-server
-/usr/local/Cellar/elasticsearch\@2.4/2.4.6/bin/elasticsearch
-node servers/PredictionServer.js
-node --max-old-space-size=8192 servers/PWAServerInMem.js
+install the dependencies by running from the root directoy of the project:
+'npm install'
+build the project by running from the root directory of the project
+'npm build' or if you want the page to be refreshed when you make changes to the code 'npm build:watch'
+if you are running in debug mode, in assets/views/homepage.ejs, change the reference to 'reactbunle.min.js' to 'reactbundle.js'
+
+if you wish to work on the backend, instead of using the remote genenetwork backend, go into domain.js and change the domain to
+''
+this may change some behaviour, for example the max size of a GET request is probably larger on the remote server than on your localhost
+
+start up the redis server:
+'redis-server' or 'brew services start redis' or any other way you may have installed it
+start up the elastic search server:
+'/usr/local/Cellar/elasticsearch\@2.4/2.4.6/bin/elasticsearch' or 'brew services start elasticsearch@2.4' or any other way you may have installed it
+start up the prediction server:
+'node servers/PredictionServer.js' from the root directory of the project
+load the pwa server in memory:
+'node --max-old-space-size=8192 servers/PWAServerInMem.js' from the root directory of the project
+
+start the application by running from the root directory:
+'npm start'
+you should now be able to see the page at localhost:1337 in your browser
+
+if you get grunt errors when doing 'npm start' and see 404s on some of the resources on the homepage, your grunt version may be too new. run:
+'npm i natives'
+then redo the build and run
