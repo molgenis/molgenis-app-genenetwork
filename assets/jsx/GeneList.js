@@ -44,18 +44,30 @@ var GeneList = React.createClass({
         });
     },
 
+    /**
+     * request genes for function enrichment
+     * @param genes the genes to request
+     */
     getGenesFromDb: function (genes) {
         let getUrl = GN.urls.genes + '/' + genes + '?verbose';
+        //check if the GET request is not too large
         if(getUrl.length <= sizes.sizes.httpGetCharacterLimit){
             this.getGenesFromDbWithGET(genes);
         }
+        //if the GET request would be too large, do a POST instead (this means no shareable URL will be available)
         else{
             this.getGenesFromDbWithPOST(genes);
         }
     },
 
+    /**
+     * request the genes for function enrichment using an HTTP GET
+     * @param genes the genes to request
+     */
     getGenesFromDbWithGET: function (genes) {
+        //set reference
         let that = this;
+        //do an HTTP GET request using AJAX
         $.ajax({
             url: GN.urls.genes + '/' + genes + '?verbose',
             dataType: 'json',
@@ -68,13 +80,21 @@ var GeneList = React.createClass({
         });
     },
 
+    /**
+     * request the genes for function enrichment using an HTTP POST
+     * @param genes the genes to request
+     */
     getGenesFromDbWithPOST: function (genes) {
+        //set reference
         let that = this;
+        //create the JSON object to place the genes in
+        let jsonObject = {passedgenes:genes};
+        //do an HTTP POST using AJAX
         $.ajax({
-            url: GN.urls.genes,
+            url: GN.urls.genespost,
             dataType: 'json',
             type: 'POST',
-            data: genes,
+            data: jsonObject,
             success: function(genes) {
                 that.handleDbResponse(genes);
             }.bind(that),

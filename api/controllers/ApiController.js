@@ -1,5 +1,6 @@
 var handleGene = require('./requestHandlers/handleGene')
 var handleGenes = require('./requestHandlers/handleGenes')
+var handleGenesPOST = require('./requestHandlers/handleGenesPOST');
 var handleTranscript = require('./requestHandlers/handleTranscript')
 var handleTranscriptBars = require('./requestHandlers/handleTranscriptBars')
 var handlePathway = require('./requestHandlers/handlePathway')
@@ -34,6 +35,21 @@ module.exports = {
     genes: function (req, res) {
         try {
             handleGenes(req, res);
+        } catch (e) {
+            sails.log.error(e);
+            res.serverError();
+        }
+    },
+
+    /**
+     * request for function enrichment via POST request
+     * @param req the POST request with the genes in the JSON as 'passedgenes'
+     * @param res the POST response instructions
+     */
+    genespost: function(req, res){
+        try {
+            sails.log.debug('POST request for genes received');
+            handleGenesPOST(req, res);
         } catch (e) {
             sails.log.error(e);
             res.serverError();
