@@ -75,7 +75,9 @@ var GeneList = React.createClass({
             }
             //doing both global and local scope (by returning) is not best practice, might need to fix later
             else{
-                duplicates.push(gene.id);
+                //turn into 'geneid(symbol)' string to show the user
+                let duplicateString = gene.id+"("+gene.name+")";
+                duplicates.push(duplicateString);
             }
         }
         //set the duplicates that were found
@@ -189,14 +191,15 @@ var GeneList = React.createClass({
     /**
      * get a description concerning duplicates if applicable
      * @param listDescription the text before the list of duplicates
-     * @param listItems the duplicates
+     * @param duplicatesInRequest the duplicates in the request
+     * @param duplicatesInResponse the duplicates in the response
      * @returns {null} the description of the duplicates in a div, or nothing if there are no duplicates
      */
-    getDuplicatesList: function(listDescription, listItems){
+    getDuplicatesList: function(listDescription, duplicatesInRequest, duplicatesInResponse){
         let description = null;
         //to not overpopulate the page, we only want to show warnings regarding duplicates when relevant
-        if(listItems.length >= 1){
-            description = this.getListDescription(listDescription, listItems);
+        if(duplicatesInRequest.length >= 1 | duplicatesInResponse.length >= 1){
+            description = this.getListDescription(listDescription, duplicatesInRequest.concat(duplicatesInResponse));
         }
         return description;
     },
@@ -219,9 +222,8 @@ var GeneList = React.createClass({
                         </div>
                         <div className='flex11' />
                         <div className='gn-term-description-stats' style={{textAlign: 'right'}}>
-                            <span style={{color: 'green', fontWeight: 'bold'}}>{this.state.genes.length}</span><span> genes found</span><br/>
+                            <span style={{color: 'green', fontWeight: 'bold'}}>{this.state.genes.length}</span><span> unique genes found</span><br/>
                             <span style={{color: 'red', fontWeight: 'bold'}}>{this.state.notFound.length}</span><span> not found</span><br/>
-                            <span style={{color: 'orange', fontWeight: 'bold'}}>{this.state.duplicatesInRequest.length+this.state.duplicatesInResponse.length}</span><span> duplicates</span><br/>
                         </div>
                         <div className='gn-term-description-networkbutton flexend' style={{padding: '0 0 3px 10px'}}>
                             <a className='clickable button noselect' title={'Open network'} href={GN.urls.networkPage + _.map(this.state.genes, function(gene) { return gene.id } ) } target='_blank'>
@@ -234,8 +236,7 @@ var GeneList = React.createClass({
                     <div className='gn-gene-container-inner maxwidth' style={{padding: '20px'}}>
                         <div>
                             {this.getListDescription("Not found",notFound)}
-                            {this.getDuplicatesList("Duplicates in request",duplicatesInRequest)}
-                            {this.getDuplicatesList("Duplicates in response",duplicatesInResponse)}
+                            {this.getDuplicatesList("Duplicates",duplicatesInRequest, duplicatesInResponse)}
                         </div>
                         <div><br />
                             <span style={{fontWeight: 'bold', fontFamily: 'GG', fontSize: '1.2em'}}>Found:</span>
