@@ -55,8 +55,11 @@ var GeneList = React.createClass({
             this.getGenesFromDbWithGET(genes);
         }
         //if the GET request would be too large, do a POST instead (this means no shareable URL will be available)
-        else{
+        else if(genes.length <= sizes.sizes.maxNumberOfGenesToRequest){
             this.getGenesFromDbWithPOST(genes);
+        }
+        else{
+            //TODO after merge with MASTER, use new issue field here
         }
     },
 
