@@ -23,7 +23,7 @@ exp.pValueToReadable = function(p) {
     }
     var pReadable = p
     //negative P-value is impossible; javascript flips to negative zero if the minimum value is exceeded, so need to state it is smaller than the min value in JS
-    if(p < 0){
+    if(p <= 0){
         pReadable = '<' + Number.MIN_VALUE;
     }
     else if (p < 0.01) {
