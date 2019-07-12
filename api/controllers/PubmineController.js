@@ -1,7 +1,7 @@
 var fs = require('fs')
 var os = require('os')
 var elasticsearch = require('elasticsearch')
-var sortby = require('./utils/sort').sortby
+var sortby = require('../utils/sort').sortby
 
 var PUBMINE = {}
 PUBMINE.elasticHostOK = false

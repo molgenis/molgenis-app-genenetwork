@@ -5,7 +5,7 @@ var async = require('async')
 //var stats = require('../stats/stats.js')
 //var prob = require('../stats/probability.js')
 var prob = require('genstats').probability
-var encoding = require('../api/controllers/utils/encoding.js')
+var encoding = require('../api/utils/encoding.js')
 
 if (process.argv.length != 4) {
     console.log('usage: node populatecompdbs.js genefile datafile')

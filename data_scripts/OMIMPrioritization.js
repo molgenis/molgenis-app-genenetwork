@@ -19,6 +19,7 @@ async.map(terms, function(term, cb) {
         } else {
             for (var i = 1; i < buffer.length / 2; i++) {
                 var z = lookup(buffer.readUInt16BE(i * 2))
+                sails.log.debug("calling genesdesc from OMIMPrioritization.js");
                 var gene = genedesc.get(i - 1)
                 if (options && options.array) {
                     result.push(z)
@@ -59,6 +60,7 @@ async.map(terms, function(term, cb) {
     }
     r.results = []
     for (var j = 0; j < results[0].length; j++) {
+        sails.log.debug("calling genesdesc from OMIMPrioritization.js");
         var gene = genedesc.get(j)
         if (genesToGet.length == 0 || genesToGet.indexOf(gene) >= 0) {
             r.results.push({

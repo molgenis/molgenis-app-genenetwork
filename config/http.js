@@ -10,16 +10,16 @@ module.exports.http = {
       'cookieParser',
       'session',
       'bodyParser',
-      'handleBodyParserError',
+      //    'handleBodyParserError',
       //   'compress',
       //   'methodOverride',
       //   'poweredBy',
       //   '$custom',
       'router', // mandatory
       'www',
-      'favicon',
+      'favicon'
       //          '404',
-      '500'
+      //    '500'
     ],
 
     power: function(req, res, next) {

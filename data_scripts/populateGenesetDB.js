@@ -3,7 +3,7 @@ var fs = require('fs')
 var fileutil = require('./fileutil')
 var level = require('level')
 var async = require('async')
-var encoding = require('../api/controllers/utils/encoding.js')
+var encoding = require('../api/utils/encoding.js')
 
 if (process.argv.length != 9) {
     console.log('usage: node populategenesetdb.js genedbpath genesetdbpath dbname genesetdescriptionfile genesetdatafile genesetaucfile genetotermfile')

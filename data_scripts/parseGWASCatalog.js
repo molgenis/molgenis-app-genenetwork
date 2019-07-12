@@ -7,7 +7,8 @@ var split = require('split')
 var async = require('async')
 var crypto = require('crypto')
 var bs62 = require('base62')
-var genedesc = require('../api/controllers/utils/genedesc')
+sails.log.debug("calling genesdesc from parseGWASCatalog.js");
+var genedesc = require('../api/utils/genedesc')
 
 var URL = 'http://www.ebi.ac.uk/gwas/api/search/downloads/full'
 var COLUMNS = [{name: 'DATE ADDED TO CATALOG', field: 'dateAdded'},

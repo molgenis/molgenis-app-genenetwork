@@ -40,7 +40,8 @@ module.exports.routes = {
     },
 
     '/api/*': {
-        response: 'notFound'
+        response: 'notFound',
+        skipAssets: true
     },
     
     '/': {

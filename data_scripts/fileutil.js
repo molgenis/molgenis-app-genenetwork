@@ -64,7 +64,7 @@ exp.readGeneFile = function(filename) {
             })
         }
     }
-    console.log(geneObjects.length + ' genes read from ' + filename)
+    console.log("filutil->"+geneObjects.length + ' genes read from ' + filename)
     return geneObjects
 }
 
