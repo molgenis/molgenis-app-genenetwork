@@ -2,6 +2,8 @@
 
 var _ = require('lodash');
 var React = require('react');
+var createReactClass = require('create-react-class');
+var PropTypes = require('prop-types');
 var ReactTooltip = require('react-tooltip');
 var OpenMenu = require('../ReactComponents/OpenMenu');
 var SquareSVG = require('../ReactComponents/SVGCollection').SquareSVG;

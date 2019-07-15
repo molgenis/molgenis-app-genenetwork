@@ -1,6 +1,8 @@
 var _ = require('lodash')
 var htmlutil = require('../../js/htmlutil.js')
 var React = require('react')
+var createReactClass = require('create-react-class');
+var PropTypes = require('prop-types');
 var Cookies = require('cookies-js')
 
 var Disetti = createReactClass({

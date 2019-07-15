@@ -8,6 +8,7 @@ var genstats = require('genstats');
 var prob = genstats.probability;
 
 var React = require('react');
+var createReactClass = require('create-react-class');
 var Router = require('react-router');
 var DocumentTitle = require('react-document-title');
 

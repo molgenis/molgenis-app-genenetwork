@@ -1,6 +1,8 @@
 'use strict'
 
 var React = require('react')
+var createReactClass = require('create-react-class');
+
 var _ = require('lodash')
 
 /* accepts parameters

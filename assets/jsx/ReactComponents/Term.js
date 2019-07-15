@@ -5,7 +5,9 @@ var color = require('../../js/color');
 var htmlutil = require('../../js/htmlutil');
 
 var React = require('react');
-var ReactDOM = require('react-dom');var createReactClass = require('create-react-class');
+var ReactDOM = require('react-dom');
+var createReactClass = require('create-react-class');
+var PropTypes = require('prop-types');
 var Router = require('react-router');
 var Link = Router.Link;
 var Select = require('react-select');

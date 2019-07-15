@@ -1,5 +1,8 @@
 var _ = require('lodash')
 var React = require('react')
+var createReactClass = require('create-react-class');
+var PropTypes = require('prop-types');
+
 var TriangleDown = require('./SVGCollection').TriangleDown
 var TriangleUp = require('./SVGCollection').TriangleUp
 var color = require('../../js/color')

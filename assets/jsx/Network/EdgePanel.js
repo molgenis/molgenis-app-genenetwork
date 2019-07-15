@@ -1,5 +1,7 @@
 var _ = require('lodash')
 var React = require('react')
+var createReactClass = require('create-react-class');
+var PropTypes = require('prop-types');
 var GeneOpenMenu = require('../ReactComponents/GeneOpenMenu')
 var SVGCollection = require('../ReactComponents/SVGCollection')
 var genstats = require('genstats')

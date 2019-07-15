@@ -2,6 +2,7 @@
 
 var _ = require('lodash');
 var React = require('react');
+var createReactClass = require('create-react-class');
 var DocumentTitle = require('react-document-title');
 var color = require('../../js/color.js');
 var Select = require('react-select');

@@ -4,7 +4,9 @@ var _ = require('lodash');
 var async = require('async');
 var AffinityPropagation = require('affinity-propagation');
 var React = require('react');
-var ReactDOM = require('react-dom');var createReactClass = require('create-react-class');
+var ReactDOM = require('react-dom');
+var createReactClass = require('create-react-class');
+var PropTypes = require('prop-types');
 var DocumentTitle = require('react-document-title');
 
 var GroupPanel = require('./GroupPanel');

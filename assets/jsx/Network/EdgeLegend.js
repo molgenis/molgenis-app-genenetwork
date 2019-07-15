@@ -1,5 +1,7 @@
 var _ = require('lodash')
 var React = require('react')
+var createReactClass = require('create-react-class');
+var PropTypes = require('prop-types');
 var d3 = require('d3')
 var color = require('../../js/color.js')
 

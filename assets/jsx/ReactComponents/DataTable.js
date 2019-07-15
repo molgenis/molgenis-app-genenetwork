@@ -11,6 +11,9 @@ var PredictionRow = require('./PredictionRow');
 var color = require('../../js/color');
 
 var reactable = require('reactable');
+var createReactClass = require('create-react-class');
+var PropTypes = require('prop-types');
+
 var Tr = reactable.Tr;
 var Td = reactable.Td;
 var Th = reactable.Th;

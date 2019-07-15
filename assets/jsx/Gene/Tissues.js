@@ -2,6 +2,8 @@
 
 var _ = require('lodash')
 var React = require('react')
+var createReactClass = require('create-react-class');
+
 var HomoSapiens = require('./HomoSapiens')
 var htmlutil = require('../../js/htmlutil')
 var SVGCollection = require('../ReactComponents/SVGCollection')

@@ -1,4 +1,6 @@
 var React = require('react');
+var createReactClass = require('create-react-class');
+var PropTypes = require('prop-types');
 var SVGCollection =  require('../ReactComponents/SVGCollection');
 var color = require('../../js/color');
 

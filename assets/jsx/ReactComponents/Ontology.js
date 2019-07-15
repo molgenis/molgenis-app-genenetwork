@@ -5,6 +5,7 @@ var color = require('../../js/color')
 var htmlutil = require('../../js/htmlutil')
 
 var React = require('react')
+var createReactClass = require('create-react-class');
 var Router = require('react-router')
 var DocumentTitle = require('react-document-title')
 var Footer = require('./Footer')
