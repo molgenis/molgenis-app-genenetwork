@@ -1,5 +1,6 @@
 var _ = require('lodash');
 var React = require('react');
+var createReactClass = require('create-react-class');
 var ReactRouter = require('react-router');
 var Link = ReactRouter.Link;
 var Select = require('react-select');
@@ -17,7 +18,7 @@ var Tools = require('./Tools');
 /**
  * Component for root url
  */
-var Landing = React.createClass({
+var Landing = createReactClass({
 
     mixins: [ReactRouter.History],
 

@@ -1,7 +1,7 @@
 var React = require('react')
 var Cookies = require('cookies-js')
 
-var CheckBoxWithLabel = React.createClass({
+var CheckBoxWithLabel = createReactClass({
 
   getInitialState: function() {
     var isChecked = Cookies.get(this.props.cookieKey) === 'true'

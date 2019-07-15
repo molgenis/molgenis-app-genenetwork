@@ -1,6 +1,6 @@
-var React = require('react')
-
-var Footer = React.createClass({
+var React = require('react');
+var createReactClass = require('create-react-class');
+var Footer = createReactClass({
 
     // TODO images proper size, optimization, transparency
     render: function() {

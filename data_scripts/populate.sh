@@ -24,7 +24,7 @@ node rankPathwaysFromDataFileTXT.js \
 	/data/genenetwork/level/new/dbexternalranks \
 	HPO \
 	/data/genenetwork/files/Version2_01_04_2018/HPO/hpoTerms_bonSigTerms_gnInputFormat.txt \
-	/data/genenetwork/files/Version2_01_04_2018/HPO/hpo_predictions_bonSigOnly_termNames_tranposed.txt 
+	/data/genenetwork/files/Version2_01_04_2018/HPO/hpo_predictions_bonSigOnly_termNames_tranposed.txt
 
 ###
 ### Reactome
@@ -43,7 +43,7 @@ node rankPathwaysFromDataFileTXT.js \
 	/data/genenetwork/level/new/dbexternalranks \
 	REACTOME \
 	/data/genenetwork/files/Version2_01_04_2018/Reactome/reactomePathwaysHuman_bonSigTerms_gnInputFormat.txt \
-	/data/genenetwork/files/Version2_01_04_2018/Reactome/reactome_predictions_bonSigOnly_termNames_tranposed.txt 
+	/data/genenetwork/files/Version2_01_04_2018/Reactome/reactome_predictions_bonSigOnly_termNames_tranposed.txt
 
 ###
 ### GO
@@ -63,7 +63,7 @@ node rankPathwaysFromDataFileTXT.js \
 	/data/genenetwork/level/new/dbexternalranks \
 	GO_F \
 	/data/genenetwork/files/Version2_01_04_2018/GO/GO_F/go_F_PathwaysClean_bonSigTerms_gnInputFormat.txt \
-	/data/genenetwork/files/Version2_01_04_2018/GO/GO_F/go_F_predictions_bonSigOnly_termNames_tranposed.txt 
+	/data/genenetwork/files/Version2_01_04_2018/GO/GO_F/go_F_predictions_bonSigOnly_termNames_tranposed.txt
 
 ## GO_P
 node populateGenesetDBTXT.js \
@@ -79,7 +79,7 @@ node rankPathwaysFromDataFileTXT.js \
 	/data/genenetwork/level/new/dbexternalranks \
 	GO_P \
 	/data/genenetwork/files/Version2_01_04_2018/GO/GO_P/go_P_PathwaysClean_bonSigTerms_gnInputFormat.txt \
-	/data/genenetwork/files/Version2_01_04_2018/GO/GO_P/go_P_predictions_bonSigOnly_termNames_tranposed.txt 
+	/data/genenetwork/files/Version2_01_04_2018/GO/GO_P/go_P_predictions_bonSigOnly_termNames_tranposed.txt
 
 ## GO_C
 node populateGenesetDBTXT.js \
@@ -95,7 +95,7 @@ node rankPathwaysFromDataFileTXT.js \
 	/data/genenetwork/level/new/dbexternalranks \
 	GO_C \
 	/data/genenetwork/files/Version2_01_04_2018/GO/GO_C/go_C_PathwaysClean_bonSigTerms_gnInputFormat.txt \
-	/data/genenetwork/files/Version2_01_04_2018/GO/GO_C/go_C_predictions_bonSigOnly_termNames_tranposed.txt 
+	/data/genenetwork/files/Version2_01_04_2018/GO/GO_C/go_C_predictions_bonSigOnly_termNames_tranposed.txt
 
 
 ###
@@ -115,7 +115,7 @@ node rankPathwaysFromDataFileTXT.js \
 	/data/genenetwork/level/new/dbexternalranks \
 	KEGG \
 	/data/genenetwork/files/Version2_01_04_2018/KEGG/kegg_PathwaysClean_bonSigTerms_gnInputFormat.txt \
-	/data/genenetwork/files/Version2_01_04_2018/KEGG/kegg_predictions_bonSigOnly_termNames_tranposed.txt 
+	/data/genenetwork/files/Version2_01_04_2018/KEGG/kegg_predictions_bonSigOnly_termNames_tranposed.txt
 
 
 ##

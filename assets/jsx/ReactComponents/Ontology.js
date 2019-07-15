@@ -10,7 +10,7 @@ var DocumentTitle = require('react-document-title')
 var Footer = require('./Footer')
 var D3Network = require('../../js/D3Network.js')
 
-var Ontology = React.createClass({
+var Ontology = createReactClass({
 
     mixins: [Router.Navigation, Router.State],
 

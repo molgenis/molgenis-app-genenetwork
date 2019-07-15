@@ -10,12 +10,12 @@ var SVGCollection = require('../ReactComponents/SVGCollection');
 var I = SVGCollection.I;
 
 
-var LegendPanel = React.createClass({
+var LegendPanel = createReactClass({
 
     propTypes: {
-        data: React.PropTypes.object.isRequired,
-        coloring: React.PropTypes.string,
-        termColoring: React.PropTypes.string,
+        data: PropTypes.object.isRequired,
+        coloring: PropTypes.string,
+        termColoring: PropTypes.string,
     },
 
     getInitialState: function() {

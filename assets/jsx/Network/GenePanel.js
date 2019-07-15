@@ -4,10 +4,10 @@ var GeneOpenMenu = require('../ReactComponents/GeneOpenMenu')
 var SVGCollection = require('../ReactComponents/SVGCollection')
 var color = require('../../js/color')
 
-var GenePanel = React.createClass({
+var GenePanel = createReactClass({
     
     propTypes: {
-        gene: React.PropTypes.object.isRequired
+        gene: PropTypes.object.isRequired
     },
 
     render: function() {

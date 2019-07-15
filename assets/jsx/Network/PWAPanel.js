@@ -5,6 +5,8 @@ var htmlutil = require('../../js/htmlutil.js')
 var color = require('../../js/color.js')
 var React = require('react')
 var ReactDOM = require('react-dom')
+var createReactClass = require('create-react-class');
+var PropTypes = require('prop-types');
 var StatusBar = require('../ReactComponents/StatusBar')
 var Disetti = require('../ReactComponents/Disetti')
 var SVGCollection = require('../ReactComponents/SVGCollection')
@@ -13,13 +15,13 @@ var Cookies = require('cookies-js')
 
 // TODO handle resize: width
 
-var PWAPanel = React.createClass({
+var PWAPanel = createReactClass({
 
     propTypes: {
-        group: React.PropTypes.object,
-        // selectedTerm: React.PropTypes.object,
-        termColoring: React.PropTypes.string,
-        areNodesColoredByTerm: React.PropTypes.bool
+        group: PropTypes.object,
+        // selectedTerm: PropTypes.object,
+        termColoring: PropTypes.string,
+        areNodesColoredByTerm: PropTypes.bool
     },
 
     keyListener: function(e) {
@@ -413,7 +415,7 @@ var PWAPanel = React.createClass({
     }
 })
 
-var Filter = React.createClass({
+var Filter = createReactClass({
 
     render: function() {
         

@@ -22,12 +22,12 @@ var Thead = reactable.Thead
 var Tbody = reactable.Tbody
 var Table = reactable.Table
 
-var AnnotatedGeneRow = React.createClass({
+var AnnotatedGeneRow = createReactClass({
 
     propTypes: {
         
-        data: React.PropTypes.object.isRequired,
-        // termId: React.PropTypes.string.isRequired,
+        data: PropTypes.object.isRequired,
+        // termId: PropTypes.string.isRequired,
 
     },
     
@@ -65,11 +65,11 @@ var AnnotatedGeneRow = React.createClass({
     }
 })
 
-var PredictedGeneRow = React.createClass({
+var PredictedGeneRow = createReactClass({
 
     propTypes: {
-        data: React.PropTypes.object.isRequired,
-        // termId: React.PropTypes.string.isRequired
+        data: PropTypes.object.isRequired,
+        // termId: PropTypes.string.isRequired
     },
     
     render: function() {
@@ -103,11 +103,11 @@ var PredictedGeneRow = React.createClass({
     }
 })
 
-var GeneTable = React.createClass({
+var GeneTable = createReactClass({
 
     propTypes: {
-        // genes: React.PropTypes.array.isRequired,
-        // type: React.Proptypes.string.isRequired
+        // genes: PropTypes.array.isRequired,
+        // type: PropTypes.string.isRequired
     },
 
     render: function() {

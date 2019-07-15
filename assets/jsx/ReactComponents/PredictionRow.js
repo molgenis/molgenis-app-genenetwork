@@ -1,5 +1,6 @@
 var _ = require('lodash')
 var React = require('react')
+var createReactClass = require('create-react-class');
 var Router = require('react-router')
 var Link = Router.Link
 
@@ -14,10 +15,10 @@ var unsafe = reactable.unsafe
 var SVGCollection = require('./SVGCollection')
 var htmlutil = require('../../js/htmlutil')
 
-var PredictionRow = React.createClass({
+var PredictionRow = createReactClass({
 
 	propTypes: {
-        data: React.PropTypes.object
+        data: PropTypes.object
     },
 
 	render: function() {

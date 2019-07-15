@@ -1,12 +1,13 @@
 var React = require('react');
 var ReactRouter = require('react-router');
+var createReactClass = require('create-react-class');
 var Link = ReactRouter.Link;
 var SVGCollection = require('./ReactComponents/SVGCollection');
 
 
 var color = require('../js/color');
 
-var Box = React.createClass({
+var Box = createReactClass({
     getInitialState: function() {
         return {
             color: color.colors.gngray

@@ -4,12 +4,12 @@ var TriangleDown = require('./SVGCollection').TriangleDown
 var TriangleUp = require('./SVGCollection').TriangleUp
 var color = require('../../js/color')
 
-var OpenMenu = React.createClass({
+var OpenMenu = createReactClass({
 
     propTypes: {
-        options: React.PropTypes.array,
-        style: React.PropTypes.object,
-        selected: React.PropTypes.string
+        options: PropTypes.array,
+        style: PropTypes.object,
+        selected: PropTypes.string
     },
     
     getInitialState: function() {

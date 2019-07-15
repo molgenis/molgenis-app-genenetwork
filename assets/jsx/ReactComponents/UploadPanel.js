@@ -2,12 +2,12 @@
 
 var React = require('react')
 
-var UploadPanel = React.createClass({
+var UploadPanel = createReactClass({
 
     propTypes: {
         
-        //onClick: React.PropTypes.func.isRequired,
-        text: React.PropTypes.string,
+        //onClick: PropTypes.func.isRequired,
+        text: PropTypes.string,
     },
     
     render: function() {

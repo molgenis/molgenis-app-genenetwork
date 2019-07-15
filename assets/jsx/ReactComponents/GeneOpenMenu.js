@@ -1,12 +1,13 @@
 var _ = require('lodash')
 var React = require('react')
+var PropTypes = require('prop-types');
 var TriangleDown = require('./SVGCollection').TriangleDown
 var color = require('../../js/color')
 
-var GeneOpenMenu = React.createClass({
+var GeneOpenMenu = createReactClass({
 
     propTypes: {
-        gene: React.PropTypes.object
+        gene: PropTypes.object
     },
     
     getInitialState: function() {

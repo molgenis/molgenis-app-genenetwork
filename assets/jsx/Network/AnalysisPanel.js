@@ -5,20 +5,20 @@ var SVGCollection = require('../ReactComponents/SVGCollection');
 var color = require('../../js/color.js');
 var DownloadPanel = require('../ReactComponents/DownloadPanel');
 
-var AnalysisPanel = React.createClass({
+var AnalysisPanel = createReactClass({
 
     propTypes: {
 
-        analysisGroup: React.PropTypes.object.isRequired,
-        coloring: React.PropTypes.string.isRequired,
-        onClose: React.PropTypes.func.isRequired,
-        onTermSelect: React.PropTypes.func.isRequired,
-        onGeneAdd: React.PropTypes.func.isRequired,
-        onGeneRemove: React.PropTypes.func.isRequired,
-        addedGenes: React.PropTypes.array.isRequired,
+        analysisGroup: PropTypes.object.isRequired,
+        coloring: PropTypes.string.isRequired,
+        onClose: PropTypes.func.isRequired,
+        onTermSelect: PropTypes.func.isRequired,
+        onGeneAdd: PropTypes.func.isRequired,
+        onGeneRemove: PropTypes.func.isRequired,
+        addedGenes: PropTypes.array.isRequired,
 
-        // selectedTerm: React.PropTypes.object,
-        termColoring: React.PropTypes.string,
+        // selectedTerm: PropTypes.object,
+        termColoring: PropTypes.string,
     },
 
     getInitialState: function() {
@@ -127,10 +127,10 @@ var AnalysisPanel = React.createClass({
     }
 });
 
-var DownloadButton = React.createClass({
+var DownloadButton = createReactClass({
 
     propTypes: {
-        comp: React.PropTypes.object.isRequired
+        comp: PropTypes.object.isRequired
     },
 
     render: function() {

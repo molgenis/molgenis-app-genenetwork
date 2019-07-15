@@ -2,15 +2,15 @@ var React = require('react');
 var SVGCollection =  require('../ReactComponents/SVGCollection');
 var color = require('../../js/color');
 
-var NetworkControlPanel = React.createClass({
+var NetworkControlPanel = createReactClass({
 
     propTypes: {
-        onSelectionModeChange: React.PropTypes.func.isRequired,
-        download: React.PropTypes.func.isRequired,
-        selectionMode: React.PropTypes.string.isRequired,
-        onZoom: React.PropTypes.func,
-        isZoomedMax: React.PropTypes.bool,
-        isZoomedMin: React.PropTypes.bool
+        onSelectionModeChange: PropTypes.func.isRequired,
+        download: PropTypes.func.isRequired,
+        selectionMode: PropTypes.string.isRequired,
+        onZoom: PropTypes.func,
+        isZoomedMax: PropTypes.bool,
+        isZoomedMin: PropTypes.bool
     },
 
     render: function() {

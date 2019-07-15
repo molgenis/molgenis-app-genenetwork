@@ -1,15 +1,17 @@
 var _ = require('lodash')
 var React = require('react')
+var createReactClass = require('create-react-class');
+var PropTypes = require('prop-types');
 var ReactTooltip = require('react-tooltip')
 var Chr = require('../../js/chr')
 var htmlutil = require('../../js/htmlutil.js')
 var color = require('../../js/color.js')
 var exp = {}
 
-exp.X = React.createClass({
+exp.X = createReactClass({
 
     propTypes: {
-        size: React.PropTypes.number.isRequired
+        size: PropTypes.number.isRequired
     },
     
     render : function() {
@@ -22,13 +24,13 @@ exp.X = React.createClass({
     }
 })
 
-exp.SquareSVG = React.createClass({
+exp.SquareSVG = createReactClass({
 
     propTypes: {
-        size: React.PropTypes.number.isRequired,
-        biotype: React.PropTypes.string,
-        color: React.PropTypes.string,
-        padding: React.PropTypes.string
+        size: PropTypes.number.isRequired,
+        biotype: PropTypes.string,
+        color: PropTypes.string,
+        padding: PropTypes.string
     },
     
     render : function() {
@@ -43,10 +45,10 @@ exp.SquareSVG = React.createClass({
     }
 })
 
-exp.Download = React.createClass({
+exp.Download = createReactClass({
     propTypes: {
-        text: React.PropTypes.string,
-        size: React.PropTypes.number
+        text: PropTypes.string,
+        size: PropTypes.number
     },
     render: function() {
         return (
@@ -59,7 +61,7 @@ exp.Download = React.createClass({
     }
 })
 
-exp.Upload = React.createClass({
+exp.Upload = createReactClass({
 
     getInitialState: function() {
         return {
@@ -87,7 +89,7 @@ exp.Upload = React.createClass({
     }
 })
 
-exp.Plus = React.createClass({
+exp.Plus = createReactClass({
     render: function() {
         return (
                 <svg fill='4d4d4d' width='28' height='28' viewBox='0 0 24 24' strokeWidth='2' stroke='#4d4d4d'>
@@ -98,7 +100,7 @@ exp.Plus = React.createClass({
     }
 })
 
-exp.Minus = React.createClass({
+exp.Minus = createReactClass({
     render: function() {
         return (
                 <svg fill='4d4d4d' width='28' height='28' viewBox='0 0 24 24' strokeWidth='2' stroke='#4d4d4d'>
@@ -108,7 +110,7 @@ exp.Minus = React.createClass({
     }
 })
 
-exp.Move = React.createClass({
+exp.Move = createReactClass({
     // https://www.google.com/design/icons/
     render: function() {
         return (
@@ -120,7 +122,7 @@ exp.Move = React.createClass({
     }
 })
 
-exp.Hand = React.createClass({
+exp.Hand = createReactClass({
     
     render: function() {
         return (
@@ -131,7 +133,7 @@ exp.Hand = React.createClass({
     }
 })
 
-exp.ZoomIn = React.createClass({
+exp.ZoomIn = createReactClass({
     // https://www.google.com/design/icons/
     render: function() {
         return (
@@ -144,7 +146,7 @@ exp.ZoomIn = React.createClass({
     }
 }),
 
-exp.ZoomOut = React.createClass({
+exp.ZoomOut = createReactClass({
     // https://www.google.com/design/icons/
     render: function() {
         return (
@@ -156,7 +158,7 @@ exp.ZoomOut = React.createClass({
     }
 }),
 
-exp.Crop = React.createClass({
+exp.Crop = createReactClass({
     // https://www.google.com/design/icons/
     render: function() {
         return (
@@ -168,7 +170,7 @@ exp.Crop = React.createClass({
     }
 })
 
-exp.Rectangle = React.createClass({
+exp.Rectangle = createReactClass({
     render: function() {
             return (
                     <div className={this.props.className} title={this.props.title}>
@@ -180,7 +182,7 @@ exp.Rectangle = React.createClass({
     }
 })
 
-exp.TriangleUp = React.createClass({
+exp.TriangleUp = createReactClass({
     render: function() {
         return (
                 <div className={this.props.className} style={this.props.divStyle}>
@@ -192,7 +194,7 @@ exp.TriangleUp = React.createClass({
     }
 })
 
-exp.TriangleDown = React.createClass({
+exp.TriangleDown = createReactClass({
     render: function() {
         return (
                 <div className={this.props.className} style={this.props.divStyle}>
@@ -204,7 +206,7 @@ exp.TriangleDown = React.createClass({
     }
 })
 
-exp.Annotated = React.createClass({
+exp.Annotated = createReactClass({
     render: function() {
         return (
                 <svg viewBox='0 0 16 16' width='16' height='16'>
@@ -214,7 +216,7 @@ exp.Annotated = React.createClass({
     }
 })
 
-exp.CheckBox = React.createClass({
+exp.CheckBox = createReactClass({
     render: function() {
         return (
                 <svg viewBox='0 0 25 25' width='25' height='25' style={{position: 'absolute'}}>
@@ -230,7 +232,7 @@ exp.CheckBox = React.createClass({
     }
 })
 
-exp.NotAnnotated = React.createClass({
+exp.NotAnnotated = createReactClass({
     render: function() {
         return (
                 <svg viewBox='0 0 16 16' width='16' height='16'>
@@ -240,7 +242,7 @@ exp.NotAnnotated = React.createClass({
     }
 })
 
-exp.NetworkIcon = React.createClass({
+exp.NetworkIcon = createReactClass({
     render: function() {
         return (
                 <svg viewBox='0 0 16 16' width='16' height='16' style={{stroke: color.colors.gndarkgray, strokeWidth: '1px', fill: 'none'}}>
@@ -256,7 +258,7 @@ exp.NetworkIcon = React.createClass({
     }
 })
 
-exp.DiagonalText = React.createClass({
+exp.DiagonalText = createReactClass({
     render: function(){
         return (
             <svg width='90' height='90' style={{position: 'absolute', transform: 'translate(0, -75px)'}}>
@@ -266,13 +268,13 @@ exp.DiagonalText = React.createClass({
     }
 })
 
-exp.ListIcon = React.createClass({
+exp.ListIcon = createReactClass({
 
     propTypes: {
-        w: React.PropTypes.number.isRequired,
-        h: React.PropTypes.number.isRequired,
-        n: React.PropTypes.number,
-        color: React.PropTypes.string
+        w: PropTypes.number.isRequired,
+        h: PropTypes.number.isRequired,
+        n: PropTypes.number,
+        color: PropTypes.string
     },
     
     render: function() {
@@ -296,14 +298,14 @@ exp.ListIcon = React.createClass({
     }
 })
 
-exp.Chromosome = React.createClass({
+exp.Chromosome = createReactClass({
 
     propTypes: {
-        chr: React.PropTypes.oneOfType([
-            React.PropTypes.number,
-            React.PropTypes.string
+        chr: PropTypes.oneOfType([
+            PropTypes.number,
+            PropTypes.string
         ]).isRequired,
-        position: React.PropTypes.number
+        position: PropTypes.number
     },
 
     render: function() {
@@ -357,7 +359,7 @@ exp.Chromosome = React.createClass({
     }
 })
 
-exp.TranscriptBars = React.createClass({
+exp.TranscriptBars = createReactClass({
 
     render: function() {
         var bars = _.map(this.props.values, function(value, i){
@@ -392,10 +394,10 @@ exp.TranscriptBars = React.createClass({
     }
 })
 
-exp.I = React.createClass({
+exp.I = createReactClass({
 
     propTypes: {
-        title: React.PropTypes.string.isRequired
+        title: PropTypes.string.isRequired
     },
 
     render: function() {
@@ -414,7 +416,7 @@ exp.I = React.createClass({
     }
 })
 
-exp.ArrowRight = React.createClass({
+exp.ArrowRight = createReactClass({
 
     render: function() {
         return (
@@ -428,7 +430,7 @@ exp.ArrowRight = React.createClass({
     }
 })
 
-exp.ArrowLeft = React.createClass({
+exp.ArrowLeft = createReactClass({
 
     render: function() {
         return (
@@ -442,7 +444,7 @@ exp.ArrowLeft = React.createClass({
     }
 });
 
-exp.Warning = React.createClass({
+exp.Warning = createReactClass({
     render: function() {
         return (
             <svg width={24} height={24} x="0px" y="0px" viewBox="0 0 512 512" style={{enableBackground:'new 0 0 512 512'}}>

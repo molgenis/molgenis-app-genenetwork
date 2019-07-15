@@ -3,15 +3,15 @@ var React = require('react')
 var SVGCollection = require('../ReactComponents/SVGCollection')
 var color = require('../../js/color')
 
-var GroupPanel = React.createClass({
+var GroupPanel = createReactClass({
 
     propTypes: {
-        data: React.PropTypes.object.isRequired,
-        activeGroup: React.PropTypes.object,
-        coloring: React.PropTypes.string,
-        isGeneListShown: React.PropTypes.bool,
-        onGroupClick: React.PropTypes.func,
-        onAnalyse: React.PropTypes.func
+        data: PropTypes.object.isRequired,
+        activeGroup: PropTypes.object,
+        coloring: PropTypes.string,
+        isGeneListShown: PropTypes.bool,
+        onGroupClick: PropTypes.func,
+        onAnalyse: PropTypes.func
     },
 
     /**

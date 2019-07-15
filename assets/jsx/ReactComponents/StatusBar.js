@@ -3,7 +3,7 @@
 var React = require('react')
 var d3 = require('d3')
 
-var StatusBar = React.createClass({
+var StatusBar = createReactClass({
 
     getInitialState: function() {
         return {
@@ -13,11 +13,11 @@ var StatusBar = React.createClass({
     },
     
     propTypes: {
-        id: React.PropTypes.string.isRequired,
-        w: React.PropTypes.number.isRequired,
-        h: React.PropTypes.number.isRequired,
-        progress: React.PropTypes.number.isRequired,
-        done: React.PropTypes.bool
+        id: PropTypes.string.isRequired,
+        w: PropTypes.number.isRequired,
+        h: PropTypes.number.isRequired,
+        progress: PropTypes.number.isRequired,
+        done: PropTypes.bool
     },
     
     componentWillReceiveProps: function(nextProps) {

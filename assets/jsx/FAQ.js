@@ -1,8 +1,9 @@
 var React = require('react');
+var createReactClass = require('create-react-class');
 var DocumentTitle = require('react-document-title');
 var color = require('../js/color.js');
 
-var How = React.createClass({
+var How = createReactClass({
     render: function() {
         return (
             <DocumentTitle title={'FAQ' + GN.pageTitleSuffix}>

@@ -1,10 +1,11 @@
 var React = require('react');
+var createReactClass = require('create-react-class');
 var Box = require('./Box');
 var BoxFunctionEnrichment = require('./BoxFunctionEnrichment');
 var GN = require("../../config/gn");
 var color = require('../js/color');
 
-var Tools = React.createClass({
+var Tools = createReactClass({
 
     render: function() {
         return (

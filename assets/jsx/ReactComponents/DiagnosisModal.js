@@ -1,12 +1,12 @@
 'use strict';
 var React = require('react');
 
-var Modal = React.createClass({
+var Modal = createReactClass({
 
     propTypes: {
-        onClose: React.PropTypes.func.isRequired,
-        show: React.PropTypes.bool,
-        children: React.PropTypes.node
+        onClose: PropTypes.func.isRequired,
+        show: PropTypes.bool,
+        children: PropTypes.node
     },
 
     render() {

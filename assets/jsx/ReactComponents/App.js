@@ -1,7 +1,7 @@
 var React = require('react')
 var Router = require('react-router')
 
-var App = React.createClass({
+var App = createReactClass({
 
     mixins: [Router.Navigation],
 

@@ -17,7 +17,7 @@ var SVGCollection = require('./SVGCollection');
 var UploadPanel = require('./UploadPanel');
 var Back = require('./Back');
 
-var TermTable = React.createClass({
+var TermTable = createReactClass({
 
     componentDidUpdate: function() {
         // var terms = this.props.terms
@@ -71,7 +71,7 @@ var TermTable = React.createClass({
     }
 });
 
-var DiagnosisMain = React.createClass({
+var DiagnosisMain = createReactClass({
 
     getInitialState: function() {
         return {

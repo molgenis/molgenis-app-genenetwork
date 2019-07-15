@@ -5,7 +5,7 @@ var color = require('../../js/color');
 var htmlutil = require('../../js/htmlutil');
 
 var React = require('react');
-var ReactDOM = require('react-dom');
+var ReactDOM = require('react-dom');var createReactClass = require('create-react-class');
 var Router = require('react-router');
 var Link = Router.Link;
 var Select = require('react-select');
@@ -14,12 +14,12 @@ var DownloadPanel = require('./DownloadPanel');
 var Cookies = require('cookies-js');
 var SVGCollection = require('./SVGCollection.js');
 
-var PredictedGeneRow = React.createClass({
+var PredictedGeneRow = createReactClass({
 
     propTypes: {
-        data: React.PropTypes.object.isRequired,
-        termId: React.PropTypes.string.isRequired,
-        num: React.PropTypes.number,
+        data: PropTypes.object.isRequired,
+        termId: PropTypes.string.isRequired,
+        num: PropTypes.number,
     },
     
     render: function() {
@@ -52,12 +52,12 @@ var PredictedGeneRow = React.createClass({
     }
 });
 
-var AnnotatedGeneRow = React.createClass({
+var AnnotatedGeneRow = createReactClass({
 
     propTypes: {
-        data: React.PropTypes.object.isRequired,
-        termId: React.PropTypes.string.isRequired,
-        num: React.PropTypes.number
+        data: PropTypes.object.isRequired,
+        termId: PropTypes.string.isRequired,
+        num: PropTypes.number
     },
     
     render: function() {
@@ -90,11 +90,11 @@ var AnnotatedGeneRow = React.createClass({
     }
 });
 
-var GeneTable = React.createClass({
+var GeneTable = createReactClass({
 
     propTypes: {
-        data: React.PropTypes.object.isRequired,
-        listType: React.PropTypes.string
+        data: PropTypes.object.isRequired,
+        listType: PropTypes.string
     },
 
     render: function() {
@@ -139,7 +139,7 @@ var GeneTable = React.createClass({
     }
 });
 
-var Term = React.createClass({
+var Term = createReactClass({
 
     mixins: [Router.Navigation, Router.State],
 

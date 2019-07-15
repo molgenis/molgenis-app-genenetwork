@@ -4,7 +4,7 @@ var _ = require('lodash');
 var async = require('async');
 var AffinityPropagation = require('affinity-propagation');
 var React = require('react');
-var ReactDOM = require('react-dom');
+var ReactDOM = require('react-dom');var createReactClass = require('create-react-class');
 var DocumentTitle = require('react-document-title');
 
 var GroupPanel = require('./GroupPanel');
@@ -189,13 +189,13 @@ var network2js = function(network) {
     return js
 };
 
-var Network = React.createClass({
+var Network = createReactClass({
 
     propTypes: {
-        data: React.PropTypes.object,
-        forceToArea: React.PropTypes.bool,
-        onClick: React.PropTypes.func,
-        onNodeClick: React.PropTypes.func,
+        data: PropTypes.object,
+        forceToArea: PropTypes.bool,
+        onClick: PropTypes.func,
+        onNodeClick: PropTypes.func,
     },
 
     getInitialState: function() {

@@ -2,12 +2,12 @@ var React = require('react')
 var GeneOpenMenu = require('../ReactComponents/GeneOpenMenu')
 var SVGCollection = require('../ReactComponents/SVGCollection')
 
-var GeneHeaderMenu = React.createClass({
+var GeneHeaderMenu = createReactClass({
 
     propTypes: {
-        gene: React.PropTypes.object.isRequired,
-        onMenuClick: React.PropTypes.func.isRequired,
-        topMenuSelection: React.PropTypes.string.isRequired
+        gene: PropTypes.object.isRequired,
+        onMenuClick: PropTypes.func.isRequired,
+        topMenuSelection: PropTypes.string.isRequired
     },
     
     render: function() {

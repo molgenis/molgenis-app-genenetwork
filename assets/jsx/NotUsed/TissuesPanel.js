@@ -2,7 +2,7 @@ var React = require('react')
 var SVGCollection =  require('../ReactComponents/SVGCollection')
 var color = require('../../js/color')
 
-var TissuesPanel = React.createClass({
+var TissuesPanel = createReactClass({
 
     render: function() {
         

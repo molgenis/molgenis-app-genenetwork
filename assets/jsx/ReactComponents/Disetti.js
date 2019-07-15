@@ -3,10 +3,10 @@ var htmlutil = require('../../js/htmlutil.js')
 var React = require('react')
 var Cookies = require('cookies-js')
 
-var Disetti = React.createClass({
+var Disetti = createReactClass({
     
     propTypes: {
-        onClick: React.PropTypes.func,
+        onClick: PropTypes.func,
     },
     
     getInitialState: function() {

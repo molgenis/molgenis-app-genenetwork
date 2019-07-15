@@ -2,6 +2,7 @@
 
 var _ = require('lodash');
 var React = require('react');
+var createReactClass = require('create-react-class');
 var Router = require('react-router');
 var DocumentTitle = require('react-document-title');
 
@@ -14,7 +15,7 @@ var Cookies = require('cookies-js');
 var color = require('../../js/color');
 var DataTable = require('../ReactComponents/DataTable');
 
-var Gene = React.createClass({
+var Gene = createReactClass({
 
     mixins: [Router.Navigation, Router.State],
 

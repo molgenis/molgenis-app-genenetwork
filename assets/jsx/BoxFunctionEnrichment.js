@@ -1,4 +1,5 @@
 var React = require('react');
+var createReactClass = require('create-react-class');
 var ReactRouter = require('react-router');
 var Link = ReactRouter.Link;
 var SVGCollection = require('./ReactComponents/SVGCollection');
@@ -6,7 +7,7 @@ var SVGCollection = require('./ReactComponents/SVGCollection');
 
 var color = require('../js/color');
 
-var BoxFunctionEnrichment = React.createClass({
+var BoxFunctionEnrichment = createReactClass({
     getInitialState: function() {
         return {
             color: color.colors.gngray

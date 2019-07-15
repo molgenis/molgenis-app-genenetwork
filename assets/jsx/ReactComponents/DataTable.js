@@ -18,11 +18,11 @@ var Thead = reactable.Thead;
 var Table = reactable.Table;
 var unsafe = reactable.unsafe;
 
-var DataTable = React.createClass({
+var DataTable = createReactClass({
 
     propTypes: {
-        data: React.PropTypes.object.isRequired,
-        db: React.PropTypes.string.isRequired
+        data: PropTypes.object.isRequired,
+        db: PropTypes.string.isRequired
     },
 
     getInitialState: function() {

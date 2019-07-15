@@ -1,9 +1,10 @@
 var _ = require('lodash');
 var React = require('react');
+var createReactClass = require('create-react-class');
 var ReactRouter = require('react-router');
 var Link = ReactRouter.Link;
 
-var MenuBar = React.createClass({
+var MenuBar = createReactClass({
     render: function() {
         var that = this;
         var items = _.map(that.props.items, function(item, i) {

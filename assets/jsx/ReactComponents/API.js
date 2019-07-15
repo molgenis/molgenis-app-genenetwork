@@ -2,10 +2,11 @@
 
 var _ = require('lodash')
 var React = require('react')
+var createReactClass = require('create-react-class');
 var DocumentTitle = require('react-document-title')
 var color = require('../../js/color.js')
 
-var Description = React.createClass({
+var Description = createReactClass({
 
     render: function() {
         return (
@@ -14,7 +15,7 @@ var Description = React.createClass({
     }
 })
 
-var Notes = React.createClass({
+var Notes = createReactClass({
 
     render: function() {
         return (
@@ -28,7 +29,7 @@ var Notes = React.createClass({
     }
 })
 
-var Gene = React.createClass({
+var Gene = createReactClass({
 
     render: function() {
         return (
@@ -63,7 +64,7 @@ var Gene = React.createClass({
     }
 })
 
-var Term = React.createClass({
+var Term = createReactClass({
 
     render: function() {
         return (
@@ -93,7 +94,7 @@ var Term = React.createClass({
 })
 
 
-var Prioritization = React.createClass({
+var Prioritization = createReactClass({
 
     render: function() {
         return (
@@ -121,7 +122,7 @@ var Prioritization = React.createClass({
         )
     }
 })
-var Coregulation = React.createClass({
+var Coregulation = createReactClass({
 
     render: function() {
         return (
@@ -133,7 +134,7 @@ var Coregulation = React.createClass({
     }
 })
 
-var Cofunction = React.createClass({
+var Cofunction = createReactClass({
 
     render: function() {
         return (
@@ -145,7 +146,7 @@ var Cofunction = React.createClass({
     }
 })
 
-var Api = React.createClass({
+var Api = createReactClass({
     
     render: function() {
         return (

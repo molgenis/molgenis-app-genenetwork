@@ -56,7 +56,7 @@ function getRGB(avg){
 	}
 }
 
-module.exports = React.createClass({
+module.exports = createReactClass({
 
 	render: function(mouseEvent) {
 

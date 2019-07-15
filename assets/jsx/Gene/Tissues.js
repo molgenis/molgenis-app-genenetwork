@@ -20,7 +20,7 @@ var Thead = reactable.Thead
 var Table = reactable.Table
 var unsafe = reactable.unsafe
 
-var DataTable = React.createClass({
+var DataTable = createReactClass({
 
     getInitialState: function() {
         return {}
@@ -101,7 +101,7 @@ var DataTable = React.createClass({
     }
 })
 
-var Tissues = React.createClass({
+var Tissues = createReactClass({
 
     getInitialState: function() {
         return {}

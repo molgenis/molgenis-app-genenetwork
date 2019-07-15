@@ -5,16 +5,16 @@ var React = require('react')
 var GeneOpenMenu = require('../ReactComponents/GeneOpenMenu')
 var SVGCollection = require('../ReactComponents/SVGCollection')
 
-var GeneMenu = React.createClass({
+var GeneMenu = createReactClass({
 
     propTypes: {
-        data: React.PropTypes.object.isRequired,
-        onTopMenuClick: React.PropTypes.func.isRequired,
-        onDatabaseClick: React.PropTypes.func.isRequired,
-        onShowTypeClick: React.PropTypes.func.isRequired,
-        topMenuSelection: React.PropTypes.string.isRequired,
-        databaseSelection: React.PropTypes.string.isRequired,
-        showTypeSelection: React.PropTypes.string,
+        data: PropTypes.object.isRequired,
+        onTopMenuClick: PropTypes.func.isRequired,
+        onDatabaseClick: PropTypes.func.isRequired,
+        onShowTypeClick: PropTypes.func.isRequired,
+        topMenuSelection: PropTypes.string.isRequired,
+        databaseSelection: PropTypes.string.isRequired,
+        showTypeSelection: PropTypes.string,
     },
     
     render: function() {

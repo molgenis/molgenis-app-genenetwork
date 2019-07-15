@@ -1,14 +1,16 @@
 var _ = require('lodash')
-var React = require('react')
+var React = require('react');
+var createReactClass = require('create-react-class');
+var PropTypes = require('prop-types');
 
-var Logo = React.createClass({
+var Logo = createReactClass({
 
     propTypes: {
-        w: React.PropTypes.number.isRequired,
-        h: React.PropTypes.number.isRequired,
-        style: React.PropTypes.object,
-        progress: React.PropTypes.array,
-        mirrored: React.PropTypes.bool,
+        w: PropTypes.number.isRequired,
+        h: PropTypes.number.isRequired,
+        style: PropTypes.object,
+        progress: PropTypes.array,
+        mirrored: PropTypes.bool
     },
     
     componentDidMount: function() {

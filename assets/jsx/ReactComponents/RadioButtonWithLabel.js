@@ -1,12 +1,12 @@
 var React = require('react')
 var color = require('../../js/color')
 
-var RadioButtonWithLabel = React.createClass({
+var RadioButtonWithLabel = createReactClass({
 
     propTypes: {
-        label: React.PropTypes.string,
-        isChecked: React.PropTypes.bool,
-        onChange: React.PropTypes.func
+        label: PropTypes.string,
+        isChecked: PropTypes.bool,
+        onChange: PropTypes.func
     },
     
     render: function() {

@@ -3,13 +3,13 @@ var React = require('react')
 var d3 = require('d3')
 var color = require('../../js/color.js')
 
-var EdgeLegend = React.createClass({
+var EdgeLegend = createReactClass({
 
     propTypes: {
 
-        edgeValueScales: React.PropTypes.array.isRequired,
-        edgeColorScales: React.PropTypes.array.isRequired,
-        threshold: React.PropTypes.number
+        edgeValueScales: PropTypes.array.isRequired,
+        edgeColorScales: PropTypes.array.isRequired,
+        threshold: PropTypes.number
     },
 
     getInitialState: function() {

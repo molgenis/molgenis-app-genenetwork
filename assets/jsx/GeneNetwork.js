@@ -4,11 +4,11 @@
 var GN = require('../../config/gn.js');
 
 var React = require('react');
-var ReactDOM = require('react-dom');
+var ReactDOM = require('react-dom');var createReactClass = require('create-react-class');
 var ReactRouter = require('react-router');
 var Router = ReactRouter.Router;
 var Route = ReactRouter.Route;
-var createBrowserHistory = require('history/createBrowserHistory');
+var createBrowserHistory = require("history").createBrowserHistory;
 
 var Landing = require('./Landing');
 var FAQ = require('./FAQ');

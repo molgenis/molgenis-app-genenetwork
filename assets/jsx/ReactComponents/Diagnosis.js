@@ -71,7 +71,7 @@ function getRGB(avg){
 
 /*Shows a table of the phenotypes used as input, with colours depending on the Z-scores: */
 
-var NetworkButton = React.createClass({
+var NetworkButton = createReactClass({
 
     render: function() {
 
@@ -95,7 +95,7 @@ var NetworkButton = React.createClass({
     }
 });
 
-var ShowPhenotypes3 = React.createClass({
+var ShowPhenotypes3 = createReactClass({
 
     render: function() {
         var hoverZScores = this.props.hoverItem;
@@ -145,7 +145,7 @@ var ShowPhenotypes3 = React.createClass({
 
 /* Shows a table of all of the prioritized genes: */
 
-var GeneTable = React.createClass({
+var GeneTable = createReactClass({
 
     render: function() {
 
@@ -384,7 +384,7 @@ var compareGenes = function (newList, data) {
 
 /* Textbox to paste a list of genes in, to filter the table: */
 
-var PasteBox = React.createClass({
+var PasteBox = createReactClass({
 
     getInitialState: function() {
         return {newTable: ''}
@@ -422,7 +422,7 @@ var PasteBox = React.createClass({
 });
 
 
-var Diagnosis = React.createClass({
+var Diagnosis = createReactClass({
 
     getInitialState: function() {
         var useCustomGeneSet = this.props.location.state === null ? false : this.props.location.state.useCustomGeneSet;

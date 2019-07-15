@@ -7,10 +7,10 @@ var SVGCollection = require('./SVGCollection')
 var Disetti = require('./Disetti')
 var color = require('../../js/color')
 
-var AddGeneSVG = React.createClass({
+var AddGeneSVG = createReactClass({
 
     propTypes: {
-        gene: React.PropTypes.object.isRequired
+        gene: PropTypes.object.isRequired
     },
     
     render: function() {
@@ -27,10 +27,10 @@ var AddGeneSVG = React.createClass({
     }
 })
 
-var RemoveGeneSVG = React.createClass({
+var RemoveGeneSVG = createReactClass({
 
     propTypes: {
-        gene: React.PropTypes.object.isRequired
+        gene: PropTypes.object.isRequired
     },
     
     render: function() {
@@ -46,14 +46,14 @@ var RemoveGeneSVG = React.createClass({
     }
 })
     
-var PredictedGenesPanel = React.createClass({
+var PredictedGenesPanel = createReactClass({
 
     propTypes: {
-        group: React.PropTypes.object,
-        onGeneAdd: React.PropTypes.func,
-        onGeneRemove: React.PropTypes.func,
-        addedGenes: React.PropTypes.array,
-        d3fd: React.PropTypes.object, // TODO remove, put getNodeById() in the data object itself?
+        group: PropTypes.object,
+        onGeneAdd: PropTypes.func,
+        onGeneRemove: PropTypes.func,
+        addedGenes: PropTypes.array,
+        d3fd: PropTypes.object, // TODO remove, put getNodeById() in the data object itself?
     },
 
     getInitialState: function() {

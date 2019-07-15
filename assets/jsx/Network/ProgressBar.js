@@ -1,6 +1,6 @@
 var React = require('react')
 
-var ProgressBar = React.createClass({
+var ProgressBar = createReactClass({
 
     componentDidMount: function() {
     },

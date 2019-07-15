@@ -1,14 +1,16 @@
 'use strict';
 
 var React = require('react');
+var createReactClass = require('create-react-class');
+var PropTypes = require('prop-types');
 var SVGCollection = require('../ReactComponents/SVGCollection');
 var color = require('../../js/color.js');
 
-var GeneHeader = React.createClass({
+var GeneHeader = createReactClass({
     
     propTypes: {
-        gene: React.PropTypes.object,
-        loading: React.PropTypes.bool
+        gene: PropTypes.object,
+        loading: PropTypes.bool
     },
     
     render: function() {

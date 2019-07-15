@@ -13,7 +13,7 @@ var Link = ReactRouter.Link
 
 var SVGCollection = require('./SVGCollection')
 
-var Back = React.createClass({
+var Back = createReactClass({
 
     getInitialState: function() {
       return {

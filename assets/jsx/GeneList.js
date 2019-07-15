@@ -1,10 +1,11 @@
 var _ = require('lodash');
 var React = require('react');
+var createReactClass = require('create-react-class');
 var ReactTable = require('react-table').default;
 var DocumentTitle = require('react-document-title');
 var color = require('../js/color');
 
-var GeneList = React.createClass({
+var GeneList = createReactClass({
 
     getInitialState: function() {
         return ({

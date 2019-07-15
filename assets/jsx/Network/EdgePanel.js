@@ -6,10 +6,10 @@ var genstats = require('genstats')
 var htmlutil = require('../../js/htmlutil')
 var color = require('../../js/color')
 
-var EdgePanel = React.createClass({
+var EdgePanel = createReactClass({
     
     propTypes: {
-        edge: React.PropTypes.object.isRequired
+        edge: PropTypes.object.isRequired
     },
 
     render: function() {

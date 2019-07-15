@@ -11,10 +11,10 @@ var Td = reactable.Td;
 var Table = reactable.Table;
 var unsafe = reactable.unsafe;
 
-var SimilarGenesTable = React.createClass({
+var SimilarGenesTable = createReactClass({
 
     propTypes: {
-        data: React.PropTypes.object
+        data: PropTypes.object
     },
     
     render: function() {
