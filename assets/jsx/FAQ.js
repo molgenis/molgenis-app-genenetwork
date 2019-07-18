@@ -12,6 +12,7 @@ var How = React.createClass({
                     <ul>
                         <li><a href={"#what-is-genenetwork"}>What is GeneNetwork?</a></li>
                         <li><a href={"#what-is-gado"}>What is GADO?</a></li>
+                        <li><a href={"#can-i-run-gado-locally"}>Can I run GADO locally?</a></li>
                         <li><a href={"#why-cant-my-term-be-used"}>Why can’t my term be used?</a></li>
                         <li><a href={"#why-is-my-term-not-found"}>Why is my term not found?</a></li>
                         <li><a href={"#gene-not-found"}>My favorite candidate gene for patient is not found back in the top of the results?</a></li>
@@ -36,6 +37,12 @@ var How = React.createClass({
                         the discovery of new disease-causing genes.
                     </p>
                     <img title='GeneNetwork' style={{width: '800px'}} src={GN.urls.main + '/images/gado.png'} />
+
+                    <h3 id="can-i-run-gado-locally">Can I run GADO locally?</h3>
+                    <p>
+                        We have created a standalone version of GADO that can easily be integrated in an automated analysis pipeline.
+                        For more information see: <a href="https://github.com/molgenis/systemsgenetics/wiki/GADO-Command-line">GADO Command Line</a>
+                    </p>
 
                     <h3 id="why-cant-my-term-be-used">Why can’t my term be used?</h3>
                     <p>
@@ -65,7 +72,7 @@ var How = React.createClass({
 
                     <h3 id="how-to-cite">How to cite?</h3>
                     <p>
-                        <a href="https://www.biorxiv.org/content/early/2018/07/25/375766" target="_blank">Improving the diagnostic yield of exome-sequencing, by predicting gene-phenotype
+                        <a href="https://www.nature.com/articles/s41467-019-10649-4" target="_blank">Improving the diagnostic yield of exome-sequencing, by predicting gene-phenotype
                             associations using large-scale gene expression analysis</a>
                     </p>
 
