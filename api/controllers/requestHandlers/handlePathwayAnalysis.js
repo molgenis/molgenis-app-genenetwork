@@ -3,7 +3,11 @@ var dbutil = require('../utils/dbutil')
 var genedesc = require('../utils/genedesc')
 var quicksortobj = require('../utils/quicksortobj')
 
-var Queue = kue.createQueue() // this does not create a new queue, it's just redis access
+var Queue = kue.createQueue({
+                                redis:{
+                                    host: 'redis'
+                                }
+                             }) // this does not create a new queue, it's just redis access
 var lastAnalysisRequest = null
 var lastAnalysisResult = null
 
