@@ -1,0 +1,29 @@
+FROM node:11.9.0
+
+# Set the working directory to /app
+WORKDIR /app
+
+# Copy the current directory contents into the container at /app
+COPY package*.json ./
+
+# Install any needed packages specified in requirements.txt
+RUN npm install
+# If you are building your code for production
+# RUN npm ci --only=production
+
+#
+
+RUN npm build
+RUN npm i natives
+
+# Bundle app source
+COPY . .
+
+# Make port 80 available to the world outside this container
+EXPOSE 80
+
+# Run app.py when the container launches
+#CMD [ "bash"]
+CMD [ "node", "servers/PredictionServer.js"]
+CMD [ "node", "--max-old-space-size=8192", "servers/PWAServerInMem.js"]
+CMD ["npm", "start"]
