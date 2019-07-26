@@ -6,38 +6,34 @@
 
 module.exports = {
 
-    genesToTranscripts: '/data/genenetwork/files/genesToTranscripts.txt',
+    genesToTranscripts: '/data/metabrainnetwork/files/genesToTranscripts.txt',
     transcriptMappingFile: 'xxx',
-    mim2gene: '/data/genenetwork/files/new/mim2gene.txt',
+    mim2gene: '/data/metabrainnetwork/files/new/mim2gene.txt',
 
-    geneDescFile: '/data/genenetwork/files/new/ENSGToGeneNameHGNCBiotypeChromosomeStartStopStrandAndDescriptionV83FilteredNonChromosomesRemovedDuplicateTranscriptsRemoved.txt',
-    genePredScoreFile: '/data/genenetwork/files/new/skewnessSummary.txt',
-    geneDBPath: '/data/genenetwork/level/new/dbgenes_uint16be',
-    pathwayDBPath: '/data/genenetwork/level/new/dbexternal_uint16be',
+    geneDescFile: '/data/metabrainnetwork/files/new/ENSGToGeneNameHGNCBiotypeChromosomeStartStopStrandAndDescriptionV83FilteredNonChromosomesRemovedDuplicateTranscriptsRemoved.txt',
+    genePredScoreFile: '/data/metabrainnetwork/files/new/skewnessSummary.txt',
+    geneDBPath: '/data/metabrainnetwork/level/new/dbgenes_uint16be',
+    pathwayDBPath: '/data/metabrainnetwork/level/new/dbexternal_uint16be',
     
-    transcriptDBpath: '/data/genenetwork/level/new/transcriptdb',
-    transcriptBarsDBpath: '/data/genenetwork/level/new/transcriptbars',
-    tissuecorrelationDBPath: '/data/genenetwork/level/new/tissuedb',
+    transcriptDBpath: '/data/metabrainnetwork/level/new/transcriptdb',
+    transcriptBarsDBpath: '/data/metabrainnetwork/level/new/transcriptbars',
+    tissuecorrelationDBPath: '/data/metabrainnetwork/level/new/tissuedb',
 
-    // geneDescFile: '/data/genenetwork/files/ENSGToGeneNameHGNCBiotypeChromosomeStartStopStrandAndDescriptionV75.txt.filtered.txt',
-    // geneDBPath: '/data/genenetwork/level/dbgenes_uint16be',
-    // pathwayDBPath: '/data/genenetwork/level/dbexternal_uint16be',
-
-    celltypeDBPath: '/data/genenetwork/level/new/celltypedb',
-    correlationDBPath: '/data/genenetwork/level/new/dbpccorrelationzscores_uint16be_genescompsstdnorm',
-    hpocorrelationDB: '/data/genenetwork/level/new/hpocorrelationdb',
+    celltypeDBPath: '/data/metabrainnetwork/level/new/celltypedb',
+    correlationDBPath: '/data/metabrainnetwork/level/new/dbpccorrelationzscores_uint16be_genescompsstdnorm',
+    hpocorrelationDB: '/data/metabrainnetwork/level/new/hpocorrelationdb',
     //correlationDBPath: '/srv/molgenis/dbpccorrelationzscores_uint16be',
-    requestDBPath: '/data/genenetwork/level/new/dbreq',
-    networkShortURLDBPath: '/data/genenetwork/level/new/dbnetworkurls',
+    requestDBPath: '/data/metabrainnetwork/level/new/dbreq',
+    networkShortURLDBPath: '/data/metabrainnetwork/level/new/dbnetworkurls',
 
-    svgUploadDir: '/data/genenetwork/uploads/svg/',
-    genelistUploadDir: '/data/genenetwork/uploads/genelist',
+    svgUploadDir: '/data/metabrainnetwork/uploads/svg/',
+    genelistUploadDir: '/data/metabrainnetwork/uploads/genelist',
 
     networkFontFamily: 'Geogrotesque Lg',
     networkFontFile: 'assets/fonts/Geogtq-Lg.svg',
 
     useElastic: true,
-    elasticHost: 'localhost:9200',
+    elasticHost: 'elasticsearch:9200',
     elasticLogLevel: 'debug',
     
     pubmine: {

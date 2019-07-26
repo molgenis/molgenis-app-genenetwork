@@ -4,10 +4,11 @@ var genedesc = require('../utils/genedesc')
 var quicksortobj = require('../utils/quicksortobj')
 
 var Queue = kue.createQueue({
-                                redis:{
-                                    host: 'redis'
-                                }
-                             }) // this does not create a new queue, it's just redis access
+                               redis:{
+                                   host: 'redis'
+                               }
+                            }) // this does not create a new queue, it's just redis access
+
 var lastAnalysisRequest = null
 var lastAnalysisResult = null
 
