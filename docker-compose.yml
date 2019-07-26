@@ -16,7 +16,15 @@ services:
     image: redis
     networks:
       - redis
+  elasticsearch:
+    image: elasticsearch:2.4
+    ports:
+      - 9200:9200
+    networks:
+      - elasticsearch
 
 networks:
   redis:
+    driver: bridge
+  elasticsearch:
     driver: bridge
