@@ -8,18 +8,32 @@ services:
       - "4000:85"
     depends_on:
       - redis
+      - elasticsearch
     networks:
       - redis
+      - elasticsearch
     volumes:
         - "/data:/data"
+    environment:
+      - "discovery.zen.ping.unicast.hosts=elasticsearch"
+      - ELASTICSEARCH_URL=http://elasticsearch:9200"
+      - ELASTICSEARCH_HOST=elasticsearch
   redis:
     image: redis
     networks:
       - redis
+    ports:
+      - "6379:6379"
+    expose:
+      - "6379"
   elasticsearch:
     image: elasticsearch:2.4
     ports:
       - 9200:9200
+      - 9300:9300
+    expose:
+      - "9200"
+      - "9300"
     networks:
       - elasticsearch
 
