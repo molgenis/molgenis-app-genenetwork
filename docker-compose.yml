@@ -9,9 +9,6 @@ services:
     depends_on:
       - redis
       - elasticsearch
-    networks:
-      - redis
-      - elasticsearch
     volumes:
         - "/data:/data"
     environment:
@@ -20,25 +17,10 @@ services:
       - ELASTICSEARCH_HOST=elasticsearch
   redis:
     image: redis
-    networks:
-      - redis
     ports:
       - "6379:6379"
-    expose:
-      - "6379"
   elasticsearch:
     image: elasticsearch:2.4
     ports:
       - 9200:9200
       - 9300:9300
-    expose:
-      - "9200"
-      - "9300"
-    networks:
-      - elasticsearch
-
-networks:
-  redis:
-    driver: bridge
-  elasticsearch:
-    driver: bridge
