@@ -4,7 +4,7 @@ FROM node:11.9.0
 WORKDIR /app
 
 # Copy the current directory contents into the container at /app
-COPY package*.json ./
+COPY package*.json entrypoint.sh ./
 
 # Install any needed packages specified in requirements.txt
 RUN npm install
@@ -22,8 +22,9 @@ COPY . .
 # Make port 80 available to the world outside this container
 EXPOSE 80
 
+# Fill elasticsearch with entrypoint.sh script
+RUN chmod +x entrypoint.sh  # if not already executable
+ENTRYPOINT ["/app/entrypoint.sh"]
+
 # Run app.py when the container launches
-#CMD [ "bash"]
-CMD [ "node", "servers/PredictionServer.js"]
-CMD [ "node", "--max-old-space-size=8192", "servers/PWAServerInMem.js"]
 CMD ["npm", "start"]
