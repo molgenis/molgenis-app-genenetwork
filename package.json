@@ -18,7 +18,7 @@
     "es6-templates": "^0.2.2",
     "extend": "^3.0.1",
     "genstats": "0.0.1",
-    "grunt": "^0.4.5",
+    "grunt": "1.0.4",
     "grunt-contrib-clean": "^0.5.0",
     "grunt-contrib-coffee": "^0.10.1",
     "grunt-contrib-concat": "^0.3.0",
@@ -84,6 +84,7 @@
   "devDependencies": {
     "acorn": "^6.0.0",
     "react": "^15.x.x",
+    "sails-hook-grunt": "^4.0.1",
     "xxxxx": "^1.0.3"
   }
 }
