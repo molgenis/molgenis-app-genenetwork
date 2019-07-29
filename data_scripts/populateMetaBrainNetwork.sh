@@ -5,9 +5,10 @@
 set -e
 set -u
 # presumably this is not necesarry because it misses an input file
-#node populateGenesToGeneDB.js \
-#	/data/metabrainnetwork/level/new/dbgenes_uint16be \
-#	/data/metabrainnetwork/files/Version1_18_07_2019/ENSGToGeneNameHGNCBiotypeChromosomeStartStopStrandAndDescriptionV83FilteredNonChromosomesRemovedDuplicateTranscriptsRemoved.txt
+node populateGenesToGeneDB.js \
+	/data/metabrainnetwork/level/new/dbgenes_uint16be \
+	/data/metabrainnetwork/files/Version1_18_07_2019/ENSGToGeneNameHGNCBiotypeChromosomeStartStopStrandAndDescriptionV83FilteredNonChromosomesRemovedDuplicateTranscriptsRemoved.txt \
+    /data/metabrainnetwork/files/Version1_18_07_2019/GenePredictScores.txt
 
 ###
 ### HPO
@@ -52,7 +53,7 @@ node rankPathwaysFromDataFileTXT.js \
 
 ## GO_F
 node populateGenesetDBTXT.js \
-	/data/metabrainnetworkk/level/new/dbgenes_uint16be \
+	/data/metabrainnetwork/level/new/dbgenes_uint16be \
 	/data/metabrainnetwork/level/new/dbexternal_uint16be \
 	GO_F \
 	/data/metabrainnetwork/files/Version1_18_07_2019/GO/GO_F/MetaBrain.go_F_predictions.AUC.bonSigTerms_gnInputFormat.txt \
@@ -122,6 +123,6 @@ node rankPathwaysFromDataFileTXT.js \
 ##
 ## Coregulation
 ##
-node populateCoregulationDBTXT.js \
-    /data/metabrainnetwork/files/Version1_18_07_2019/Gene_Coregulation/MetaBrain.eigenvectors.cronbach_0.9.correlation.txt.gz \
-	/data/metabrainnetwork/level/new/dbpccorrelationzscores_uint16be_genescompsstdnorm 526
+#node populateCoregulationDBTXT.js \
+#    /data/metabrainnetwork/files/Version1_18_07_2019/Gene_Coregulation/MetaBrain.eigenvectors.cronbach_0.9.correlation.txt.gz \
+#	/data/metabrainnetwork/level/new/dbpccorrelationzscores_uint16be_genescompsstdnorm 526

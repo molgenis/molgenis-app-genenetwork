@@ -8,7 +8,7 @@ var client = new elasticsearch.Client({
     log: 'info'
 })
 
-var db = level('/data/genenetwork/level/new/dbexternal_uint16be', {valueEncoding: 'binary'})
+var db = level('/data/metabrainnetwork/level/new/dbexternal_uint16be', {valueEncoding: 'binary'})
 
 async.waterfall([
     function(cb) {

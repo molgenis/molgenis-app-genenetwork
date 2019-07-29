@@ -1,4 +1,4 @@
-vvdatadir=/data/metabrainnetwork/
+datadir=/data/metabrainnetwork/
 
 # nothing needs to be copied to dbgenes_uint16be, but the directory must excist when populateMetaBrainNetwork.sh is run
 mkdir -p $datadir/level/new/dbgenes_uint16be/
