@@ -9,6 +9,8 @@ services:
     depends_on:
       - redis
       - elasticsearch
+      - predictionserver
+      - pwasserver
     volumes:
         - "/data:/data"
     environment:
@@ -24,3 +26,15 @@ services:
     ports:
       - 9200:9200
       - 9300:9300
+  predictionserver:
+    image: predictionserver
+    depends_on:
+      - elasticsearch
+    volumes:
+      - "/data:/data"
+  pwasserver:
+    image: pwasserver
+    depends_on:
+      - elasticsearch
+    volumes:
+      - "/data:/data"
