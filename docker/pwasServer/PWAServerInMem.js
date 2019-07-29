@@ -1,9 +1,13 @@
 var _ = require('lodash');
 var async = require('async');
-var Queue = require('kue').createQueue();
+var Queue = require('kue').createQueue({
+                               redis:{
+                                   host: 'redis'
+                               }
+                            })
 var genstats = require('genstats');
-var quicksort = require('api/controllers/utils/quicksort');
-var quicksortobj = require('api/controllers/utils/quicksortobj');
+var quicksort = require('./api/controllers/utils/quicksort');
+var quicksortobj = require('./api/controllers/utils/quicksortobj');
 
 var level = require('level');
 var pathwayrankdb = level('/data/metabrainnetwork/level/new/dbexternalranks', {
