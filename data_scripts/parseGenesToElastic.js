@@ -7,7 +7,7 @@ var client = new elasticsearch.Client({
     log: 'info'
 })
 
-var db = level('/data/metabrainnetwork/level/new/dbgenes_uint16be', {valueEncoding: 'binary'})
+var db = level('/data/genenetwork/level/new/dbgenes_uint16be', {valueEncoding: 'binary'})
 
 db.get('!RNASEQ', {valueEncoding: 'json'}, function(err, data) {
     var bulk = []
