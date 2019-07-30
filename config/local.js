@@ -6,28 +6,28 @@
 
 module.exports = {
 
-    genesToTranscripts: '/data/metabrainnetwork/files/genesToTranscripts.txt',
+    genesToTranscripts: '/data/genenetwork/files/genesToTranscripts.txt',
     transcriptMappingFile: 'xxx',
-    mim2gene: '/data/metabrainnetwork/files/new/mim2gene.txt',
+    mim2gene: '/data/genenetwork/files/new/mim2gene.txt',
 
-    geneDescFile: '/data/metabrainnetwork/files/new/ENSGToGeneNameHGNCBiotypeChromosomeStartStopStrandAndDescriptionV83FilteredNonChromosomesRemovedDuplicateTranscriptsRemoved.txt',
-    genePredScoreFile: '/data/metabrainnetwork/files/new/skewnessSummary.txt',
-    geneDBPath: '/data/metabrainnetwork/level/new/dbgenes_uint16be',
-    pathwayDBPath: '/data/metabrainnetwork/level/new/dbexternal_uint16be',
+    geneDescFile: '/data/genenetwork/files/new/ENSGToGeneNameHGNCBiotypeChromosomeStartStopStrandAndDescriptionV83FilteredNonChromosomesRemovedDuplicateTranscriptsRemoved.txt',
+    genePredScoreFile: '/data/genenetwork/files/new/skewnessSummary.txt',
+    geneDBPath: '/data/genenetwork/level/new/dbgenes_uint16be',
+    pathwayDBPath: '/data/genenetwork/level/new/dbexternal_uint16be',
     
-    transcriptDBpath: '/data/metabrainnetwork/level/new/transcriptdb',
-    transcriptBarsDBpath: '/data/metabrainnetwork/level/new/transcriptbars',
-    tissuecorrelationDBPath: '/data/metabrainnetwork/level/new/tissuedb',
+    transcriptDBpath: '/data/genenetwork/level/new/transcriptdb',
+    transcriptBarsDBpath: '/data/genenetwork/level/new/transcriptbars',
+    tissuecorrelationDBPath: '/data/genenetwork/level/new/tissuedb',
 
-    celltypeDBPath: '/data/metabrainnetwork/level/new/celltypedb',
-    correlationDBPath: '/data/metabrainnetwork/level/new/dbpccorrelationzscores_uint16be_genescompsstdnorm',
-    hpocorrelationDB: '/data/metabrainnetwork/level/new/hpocorrelationdb',
+    celltypeDBPath: '/data/genenetwork/level/new/celltypedb',
+    correlationDBPath: '/data/genenetwork/level/new/dbpccorrelationzscores_uint16be_genescompsstdnorm',
+    hpocorrelationDB: '/data/genenetwork/level/new/hpocorrelationdb',
     //correlationDBPath: '/srv/molgenis/dbpccorrelationzscores_uint16be',
-    requestDBPath: '/data/metabrainnetwork/level/new/dbreq',
-    networkShortURLDBPath: '/data/metabrainnetwork/level/new/dbnetworkurls',
+    requestDBPath: '/data/genenetwork/level/new/dbreq',
+    networkShortURLDBPath: '/data/genenetwork/level/new/dbnetworkurls',
 
-    svgUploadDir: '/data/metabrainnetwork/uploads/svg/',
-    genelistUploadDir: '/data/metabrainnetwork/uploads/genelist',
+    svgUploadDir: '/data/genenetwork/uploads/svg/',
+    genelistUploadDir: '/data/genenetwork/uploads/genelist',
 
     networkFontFamily: 'Geogrotesque Lg',
     networkFontFile: 'assets/fonts/Geogtq-Lg.svg',
