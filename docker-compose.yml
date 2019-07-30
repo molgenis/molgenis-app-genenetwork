@@ -3,6 +3,7 @@ services:
   web:
     # replace username/repo:tag with your name and image details
     image: metabrainnetwork
+    build: ./
     ports:
       - "1337:1337"
       - "4000:85"
@@ -28,12 +29,14 @@ services:
       - 9300:9300
   predictionserver:
     image: predictionserver
+    build: ./docker/predictionServer
     depends_on:
       - elasticsearch
     volumes:
       - "/data:/data"
   pwasserver:
     image: pwasserver
+    build: ./docker/pwasServer/
     depends_on:
       - elasticsearch
     volumes:
