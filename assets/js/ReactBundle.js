@@ -2972,7 +2972,7 @@ var GeneList = React.createClass({displayName: "GeneList",
         this.checkForDuplicatesInRequest(dataRequested);
 
         //filter the duplicate genes, this also sets the state of the duplicates in the result
-        let genesToSet = this.getUniqueGenes(genes);
+        var genesToSet = this.getUniqueGenes(genes);
 
         //set the state
         this.setState({
@@ -2989,11 +2989,14 @@ var GeneList = React.createClass({displayName: "GeneList",
      * @returns {Array} the genes returned to the user, filtered to contain no duplicates (based on id)
      */
     getUniqueGenes: function(genesToUniqueValuesFor){
-        const result = [];
-        const duplicates = [];
-        const mapOfIdToUniqueness = new Map();
+        var result = [];
+        var duplicates = [];
+        var mapOfIdToUniqueness = new Map();
         //check all genes
-        for (const gene of genesToUniqueValuesFor) {
+        var i = 0;
+        var length = genesToUniqueValuesFor.length;
+        for (; i < length;) {
+            var gene = genesToUniqueValuesFor[i];
             //check if it already in the map (faster than checking array)
             if(!mapOfIdToUniqueness.has(gene.id)){
                 //add to map for if encountered again
@@ -3004,9 +3007,10 @@ var GeneList = React.createClass({displayName: "GeneList",
             //doing both global and local scope (by returning) is not best practice, might need to fix later
             else{
                 //turn into 'geneid(symbol)' string to show the user
-                let duplicateString = gene.id+"("+gene.name+")";
+                var duplicateString = gene.id+"("+gene.name+")";
                 duplicates.push(duplicateString);
             }
+            i++;
         }
         //set the duplicates that were found
         this.setState({
@@ -3021,11 +3025,11 @@ var GeneList = React.createClass({displayName: "GeneList",
      */
     checkForDuplicatesInRequest: function (dataRequested){
         //find the duplicates
-        let duplicatesFound = dataRequested.filter(function(a){
+        var duplicatesFound = dataRequested.filter(function(a){
             return dataRequested.indexOf(a) !== dataRequested.lastIndexOf(a)
         });
         //the filter didn't actually remove the duplicates, so let's get one of each
-        let uniqueDuplicates = _.uniq(duplicatesFound);
+        var uniqueDuplicates = _.uniq(duplicatesFound);
 
         this.setState({
             //add to the duplicates
@@ -3036,7 +3040,7 @@ var GeneList = React.createClass({displayName: "GeneList",
 
     getGenesFromDb: function (genesRequested) {
         //only request the unique ones
-        let genesUnique = _.uniq(genesRequested);
+        var genesUnique = _.uniq(genesRequested);
         //set reference for async AJAX thread
         var that = this;
             $.ajax({
@@ -3058,7 +3062,7 @@ var GeneList = React.createClass({displayName: "GeneList",
      * @param errorCode the error code returned by the API/database
      */
     handleErrorDbResponse: function(errorCode){
-        let errorMessageToSet = "";
+        var errorMessageToSet = "";
         if(errorCode === 414){
             //this one we know, a too large dataset
             errorMessageToSet = "the request was too large, try limiting to 500 genes";
@@ -3083,7 +3087,7 @@ var GeneList = React.createClass({displayName: "GeneList",
      * @returns {null} either null, which means no element, or a div with the error message
      */
     getErrorDisplay: function(){
-        let display = null;
+        var display = null;
         //if there is an error, display it
         if(this.state.error){
             display = (
@@ -3102,7 +3106,7 @@ var GeneList = React.createClass({displayName: "GeneList",
      * @returns {*} a div describing the list items
      */
     getListDescription: function(listDescription, listItems){
-        let description =
+        var description =
             (
                 React.createElement("div", null, 
                     React.createElement("span", {style: {fontWeight: 'bold', fontFamily: 'GG', fontSize: '1.2em'}}, listDescription, ":"), React.createElement("br", null), 
@@ -3124,7 +3128,7 @@ var GeneList = React.createClass({displayName: "GeneList",
      * @returns {null} the description of the duplicates in a div, or nothing if there are no duplicates
      */
     getDuplicatesList: function(listDescription, duplicatesInRequest, duplicatesInResponse){
-        let description = null;
+        var description = null;
         //to not overpopulate the page, we only want to show warnings regarding duplicates when relevant
         if(duplicatesInRequest.length >= 1 | duplicatesInResponse.length >= 1){
             description = this.getListDescription(listDescription, duplicatesInRequest.concat(duplicatesInResponse));
@@ -3134,8 +3138,8 @@ var GeneList = React.createClass({displayName: "GeneList",
 
     render: function() {
         var notFound = this.state.notFound;
-        let duplicatesInRequest = this.state.duplicatesInRequest;
-        let duplicatesInResponse = this.state.duplicatesInResponse;
+        var duplicatesInRequest = this.state.duplicatesInRequest;
+        var duplicatesInResponse = this.state.duplicatesInResponse;
 
         return (
             React.createElement(DocumentTitle, {title: 'Gene set enrichment' + GN.pageTitleSuffix}, 
@@ -9179,7 +9183,7 @@ var Tools = React.createClass({displayName: "Tools",
 module.exports = Tools;
 
 },{"../../config/gn":51,"../js/color":4,"./Box":8,"./BoxFunctionEnrichment":9,"react":333}],50:[function(require,module,exports){
-// https://genenetwork.nl for prod
+// https://www.genenetwork.nl for prod
 // empty for debug
 module.exports = {
     domain: ''
@@ -21966,7 +21970,7 @@ module.exports = {
 
 }).call(this,require('_process'))
 },{"_process":132,"lodash":52}],54:[function(require,module,exports){
-(function (process,global){
+(function (process,global,setImmediate){
 /*!
  * async
  * https://github.com/caolan/async
@@ -23233,8 +23237,8 @@ module.exports = {
 
 }());
 
-}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"_process":132}],55:[function(require,module,exports){
+}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("timers").setImmediate)
+},{"_process":132,"timers":352}],55:[function(require,module,exports){
 /*!
   Copyright (c) 2016 Jed Watson.
   Licensed under the MIT License (MIT), see
@@ -37919,7 +37923,7 @@ function readState(key) {
   return null;
 }
 }).call(this,require('_process'))
-},{"_process":132,"warning":352}],112:[function(require,module,exports){
+},{"_process":132,"warning":353}],112:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -38481,7 +38485,7 @@ function createHashHistory() {
 exports['default'] = createHashHistory;
 module.exports = exports['default'];
 }).call(this,require('_process'))
-},{"./Actions":109,"./DOMStateStorage":111,"./DOMUtils":112,"./ExecutionEnvironment":113,"./createDOMHistory":115,"./parsePath":122,"_process":132,"invariant":129,"warning":352}],117:[function(require,module,exports){
+},{"./Actions":109,"./DOMStateStorage":111,"./DOMUtils":112,"./ExecutionEnvironment":113,"./createDOMHistory":115,"./parsePath":122,"_process":132,"invariant":129,"warning":353}],117:[function(require,module,exports){
 //import warning from 'warning'
 'use strict';
 
@@ -38986,7 +38990,7 @@ function createMemoryHistory() {
 exports['default'] = createMemoryHistory;
 module.exports = exports['default'];
 }).call(this,require('_process'))
-},{"./Actions":109,"./createHistory":117,"./parsePath":122,"_process":132,"invariant":129,"warning":352}],120:[function(require,module,exports){
+},{"./Actions":109,"./createHistory":117,"./parsePath":122,"_process":132,"invariant":129,"warning":353}],120:[function(require,module,exports){
 //import warning from 'warning'
 
 "use strict";
@@ -39063,7 +39067,7 @@ function parsePath(path) {
 exports['default'] = parsePath;
 module.exports = exports['default'];
 }).call(this,require('_process'))
-},{"./extractPath":121,"_process":132,"warning":352}],123:[function(require,module,exports){
+},{"./extractPath":121,"_process":132,"warning":353}],123:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -39090,7 +39094,7 @@ function runTransitionHook(hook, location, callback) {
 exports['default'] = runTransitionHook;
 module.exports = exports['default'];
 }).call(this,require('_process'))
-},{"_process":132,"warning":352}],124:[function(require,module,exports){
+},{"_process":132,"warning":353}],124:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -39406,7 +39410,7 @@ function useQueries(createHistory) {
 exports['default'] = useQueries;
 module.exports = exports['default'];
 }).call(this,require('_process'))
-},{"./deprecate":120,"./parsePath":122,"./runTransitionHook":123,"_process":132,"query-string":141,"warning":352}],126:[function(require,module,exports){
+},{"./deprecate":120,"./parsePath":122,"./runTransitionHook":123,"_process":132,"query-string":141,"warning":353}],126:[function(require,module,exports){
 var pSlice = Array.prototype.slice;
 var objectKeys = require('./lib/keys.js');
 var isArguments = require('./lib/is_arguments.js');
@@ -58436,7 +58440,7 @@ IndexRedirect.createRouteFromReactElement = function (element, parentRoute) {
 exports['default'] = IndexRedirect;
 module.exports = exports['default'];
 }).call(this,require('_process'))
-},{"./PropTypes":153,"./Redirect":154,"_process":132,"invariant":129,"react":333,"warning":352}],149:[function(require,module,exports){
+},{"./PropTypes":153,"./Redirect":154,"_process":132,"invariant":129,"react":333,"warning":353}],149:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -58509,7 +58513,7 @@ IndexRoute.createRouteFromReactElement = function (element, parentRoute) {
 exports['default'] = IndexRoute;
 module.exports = exports['default'];
 }).call(this,require('_process'))
-},{"./PropTypes":153,"./RouteUtils":157,"_process":132,"invariant":129,"react":333,"warning":352}],150:[function(require,module,exports){
+},{"./PropTypes":153,"./RouteUtils":157,"_process":132,"invariant":129,"react":333,"warning":353}],150:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -59360,7 +59364,7 @@ function createRoutes(routes) {
   return routes;
 }
 }).call(this,require('_process'))
-},{"_process":132,"react":333,"warning":352}],158:[function(require,module,exports){
+},{"_process":132,"react":333,"warning":353}],158:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -59528,7 +59532,7 @@ Router.defaultProps = {
 exports['default'] = Router;
 module.exports = exports['default'];
 }).call(this,require('_process'))
-},{"./PropTypes":153,"./RouteUtils":157,"./RoutingContext":159,"./useRoutes":168,"_process":132,"history/lib/createHashHistory":116,"react":333,"warning":352}],159:[function(require,module,exports){
+},{"./PropTypes":153,"./RouteUtils":157,"./RoutingContext":159,"./useRoutes":168,"_process":132,"history/lib/createHashHistory":116,"react":333,"warning":353}],159:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -60346,7 +60350,7 @@ function matchRoutes(routes, location, callback) {
 exports['default'] = matchRoutes;
 module.exports = exports['default'];
 }).call(this,require('_process'))
-},{"./AsyncUtils":145,"./PatternUtils":152,"./RouteUtils":157,"_process":132,"warning":352}],168:[function(require,module,exports){
+},{"./AsyncUtils":145,"./PatternUtils":152,"./RouteUtils":157,"_process":132,"warning":353}],168:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -60640,7 +60644,7 @@ function useRoutes(createHistory) {
 exports['default'] = useRoutes;
 module.exports = exports['default'];
 }).call(this,require('_process'))
-},{"./TransitionUtils":160,"./computeChangedRoutes":161,"./getComponents":162,"./isActive":165,"./matchRoutes":167,"_process":132,"history/lib/Actions":109,"history/lib/useQueries":125,"warning":352}],169:[function(require,module,exports){
+},{"./TransitionUtils":160,"./computeChangedRoutes":161,"./getComponents":162,"./isActive":165,"./matchRoutes":167,"_process":132,"history/lib/Actions":109,"history/lib/useQueries":125,"warning":353}],169:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -87347,6 +87351,85 @@ module.exports = function (str) {
 };
 
 },{}],352:[function(require,module,exports){
+(function (setImmediate,clearImmediate){
+var nextTick = require('process/browser.js').nextTick;
+var apply = Function.prototype.apply;
+var slice = Array.prototype.slice;
+var immediateIds = {};
+var nextImmediateId = 0;
+
+// DOM APIs, for completeness
+
+exports.setTimeout = function() {
+  return new Timeout(apply.call(setTimeout, window, arguments), clearTimeout);
+};
+exports.setInterval = function() {
+  return new Timeout(apply.call(setInterval, window, arguments), clearInterval);
+};
+exports.clearTimeout =
+exports.clearInterval = function(timeout) { timeout.close(); };
+
+function Timeout(id, clearFn) {
+  this._id = id;
+  this._clearFn = clearFn;
+}
+Timeout.prototype.unref = Timeout.prototype.ref = function() {};
+Timeout.prototype.close = function() {
+  this._clearFn.call(window, this._id);
+};
+
+// Does not start the time, just sets up the members needed.
+exports.enroll = function(item, msecs) {
+  clearTimeout(item._idleTimeoutId);
+  item._idleTimeout = msecs;
+};
+
+exports.unenroll = function(item) {
+  clearTimeout(item._idleTimeoutId);
+  item._idleTimeout = -1;
+};
+
+exports._unrefActive = exports.active = function(item) {
+  clearTimeout(item._idleTimeoutId);
+
+  var msecs = item._idleTimeout;
+  if (msecs >= 0) {
+    item._idleTimeoutId = setTimeout(function onTimeout() {
+      if (item._onTimeout)
+        item._onTimeout();
+    }, msecs);
+  }
+};
+
+// That's not how node.js implements it but the exposed api is the same.
+exports.setImmediate = typeof setImmediate === "function" ? setImmediate : function(fn) {
+  var id = nextImmediateId++;
+  var args = arguments.length < 2 ? false : slice.call(arguments, 1);
+
+  immediateIds[id] = true;
+
+  nextTick(function onNextTick() {
+    if (immediateIds[id]) {
+      // fn.call() is faster so we optimize for the common use-case
+      // @see http://jsperf.com/call-apply-segu
+      if (args) {
+        fn.apply(null, args);
+      } else {
+        fn.call(null);
+      }
+      // Prevent ids from leaking
+      exports.clearImmediate(id);
+    }
+  });
+
+  return id;
+};
+
+exports.clearImmediate = typeof clearImmediate === "function" ? clearImmediate : function(id) {
+  delete immediateIds[id];
+};
+}).call(this,require("timers").setImmediate,require("timers").clearImmediate)
+},{"process/browser.js":132,"timers":352}],353:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2014-2015, Facebook, Inc.
