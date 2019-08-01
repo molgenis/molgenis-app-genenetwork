@@ -4,40 +4,44 @@
  *    entirely and leave all your settings in env/production.js
  */
 
+var PropertiesReader = require('properties-reader');
+var properties = PropertiesReader('config/config.properties');
+var geneNetworkFileDir = properties.get('GN_FILES_PATH')
+
 module.exports = {
 
-    genesToTranscripts: '/data/genenetwork/files/genesToTranscripts.txt',
+    genesToTranscripts: geneNetworkFileDir+'files/genesToTranscripts.txt',
     transcriptMappingFile: 'xxx',
-    mim2gene: '/data/genenetwork/files/new/mim2gene.txt',
+    mim2gene: geneNetworkFileDir+'files/new/mim2gene.txt',
 
-    geneDescFile: '/data/genenetwork/files/new/ENSGToGeneNameHGNCBiotypeChromosomeStartStopStrandAndDescriptionV83FilteredNonChromosomesRemovedDuplicateTranscriptsRemoved.txt',
-    genePredScoreFile: '/data/genenetwork/files/new/skewnessSummary.txt',
-    geneDBPath: '/data/genenetwork/level/new/dbgenes_uint16be',
-    pathwayDBPath: '/data/genenetwork/level/new/dbexternal_uint16be',
+    geneDescFile: geneNetworkFileDir+'files/new/ENSGToGeneNameHGNCBiotypeChromosomeStartStopStrandAndDescriptionV83FilteredNonChromosomesRemovedDuplicateTranscriptsRemoved.txt',
+    genePredScoreFile: geneNetworkFileDir+'files/new/skewnessSummary.txt',
+    geneDBPath: geneNetworkFileDir+'level/new/dbgenes_uint16be',
+    pathwayDBPath: geneNetworkFileDir+'level/new/dbexternal_uint16be',
     
-    transcriptDBpath: '/data/genenetwork/level/new/transcriptdb',
-    transcriptBarsDBpath: '/data/genenetwork/level/new/transcriptbars',
-    tissuecorrelationDBPath: '/data/genenetwork/level/new/tissuedb',
+    transcriptDBpath: geneNetworkFileDir+'level/new/transcriptdb',
+    transcriptBarsDBpath: geneNetworkFileDir+'level/new/transcriptbars',
+    tissuecorrelationDBPath: geneNetworkFileDir+'level/new/tissuedb',
 
     // geneDescFile: '/data/genenetwork/files/ENSGToGeneNameHGNCBiotypeChromosomeStartStopStrandAndDescriptionV75.txt.filtered.txt',
     // geneDBPath: '/data/genenetwork/level/dbgenes_uint16be',
     // pathwayDBPath: '/data/genenetwork/level/dbexternal_uint16be',
 
-    celltypeDBPath: '/data/genenetwork/level/new/celltypedb',
-    correlationDBPath: '/data/genenetwork/level/new/dbpccorrelationzscores_uint16be_genescompsstdnorm',
-    hpocorrelationDB: '/data/genenetwork/level/new/hpocorrelationdb',
+    celltypeDBPath: geneNetworkFileDir+'level/new/celltypedb',
+    correlationDBPath: geneNetworkFileDir+'level/new/dbpccorrelationzscores_uint16be_genescompsstdnorm',
+    hpocorrelationDB: geneNetworkFileDir+'level/new/hpocorrelationdb',
     //correlationDBPath: '/srv/molgenis/dbpccorrelationzscores_uint16be',
-    requestDBPath: '/data/genenetwork/level/new/dbreq',
-    networkShortURLDBPath: '/data/genenetwork/level/new/dbnetworkurls',
+    requestDBPath: geneNetworkFileDir+'level/new/dbreq',
+    networkShortURLDBPath: geneNetworkFileDir+'level/new/dbnetworkurls',
 
-    svgUploadDir: '/data/genenetwork/uploads/svg/',
-    genelistUploadDir: '/data/genenetwork/uploads/genelist',
+    svgUploadDir: geneNetworkFileDir+'uploads/svg/',
+    genelistUploadDir: geneNetworkFileDir+'uploads/genelist',
 
     networkFontFamily: 'Geogrotesque Lg',
     networkFontFile: 'assets/fonts/Geogtq-Lg.svg',
 
     useElastic: true,
-    elasticHost: 'localhost:9200',
+    elasticHost: properties.get('ELASTICSEARCH_HOST'),
     elasticLogLevel: 'debug',
     
     pubmine: {

@@ -8,6 +8,10 @@ var async = require('async')
 var crypto = require('crypto')
 var bs62 = require('base62')
 var genedesc = require('../api/controllers/utils/genedesc')
+// get the address for elastic search host
+var PropertiesReader = require('properties-reader');
+var properties = PropertiesReader('config/config.properties');
+var elasticHostAddress = properties.get('ELASTICSEARCH_HOST');
 
 var URL = 'http://www.ebi.ac.uk/gwas/api/search/downloads/full'
 var COLUMNS = [{name: 'DATE ADDED TO CATALOG', field: 'dateAdded'},
@@ -25,7 +29,7 @@ var COLUMNS = [{name: 'DATE ADDED TO CATALOG', field: 'dateAdded'},
               ]
 
 var client = new elasticsearch.Client({
-    host: 'localhost:9200',
+    host: elasticHostAddress,
 //    log: 'trace'
 })
 

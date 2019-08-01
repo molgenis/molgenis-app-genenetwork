@@ -1810,6 +1810,7 @@ var How = React.createClass({displayName: "How",
                     React.createElement("ul", null, 
                         React.createElement("li", null, React.createElement("a", {href: "#what-is-genenetwork"}, "What is GeneNetwork?")), 
                         React.createElement("li", null, React.createElement("a", {href: "#what-is-gado"}, "What is GADO?")), 
+                        React.createElement("li", null, React.createElement("a", {href: "#can-i-run-gado-locally"}, "Can I run GADO locally?")), 
                         React.createElement("li", null, React.createElement("a", {href: "#why-cant-my-term-be-used"}, "Why can’t my term be used?")), 
                         React.createElement("li", null, React.createElement("a", {href: "#why-is-my-term-not-found"}, "Why is my term not found?")), 
                         React.createElement("li", null, React.createElement("a", {href: "#gene-not-found"}, "My favorite candidate gene for patient is not found back in the top of the results?")), 
@@ -1834,6 +1835,12 @@ var How = React.createClass({displayName: "How",
                         "the discovery of new disease-causing genes."
                     ), 
                     React.createElement("img", {title: "GeneNetwork", style: {width: '800px'}, src: GN.urls.main + '/images/gado.png'}), 
+
+                    React.createElement("h3", {id: "can-i-run-gado-locally"}, "Can I run GADO locally?"), 
+                    React.createElement("p", null, 
+                        "We have created a standalone version of GADO that can easily be integrated in an automated analysis pipeline." + ' ' +
+                        "For more information see: ", React.createElement("a", {href: "https://github.com/molgenis/systemsgenetics/wiki/GADO-Command-line"}, "GADO Command Line")
+                    ), 
 
                     React.createElement("h3", {id: "why-cant-my-term-be-used"}, "Why can’t my term be used?"), 
                     React.createElement("p", null, 
@@ -1863,7 +1870,7 @@ var How = React.createClass({displayName: "How",
 
                     React.createElement("h3", {id: "how-to-cite"}, "How to cite?"), 
                     React.createElement("p", null, 
-                        React.createElement("a", {href: "https://www.biorxiv.org/content/early/2018/07/25/375766", target: "_blank"}, "Improving the diagnostic yield of exome-sequencing, by predicting gene-phenotype" + ' ' +
+                        React.createElement("a", {href: "https://www.nature.com/articles/s41467-019-10649-4", target: "_blank"}, "Improving the diagnostic yield of exome-sequencing, by predicting gene-phenotype" + ' ' +
                             "associations using large-scale gene expression analysis")
                     )
 
@@ -2930,7 +2937,11 @@ var GeneList = React.createClass({displayName: "GeneList",
     getInitialState: function() {
         return ({
             genes: [],
-            notFound: []
+            notFound: [],
+            duplicatesInRequest: [],
+            duplicatesInResponse: [],
+            error: false,
+            errorMessage: ""
         })
     },
 
@@ -2945,7 +2956,6 @@ var GeneList = React.createClass({displayName: "GeneList",
     parseGeneList: function(geneList) {
         geneList = geneList.trim().replace(/(\r\n|\n|\r|\t|\s|;)/g, ',');
         var genes = geneList.split(',').filter(function(e){return e});
-        genes = _.uniq(genes);
         return(genes);
     },
 
@@ -2954,44 +2964,193 @@ var GeneList = React.createClass({displayName: "GeneList",
         this.getGenesFromDb(genes);
     },
 
-    handleDbResponse: function (data) {
-        var notFound = _.compact(_.map(data, 'not_found'));
-        var genes = _.compact(_.flatten(_.map(data, 'genes'))); // this also flattens the genes from a given pathway // TODO: cluster genes searched by pathway id
+    handleDbResponse: function (dataReceived, dataRequested) {
+        var notFound = _.compact(_.map(dataReceived, 'not_found'));
+        var genes = _.compact(_.flatten(_.map(dataReceived, 'genes'))); // this also flattens the genes from a given pathway // TODO: cluster genes searched by pathway id
 
+        //check for duplicates
+        this.checkForDuplicatesInRequest(dataRequested);
+
+        //filter the duplicate genes, this also sets the state of the duplicates in the result
+        let genesToSet = this.getUniqueGenes(genes);
+
+        //set the state
         this.setState({
-            genes: genes,
+            genes: genesToSet,
+            //genes:genes,
             notFound: notFound,
+            error: false
         });
     },
 
-    getGenesFromDb: function (genes) {
+    /**
+     * filter the genes returned to the user to only show unique ones, and set the state for the duplicate ones
+     * @param genesToUniqueValuesFor the genes returned to check for uniqueness
+     * @returns {Array} the genes returned to the user, filtered to contain no duplicates (based on id)
+     */
+    getUniqueGenes: function(genesToUniqueValuesFor){
+        const result = [];
+        const duplicates = [];
+        const mapOfIdToUniqueness = new Map();
+        //check all genes
+        for (const gene of genesToUniqueValuesFor) {
+            //check if it already in the map (faster than checking array)
+            if(!mapOfIdToUniqueness.has(gene.id)){
+                //add to map for if encountered again
+                mapOfIdToUniqueness.set(gene.id, true);
+                //add to actual result we are interested in
+                result.push(gene);
+            }
+            //doing both global and local scope (by returning) is not best practice, might need to fix later
+            else{
+                //turn into 'geneid(symbol)' string to show the user
+                let duplicateString = gene.id+"("+gene.name+")";
+                duplicates.push(duplicateString);
+            }
+        }
+        //set the duplicates that were found
+        this.setState({
+            duplicatesInResponse : duplicates
+        });
+        return result;
+    },
+
+    /**
+     * check for duplicate values in the request entered by the user
+     * @param dataRequested the list of items the user requested
+     */
+    checkForDuplicatesInRequest: function (dataRequested){
+        //find the duplicates
+        let duplicatesFound = dataRequested.filter(function(a){
+            return dataRequested.indexOf(a) !== dataRequested.lastIndexOf(a)
+        });
+        //the filter didn't actually remove the duplicates, so let's get one of each
+        let uniqueDuplicates = _.uniq(duplicatesFound);
+
+        this.setState({
+            //add to the duplicates
+            duplicatesInRequest: uniqueDuplicates
+        });
+    },
+
+
+    getGenesFromDb: function (genesRequested) {
+        //only request the unique ones
+        let genesUnique = _.uniq(genesRequested);
+        //set reference for async AJAX thread
         var that = this;
             $.ajax({
-                url: GN.urls.genes + '/' + genes + '?verbose',
+                url: GN.urls.genes + '/' + genesUnique + '?verbose',
                 dataType: 'json',
-                success: function(genes) {
-                    that.handleDbResponse(genes);
+                success: function(genesObtained) {
+                    that.handleDbResponse(genesObtained, genesRequested);
                 }.bind(that),
                 error: function(xhr, status, err) {
+                    //inform the user that something went wrong
+                    that.handleErrorDbResponse(xhr.status);
                     console.log(err)
                 }.bind(that)
             })
     },
 
+    /**
+     * handle when the call to the database/API returns an error instead of a result
+     * @param errorCode the error code returned by the API/database
+     */
+    handleErrorDbResponse: function(errorCode){
+        let errorMessageToSet = "";
+        if(errorCode === 414){
+            //this one we know, a too large dataset
+            errorMessageToSet = "the request was too large, try limiting to 500 genes";
+        }
+        else{
+            //no to make it hackers to easy, keep the rest generic
+            errorMessageToSet = "an error occurred during the request";
+        }
+        //set the state, all lists empty since we failed
+        this.setState({
+            genes: [],
+            notFound: [],
+            duplicatesInRequest: [],
+            duplicatesInResponse: [],
+            error: true,
+            errorMessage: errorMessageToSet
+        });
+    },
+
+    /**
+     * display the errors if necessary
+     * @returns {null} either null, which means no element, or a div with the error message
+     */
+    getErrorDisplay: function(){
+        let display = null;
+        //if there is an error, display it
+        if(this.state.error){
+            display = (
+                React.createElement("div", {className: "gn-error-container", style: {textAlign: 'left'}}, 
+                    React.createElement("span", {style: {color: 'orange', fontWeight: 'bold'}}, this.state.errorMessage)
+                )
+            );
+        }
+        return display;
+    },
+
+    /**
+     * get a description of a list of items
+     * @param listDescription the text before the list of items
+     * @param listItems the items to list
+     * @returns {*} a div describing the list items
+     */
+    getListDescription: function(listDescription, listItems){
+        let description =
+            (
+                React.createElement("div", null, 
+                    React.createElement("span", {style: {fontWeight: 'bold', fontFamily: 'GG', fontSize: '1.2em'}}, listDescription, ":"), React.createElement("br", null), 
+                    _.map(listItems, function (geneItem, i) {
+                        if (listItems.length === i+1) return React.createElement("span", {key: geneItem}, geneItem);
+                        else return React.createElement("span", {key: geneItem}, geneItem, ", ")
+                    }), 
+                    React.createElement("br", null)
+                )
+            );
+        return description;
+    },
+
+    /**
+     * get a description concerning duplicates if applicable
+     * @param listDescription the text before the list of duplicates
+     * @param duplicatesInRequest the duplicates in the request
+     * @param duplicatesInResponse the duplicates in the response
+     * @returns {null} the description of the duplicates in a div, or nothing if there are no duplicates
+     */
+    getDuplicatesList: function(listDescription, duplicatesInRequest, duplicatesInResponse){
+        let description = null;
+        //to not overpopulate the page, we only want to show warnings regarding duplicates when relevant
+        if(duplicatesInRequest.length >= 1 | duplicatesInResponse.length >= 1){
+            description = this.getListDescription(listDescription, duplicatesInRequest.concat(duplicatesInResponse));
+        }
+        return description;
+    },
+
     render: function() {
         var notFound = this.state.notFound;
+        let duplicatesInRequest = this.state.duplicatesInRequest;
+        let duplicatesInResponse = this.state.duplicatesInResponse;
 
         return (
             React.createElement(DocumentTitle, {title: 'Gene set enrichment' + GN.pageTitleSuffix}, 
             React.createElement("div", {className: "flex10"}, 
                 React.createElement("div", {className: "gn-term-description-outer", style: {backgroundColor: color.colors.gnwhite, padding: '20px'}}, 
                     React.createElement("div", {className: "gn-term-description-inner hflex flexcenter maxwidth"}, 
-                        React.createElement("div", {className: "gn-term-description-name"}, 
-                            React.createElement("span", {style: {fontWeight: 'bold', fontFamily: 'GG', fontSize: '1.5em'}}, "Gene set enrichment")
+                        React.createElement("div", null, 
+                            React.createElement("div", {className: "gn-term-description-name"}, 
+                                React.createElement("span", {style: {fontWeight: 'bold', fontFamily: 'GG', fontSize: '1.5em'}}, "Gene set enrichment")
+                            ), 
+                            this.getErrorDisplay()
                         ), 
                         React.createElement("div", {className: "flex11"}), 
                         React.createElement("div", {className: "gn-term-description-stats", style: {textAlign: 'right'}}, 
-                            React.createElement("span", {style: {color: 'green', fontWeight: 'bold'}}, this.state.genes.length), React.createElement("span", null, " genes found"), React.createElement("br", null), 
+                            React.createElement("span", {style: {color: 'green', fontWeight: 'bold'}}, this.state.genes.length), React.createElement("span", null, " unique genes found"), React.createElement("br", null), 
                             React.createElement("span", {style: {color: 'red', fontWeight: 'bold'}}, this.state.notFound.length), React.createElement("span", null, " not found"), React.createElement("br", null)
                         ), 
                         React.createElement("div", {className: "gn-term-description-networkbutton flexend", style: {padding: '0 0 3px 10px'}}, 
@@ -3003,11 +3162,10 @@ var GeneList = React.createClass({displayName: "GeneList",
 
                 React.createElement("div", {className: 'gn-gene-container-outer', style: {backgroundColor: color.colors.gnwhite, marginTop: '10px'}}, 
                     React.createElement("div", {className: "gn-gene-container-inner maxwidth", style: {padding: '20px'}}, 
-                        React.createElement("span", {style: {fontWeight: 'bold', fontFamily: 'GG', fontSize: '1.2em'}}, "Not found:"), React.createElement("br", null), 
-                        _.map(notFound, function (geneItem, i) {
-                            if (notFound.length === i+1) return React.createElement("span", {key: geneItem}, geneItem);
-                            else return React.createElement("span", {key: geneItem}, geneItem, ", ")
-                        }), 
+                        React.createElement("div", null, 
+                            this.getListDescription("Not found",notFound), 
+                            this.getDuplicatesList("Duplicates",duplicatesInRequest, duplicatesInResponse)
+                        ), 
                         React.createElement("div", null, React.createElement("br", null), 
                             React.createElement("span", {style: {fontWeight: 'bold', fontFamily: 'GG', fontSize: '1.2em'}}, "Found:"), 
                             React.createElement(ReactTable, {
@@ -9021,8 +9179,10 @@ var Tools = React.createClass({displayName: "Tools",
 module.exports = Tools;
 
 },{"../../config/gn":51,"../js/color":4,"./Box":8,"./BoxFunctionEnrichment":9,"react":333}],50:[function(require,module,exports){
+// https://genenetwork.nl for prod
+// empty for debug
 module.exports = {
-    domain: 'https://www.genenetwork.nl'
+    domain: ''
 };
 
 },{}],51:[function(require,module,exports){

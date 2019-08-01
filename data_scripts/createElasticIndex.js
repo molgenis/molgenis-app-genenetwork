@@ -1,8 +1,13 @@
 var elasticsearch = require('elasticsearch')
 var async = require('async')
+// get the address for elastic search host
+var PropertiesReader = require('properties-reader');
+var properties = PropertiesReader('config/config.properties');
+var elasticHostAddress = properties.get('ELASTICSEARCH_HOST');
+
 
 var CLIENT = new elasticsearch.Client({
-    host: 'localhost:9200',
+    host: elasticHostAddress,
     log: 'info'
 })
 
