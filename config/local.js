@@ -19,10 +19,6 @@ module.exports = {
     transcriptBarsDBpath: '/data/genenetwork/level/new/transcriptbars',
     tissuecorrelationDBPath: '/data/genenetwork/level/new/tissuedb',
 
-    // geneDescFile: '/data/genenetwork/files/ENSGToGeneNameHGNCBiotypeChromosomeStartStopStrandAndDescriptionV75.txt.filtered.txt',
-    // geneDBPath: '/data/genenetwork/level/dbgenes_uint16be',
-    // pathwayDBPath: '/data/genenetwork/level/dbexternal_uint16be',
-
     celltypeDBPath: '/data/genenetwork/level/new/celltypedb',
     correlationDBPath: '/data/genenetwork/level/new/dbpccorrelationzscores_uint16be_genescompsstdnorm',
     hpocorrelationDB: '/data/genenetwork/level/new/hpocorrelationdb',
@@ -37,7 +33,7 @@ module.exports = {
     networkFontFile: 'assets/fonts/Geogtq-Lg.svg',
 
     useElastic: true,
-    elasticHost: 'localhost:9200',
+    elasticHost: 'elasticsearch:9200',
     elasticLogLevel: 'debug',
     
     pubmine: {

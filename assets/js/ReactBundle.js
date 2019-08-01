@@ -9022,7 +9022,7 @@ module.exports = Tools;
 
 },{"../../config/gn":51,"../js/color":4,"./Box":8,"./BoxFunctionEnrichment":9,"react":333}],50:[function(require,module,exports){
 module.exports = {
-    domain: 'https://www.genenetwork.nl'
+    domain: ''
 };
 
 },{}],51:[function(require,module,exports){
