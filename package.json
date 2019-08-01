@@ -15,7 +15,7 @@
     "distancejs": "^1.1.0",
     "ejs": "^2.6.1",
     "elasticsearch": "^14.2.2",
-    "es6-templates": "^0.2.2",
+    "es6-templates": "^0.2.3",
     "extend": "^3.0.1",
     "genstats": "0.0.1",
     "grunt": "^0.4.5",
@@ -59,8 +59,8 @@
     "socket.io-redis": "^0.1.4",
     "split": "^1.0.1",
     "uglify-js": "^2.6.1",
-    "uglifyify": "^3.0.1",
-    "watchify": "^3.11.0"
+    "uglifyify": "^5.0.1",
+    "watchify": "^3.11.1"
   },
   "scripts": {
     "debug": "node debug app.js",
