@@ -22,7 +22,11 @@ exp.pValueToReadable = function(p) {
         return NaN
     }
     var pReadable = p
-    if (p < 0.01) {
+    //negative P-value is impossible; javascript flips to negative zero if the minimum value is exceeded, so need to state it is smaller than the min value in JS
+    if(p <= 0){
+        pReadable = '<' + Number.MIN_VALUE;
+    }
+    else if (p < 0.01) {
         pReadable = pReadable.toExponential(1)
         var expIndex = pReadable.indexOf('e')
         var base = pReadable.substring(0, expIndex)
@@ -32,7 +36,8 @@ exp.pValueToReadable = function(p) {
         if (p === Number.MIN_VALUE) {
             pReadable = '< ' + pReadable
         }
-    } else {
+    }
+    else {
         pReadable = pReadable.toPrecision(1)
     }
     return pReadable
