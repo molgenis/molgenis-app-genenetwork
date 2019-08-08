@@ -11,9 +11,16 @@ var NUM_CODING_GENES_TO_SEND = 50
 var NUM_NONCODING_GENES_TO_SEND = 50
 var GENEDATA, COMPDATA, NUM_COMPS, BACKGROUND_MATRIX
 
+// get location of GN files
+var PropertiesReader = require('properties-reader');
+var properties = PropertiesReader('config/config.properties');
+var genenetworkFilePath = properties.get('GN_FILES_PATH');
+
+
+
 var readData = function(callback) {
     //fileutil.readBinary('/data/genenetwork/files/169PCs.npy', function(err, data) {
-    fileutil.readTXT('/data/genenetwork/files/31_G_QCD_ONLYCHR_NODUPL_DESEQ_LOG_COV_G_eigenvectors_307_genescompsstdnorm.txt', function(err, data) {
+    fileutil.readTXT(genenetworkFilePath+'/files/31_G_QCD_ONLYCHR_NODUPL_DESEQ_LOG_COV_G_eigenvectors_307_genescompsstdnorm.txt', function(err, data) {
         if (err) return callback(err)
         GENEDATA = data
         COMPDATA = []

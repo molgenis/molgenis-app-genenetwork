@@ -4,9 +4,14 @@ var Queue = require('kue').createQueue();
 var genstats = require('genstats');
 var quicksort = require('./quicksort');
 var quicksortobj = require('./quicksortobj');
-
 var level = require('level');
-var pathwayrankdb = level('/data/genenetwork/level/new/dbexternalranks', {
+
+// get location of GN files
+var PropertiesReader = require('properties-reader');
+var properties = PropertiesReader('config/config.properties');
+var genenetworkFilePath = properties.get('GN_FILES_PATH');
+
+var pathwayrankdb = level(genenetworkFilePath+'/level/new/dbexternalranks', {
     valueEncoding: 'binary'
 });
 
