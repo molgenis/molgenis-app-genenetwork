@@ -6,7 +6,7 @@ services:
         build: ./
         ports:
             - "1337:1337"
-            - "4000:85"
+            - "80:80"
         depends_on:
             - redis
             - elasticsearch
