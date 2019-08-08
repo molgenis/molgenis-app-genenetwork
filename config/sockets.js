@@ -80,7 +80,8 @@ module.exports.sockets = {
    ***************************************************************************/
 
   adapter: 'socket.io-redis',
-  host: properties.get('REDIS_HOST')
+  host: properties.get('REDIS_HOST'),
+    port: properties.get('REDIS_PORT')
     // host: '127.0.0.1',
   // port: 6379,
   // db: 'sails',

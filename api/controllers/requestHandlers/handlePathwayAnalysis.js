@@ -8,7 +8,8 @@ var properties = PropertiesReader('config/config.properties');
 var Queue = kue.createQueue(
     {
         redis:{
-            host: properties.get('REDIS_HOST')
+            host: properties.get('REDIS_HOST'),
+            port: properties.get('REDIS_PORT')
         }
     }
 ) // this does not create a new queue, it's just redis access
