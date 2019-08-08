@@ -3,8 +3,8 @@ var Queue = require('kue').createQueue()
 var genstats = require('genstats')
 var prob = genstats.probability
 var wilcoxon = genstats.wilcoxon
-var quicksort = require('../api/controllers/utils/quicksort')
-var quicksortobj = require('../api/controllers/utils/quicksortobj')
+var quicksort = require('./quicksort')
+var quicksortobj = require('./quicksortobj')
 var fileutil = require('./fileutil')
 
 var NUM_CODING_GENES_TO_SEND = 50

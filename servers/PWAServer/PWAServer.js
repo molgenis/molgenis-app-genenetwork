@@ -2,8 +2,8 @@ var _ = require('lodash')
 var Queue = require('kue').createQueue()
 var ttest = require('../stats/ttest')
 var wilcoxonr = require('../stats/wilcoxonr')
-var quicksort = require('../api/controllers/utils/quicksort')
-var quicksortobj = require('../api/controllers/utils/quicksortobj')
+var quicksort = require('./quicksort')
+var quicksortobj = require('./quicksortobj')
 
 var level = require('level')
 var pathwayrankdb = level('/data/genenetwork/final/dbexternalranks_', {
