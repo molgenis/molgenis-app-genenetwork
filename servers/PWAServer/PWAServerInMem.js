@@ -1,17 +1,25 @@
 var _ = require('lodash');
 var async = require('async');
-var Queue = require('kue').createQueue();
+// get location of GN files
+var PropertiesReader = require('properties-reader');
+var properties = PropertiesReader('config/config.properties');
+var Queue = require('kue').createQueue(
+    {
+        redis:{
+            host: properties.get('REDIS_HOST'),
+            port: properties.get('REDIS_PORT')
+        }
+    }
+);
 var genstats = require('genstats');
 var quicksort = require('./quicksort');
 var quicksortobj = require('./quicksortobj');
 var level = require('level');
 
-// get location of GN files
-var PropertiesReader = require('properties-reader');
-var properties = PropertiesReader('config/config.properties');
+
 var genenetworkFilePath = properties.get('GN_FILES_PATH');
 
-var pathwayrankdb = level(genenetworkFilePath+'/level/new/dbexternalranks', {
+var pathwayrankdb = level(genenetworkFilePath+'level/new/dbexternalranks', {
     valueEncoding: 'binary'
 });
 
