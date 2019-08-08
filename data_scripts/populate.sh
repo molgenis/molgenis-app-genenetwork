@@ -25,6 +25,8 @@ node rankPathwaysFromDataFileTXT.js \
 	HPO \
 	/data/genenetwork/files/Version2_01_04_2018/HPO/hpoTerms_bonSigTerms_gnInputFormat.txt \
 	/data/genenetwork/files/Version2_01_04_2018/HPO/hpo_predictions_bonSigOnly_termNames_tranposed.txt 
+# elasticsearch autocomplete for HPO terms
+node data_scripts/parseHpoOboToElastic.js
 
 ###
 ### Reactome
