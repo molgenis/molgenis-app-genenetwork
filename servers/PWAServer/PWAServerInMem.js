@@ -2,7 +2,7 @@ var _ = require('lodash');
 var async = require('async');
 // get location of GN files
 var PropertiesReader = require('properties-reader');
-var properties = PropertiesReader('config/config.properties');
+var properties = PropertiesReader('./config.properties');
 var Queue = require('kue').createQueue(
     {
         redis:{
