@@ -25,8 +25,38 @@ module.exports = function (req, res) {
         scroll: '30s',
         size: '10000',
         search_type: 'scan',
-        query: {match_all : {}}
-    }, function getMoreUntilDone(error, response) {
+        query: {match_all: {}}
+    }, getMoreUntilDone(error, response));
+    // }, function getMoreUntilDone(error, response) {
+        // response.hits.hits.forEach(function (term) {
+        //     allTerms[term._id] = term._source ;
+        // });
+        // if (response.hits.total !== Object.keys(allTerms).length) {
+        //     CLIENT.scroll({
+        //         scrollId: response._scroll_id,
+        //         scroll: '30s'
+        //     }, getMoreUntilDone);
+        // } else {
+        //     doParentLookUp();
+        // }
+        // if('hits' in response && 'hits' in response.hits){
+        //     handleHits(response);
+        // }
+        // else{
+        //     // TODO what to do when these are undefined?
+        // }
+    // });
+
+    function getMoreUntilDone(error, response){
+        if('hits' in response && 'hits' in response.hits){
+            handleHits(response);
+        }
+        else{
+            // TODO what to do when these are undefined?
+        }
+    }
+
+    function handleHits(response){
         response.hits.hits.forEach(function (term) {
             allTerms[term._id] = term._source ;
         });
@@ -35,10 +65,11 @@ module.exports = function (req, res) {
                 scrollId: response._scroll_id,
                 scroll: '30s'
             }, getMoreUntilDone);
-        } else {
+        }
+        else {
             doParentLookUp();
         }
-    });
+    }
 
     function doParentLookUp() {
 
