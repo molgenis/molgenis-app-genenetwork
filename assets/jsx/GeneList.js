@@ -65,7 +65,10 @@ var GeneList = React.createClass({
         var duplicates = [];
         var mapOfIdToUniqueness = new Map();
         //check all genes
-        for (var gene of genesToUniqueValuesFor) {
+        var i = 0;
+        var length = genesToUniqueValuesFor.length;
+        for (; i < length;) {
+            var gene = genesToUniqueValuesFor[i];
             //check if it already in the map (faster than checking array)
             if(!mapOfIdToUniqueness.has(gene.id)){
                 //add to map for if encountered again
