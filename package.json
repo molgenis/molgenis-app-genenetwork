@@ -38,6 +38,7 @@
     "level": "^2.1.2",
     "leveldown": "^3.0.2",
     "lodash": "^4.17.10",
+    "natives": "^1.1.6",
     "numeric": "^1.2.6",
     "rc": "^0.5.5",
     "react": "^0.14.1",
@@ -57,15 +58,15 @@
     "socket.io-redis": "^0.1.4",
     "split": "^1.0.1",
     "uglify-js": "^2.6.1",
-    "uglifyify": "^3.0.1",
+    "uglifyify": "^5.0.1",
     "watchify": "^3.11.0"
   },
   "scripts": {
     "debug": "node debug app.js",
     "start": "node app.js",
-    "build": "node_modules/watchify/node_modules/browserify/bin/cmd.js -t reactify -t es6-templates -o assets/js/ReactBundle.js assets/jsx/GeneNetwork.js",
+    "build": "node_modules/browserify/bin/cmd.js -t reactify -t es6-templates -o assets/js/ReactBundle.js assets/jsx/GeneNetwork.js",
     "build:watch": "node_modules/watchify/bin/cmd.js -t reactify -t es6-templates -o assets/js/ReactBundle.js assets/jsx/GeneNetwork.js -v",
-    "build:prod": "node_modules/watchify/bin/cmd.js -t reactify -t es6-templates -t uglifyify -o assets/js/ReactBundle.js assets/jsx/GeneNetwork.js && node_modules/uglify-js/bin/uglifyjs --compress --mangle -- assets/js/ReactBundle.js > assets/js/ReactBundle.min.js"
+    "build:prod": "node_modules/browserify/bin/cmd.js -t reactify -t es6-templates -o assets/js/ReactBundle.js assets/jsx/GeneNetwork.js && node_modules/uglify-js/bin/uglifyjs --compress --mangle -- assets/js/ReactBundle.js > assets/js/ReactBundle.min.js"
   },
   "main": "app.js",
   "repository": {
