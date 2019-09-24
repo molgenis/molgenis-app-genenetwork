@@ -44,7 +44,7 @@ var GeneList = React.createClass({
         this.checkForDuplicatesInRequest(dataRequested);
 
         //filter the duplicate genes, this also sets the state of the duplicates in the result
-        let genesToSet = this.getUniqueGenes(genes);
+        var genesToSet = this.getUniqueGenes(genes);
 
         //set the state
         this.setState({
@@ -61,11 +61,14 @@ var GeneList = React.createClass({
      * @returns {Array} the genes returned to the user, filtered to contain no duplicates (based on id)
      */
     getUniqueGenes: function(genesToUniqueValuesFor){
-        const result = [];
-        const duplicates = [];
-        const mapOfIdToUniqueness = new Map();
+        var result = [];
+        var duplicates = [];
+        var mapOfIdToUniqueness = new Map();
         //check all genes
-        for (const gene of genesToUniqueValuesFor) {
+        var i = 0;
+        var length = genesToUniqueValuesFor.length;
+        for (; i < length;) {
+            var gene = genesToUniqueValuesFor[i];
             //check if it already in the map (faster than checking array)
             if(!mapOfIdToUniqueness.has(gene.id)){
                 //add to map for if encountered again
@@ -76,7 +79,7 @@ var GeneList = React.createClass({
             //doing both global and local scope (by returning) is not best practice, might need to fix later
             else{
                 //turn into 'geneid(symbol)' string to show the user
-                let duplicateString = gene.id+"("+gene.name+")";
+                var duplicateString = gene.id+"("+gene.name+")";
                 duplicates.push(duplicateString);
             }
         }
@@ -93,11 +96,11 @@ var GeneList = React.createClass({
      */
     checkForDuplicatesInRequest: function (dataRequested){
         //find the duplicates
-        let duplicatesFound = dataRequested.filter(function(a){
+        var duplicatesFound = dataRequested.filter(function(a){
             return dataRequested.indexOf(a) !== dataRequested.lastIndexOf(a)
         });
         //the filter didn't actually remove the duplicates, so let's get one of each
-        let uniqueDuplicates = _.uniq(duplicatesFound);
+        var uniqueDuplicates = _.uniq(duplicatesFound);
 
         this.setState({
             //add to the duplicates
@@ -108,7 +111,7 @@ var GeneList = React.createClass({
 
     getGenesFromDb: function (genesRequested) {
         //only request the unique ones
-        let genesUnique = _.uniq(genesRequested);
+        var genesUnique = _.uniq(genesRequested);
         //set reference for async AJAX thread
         var that = this;
             $.ajax({
@@ -130,7 +133,7 @@ var GeneList = React.createClass({
      * @param errorCode the error code returned by the API/database
      */
     handleErrorDbResponse: function(errorCode){
-        let errorMessageToSet = "";
+        var errorMessageToSet = "";
         if(errorCode === 414){
             //this one we know, a too large dataset
             errorMessageToSet = "the request was too large, try limiting to 500 genes";
@@ -155,7 +158,7 @@ var GeneList = React.createClass({
      * @returns {null} either null, which means no element, or a div with the error message
      */
     getErrorDisplay: function(){
-        let display = null;
+        var display = null;
         //if there is an error, display it
         if(this.state.error){
             display = (
@@ -174,7 +177,7 @@ var GeneList = React.createClass({
      * @returns {*} a div describing the list items
      */
     getListDescription: function(listDescription, listItems){
-        let description =
+        var description =
             (
                 <div>
                     <span style={{fontWeight: 'bold', fontFamily: 'GG', fontSize: '1.2em'}}>{listDescription}:</span><br />
@@ -196,7 +199,7 @@ var GeneList = React.createClass({
      * @returns {null} the description of the duplicates in a div, or nothing if there are no duplicates
      */
     getDuplicatesList: function(listDescription, duplicatesInRequest, duplicatesInResponse){
-        let description = null;
+        var description = null;
         //to not overpopulate the page, we only want to show warnings regarding duplicates when relevant
         if(duplicatesInRequest.length >= 1 | duplicatesInResponse.length >= 1){
             description = this.getListDescription(listDescription, duplicatesInRequest.concat(duplicatesInResponse));
@@ -206,8 +209,8 @@ var GeneList = React.createClass({
 
     render: function() {
         var notFound = this.state.notFound;
-        let duplicatesInRequest = this.state.duplicatesInRequest;
-        let duplicatesInResponse = this.state.duplicatesInResponse;
+        var duplicatesInRequest = this.state.duplicatesInRequest;
+        var duplicatesInResponse = this.state.duplicatesInResponse;
 
         return (
             <DocumentTitle title={'Gene set enrichment' + GN.pageTitleSuffix}>
