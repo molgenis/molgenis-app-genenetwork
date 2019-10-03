@@ -30,6 +30,7 @@ services:
         image: predictionserver
         build: ./servers/PredictionServer/
         depends_on:
+            - redis
             - elasticsearch
         volumes:
             - "/data:/data"
@@ -37,6 +38,7 @@ services:
         image: pwaserver
         build: ./servers/PWAServer/
         depends_on:
+            - redis
             - elasticsearch
         volumes:
             - "/data:/data"
