@@ -24,3 +24,20 @@ you should now be able to see the page at localhost:1337 in your browser
 if you get grunt errors when doing 'npm start' and see 404s on some of the resources on the homepage, your grunt version may be too new. run:
 'npm i natives'
 then redo the build and run
+
+
+
+
+To make updates for the server, build a new docker image with
+
+    docker build -t <hub_directory>/<tagname>:<tagversion>
+
+e.g.
+
+    docker build -t ndeklein/metabrainnetwork:v1.1.server
+
+Then push to docker hub with
+
+    docker push ndeklein/metabrainnetwork:v1.1.server
+
+The <hub_directory>/<tagname>:<tagversion> has to match the one that is used in the docker-compose file in docker_compose/servers/docker-compose.yml

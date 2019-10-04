@@ -57,6 +57,8 @@ var GeneMenu = React.createClass({
             }
         })
 
+        // removed this cause it's not relevant for brain
+        //                <span className={topButtonStyles[2]} onClick={this.props.onTopMenuClick.bind(null, 'tissues')}>TISSUES</span>
         return (
                 <table className='gn-gene-menu noselect' style={{padding: '0 0 20px 0'}}>
                 <tbody>
@@ -65,7 +67,6 @@ var GeneMenu = React.createClass({
                 <td style={{padding: 0}}>
                 <span className={topButtonStyles[0]} onClick={this.props.onTopMenuClick.bind(null, 'prediction')}>PATHWAYS & PHENOTYPES</span>
                 <span className={topButtonStyles[1]} onClick={this.props.onTopMenuClick.bind(null, 'similar')}>CO-REGULATED GENES</span>
-                <span className={topButtonStyles[2]} onClick={this.props.onTopMenuClick.bind(null, 'tissues')}>TISSUES</span>
             </td>
                 </tr>
                 {this.props.topMenuSelection == 'prediction' ?
