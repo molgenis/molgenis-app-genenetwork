@@ -2,43 +2,44 @@ version: "3"
 services:
     web:
         # replace username/repo:tag with your name and image details
-        image: genenetwork
-        build: ./
+        image: ndeklein/metabrainnetwork:v1.1.server
         ports:
             - "1337:1337"
-            - "80:80"
         depends_on:
             - redis
             - elasticsearch
             - predictionserver
             - pwaserver
         volumes:
-            - "/data:/data"
+            - "/srv/metabrainnetwork/data:/srv/metabrainnetwork/data"
         environment:
             - "discovery.zen.ping.unicast.hosts=elasticsearch"
             - ELASTICSEARCH_URL=http://elasticsearch:9200"
             - ELASTICSEARCH_HOST=elasticsearch
+        restart: always
     redis:
         image: redis
         expose:
-            - "6379"
+          - "6379"
+        restart: always
     elasticsearch:
-        image: elasticsearch:2.4
+        image: elasticsearch:5.6
+        environment:
+          - bootstrap.memory_lock=true
+          - "ES_JAVA_OPTS=-Xms2g -Xmx2g"
+          - xpack.security.enabled=false
+          - discovery.type=single-node
         expose:
             - "9200"
     predictionserver:
-        image: predictionserver
-        build: ./servers/PredictionServer/
+        image: ndeklein/predictionserver:v1.1.server
         depends_on:
-            - redis
             - elasticsearch
         volumes:
-            - "/data:/data"
+            - "/srv/metabrainnetwork/data:/srv/metabrainnetwork/data"
     pwaserver:
-        image: pwaserver
-        build: ./servers/PWAServer/
+        image: ndeklein/pwasserver:v1.1.server
         depends_on:
-            - redis
             - elasticsearch
         volumes:
-            - "/data:/data"
+            - "/srv/metabrainnetwork/data:/srv/metabrainnetwork/data"
