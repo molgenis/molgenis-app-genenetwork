@@ -27,6 +27,17 @@ if you get grunt errors when doing 'npm start' and see 404s on some of the resou
 'npm i natives'
 then redo the build and run
 
-build a new minified reactbundle with "node_modules/browserify/bin/cmd.js -t reactify -t es6-templates -o assets/js/ReactBundle.js assets/jsx/GeneNetwork.js && node_modules/uglify-js/bin/uglifyjs --compress --mangle -- assets/js/ReactBundle.js > assets/js/ReactBundle.min.js" in the root directory of the project
 
-run the project with docker-compose, by modifying the properties files for the servers and the web, and using the regular compose commands (build and up)
+To make updates for the server, build a new docker image with
+
+    docker build -t <hub_directory>/<tagname>:<tagversion>
+
+e.g.
+
+    docker build -t ndeklein/metabrainnetwork:v1.1.server
+
+Then push to docker hub with
+
+    docker push ndeklein/metabrainnetwork:v1.1.server
+
+The <hub_directory>/<tagname>:<tagversion> has to match the one that is used in the docker-compose file in docker_compose/servers/docker-compose.yml
