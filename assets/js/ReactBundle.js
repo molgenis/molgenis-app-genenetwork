@@ -2223,6 +2223,8 @@ var GeneMenu = React.createClass({displayName: "GeneMenu",
             }
         })
 
+        // removed this cause it's not relevant for brain
+        //                <span className={topButtonStyles[2]} onClick={this.props.onTopMenuClick.bind(null, 'tissues')}>TISSUES</span>
         return (
                 React.createElement("table", {className: "gn-gene-menu noselect", style: {padding: '0 0 20px 0'}}, 
                 React.createElement("tbody", null, 
@@ -2230,8 +2232,7 @@ var GeneMenu = React.createClass({displayName: "GeneMenu",
                 React.createElement("td", {style: {width: '8em'}}, "SHOW"), 
                 React.createElement("td", {style: {padding: 0}}, 
                 React.createElement("span", {className: topButtonStyles[0], onClick: this.props.onTopMenuClick.bind(null, 'prediction')}, "PATHWAYS & PHENOTYPES"), 
-                React.createElement("span", {className: topButtonStyles[1], onClick: this.props.onTopMenuClick.bind(null, 'similar')}, "CO-REGULATED GENES"), 
-                React.createElement("span", {className: topButtonStyles[2], onClick: this.props.onTopMenuClick.bind(null, 'tissues')}, "TISSUES")
+                React.createElement("span", {className: topButtonStyles[1], onClick: this.props.onTopMenuClick.bind(null, 'similar')}, "CO-REGULATED GENES")
             )
                 ), 
                 this.props.topMenuSelection == 'prediction' ?
@@ -3568,10 +3569,7 @@ var Landing = React.createClass({displayName: "Landing",
                     React.createElement("div", {className: "gn-top-logo clickable flex00", style: {margin: '10px 0'}, onClick: this.onLogoClick}, 
                         React.createElement(Logo, {w: 33, h: 60, mirrored: true, style: {float: 'left', paddingRight: '10px'}}), 
                         React.createElement("div", {className: "noselect", style: {fontSize: '1.5em', color: color.colors.gndarkgray, float: 'left'}}, 
-                            "GENE", React.createElement("br", null), "NETWORK"
-                        ), 
-                        React.createElement("div", {className: "noselect", style: {fontSize: '1em', color: color.colors.gndarkgray, float: 'left', marginTop: '37px', marginLeft: '7px'}}, 
-                            "v2.0"
+                            "MetaBrain", React.createElement("br", null), "Network"
                         )
                     ), 
                     topSearch, 
