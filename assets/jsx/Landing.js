@@ -316,10 +316,7 @@ var Landing = React.createClass({
                     <div className='gn-top-logo clickable flex00' style={{margin: '10px 0'}} onClick={this.onLogoClick}>
                         <Logo w={33} h={60} mirrored={true} style={{float: 'left', paddingRight: '10px'}} />
                         <div className='noselect' style={{fontSize: '1.5em', color: color.colors.gndarkgray, float: 'left'}}>
-                            GENE<br/>NETWORK
-                        </div>
-                        <div className='noselect' style={{fontSize: '1em', color: color.colors.gndarkgray, float: 'left', marginTop: '37px', marginLeft: '7px'}}>
-                            v2.0
+                            MetaBrain<br/>Network
                         </div>
                     </div>
                     {topSearch}
