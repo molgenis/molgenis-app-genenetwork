@@ -3578,10 +3578,12 @@ var Landing = React.createClass({displayName: "Landing",
         return (React.createElement("div", {className: "gn-app vflex"}, 
                 React.createElement("div", {className: "gn-top flex00 flexcenter hflex"}, 
                     React.createElement("div", {className: "gn-top-logo clickable flex00", style: {margin: '10px 0'}, onClick: this.onLogoClick}, 
-                        React.createElement("img", {className: "metabrain", title: "MetaBrain", src: GN.urls.main + '/images/brain_logo.png', width: "60", height: "60"}), 
-
-                        React.createElement("div", {className: "noselect", style: {fontSize: '1.5em', color: color.colors.gndarkgray, float: 'right'}}, 
-                            "MetaBrain", React.createElement("br", null), "Network"
+                        React.createElement(Logo, {w: 33, h: 60, mirrored: true, style: {float: 'left', paddingRight: '10px'}}), 
+                        React.createElement("div", {className: "noselect", style: {fontSize: '1.5em', color: color.colors.gndarkgray, float: 'left'}}, 
+                            "GENE", React.createElement("br", null), "NETWORK"
+                        ), 
+                        React.createElement("div", {className: "noselect", style: {fontSize: '1em', color: color.colors.gndarkgray, float: 'left', marginTop: '37px', marginLeft: '7px'}}, 
+                            "v2.0"
                         )
                     ), 
                     topSearch, 
