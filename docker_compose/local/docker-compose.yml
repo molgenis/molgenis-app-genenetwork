@@ -17,6 +17,10 @@ services:
             - ELASTICSEARCH_URL=http://elasticsearch:9200"
             - ELASTICSEARCH_HOST=elasticsearch
         restart: always
+    static-web:
+        image: ndeklein/metabrainqtl:v1.0.test
+        expose:
+         - "80"
     redis:
         image: redis
         expose:
