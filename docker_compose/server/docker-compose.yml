@@ -2,7 +2,7 @@ version: "3"
 services:
     web:
         # replace username/repo:tag with your name and image details
-        image: ndeklein/metabrainnetwork:v1.1.server
+        image: ndeklein/metabrainnetwork:v1.2.test
         ports:
             - "1337:1337"
         depends_on:
@@ -17,6 +17,10 @@ services:
             - ELASTICSEARCH_URL=http://elasticsearch:9200"
             - ELASTICSEARCH_HOST=elasticsearch
         restart: always
+    static-web:
+        image: ndeklein/metabrainqtl:v1.0.test
+        expose:
+         - "80"
     redis:
         image: redis
         expose:
@@ -32,13 +36,13 @@ services:
         expose:
             - "9200"
     predictionserver:
-        image: ndeklein/predictionserver:v1.1.test
+        image: ndeklein/predictionserver:v1.2.test
         depends_on:
             - elasticsearch
         volumes:
             - "/srv/metabrainnetwork/data:/srv/metabrainnetwork/data"
     pwaserver:
-        image: ndeklein/pwasserver:v1.1.test
+        image: ndeklein/pwasserver:v1.2.test
         depends_on:
             - elasticsearch
         volumes:
