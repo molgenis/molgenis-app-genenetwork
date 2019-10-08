@@ -5,7 +5,6 @@ var PropertiesReader = require('properties-reader');
 var properties = PropertiesReader('config/config.properties');
 var elasticHostAddress = properties.get('ELASTICSEARCH_HOST');
 
-
 var CLIENT = new elasticsearch.Client({
     host: elasticHostAddress,
     log: 'info'
