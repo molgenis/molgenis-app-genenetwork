@@ -20,9 +20,6 @@ RUN npm i natives
 # Bundle app source
 COPY . .
 
-# Make port 80 available to the world outside this container
-EXPOSE 80
-
 # Fill elasticsearch with entrypoint.sh script
 RUN chmod +x entrypoint.sh  # if not already executable
 ENTRYPOINT ["/app/entrypoint.sh"]
