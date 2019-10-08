@@ -3580,10 +3580,7 @@ var Landing = React.createClass({displayName: "Landing",
                     React.createElement("div", {className: "gn-top-logo clickable flex00", style: {margin: '10px 0'}, onClick: this.onLogoClick}, 
                         React.createElement(Logo, {w: 33, h: 60, mirrored: true, style: {float: 'left', paddingRight: '10px'}}), 
                         React.createElement("div", {className: "noselect", style: {fontSize: '1.5em', color: color.colors.gndarkgray, float: 'left'}}, 
-                            "GENE", React.createElement("br", null), "NETWORK"
-                        ), 
-                        React.createElement("div", {className: "noselect", style: {fontSize: '1em', color: color.colors.gndarkgray, float: 'left', marginTop: '37px', marginLeft: '7px'}}, 
-                            "v2.0"
+                            "MetaBrain", React.createElement("br", null), "Network"
                         )
                     ), 
                     topSearch, 
@@ -9205,7 +9202,7 @@ module.exports = Tools;
 // https://www.genenetwork.nl for prod
 // empty for debug
 module.exports = {
-    domain: 'https://www.genenetwork.nl'
+    domain: 'https://www.metabrain.nl'
 };
 
 },{}],51:[function(require,module,exports){
