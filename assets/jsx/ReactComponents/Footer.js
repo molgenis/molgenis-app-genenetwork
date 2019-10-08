@@ -12,6 +12,9 @@ var Footer = React.createClass({
                     University Medical Center Groningen</a>
                 </div>
 
+                <div>Contact: Ellen Tsai <a href='mailto: ellen.tsai@biogen.com'> or Niek de Klein <a href='mailto: niekdeklein@gmail.com'>
+                </div>
+
                 <div className='flex01 hflex flexcenter flexwrap'>
                     <div style={{padding: '0 5px 0 5px'}}>
                         <a href='http://www.cleverfranke.com/cf/en/index.php' target='_blank'>
