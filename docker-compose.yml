@@ -2,7 +2,7 @@ version: "3"
 services:
     web:
         # replace username/repo:tag with your name and image details
-        image: ndeklein/metabrainnetwork:v1.2.test
+        image: ndeklein/metabrainnetwork:v1.3.server
         ports:
             - "1337:1337"
         depends_on:
@@ -37,13 +37,13 @@ services:
         expose:
             - "9200"
     predictionserver:
-        image: ndeklein/predictionserver:v1.2.test
+        image: ndeklein/predictionserver:v1.2.server
         depends_on:
             - elasticsearch
         volumes:
             - "/srv/metabrainnetwork/data:/srv/metabrainnetwork/data"
     pwaserver:
-        image: ndeklein/pwasserver:v1.2.test
+        image: ndeklein/pwasserver:v1.2.server
         depends_on:
             - elasticsearch
         volumes:
