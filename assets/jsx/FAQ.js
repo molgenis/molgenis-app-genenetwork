@@ -1,32 +1,10 @@
 var React = require('react');
 var DocumentTitle = require('react-document-title');
 var color = require('../js/color.js');
-
-var How = React.createClass({
-    render: function() {
-        return (
-            <DocumentTitle title={'FAQ' + GN.pageTitleSuffix}>
-                <div style={{backgroundColor: color.colors.gnwhite, marginTop: '10px', padding: '20px'}}>
-                    <h2 style={{marginBottom: '10px'}}>FAQ</h2>
-
-                    <ul>
-                        <li><a href={"#what-is-genenetwork"}>What is GeneNetwork?</a></li>
+/*
                         <li><a href={"#what-is-gado"}>What is GADO?</a></li>
                         <li><a href={"#can-i-run-gado-locally"}>Can I run GADO locally?</a></li>
-                        <li><a href={"#why-cant-my-term-be-used"}>Why can’t my term be used?</a></li>
-                        <li><a href={"#why-is-my-term-not-found"}>Why is my term not found?</a></li>
-                        <li><a href={"#gene-not-found"}>My favorite candidate gene for patient is not found back in the top of the results?</a></li>
-                        <li><a href={"#gene-predict-score"}>What is the gene predictability score?</a></li>
                         <li><a href={"#how-to-cite"}>How to cite?</a></li>
-                    </ul>
-
-                    <h3 id="what-is-genenetwork">What is GeneNetwork?</h3>
-                    <p>
-                        GeneNetwork uses gene co-regulation to predict pathway membership and HPO term associations.
-                        This is done by integrating 31,499 public RNA-seq sample.
-                    </p>
-                    <img title='GeneNetwork' style={{width: '1000px'}} src={GN.urls.main + '/images/genenetwork.png'} />
-
 
                     <h3 id="what-is-gado">What is GADO?</h3>
                     <p>
@@ -43,6 +21,35 @@ var How = React.createClass({
                         We have created a standalone version of GADO that can easily be integrated in an automated analysis pipeline.
                         For more information see: <a href="https://github.com/molgenis/systemsgenetics/wiki/GADO-Command-line">GADO Command Line</a>
                     </p>
+
+                                        <h3 id="how-to-cite">How to cite?</h3>
+                    <p>
+                        <a href="https://www.nature.com/articles/s41467-019-10649-4" target="_blank">Improving the diagnostic yield of exome-sequencing, by predicting gene-phenotype
+                            associations using large-scale gene expression analysis</a>
+                    </p>
+
+ */
+var How = React.createClass({
+    render: function() {
+        return (
+            <DocumentTitle title={'FAQ' + GN.pageTitleSuffix}>
+                <div style={{backgroundColor: color.colors.gnwhite, marginTop: '10px', padding: '20px'}}>
+                    <h2 style={{marginBottom: '10px'}}>FAQ</h2>
+
+                    <ul>
+                        <li><a href={"#what-is-genenetwork"}>What is MetaBrain Network?</a></li>
+                        <li><a href={"#why-cant-my-term-be-used"}>Why can’t my term be used?</a></li>
+                        <li><a href={"#why-is-my-term-not-found"}>Why is my term not found?</a></li>
+                        <li><a href={"#gene-not-found"}>My favorite candidate gene for patient is not found back in the top of the results?</a></li>
+                        <li><a href={"#gene-predict-score"}>What is the gene predictability score?</a></li>
+                    </ul>
+
+                    <h3 id="what-is-genenetwork">What is MetaBrain Network?</h3>
+                    <p>
+                        MetaBrain Network uses gene co-regulation to predict pathway membership and HPO term associations.
+                        This is done by integrating over 8000 (semi) public RNA-seq samples from brain.
+                    </p>
+                    <img title='GeneNetwork' style={{width: '1000px'}} src={GN.urls.main + '/images/genenetwork.png'} />
 
                     <h3 id="why-cant-my-term-be-used">Why can’t my term be used?</h3>
                     <p>
@@ -70,11 +77,6 @@ var How = React.createClass({
                         associations using large-scale gene expression analysis</a>
                     </p>
 
-                    <h3 id="how-to-cite">How to cite?</h3>
-                    <p>
-                        <a href="https://www.nature.com/articles/s41467-019-10649-4" target="_blank">Improving the diagnostic yield of exome-sequencing, by predicting gene-phenotype
-                            associations using large-scale gene expression analysis</a>
-                    </p>
 
 
                 </div>

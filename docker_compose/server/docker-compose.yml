@@ -20,7 +20,8 @@ services:
     static-web:
         image: ndeklein/metabrainqtl:v1.0.test
         expose:
-         - "80"
+            - "1338"
+        tty: true
     redis:
         image: redis
         expose:
