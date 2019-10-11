@@ -10,6 +10,10 @@
  * http://sailsjs.org/#/documentation/reference/sails.config/sails.config.sockets.html
  */
 
+var PropertiesReader = require('properties-reader');
+var properties = PropertiesReader('config/config.properties');
+
+
 module.exports.sockets = {
 
   /***************************************************************************
@@ -76,7 +80,9 @@ module.exports.sockets = {
    ***************************************************************************/
 
   adapter: 'socket.io-redis',
-  // host: '127.0.0.1',
+  host: properties.get('REDIS_HOST'),
+    port: properties.get('REDIS_PORT')
+    // host: '127.0.0.1',
   // port: 6379,
   // db: 'sails',
   // pass: '<redis auth password>'

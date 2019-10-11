@@ -1,0 +1,38 @@
+{
+  "name": "gn",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Gene Network",
+  "keywords": [],
+  "dependencies": {
+    "async": "^1.4.2",
+    "kue": "^0.9.5",
+    "level": "^2.1.2",
+    "leveldown": "^3.0.2",
+    "lodash": "^4.17.10",
+      "properties-reader": "^0.3.1",
+      "natives": "^1.1.6",
+      "genstats": "^0.0.1"
+  },
+  "scripts": {
+      "debug": "node debug app.js",
+      "start": "node app.js",
+      "build": "node_modules/browserify/bin/cmd.js -t reactify -t es6-templates -o assets/js/ReactBundle.js assets/jsx/GeneNetwork.js",
+      "build:watch": "node_modules/watchify/bin/cmd.js -t reactify -t es6-templates -o assets/js/ReactBundle.js assets/jsx/GeneNetwork.js -v",
+      "build:prod": "node_modules/browserify/bin/cmd.js -t reactify -t es6-templates -o assets/js/ReactBundle.js assets/jsx/GeneNetwork.js && node_modules/uglify-js/bin/uglifyjs --compress --mangle -- assets/js/ReactBundle.js > assets/js/ReactBundle.min.js"
+  },
+  "main": "app.js",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/molgenis/gene-network.git"
+  },
+  "author": "molgenis",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/molgenis/gene-network/issues"
+  },
+  "homepage": "https://github.com/molgenis/gene-network#readme",
+  "directories": {
+    "test": "test"
+  }
+}

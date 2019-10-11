@@ -1,0 +1,44 @@
+version: "3"
+services:
+    web:
+        # replace username/repo:tag with your name and image details
+        image: genenetwork
+        build: ./
+        ports:
+            - "1337:1337"
+            - "80:80"
+        depends_on:
+            - redis
+            - elasticsearch
+            - predictionserver
+            - pwaserver
+        volumes:
+            - "/data:/data"
+        environment:
+            - "discovery.zen.ping.unicast.hosts=elasticsearch"
+            - ELASTICSEARCH_URL=http://elasticsearch:9200"
+            - ELASTICSEARCH_HOST=elasticsearch
+    redis:
+        image: redis
+        expose:
+            - "6379"
+    elasticsearch:
+        image: elasticsearch:2.4
+        expose:
+            - "9200"
+    predictionserver:
+        image: predictionserver
+        build: ./servers/PredictionServer/
+        depends_on:
+            - redis
+            - elasticsearch
+        volumes:
+            - "/data:/data"
+    pwaserver:
+        image: pwaserver
+        build: ./servers/PWAServer/
+        depends_on:
+            - redis
+            - elasticsearch
+        volumes:
+            - "/data:/data"

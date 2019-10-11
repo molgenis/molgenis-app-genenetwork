@@ -3,14 +3,17 @@ var React = require('react');
 var ReactTable = require('react-table').default;
 var DocumentTitle = require('react-document-title');
 var color = require('../js/color');
-var sizes = require('../js/sizes');
 
 var GeneList = React.createClass({
 
     getInitialState: function() {
         return ({
             genes: [],
-            notFound: []
+            notFound: [],
+            duplicatesInRequest: [],
+            duplicatesInResponse: [],
+            error: false,
+            errorMessage: ""
         })
     },
 
@@ -25,7 +28,6 @@ var GeneList = React.createClass({
     parseGeneList: function(geneList) {
         geneList = geneList.trim().replace(/(\r\n|\n|\r|\t|\s|;)/g, ',');
         var genes = geneList.split(',').filter(function(e){return e});
-        genes = _.uniq(genes);
         return(genes);
     },
 
@@ -34,94 +36,197 @@ var GeneList = React.createClass({
         this.getGenesFromDb(genes);
     },
 
-    handleDbResponse: function (data) {
-        var notFound = _.compact(_.map(data, 'not_found'));
-        var genes = _.compact(_.flatten(_.map(data, 'genes'))); // this also flattens the genes from a given pathway // TODO: cluster genes searched by pathway id
+    handleDbResponse: function (dataReceived, dataRequested) {
+        var notFound = _.compact(_.map(dataReceived, 'not_found'));
+        var genes = _.compact(_.flatten(_.map(dataReceived, 'genes'))); // this also flattens the genes from a given pathway // TODO: cluster genes searched by pathway id
+
+        //check for duplicates
+        this.checkForDuplicatesInRequest(dataRequested);
+
+        //filter the duplicate genes, this also sets the state of the duplicates in the result
+        var genesToSet = this.getUniqueGenes(genes);
+
+        //set the state
+        this.setState({
+            genes: genesToSet,
+            //genes:genes,
+            notFound: notFound,
+            error: false
+        });
+    },
+
+    /**
+     * filter the genes returned to the user to only show unique ones, and set the state for the duplicate ones
+     * @param genesToUniqueValuesFor the genes returned to check for uniqueness
+     * @returns {Array} the genes returned to the user, filtered to contain no duplicates (based on id)
+     */
+    getUniqueGenes: function(genesToUniqueValuesFor){
+        var result = [];
+        var duplicates = [];
+        var mapOfIdToUniqueness = new Map();
+        //check all genes
+        var i = 0;
+        var length = genesToUniqueValuesFor.length;
+        for (; i < length;) {
+            var gene = genesToUniqueValuesFor[i];
+            //check if it already in the map (faster than checking array)
+            if(!mapOfIdToUniqueness.has(gene.id)){
+                //add to map for if encountered again
+                mapOfIdToUniqueness.set(gene.id, true);
+                //add to actual result we are interested in
+                result.push(gene);
+            }
+            //doing both global and local scope (by returning) is not best practice, might need to fix later
+            else{
+                //turn into 'geneid(symbol)' string to show the user
+                var duplicateString = gene.id+"("+gene.name+")";
+                duplicates.push(duplicateString);
+            }
+            i++;
+        }
+        //set the duplicates that were found
+        this.setState({
+            duplicatesInResponse : duplicates
+        });
+        return result;
+    },
+
+    /**
+     * check for duplicate values in the request entered by the user
+     * @param dataRequested the list of items the user requested
+     */
+    checkForDuplicatesInRequest: function (dataRequested){
+        //find the duplicates
+        var duplicatesFound = dataRequested.filter(function(a){
+            return dataRequested.indexOf(a) !== dataRequested.lastIndexOf(a)
+        });
+        //the filter didn't actually remove the duplicates, so let's get one of each
+        var uniqueDuplicates = _.uniq(duplicatesFound);
 
         this.setState({
-            genes: genes,
-            notFound: notFound,
+            //add to the duplicates
+            duplicatesInRequest: uniqueDuplicates
         });
     },
 
+
+    getGenesFromDb: function (genesRequested) {
+        //only request the unique ones
+        var genesUnique = _.uniq(genesRequested);
+        //set reference for async AJAX thread
+        var that = this;
+            $.ajax({
+                url: GN.urls.genes + '/' + genesUnique + '?verbose',
+                dataType: 'json',
+                success: function(genesObtained) {
+                    that.handleDbResponse(genesObtained, genesRequested);
+                }.bind(that),
+                error: function(xhr, status, err) {
+                    //inform the user that something went wrong
+                    that.handleErrorDbResponse(xhr.status);
+                    console.log(err)
+                }.bind(that)
+            })
+    },
+
     /**
-     * request genes for function enrichment
-     * @param genes the genes to request
+     * handle when the call to the database/API returns an error instead of a result
+     * @param errorCode the error code returned by the API/database
      */
-    getGenesFromDb: function (genes) {
-        let getUrl = GN.urls.genes + '/' + genes + '?verbose';
-        //check if the GET request is not too large
-        if(getUrl.length <= sizes.sizes.httpGetCharacterLimit){
-            this.getGenesFromDbWithGET(genes);
-        }
-        //if the GET request would be too large, do a POST instead (this means no shareable URL will be available)
-        else if(genes.length <= sizes.sizes.maxNumberOfGenesToRequest){
-            this.getGenesFromDbWithPOST(genes);
+    handleErrorDbResponse: function(errorCode){
+        var errorMessageToSet = "";
+        if(errorCode === 414){
+            //this one we know, a too large dataset
+            errorMessageToSet = "the request was too large, try limiting to 500 genes";
         }
         else{
-            //TODO after merge with MASTER, use new issue field here
+            //no to make it hackers to easy, keep the rest generic
+            errorMessageToSet = "an error occurred during the request";
         }
-    },
-
-    /**
-     * request the genes for function enrichment using an HTTP GET
-     * @param genes the genes to request
-     */
-    getGenesFromDbWithGET: function (genes) {
-        //set reference
-        let that = this;
-        //do an HTTP GET request using AJAX
-        $.ajax({
-            url: GN.urls.genes + '/' + genes + '?verbose',
-            dataType: 'json',
-            success: function(genes) {
-                that.handleDbResponse(genes);
-            }.bind(that),
-            error: function(xhr, status, err) {
-                console.log(err)
-            }.bind(that)
+        //set the state, all lists empty since we failed
+        this.setState({
+            genes: [],
+            notFound: [],
+            duplicatesInRequest: [],
+            duplicatesInResponse: [],
+            error: true,
+            errorMessage: errorMessageToSet
         });
     },
 
     /**
-     * request the genes for function enrichment using an HTTP POST
-     * @param genes the genes to request
+     * display the errors if necessary
+     * @returns {null} either null, which means no element, or a div with the error message
      */
-    getGenesFromDbWithPOST: function (genes) {
-        //set reference
-        let that = this;
-        //create the JSON object to place the genes in
-        let jsonObject = {passedgenes:genes};
-        //do an HTTP POST using AJAX
-        $.ajax({
-            url: GN.urls.genespost,
-            dataType: 'json',
-            type: 'POST',
-            data: jsonObject,
-            success: function(genes) {
-                that.handleDbResponse(genes);
-            }.bind(that),
-            error: function(xhr, status, err) {
-                console.log(err)
-            }.bind(that)
-        });
+    getErrorDisplay: function(){
+        var display = null;
+        //if there is an error, display it
+        if(this.state.error){
+            display = (
+                <div className='gn-error-container' style={{textAlign: 'left'}}>
+                    <span style={{color: 'orange', fontWeight: 'bold'}}>{this.state.errorMessage}</span>
+                </div>
+            );
+        }
+        return display;
+    },
 
+    /**
+     * get a description of a list of items
+     * @param listDescription the text before the list of items
+     * @param listItems the items to list
+     * @returns {*} a div describing the list items
+     */
+    getListDescription: function(listDescription, listItems){
+        var description =
+            (
+                <div>
+                    <span style={{fontWeight: 'bold', fontFamily: 'GG', fontSize: '1.2em'}}>{listDescription}:</span><br />
+                    {_.map(listItems, function (geneItem, i) {
+                        if (listItems.length === i+1) return <span key={geneItem}>{geneItem}</span>;
+                        else return <span key={geneItem}>{geneItem}, </span>
+                    })}
+                    <br />
+                </div>
+            );
+        return description;
+    },
+
+    /**
+     * get a description concerning duplicates if applicable
+     * @param listDescription the text before the list of duplicates
+     * @param duplicatesInRequest the duplicates in the request
+     * @param duplicatesInResponse the duplicates in the response
+     * @returns {null} the description of the duplicates in a div, or nothing if there are no duplicates
+     */
+    getDuplicatesList: function(listDescription, duplicatesInRequest, duplicatesInResponse){
+        var description = null;
+        //to not overpopulate the page, we only want to show warnings regarding duplicates when relevant
+        if(duplicatesInRequest.length >= 1 | duplicatesInResponse.length >= 1){
+            description = this.getListDescription(listDescription, duplicatesInRequest.concat(duplicatesInResponse));
+        }
+        return description;
     },
 
     render: function() {
         var notFound = this.state.notFound;
+        var duplicatesInRequest = this.state.duplicatesInRequest;
+        var duplicatesInResponse = this.state.duplicatesInResponse;
 
         return (
             <DocumentTitle title={'Gene set enrichment' + GN.pageTitleSuffix}>
             <div className='flex10'>
                 <div className='gn-term-description-outer' style={{backgroundColor: color.colors.gnwhite, padding: '20px'}}>
                     <div className='gn-term-description-inner hflex flexcenter maxwidth'>
-                        <div className='gn-term-description-name'>
-                            <span style={{fontWeight: 'bold', fontFamily: 'GG', fontSize: '1.5em'}}>Gene set enrichment</span>
+                        <div>
+                            <div className='gn-term-description-name'>
+                                <span style={{fontWeight: 'bold', fontFamily: 'GG', fontSize: '1.5em'}}>Gene set enrichment</span>
+                            </div>
+                            {this.getErrorDisplay()}
                         </div>
                         <div className='flex11' />
                         <div className='gn-term-description-stats' style={{textAlign: 'right'}}>
-                            <span style={{color: 'green', fontWeight: 'bold'}}>{this.state.genes.length}</span><span> genes found</span><br/>
+                            <span style={{color: 'green', fontWeight: 'bold'}}>{this.state.genes.length}</span><span> unique genes found</span><br/>
                             <span style={{color: 'red', fontWeight: 'bold'}}>{this.state.notFound.length}</span><span> not found</span><br/>
                         </div>
                         <div className='gn-term-description-networkbutton flexend' style={{padding: '0 0 3px 10px'}}>
@@ -133,11 +238,10 @@ var GeneList = React.createClass({
 
                 <div className={'gn-gene-container-outer'} style={{backgroundColor: color.colors.gnwhite, marginTop: '10px'}}>
                     <div className='gn-gene-container-inner maxwidth' style={{padding: '20px'}}>
-                        <span style={{fontWeight: 'bold', fontFamily: 'GG', fontSize: '1.2em'}}>Not found:</span><br />
-                        {_.map(notFound, function (geneItem, i) {
-                            if (notFound.length === i+1) return <span key={geneItem}>{geneItem}</span>;
-                            else return <span key={geneItem}>{geneItem}, </span>
-                        })}
+                        <div>
+                            {this.getListDescription("Not found",notFound)}
+                            {this.getDuplicatesList("Duplicates",duplicatesInRequest, duplicatesInResponse)}
+                        </div>
                         <div><br />
                             <span style={{fontWeight: 'bold', fontFamily: 'GG', fontSize: '1.2em'}}>Found:</span>
                             <ReactTable

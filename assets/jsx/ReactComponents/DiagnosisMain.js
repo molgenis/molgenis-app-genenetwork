@@ -257,7 +257,7 @@ var DiagnosisMain = React.createClass({
 
     renderModal: function () {
         if (this.state.isOpen) {
-            const backdropStyle = {
+            var backdropStyle = {
                 position: 'absolute',
                 zIndex: '1',
                 top: 0,
