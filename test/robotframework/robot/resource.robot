@@ -42,9 +42,19 @@ ${FAQ ELEMENT XPATH}  //*[@class='menuitem ']
 ${FAQ GADO H XPATH}   //*[@id='can-i-run-gado-locally']
 ${FAQ GADO L XPATH}   //*[@href='#can-i-run-gado-locally']
 ${API ELEMENT XPATH}  //*[@class='menuitem last']
+${GADO ELEMENT XPATH}   //*[@class='nodecoration black clickable']
+${GADO SEARCH XPATH}    //*[@class='Select-placeholder']
+${GADO SEARCH INPUT XPATH}    //*[@class='Select-input']/input
+${GADO ADD TERM BUTTON XPATH}   //*[@class='button noselect clickable'][1]
+${GADO SUBMIT BUTTON XPATH}   //*[@class='button noselect clickable'][1]
+${GADO RESULT TABLE XPATH}  //*[@id='gentab']
 ${GENE 1}	SMAD1
 ${GENE 2}	SMAD1,SMAD2,SMAD3,SMAD4,SMAD5
 ${GENE 3}	ENSG00000170365,ENSG00000175387,ENSG00000166949,ENSG00000141646,ENSG00000113658
+${GADO TERM 1}  Abnormality of the ovary - HP:0000137
+${GADO TERM 2}  Abnormality of the mouth - HP:0000153
+${GADO TERM 3}  Movement abnormality of the tongue - HP:0000182
+
 
 *** Keywords ***
 Open Browser To Home Page
@@ -142,3 +152,25 @@ Click FAQ
 
 Click API
   Click Element   xpath=${API ELEMENT XPATH}
+
+Click GADO
+  Click Element   xpath=${GADO ELEMENT XPATH}
+  Title Should Be    Diagnosis - Gene Network
+
+Input GADO
+  Wait Until Element Is Visible   xpath=${GADO SEARCH XPATH}
+  Click Element   xpath=${GADO SEARCH XPATH}
+  Wait Until Element Is Visible   xpath=${GADO SEARCH INPUT XPATH}
+  Input Text   xpath=${GADO SEARCH INPUT XPATH}  ${GADO TERM 1}
+  Sleep  1s
+  Press Key   xpath=${GADO SEARCH INPUT XPATH}  \\13
+  Input Text   xpath=${GADO SEARCH INPUT XPATH}  ${GADO TERM 2}
+  Sleep  1s
+  Press Key   xpath=${GADO SEARCH INPUT XPATH}  \\13
+  Input Text   xpath=${GADO SEARCH INPUT XPATH}  ${GADO TERM 3}
+  Sleep  1s
+  Press Key   xpath=${GADO SEARCH INPUT XPATH}  \\13
+  Wait Until Element Is Visible   xpath=${GADO ADD TERM BUTTON XPATH}
+  Click Element   xpath=${GADO ADD TERM BUTTON XPATH}
+  Click Element   xpath=${GADO SUBMIT BUTTON XPATH}
+  BuiltIn.Wait Until Keyword Succeeds	1m	1s	Wait Until Element Is Visible   xpath=${GADO RESULT TABLE XPATH}
