@@ -15,7 +15,8 @@ ${NETWORK APPEND}	network/ENSG00000170365,ENSG00000175387,ENSG00000166949,ENSG00
 ${NETWORK URL}	http://${SERVER}/${NETWORK APPEND}
 ${GENE APPEND}  gene/ENSG00000170365
 ${SINGLE GENE URL}  http://${SERVER}/${GENE APPEND}
-${FUNCTION ENRICHMENT SINGLE XPATH}	/html/body/div/div/div[2]/div[2]/div/div/span[1]/div[1]
+${FUNCTION ENRICHMENT SINGLE XPATH}   //*[@class='Select-placeholder']
+${FUNCTION ENRICHMENT SINGLE INPUT XPATH}   //*[@class='Select-input']/input
 ${FUNCTION ENRICHMENT MULTIPLE BUTTON XPATH}	/html/body/div/div/div[3]/div[2]/div/div
 ${FUNCTION ENRICHMENT MULTIPLE INPUT XPATH}	/html/body/div/div/div[2]/div[3]/textarea
 ${FUNCTION ENRICHMENT MULTIPLE SUBMIT XPATH}	/html/body/div/div/div[2]/div[4]/form/span[1]
@@ -69,6 +70,11 @@ Home Page Should Be Open
 Input Function Enrichment Single
 	Wait Until Element Is Visible  xpath=${FUNCTION ENRICHMENT SINGLE XPATH}
 	Click Element  xpath=${FUNCTION ENRICHMENT SINGLE XPATH}
+  Wait Until Element Is Visible   xpath=${FUNCTION ENRICHMENT SINGLE INPUT XPATH}
+  Input Text   xpath=${FUNCTION ENRICHMENT SINGLE INPUT XPATH}  ${GENE 1}
+  Sleep  1s
+  Press Key   xpath=${FUNCTION ENRICHMENT SINGLE INPUT XPATH}  \\13
+  BuiltIn.Wait Until Keyword Succeeds	1m	1s   Title Should Be   SMAD1 - Gene Network
 
 Input Function Enrichment Multiple
 	Click Element  xpath=${FUNCTION ENRICHMENT MULTIPLE BUTTON XPATH}

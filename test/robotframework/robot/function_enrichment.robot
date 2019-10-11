@@ -6,9 +6,13 @@ Documentation     A test suite for the function enrichment input
 Resource          resource.robot
 
 *** Test Cases ***
-Valid Function Enrichment
+Valid Function Enrichment Single
   Open Browser To Home Page
   Input Function Enrichment Single
+  Close Browser
+
+Valid Function Enrichment Multiple
+  Open Browser To Home Page
   Input Function Enrichment Multiple
   Close Browser
 
