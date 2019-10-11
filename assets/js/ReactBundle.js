@@ -3015,6 +3015,7 @@ var GeneList = React.createClass({displayName: "GeneList",
                 var duplicateString = gene.id+"("+gene.name+")";
                 duplicates.push(duplicateString);
             }
+            i++;
         }
         //set the duplicates that were found
         this.setState({
@@ -9187,6 +9188,8 @@ var Tools = React.createClass({displayName: "Tools",
 module.exports = Tools;
 
 },{"../../config/gn":51,"../js/color":4,"./Box":8,"./BoxFunctionEnrichment":9,"react":333}],50:[function(require,module,exports){
+// https://www.genenetwork.nl for prod
+// empty for debug
 module.exports = {
     domain: 'https://www.genenetwork.nl'
 };
@@ -21972,7 +21975,7 @@ module.exports = {
 
 }).call(this,require('_process'))
 },{"_process":132,"lodash":52}],54:[function(require,module,exports){
-(function (process,global){
+(function (process,global,setImmediate){
 /*!
  * async
  * https://github.com/caolan/async
@@ -23239,8 +23242,8 @@ module.exports = {
 
 }());
 
-}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"_process":132}],55:[function(require,module,exports){
+}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("timers").setImmediate)
+},{"_process":132,"timers":352}],55:[function(require,module,exports){
 /*!
   Copyright (c) 2016 Jed Watson.
   Licensed under the MIT License (MIT), see
@@ -34728,6 +34731,8 @@ module.exports = function(a, b, accessor) {
 
 var hasOwn = Object.prototype.hasOwnProperty;
 var toStr = Object.prototype.toString;
+var defineProperty = Object.defineProperty;
+var gOPD = Object.getOwnPropertyDescriptor;
 
 var isArray = function isArray(arr) {
 	if (typeof Array.isArray === 'function') {
@@ -34757,6 +34762,35 @@ var isPlainObject = function isPlainObject(obj) {
 	return typeof key === 'undefined' || hasOwn.call(obj, key);
 };
 
+// If name is '__proto__', and Object.defineProperty is available, define __proto__ as an own property on target
+var setProperty = function setProperty(target, options) {
+	if (defineProperty && options.name === '__proto__') {
+		defineProperty(target, options.name, {
+			enumerable: true,
+			configurable: true,
+			value: options.newValue,
+			writable: true
+		});
+	} else {
+		target[options.name] = options.newValue;
+	}
+};
+
+// Return undefined instead of __proto__ if '__proto__' is not an own property
+var getProperty = function getProperty(obj, name) {
+	if (name === '__proto__') {
+		if (!hasOwn.call(obj, name)) {
+			return void 0;
+		} else if (gOPD) {
+			// In early versions of node, obj['__proto__'] is buggy when obj has
+			// __proto__ as an own property. Object.getOwnPropertyDescriptor() works.
+			return gOPD(obj, name).value;
+		}
+	}
+
+	return obj[name];
+};
+
 module.exports = function extend() {
 	var options, name, src, copy, copyIsArray, clone;
 	var target = arguments[0];
@@ -34781,8 +34815,8 @@ module.exports = function extend() {
 		if (options != null) {
 			// Extend the base object
 			for (name in options) {
-				src = target[name];
-				copy = options[name];
+				src = getProperty(target, name);
+				copy = getProperty(options, name);
 
 				// Prevent never-ending loop
 				if (target !== copy) {
@@ -34796,11 +34830,11 @@ module.exports = function extend() {
 						}
 
 						// Never move original objects, clone them
-						target[name] = extend(deep, clone, copy);
+						setProperty(target, { name: name, newValue: extend(deep, clone, copy) });
 
 					// Don't bring in undefined values
 					} else if (typeof copy !== 'undefined') {
-						target[name] = copy;
+						setProperty(target, { name: name, newValue: copy });
 					}
 				}
 			}
@@ -37925,7 +37959,7 @@ function readState(key) {
   return null;
 }
 }).call(this,require('_process'))
-},{"_process":132,"warning":352}],112:[function(require,module,exports){
+},{"_process":132,"warning":353}],112:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -38487,7 +38521,7 @@ function createHashHistory() {
 exports['default'] = createHashHistory;
 module.exports = exports['default'];
 }).call(this,require('_process'))
-},{"./Actions":109,"./DOMStateStorage":111,"./DOMUtils":112,"./ExecutionEnvironment":113,"./createDOMHistory":115,"./parsePath":122,"_process":132,"invariant":129,"warning":352}],117:[function(require,module,exports){
+},{"./Actions":109,"./DOMStateStorage":111,"./DOMUtils":112,"./ExecutionEnvironment":113,"./createDOMHistory":115,"./parsePath":122,"_process":132,"invariant":129,"warning":353}],117:[function(require,module,exports){
 //import warning from 'warning'
 'use strict';
 
@@ -38992,7 +39026,7 @@ function createMemoryHistory() {
 exports['default'] = createMemoryHistory;
 module.exports = exports['default'];
 }).call(this,require('_process'))
-},{"./Actions":109,"./createHistory":117,"./parsePath":122,"_process":132,"invariant":129,"warning":352}],120:[function(require,module,exports){
+},{"./Actions":109,"./createHistory":117,"./parsePath":122,"_process":132,"invariant":129,"warning":353}],120:[function(require,module,exports){
 //import warning from 'warning'
 
 "use strict";
@@ -39069,7 +39103,7 @@ function parsePath(path) {
 exports['default'] = parsePath;
 module.exports = exports['default'];
 }).call(this,require('_process'))
-},{"./extractPath":121,"_process":132,"warning":352}],123:[function(require,module,exports){
+},{"./extractPath":121,"_process":132,"warning":353}],123:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -39096,7 +39130,7 @@ function runTransitionHook(hook, location, callback) {
 exports['default'] = runTransitionHook;
 module.exports = exports['default'];
 }).call(this,require('_process'))
-},{"_process":132,"warning":352}],124:[function(require,module,exports){
+},{"_process":132,"warning":353}],124:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -39412,7 +39446,7 @@ function useQueries(createHistory) {
 exports['default'] = useQueries;
 module.exports = exports['default'];
 }).call(this,require('_process'))
-},{"./deprecate":120,"./parsePath":122,"./runTransitionHook":123,"_process":132,"query-string":141,"warning":352}],126:[function(require,module,exports){
+},{"./deprecate":120,"./parsePath":122,"./runTransitionHook":123,"_process":132,"query-string":141,"warning":353}],126:[function(require,module,exports){
 var pSlice = Array.prototype.slice;
 var objectKeys = require('./lib/keys.js');
 var isArguments = require('./lib/is_arguments.js');
@@ -39601,7 +39635,7 @@ module.exports = invariant;
 /**
  * @license
  * Lodash <https://lodash.com/>
- * Copyright JS Foundation and other contributors <https://js.foundation/>
+ * Copyright OpenJS Foundation and other contributors <https://openjsf.org/>
  * Released under MIT license <https://lodash.com/license>
  * Based on Underscore.js 1.8.3 <http://underscorejs.org/LICENSE>
  * Copyright Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
@@ -39612,7 +39646,7 @@ module.exports = invariant;
   var undefined;
 
   /** Used as the semantic version number. */
-  var VERSION = '4.17.10';
+  var VERSION = '4.17.15';
 
   /** Used as the size to enable large array optimizations. */
   var LARGE_ARRAY_SIZE = 200;
@@ -39876,7 +39910,7 @@ module.exports = invariant;
   var reHasUnicode = RegExp('[' + rsZWJ + rsAstralRange  + rsComboRange + rsVarRange + ']');
 
   /** Used to detect strings that need a more robust regexp to match words. */
-  var reHasUnicodeWord = /[a-z][A-Z]|[A-Z]{2,}[a-z]|[0-9][a-zA-Z]|[a-zA-Z][0-9]|[^a-zA-Z0-9 ]/;
+  var reHasUnicodeWord = /[a-z][A-Z]|[A-Z]{2}[a-z]|[0-9][a-zA-Z]|[a-zA-Z][0-9]|[^a-zA-Z0-9 ]/;
 
   /** Used to assign default `context` object properties. */
   var contextProps = [
@@ -40822,20 +40856,6 @@ module.exports = invariant;
       }
     }
     return result;
-  }
-
-  /**
-   * Gets the value at `key`, unless `key` is "__proto__".
-   *
-   * @private
-   * @param {Object} object The object to query.
-   * @param {string} key The key of the property to get.
-   * @returns {*} Returns the property value.
-   */
-  function safeGet(object, key) {
-    return key == '__proto__'
-      ? undefined
-      : object[key];
   }
 
   /**
@@ -42285,16 +42305,10 @@ module.exports = invariant;
         value.forEach(function(subValue) {
           result.add(baseClone(subValue, bitmask, customizer, subValue, value, stack));
         });
-
-        return result;
-      }
-
-      if (isMap(value)) {
+      } else if (isMap(value)) {
         value.forEach(function(subValue, key) {
           result.set(key, baseClone(subValue, bitmask, customizer, key, value, stack));
         });
-
-        return result;
       }
 
       var keysFunc = isFull
@@ -43218,8 +43232,8 @@ module.exports = invariant;
         return;
       }
       baseFor(source, function(srcValue, key) {
+        stack || (stack = new Stack);
         if (isObject(srcValue)) {
-          stack || (stack = new Stack);
           baseMergeDeep(object, source, key, srcIndex, baseMerge, customizer, stack);
         }
         else {
@@ -43295,7 +43309,7 @@ module.exports = invariant;
           if (isArguments(objValue)) {
             newValue = toPlainObject(objValue);
           }
-          else if (!isObject(objValue) || (srcIndex && isFunction(objValue))) {
+          else if (!isObject(objValue) || isFunction(objValue)) {
             newValue = initCloneObject(srcValue);
           }
         }
@@ -45036,7 +45050,7 @@ module.exports = invariant;
       return function(number, precision) {
         number = toNumber(number);
         precision = precision == null ? 0 : nativeMin(toInteger(precision), 292);
-        if (precision) {
+        if (precision && nativeIsFinite(number)) {
           // Shift with exponential notation to avoid floating-point issues.
           // See [MDN](https://mdn.io/round#Examples) for more details.
           var pair = (toString(number) + 'e').split('e'),
@@ -46216,6 +46230,26 @@ module.exports = invariant;
         array[length] = isIndex(index, arrLength) ? oldArray[index] : undefined;
       }
       return array;
+    }
+
+    /**
+     * Gets the value at `key`, unless `key` is "__proto__" or "constructor".
+     *
+     * @private
+     * @param {Object} object The object to query.
+     * @param {string} key The key of the property to get.
+     * @returns {*} Returns the property value.
+     */
+    function safeGet(object, key) {
+      if (key === 'constructor' && typeof object[key] === 'function') {
+        return;
+      }
+
+      if (key == '__proto__') {
+        return;
+      }
+
+      return object[key];
     }
 
     /**
@@ -50011,6 +50045,7 @@ module.exports = invariant;
           }
           if (maxing) {
             // Handle invocations in a tight loop.
+            clearTimeout(timerId);
             timerId = setTimeout(timerExpired, wait);
             return invokeFunc(lastCallTime);
           }
@@ -54397,9 +54432,12 @@ module.exports = invariant;
       , 'g');
 
       // Use a sourceURL for easier debugging.
+      // The sourceURL gets injected into the source that's eval-ed, so be careful
+      // with lookup (in case of e.g. prototype pollution), and strip newlines if any.
+      // A newline wouldn't be a valid sourceURL anyway, and it'd enable code injection.
       var sourceURL = '//# sourceURL=' +
-        ('sourceURL' in options
-          ? options.sourceURL
+        (hasOwnProperty.call(options, 'sourceURL')
+          ? (options.sourceURL + '').replace(/[\r\n]/g, ' ')
           : ('lodash.templateSources[' + (++templateCounter) + ']')
         ) + '\n';
 
@@ -54432,7 +54470,9 @@ module.exports = invariant;
 
       // If `variable` is not specified wrap a with-statement around the generated
       // code to add the data object to the top of the scope chain.
-      var variable = options.variable;
+      // Like with sourceURL, we take care to not check the option's prototype,
+      // as this configuration is a code injection vector.
+      var variable = hasOwnProperty.call(options, 'variable') && options.variable;
       if (!variable) {
         source = 'with (obj) {\n' + source + '\n}\n';
       }
@@ -56637,10 +56677,11 @@ module.exports = invariant;
     baseForOwn(LazyWrapper.prototype, function(func, methodName) {
       var lodashFunc = lodash[methodName];
       if (lodashFunc) {
-        var key = (lodashFunc.name + ''),
-            names = realNames[key] || (realNames[key] = []);
-
-        names.push({ 'name': methodName, 'func': lodashFunc });
+        var key = lodashFunc.name + '';
+        if (!hasOwnProperty.call(realNames, key)) {
+          realNames[key] = [];
+        }
+        realNames[key].push({ 'name': methodName, 'func': lodashFunc });
       }
     });
 
@@ -58442,7 +58483,7 @@ IndexRedirect.createRouteFromReactElement = function (element, parentRoute) {
 exports['default'] = IndexRedirect;
 module.exports = exports['default'];
 }).call(this,require('_process'))
-},{"./PropTypes":153,"./Redirect":154,"_process":132,"invariant":129,"react":333,"warning":352}],149:[function(require,module,exports){
+},{"./PropTypes":153,"./Redirect":154,"_process":132,"invariant":129,"react":333,"warning":353}],149:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -58515,7 +58556,7 @@ IndexRoute.createRouteFromReactElement = function (element, parentRoute) {
 exports['default'] = IndexRoute;
 module.exports = exports['default'];
 }).call(this,require('_process'))
-},{"./PropTypes":153,"./RouteUtils":157,"_process":132,"invariant":129,"react":333,"warning":352}],150:[function(require,module,exports){
+},{"./PropTypes":153,"./RouteUtils":157,"_process":132,"invariant":129,"react":333,"warning":353}],150:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -59366,7 +59407,7 @@ function createRoutes(routes) {
   return routes;
 }
 }).call(this,require('_process'))
-},{"_process":132,"react":333,"warning":352}],158:[function(require,module,exports){
+},{"_process":132,"react":333,"warning":353}],158:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -59534,7 +59575,7 @@ Router.defaultProps = {
 exports['default'] = Router;
 module.exports = exports['default'];
 }).call(this,require('_process'))
-},{"./PropTypes":153,"./RouteUtils":157,"./RoutingContext":159,"./useRoutes":168,"_process":132,"history/lib/createHashHistory":116,"react":333,"warning":352}],159:[function(require,module,exports){
+},{"./PropTypes":153,"./RouteUtils":157,"./RoutingContext":159,"./useRoutes":168,"_process":132,"history/lib/createHashHistory":116,"react":333,"warning":353}],159:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -60352,7 +60393,7 @@ function matchRoutes(routes, location, callback) {
 exports['default'] = matchRoutes;
 module.exports = exports['default'];
 }).call(this,require('_process'))
-},{"./AsyncUtils":145,"./PatternUtils":152,"./RouteUtils":157,"_process":132,"warning":352}],168:[function(require,module,exports){
+},{"./AsyncUtils":145,"./PatternUtils":152,"./RouteUtils":157,"_process":132,"warning":353}],168:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -60646,7 +60687,7 @@ function useRoutes(createHistory) {
 exports['default'] = useRoutes;
 module.exports = exports['default'];
 }).call(this,require('_process'))
-},{"./TransitionUtils":160,"./computeChangedRoutes":161,"./getComponents":162,"./isActive":165,"./matchRoutes":167,"_process":132,"history/lib/Actions":109,"history/lib/useQueries":125,"warning":352}],169:[function(require,module,exports){
+},{"./TransitionUtils":160,"./computeChangedRoutes":161,"./getComponents":162,"./isActive":165,"./matchRoutes":167,"_process":132,"history/lib/Actions":109,"history/lib/useQueries":125,"warning":353}],169:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -87353,6 +87394,85 @@ module.exports = function (str) {
 };
 
 },{}],352:[function(require,module,exports){
+(function (setImmediate,clearImmediate){
+var nextTick = require('process/browser.js').nextTick;
+var apply = Function.prototype.apply;
+var slice = Array.prototype.slice;
+var immediateIds = {};
+var nextImmediateId = 0;
+
+// DOM APIs, for completeness
+
+exports.setTimeout = function() {
+  return new Timeout(apply.call(setTimeout, window, arguments), clearTimeout);
+};
+exports.setInterval = function() {
+  return new Timeout(apply.call(setInterval, window, arguments), clearInterval);
+};
+exports.clearTimeout =
+exports.clearInterval = function(timeout) { timeout.close(); };
+
+function Timeout(id, clearFn) {
+  this._id = id;
+  this._clearFn = clearFn;
+}
+Timeout.prototype.unref = Timeout.prototype.ref = function() {};
+Timeout.prototype.close = function() {
+  this._clearFn.call(window, this._id);
+};
+
+// Does not start the time, just sets up the members needed.
+exports.enroll = function(item, msecs) {
+  clearTimeout(item._idleTimeoutId);
+  item._idleTimeout = msecs;
+};
+
+exports.unenroll = function(item) {
+  clearTimeout(item._idleTimeoutId);
+  item._idleTimeout = -1;
+};
+
+exports._unrefActive = exports.active = function(item) {
+  clearTimeout(item._idleTimeoutId);
+
+  var msecs = item._idleTimeout;
+  if (msecs >= 0) {
+    item._idleTimeoutId = setTimeout(function onTimeout() {
+      if (item._onTimeout)
+        item._onTimeout();
+    }, msecs);
+  }
+};
+
+// That's not how node.js implements it but the exposed api is the same.
+exports.setImmediate = typeof setImmediate === "function" ? setImmediate : function(fn) {
+  var id = nextImmediateId++;
+  var args = arguments.length < 2 ? false : slice.call(arguments, 1);
+
+  immediateIds[id] = true;
+
+  nextTick(function onNextTick() {
+    if (immediateIds[id]) {
+      // fn.call() is faster so we optimize for the common use-case
+      // @see http://jsperf.com/call-apply-segu
+      if (args) {
+        fn.apply(null, args);
+      } else {
+        fn.call(null);
+      }
+      // Prevent ids from leaking
+      exports.clearImmediate(id);
+    }
+  });
+
+  return id;
+};
+
+exports.clearImmediate = typeof clearImmediate === "function" ? clearImmediate : function(id) {
+  delete immediateIds[id];
+};
+}).call(this,require("timers").setImmediate,require("timers").clearImmediate)
+},{"process/browser.js":132,"timers":352}],353:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2014-2015, Facebook, Inc.

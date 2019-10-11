@@ -1,19 +1,34 @@
 var _ = require('lodash')
-var Queue = require('kue').createQueue()
+// get location of GN files
+var PropertiesReader = require('properties-reader');
+var properties = PropertiesReader('./config.properties');
+var Queue = require('kue').createQueue(
+    {
+        redis:{
+            host: properties.get('REDIS_HOST'),
+            port: properties.get('REDIS_PORT')
+        }
+    }
+);
 var genstats = require('genstats')
 var prob = genstats.probability
 var wilcoxon = genstats.wilcoxon
-var quicksort = require('../api/controllers/utils/quicksort')
-var quicksortobj = require('../api/controllers/utils/quicksortobj')
+var quicksort = require('./quicksort')
+var quicksortobj = require('./quicksortobj')
 var fileutil = require('./fileutil')
 
 var NUM_CODING_GENES_TO_SEND = 50
 var NUM_NONCODING_GENES_TO_SEND = 50
 var GENEDATA, COMPDATA, NUM_COMPS, BACKGROUND_MATRIX
 
+// get location of GN files
+var genenetworkFilePath = properties.get('GN_FILES_PATH');
+
+
+
 var readData = function(callback) {
     //fileutil.readBinary('/data/genenetwork/files/169PCs.npy', function(err, data) {
-    fileutil.readTXT('/data/genenetwork/files/31_G_QCD_ONLYCHR_NODUPL_DESEQ_LOG_COV_G_eigenvectors_307_genescompsstdnorm.txt', function(err, data) {
+    fileutil.readTXT(genenetworkFilePath+'files/31_G_QCD_ONLYCHR_NODUPL_DESEQ_LOG_COV_G_eigenvectors_307_genescompsstdnorm.txt', function(err, data) {
         if (err) return callback(err)
         GENEDATA = data
         COMPDATA = []

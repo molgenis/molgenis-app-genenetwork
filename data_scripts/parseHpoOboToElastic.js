@@ -3,13 +3,19 @@ var fs = require('fs');
 var split = require('split');
 var level = require('level');
 var elasticsearch = require('elasticsearch')
+// get the address for elastic search host
+var PropertiesReader = require('properties-reader');
+var properties = PropertiesReader('config/config.properties');
+var elasticHostAddress = properties.get('ELASTICSEARCH_HOST');
+// get the location of the GN files
+var genenetworkFilePath = properties.get('GN_FILES_PATH');
 
-var pathwayDb = level('/data/genenetwork/level/new/dbexternal_uint16be', { valueEncoding: 'binary' });
+var pathwayDb = level(genenetworkFilePath+'level/new/dbexternal_uint16be', { valueEncoding: 'binary' });
 var significantTerms = {};
 var allTerms = {};
 
 var client = new elasticsearch.Client({
-    host: 'localhost:9200',
+    host: elasticHostAddress,
     log: 'info'
 });
 
@@ -29,7 +35,7 @@ pathwayDb.createReadStream({
 function readObo() {
     var currentTerm = null;
 
-    fs.createReadStream('/data/genenetwork/files/new/hp.obo', 'utf8')
+    fs.createReadStream(genenetworkFilePath+'files/new/hp.obo', 'utf8')
         .pipe(split())
         .on('data', function(data) {
             data = data.trim();

@@ -1,13 +1,19 @@
 var _ = require('lodash')
 var level = require('level')
 var elasticsearch = require('elasticsearch')
+// get the address for elastic search host
+var PropertiesReader = require('properties-reader');
+var properties = PropertiesReader('config/config.properties');
+var elasticHostAddress = properties.get('ELASTICSEARCH_HOST');
+// get the location of the GN files
+var genenetworkFilePath = properties.get('GN_FILES_PATH')
 
 var client = new elasticsearch.Client({
-    host: 'localhost:9200',
+    host: elasticHostAddress,
     log: 'info'
 })
 
-var db = level('/data/genenetwork/level/new/dbgenes_uint16be', {valueEncoding: 'binary'})
+var db = level(genenetworkFilePath+'level/new/dbgenes_uint16be', {valueEncoding: 'binary'})
 
 db.get('!RNASEQ', {valueEncoding: 'json'}, function(err, data) {
     var bulk = []

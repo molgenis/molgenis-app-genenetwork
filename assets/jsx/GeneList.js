@@ -82,6 +82,7 @@ var GeneList = React.createClass({
                 var duplicateString = gene.id+"("+gene.name+")";
                 duplicates.push(duplicateString);
             }
+            i++;
         }
         //set the duplicates that were found
         this.setState({

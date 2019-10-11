@@ -2,9 +2,13 @@ var _ = require('lodash')
 var async = require('async')
 var level = require('level')
 var elasticsearch = require('elasticsearch')
+// read address of elasticsearch host
+var PropertiesReader = require('properties-reader');
+var properties = PropertiesReader('config/config.properties');
+var elasticHostAddress = properties.get('ELASTICSEARCH_HOST');
 
 var client = new elasticsearch.Client({
-    host: 'localhost:9200',
+    host: elasticHostAddress,
     log: 'info'
 })
 

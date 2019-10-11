@@ -1,4 +1,14 @@
-var Queue = require('kue').createQueue()
+// get location of GN files
+var PropertiesReader = require('properties-reader');
+var properties = PropertiesReader('config/config.properties');
+var Queue = require('kue').createQueue(
+    {
+        redis:{
+            host: properties.get('REDIS_HOST'),
+            port: properties.get('REDIS_PORT')
+        }
+    }
+);
 var dbutil = require('../utils/dbutil')
 var genedesc = require('../utils/genedesc')
 var quicksortobj = require('../utils/quicksortobj')
