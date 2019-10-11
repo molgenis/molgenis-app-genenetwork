@@ -11,3 +11,8 @@ Valid Function Enrichment
   Input Function Enrichment Single
   Input Function Enrichment Multiple
   Close Browser
+
+Valid Function Enrichment ENSG
+  Open Browser To Home Page
+  Input Function Enrichment Multiple ENSG
+  Close Browser

@@ -44,6 +44,7 @@ ${FAQ GADO L XPATH}   //*[@href='#can-i-run-gado-locally']
 ${API ELEMENT XPATH}  //*[@class='menuitem last']
 ${GENE 1}	SMAD1
 ${GENE 2}	SMAD1,SMAD2,SMAD3,SMAD4,SMAD5
+${GENE 3}	ENSG00000170365,ENSG00000175387,ENSG00000166949,ENSG00000141646,ENSG00000113658
 
 *** Keywords ***
 Open Browser To Home Page
@@ -66,6 +67,15 @@ Input Function Enrichment Multiple
 	Click Element  xpath=${FUNCTION ENRICHMENT MULTIPLE SUBMIT XPATH}
 	Wait Until Element Is Visible  xpath=${GENE SET ENRICHMENT NUMBER XPATH}
 	BuiltIn.Wait Until Keyword Succeeds	1m	1s	Element Should Contain	xpath=${GENE SET ENRICHMENT NUMBER XPATH}	5 unique genes found
+
+Input Function Enrichment Multiple ENSG
+	Click Element  xpath=${FUNCTION ENRICHMENT MULTIPLE BUTTON XPATH}
+	Wait Until Element Is Visible  xpath=${FUNCTION ENRICHMENT MULTIPLE INPUT XPATH}
+	Input Text   xpath=${FUNCTION ENRICHMENT MULTIPLE INPUT XPATH}	${GENE 3}
+	Click Element  xpath=${FUNCTION ENRICHMENT MULTIPLE SUBMIT XPATH}
+	Wait Until Element Is Visible  xpath=${GENE SET ENRICHMENT NUMBER XPATH}
+	BuiltIn.Wait Until Keyword Succeeds	1m	1s	Element Should Contain	xpath=${GENE SET ENRICHMENT NUMBER XPATH}	5 unique genes found
+
 
 Click Network
 	Click Element  xpath=${NETWORK BUTTON XPATH}
