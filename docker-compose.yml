@@ -1,8 +1,8 @@
 version: "3"
 services:
-    web:
+    metabrainnetwork:
         # replace username/repo:tag with your name and image details
-        image: ndeklein/metabrainnetwork:v1.4.server
+        image: ndeklein/metabrainnetwork:v1.5.server
         ports:
             - "1337:1337"
         depends_on:
@@ -17,8 +17,8 @@ services:
             - ELASTICSEARCH_URL=http://elasticsearch:9200"
             - ELASTICSEARCH_HOST=elasticsearch
         restart: always
-    static-web:
-        image: ndeklein/metabrainqtl:v1.1.server
+    metabrainqtl:
+        image: ndeklein/metabrainqtl:v1.3.server
         ports:
             - "1338:80"
         tty: true
