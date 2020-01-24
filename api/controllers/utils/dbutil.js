@@ -867,7 +867,9 @@ exp.getPathwayJSON = function(pathway, req, callback) {
             function(cb) {
                 pathwaydb.get('RNASEQ!PREDICTIONS!' + pathway.database.toUpperCase() + '!' + pathway.id, function(err, data) {
                     if (err) {
-                        handleDBError(err, cb)
+                        //handleDBError(err, cb)
+                        r.genes.predicted = []
+                        cb()
                     } else {
                         r.genes.predicted = getPredictions(data, null, {
                             start: req.query.start,
