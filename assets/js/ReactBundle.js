@@ -3236,6 +3236,9 @@ var history = createBrowserHistory();
 ReactDOM.render(React.createElement(Router, {history: history}, 
                     React.createElement(Route, null, 
                         React.createElement(Route, {path: "/", component: Landing}, 
+                            React.createElement(Route, {path: "/qtl"}, 
+                                "MetaBrain QTLs"
+                            ), 
                             React.createElement(Route, {path: "/faq", component: FAQ}), 
                             React.createElement(Route, {path: "/about", component: About}), 
                             React.createElement(Route, {path: "/api", component: API}), 
@@ -7390,6 +7393,9 @@ var Footer = React.createClass({displayName: "Footer",
                     "University Medical Center Groningen")
                 ), 
 
+                React.createElement("div", null, "Contact:  ", React.createElement("a", {href: "mailto: ellen.tsai@biogen.com"}, " Ellen Tsai"), " or ", React.createElement("a", {href: "mailto: niekdeklein@gmail.com"}, "Niek de Klein")
+                ), 
+
                 React.createElement("div", {className: "flex01 hflex flexcenter flexwrap"}, 
                     React.createElement("div", {style: {padding: '0 5px 0 5px'}}, 
                         React.createElement("a", {href: "http://www.cleverfranke.com/cf/en/index.php", target: "_blank"}, 
@@ -9201,8 +9207,13 @@ var DOMAIN = require('./domain').domain;
 module.exports.domain = DOMAIN;
 
 module.exports.menuItems = [{
-    name: 'HOME',
-    route: '/'
+    name: 'MetaBrain eQTLs',
+    route: '/qtl'
+},
+    {
+        name: 'HOME',
+        route: '/'
+
 },
     {
     name: 'FAQ',
