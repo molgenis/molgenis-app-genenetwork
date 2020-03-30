@@ -10,3 +10,14 @@ node_modules/
 ReactBundle.js
 backup_elasticsearch
 *.iml
+.gitignore
+config/config.properties
+servers/PWAServer/config.properties
+servers/PredictionServer/config.properties
+buildwatch.sh
+data_scripts/ADAM23.txt.gz
+data_scripts/selectGenesFromDb.js
+data_scripts/select_gene.py
+data_scripts/test.sh
+data_scripts/test/
+data_scripts/tmp.txt
