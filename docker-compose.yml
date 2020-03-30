@@ -18,7 +18,7 @@ services:
             - ELASTICSEARCH_HOST=elasticsearch
         restart: always
     metabrainqtl:
-        image: ndeklein/metabrainqtl:v1.3.server
+        image: ndeklein/metabrainqtl:v1.4.server
         ports:
             - "1338:80"
         tty: true
