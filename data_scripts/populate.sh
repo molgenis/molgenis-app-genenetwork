@@ -15,26 +15,84 @@ ensg_hncg_mapping=
 dbname=
 # file with terms, website, description
 term_file=
-# identity matrix file with 1 if gene in geneset, 0 if not
-identity_matrix=
 # z-score matrix with prediction z-scores
 zscore_matrix=
 # table with p-values and AUC
 auc_table=
+# identity matrix file with 1 if gene in geneset, 0 if not
+identity_matrix=
 # correlation matrix over eigenvectors, filtered on only relevant number of eigenvectors (e.g. for genenetwork.nl 1588)
 eigenvector_cormatrix=
 # number of eigenvectors used
 n_eigenvectors=
 main(){
   parse_commandline "$@"
-	populate_genes_to_geneDB $1 $2 $3
-	populate_geneset_dbtxt $1 $4 $5 $6 $7 $8
-	populate_geneset_dbtxt $1 $4 $5 $6
+	populate_genes_to_geneDB ${database_base_dir} ${gene_list_file} ${ensg_hncg_mapping}
+	populate_geneset_dbtxt ${database_base_dir} ${dbname} ${term_file} ${zscore_matrix} ${auc_table} ${identity_matrix}
+	populate_coregulation_DBTXT ${eigenvector_cormatrix} ${database_base_dir} ${n_eigenvectors}
 	if [ "$4" = "HPO"];
 	then
 		node data_scripts/parseHpoOboToElastic.js
 	fi
 }
+
+populate_genes_to_geneDB(){
+	# $1 = database base dir, e.g. "/data/genenetwork/"
+	# $2 = file with newline separated list of genes that should be included
+	# $3 = Table with at least 3 columns. first column ensembl gene ID,
+	#																			second column doesn't matter what it is, can be empty,
+	#																			third column HGNC name
+  node $thisdir/populateGenesToGeneDB.js \
+	  $1/level/new/dbgenes_uint16be \
+	  $2 \
+		$3
+}
+
+populate_geneset_dbtxt(){
+	# $1 = database base dir, e.g. "/data/genenetwork/"
+	# $2 = database name, e.g. "GO_P"
+	# $3 = Table with 3 columns. First column term ID (e.g. HP:0000002),
+	#														 second column website link for the term (e.g. http://www.human-phenotype-ontology.org/hpoweb/showterm?id=HP:0000002)
+	#														 third column description (e.g. Abnormality of body height)
+	# $4 = Matrix of z-score predictions with on rows the IDs (e.g. GO IDs), and columns the genes
+	# $5 = Table with 4 columns. First column term ID (e.g. HP:0000002), second column p-value,
+	#														 third column AUC, fourth column number of genes
+	# $6 = Identity matrix with 1 if a gene is in a geneset, 0 if it is not in the geneset, with on the columns IDs (e.g. GO IDs)
+  node $thisdir/populateGenesetDBTXT.js \
+	    $1/level/new/dbgenes_uint16be \
+	    $1/level/new/dbexternal_uint16be \
+	    $2 \
+	    $3 \
+	    $4 \
+	    $5 \
+	    $6
+
+}
+
+populate_geneset_dbtxt(){
+	# $1 = database base dir, e.g. "/data/genenetwork/"
+	# $2 = database name, e.g. "GO_P"
+	# $3 = Table with 3 columns. First column term ID (e.g. HP:0000002),
+	#														 second column website link for the term (e.g. http://www.human-phenotype-ontology.org/hpoweb/showterm?id=HP:0000002)
+	#														 third column description (e.g. Abnormality of body height)
+	# $4 = Matrix of z-score predictions with on rows the IDs (e.g. GO IDs), and columns the genes
+	node $thisdir/rankPathwaysFromDataFileTXT.js \
+		$1/level/new/dbexternalranks \
+		$2 \
+		$3 \
+		$4
+}
+
+populate_coregulation_DBTXT(){
+	# $1 = correlation matrix over eigenvectors, filtered on only relevant number of eigenvectors (e.g. for genenetwork.nl 1588)
+	# $2 = database base dir, e.g. "/data/genenetwork/"
+	# $3 = number of eigenvectors selected (e.g. for genenetwork.nl = 1588)
+	node $thisdir/populateCoregulationDBTXT.js \
+		$1 \
+		$2/level/new/dbpccorrelationzscores_uint16be_genescompsstdnorm \
+		$3
+}
+
 
 usage(){
 	# print the usage of the programme
@@ -68,34 +126,34 @@ parse_commandline(){
 	while [[ $# -ge 1 ]]; do
 		case $1 in
 			-d | --database_dir )     				shift
-																				database_dir=$1
+																				database_dir="$1"
 																				;;
 			-g | --gene_list_file )     			shift
-																				gene_list_file=$1
+																				gene_list_file="$1"
 																				;;
 			-e | --ensg_hncg_mapping )     		shift
-																				ensg_hncg_mapping=$1
+																				ensg_hncg_mapping="$1"
 																				;;
 			-b | --dbname )     							shift
-																				dbname=$1
+																				dbname="$1"
 																				;;
 			-t | --term_file )     						shift
-																				term_file=$1
+																				term_file="$1"
 																				;;
 			-i | --identity_matrix )  				shift
-																				identity_matrix=$1
+																				identity_matrix="$1"
 																				;;
 			-z | --zscore_matrix )    				shift
-																				zscore_matrix=$1
+																				zscore_matrix="$1"
 																				;;
 			-a | --auc_table )     						shift
-																			 	auc_table=$1
+																			 	auc_table="$1"
 																				;;
 			-c | --eigenvector_cormatrix )    shift
-																				eigenvector_cormatrix=$1
+																				eigenvector_cormatrix="$1"
 																				;;
 			-n | --n_eigenvectors )     			shift
-																				n_eigenvectors=$1
+																				n_eigenvectors="$1"
 																				;;
 
 		  -h | --help )             				usage
@@ -169,63 +227,6 @@ parse_commandline(){
       usage
 			exit 1;
   fi
-}
-
-populate_genes_to_geneDB(){
-	# $1 = database base dir, e.g. "/data/genenetwork/"
-	# $2 = file with newline separated list of genes that should be included
-	# $3 = Table with at least 3 columns. first column ensembl gene ID,
-	#																			second column doesn't matter what it is, can be empty,
-	#																			third column HGNC name
-  node $thisdir/populateGenesToGeneDB.js \
-	  $1/level/new/dbgenes_uint16be \
-	  $2 \
-		$3
-}
-
-populate_geneset_dbtxt(){
-	# $1 = database base dir, e.g. "/data/genenetwork/"
-	# $2 = database name, e.g. "GO_P"
-	# $3 = Table with 3 columns. First column term ID (e.g. HP:0000002),
-	#														 second column website link for the term (e.g. http://www.human-phenotype-ontology.org/hpoweb/showterm?id=HP:0000002)
-	#														 third column description (e.g. Abnormality of body height)
-	# $4 = Matrix of z-score predictions with on rows the IDs (e.g. GO IDs), and columns the genes
-	# $5 = Table with 4 columns. First column term ID (e.g. HP:0000002), second column p-value,
-	#														 third column AUC, fourth column number of genes
-	# $6 = Identity matrix with 1 if a gene is in a geneset, 0 if it is not in the geneset, with on the columns IDs (e.g. GO IDs)
-  node $thisdir/populateGenesetDBTXT.js \
-	    $1/level/new/dbgenes_uint16be \
-	    $1/level/new/dbexternal_uint16be \
-	    $2 \
-	    $3 \
-	    $4 \
-	    $5 \
-	    $6
-
-}
-
-populate_geneset_dbtxt(){
-	# $1 = database base dir, e.g. "/data/genenetwork/"
-	# $2 = database name, e.g. "GO_P"
-	# $3 = Table with 3 columns. First column term ID (e.g. HP:0000002),
-	#														 second column website link for the term (e.g. http://www.human-phenotype-ontology.org/hpoweb/showterm?id=HP:0000002)
-	#														 third column description (e.g. Abnormality of body height)
-	# $4 = Matrix of z-score predictions with on rows the IDs (e.g. GO IDs), and columns the genes
-	node $thisdir/rankPathwaysFromDataFileTXT.js \
-		$1/level/new/dbexternalranks \
-		$2 \
-		$3 \
-		$4
-}
-
-populate_coregulation_DBTXT(){
-	# $1 = correlation matrix over eigenvectors, filtered on only relevant number of eigenvectors (e.g. for genenetwork.nl 1588)
-	# $2 = database base dir, e.g. "/data/genenetwork/"
-	# $3 = number of eigenvectors selected (e.g. for genenetwork.nl = 1588)
-	node $thisdir/populateCoregulationDBTXT.js \
-		$1 \
-		$2/level/new/dbpccorrelationzscores_uint16be_genescompsstdnorm \
-		$3
 }
 
 # $@ as the command line arguments, which are sent to main
