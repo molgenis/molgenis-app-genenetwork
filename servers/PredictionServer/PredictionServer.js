@@ -29,7 +29,7 @@ var coregFile = properties.get('COREGFILE');
 
 var readData = function(callback) {
     //fileutil.readBinary('/data/genenetwork/files/169PCs.npy', function(err, data) {
-    fileutil.readTXT(genenetworkFilePath+'files/'+COREGFILE, function(err, data) {
+    fileutil.readTXT(genenetworkFilePath+'files/'+coregFile, function(err, data) {
         if (err) return callback(err)
         GENEDATA = data
         COMPDATA = []

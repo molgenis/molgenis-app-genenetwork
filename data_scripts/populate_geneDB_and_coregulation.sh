@@ -19,8 +19,7 @@ main(){
   parse_commandline "$@"
   mkdir -p ${database_base_dir}
 	populate_genes_to_geneDB ${database_base_dir} ${ensg_hncg_mapping} ${gene_list_file}
-
-#  populate_coregulation_DBTXT ${eigenvector_cormatrix} ${database_base_dir} ${n_eigenvectors}
+#    populate_coregulation_DBTXT ${eigenvector_cormatrix} ${database_base_dir} ${n_eigenvectors}
 }
 
 populate_genes_to_geneDB(){
