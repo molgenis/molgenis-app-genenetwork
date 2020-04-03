@@ -23,6 +23,7 @@ module.exports = {
     transcriptBarsDBpath: geneNetworkFileDir+'level/new/transcriptbars',
     tissuecorrelationDBPath: geneNetworkFileDir+'level/new/tissuedb',
 
+
     celltypeDBPath: geneNetworkFileDir+'level/new/celltypedb',
     correlationDBPath: geneNetworkFileDir+'level/new/dbpccorrelationzscores_uint16be_genescompsstdnorm',
     hpocorrelationDB: geneNetworkFileDir+'level/new/hpocorrelationdb',
