@@ -14,7 +14,7 @@ module.exports = {
     transcriptMappingFile: 'xxx',
     mim2gene: geneNetworkFileDir+'files/new/mim2gene.txt',
 
-    geneDescFile: geneNetworkFileDir+'files/new/ENSGToGeneNameHGNCBiotypeChromosomeStartStopStrandAndDescriptionV83FilteredNonChromosomesRemovedDuplicateTranscriptsRemoved.txt',
+    geneDescFile: geneNetworkFileDir+'files/new/ENSGToGeneNameHGNCBiotypeChromosomeStartStopStrandAndDescriptionV98.txt',
     genePredScoreFile: geneNetworkFileDir+'files/new/skewnessSummary.txt',
     geneDBPath: geneNetworkFileDir+'level/new/dbgenes_uint16be',
     pathwayDBPath: geneNetworkFileDir+'level/new/dbexternal_uint16be',
@@ -23,9 +23,6 @@ module.exports = {
     transcriptBarsDBpath: geneNetworkFileDir+'level/new/transcriptbars',
     tissuecorrelationDBPath: geneNetworkFileDir+'level/new/tissuedb',
 
-    // geneDescFile: '/data/genenetwork/files/ENSGToGeneNameHGNCBiotypeChromosomeStartStopStrandAndDescriptionV75.txt.filtered.txt',
-    // geneDBPath: '/data/genenetwork/level/dbgenes_uint16be',
-    // pathwayDBPath: '/data/genenetwork/level/dbexternal_uint16be',
 
     celltypeDBPath: geneNetworkFileDir+'level/new/celltypedb',
     correlationDBPath: geneNetworkFileDir+'level/new/dbpccorrelationzscores_uint16be_genescompsstdnorm',
