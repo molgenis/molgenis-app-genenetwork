@@ -22,6 +22,7 @@ services:
         ports:
             - "1338:80"
         tty: true
+        restart: always
     redis:
         image: redis
         expose:
@@ -36,15 +37,18 @@ services:
           - discovery.type=single-node
         expose:
             - "9200"
+        restart: always
     predictionserver:
         image: ndeklein/predictionserver:v1.2.server
         depends_on:
             - elasticsearch
         volumes:
             - "/srv/metabrainnetwork/data:/srv/metabrainnetwork/data"
+        restart: always
     pwaserver:
         image: ndeklein/pwasserver:v1.2.server
         depends_on:
             - elasticsearch
         volumes:
             - "/srv/metabrainnetwork/data:/srv/metabrainnetwork/data"
+        restart: always
