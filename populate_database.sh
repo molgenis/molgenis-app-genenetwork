@@ -1,6 +1,5 @@
 set -e
 set -u
-
 go_C_n=575
 go_F_n=225
 go_P_n=150
