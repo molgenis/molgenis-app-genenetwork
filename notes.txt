@@ -13,19 +13,19 @@ start up the redis server:
 start up the elastic search server:
 '/usr/local/Cellar/elasticsearch\@2.4/2.4.6/bin/elasticsearch' or 'brew services start elasticsearch@2.4' or any other way you may have installed it
 start up the prediction server:
-'node servers/PredictionServer.js' from the root directory of the project
+cd to servers/PredictionServer/
+'node PredictionServer.js' from the root directory of the project
 load the pwa server in memory:
-'node --max-old-space-size=8192 servers/PWAServerInMem.js' from the root directory of the project
+cd to servers/PWAServer/
+'node --max-old-space-size=8192 PWAServerInMem.js' from the root directory of the project
 
 start the application by running from the root directory:
 'npm start'
-you should now be able to see the page at localhost:1337 in your browser
+you should now be able to see the page at localhost:80 in your browser
 
 if you get grunt errors when doing 'npm start' and see 404s on some of the resources on the homepage, your grunt version may be too new. run:
 'npm i natives'
 then redo the build and run
-
-
 
 
 To make updates for the server, build a new docker image with

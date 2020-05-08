@@ -7,9 +7,12 @@ var Footer = React.createClass({
         return (
             <div className='gn-footer hflex flexcenter flexwrap flexspacebetween'>
 
-                <div>&copy; 2018 <a title='Department of Genetics' href='http://www.rug.nl/research/genetics/?lang=en' target='_blank'>
+                <div>&copy; 2019 <a title='Department of Genetics' href='http://www.rug.nl/research/genetics/?lang=en' target='_blank'>
                     Department of Genetics</a>, <a title='University Medical Center Groningen' href='https://www.umcg.nl/EN' target='_blank'>
                     University Medical Center Groningen</a>
+                </div>
+
+                <div>Contact:  <a href='mailto: ellen.tsai@biogen.com'> Ellen Tsai</a> or <a href='mailto: niekdeklein@gmail.com'>Niek de Klein</a>
                 </div>
 
                 <div className='flex01 hflex flexcenter flexwrap'>
@@ -29,8 +32,8 @@ var Footer = React.createClass({
                         </a>
                     </div>
                     <div style={{padding: '0 5px 0 5px'}}>
-                        <a href='http://www.bbmri.nl' target='_blank'>
-                            <img className='bbmri' title='BBMRI' src={GN.urls.main + '/images/bbmri_nl.png'} />
+                        <a href='https://www.biogen.com' target='_blank'>
+                            <img className='biogen' title='Biogen' src={'https://upload.wikimedia.org/wikipedia/en/thumb/b/bc/Biogen.svg/1200px-Biogen.svg.png'} />
                         </a>
                     </div>
                 </div>

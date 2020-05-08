@@ -23,12 +23,13 @@ var GENEDATA, COMPDATA, NUM_COMPS, BACKGROUND_MATRIX
 
 // get location of GN files
 var genenetworkFilePath = properties.get('GN_FILES_PATH');
+var coregFile = properties.get('COREGFILE');
 
 
 
 var readData = function(callback) {
     //fileutil.readBinary('/data/genenetwork/files/169PCs.npy', function(err, data) {
-    fileutil.readTXT(genenetworkFilePath+'files/31_G_QCD_ONLYCHR_NODUPL_DESEQ_LOG_COV_G_eigenvectors_307_genescompsstdnorm.txt', function(err, data) {
+    fileutil.readTXT(genenetworkFilePath+'files/'+coregFile, function(err, data) {
         if (err) return callback(err)
         GENEDATA = data
         COMPDATA = []

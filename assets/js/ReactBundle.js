@@ -1560,7 +1560,11 @@ exp.pValueToReadable = function(p) {
         return NaN
     }
     var pReadable = p
-    if (p < 0.01) {
+    //negative P-value is impossible; javascript flips to negative zero if the minimum value is exceeded, so need to state it is smaller than the min value in JS
+    if(p <= 0){
+        pReadable = '<' + Number.MIN_VALUE;
+    }
+    else if (p < 0.01) {
         pReadable = pReadable.toExponential(1)
         var expIndex = pReadable.indexOf('e')
         var base = pReadable.substring(0, expIndex)
@@ -1570,7 +1574,8 @@ exp.pValueToReadable = function(p) {
         if (p === Number.MIN_VALUE) {
             pReadable = '< ' + pReadable
         }
-    } else {
+    }
+    else {
         pReadable = pReadable.toPrecision(1)
     }
     return pReadable
@@ -1799,7 +1804,34 @@ module.exports = BoxFunctionEnrichment;
 var React = require('react');
 var DocumentTitle = require('react-document-title');
 var color = require('../js/color.js');
+/*
+                        <li><a href={"#what-is-gado"}>What is GADO?</a></li>
+                        <li><a href={"#can-i-run-gado-locally"}>Can I run GADO locally?</a></li>
+                        <li><a href={"#how-to-cite"}>How to cite?</a></li>
 
+                    <h3 id="what-is-gado">What is GADO?</h3>
+                    <p>
+                        GADO (GeneNetwork Assisted Diagnostic Optimization) is a method that can predict phenotypic
+                        consequences of genes when mutated, using public RNA-seq data of 31,499 samples. Using the
+                        phenotypes of a patient denoted as Human Phenotype Ontology (HPO) terms we can prioritize genes
+                        harbouring candidate mutations. This saves time interpreting identified variants and aids in
+                        the discovery of new disease-causing genes.
+                    </p>
+                    <img title='GeneNetwork' style={{width: '800px'}} src={GN.urls.main + '/images/gado.png'} />
+
+                    <h3 id="can-i-run-gado-locally">Can I run GADO locally?</h3>
+                    <p>
+                        We have created a standalone version of GADO that can easily be integrated in an automated analysis pipeline.
+                        For more information see: <a href="https://github.com/molgenis/systemsgenetics/wiki/GADO-Command-line">GADO Command Line</a>
+                    </p>
+
+                                        <h3 id="how-to-cite">How to cite?</h3>
+                    <p>
+                        <a href="https://www.nature.com/articles/s41467-019-10649-4" target="_blank">Improving the diagnostic yield of exome-sequencing, by predicting gene-phenotype
+                            associations using large-scale gene expression analysis</a>
+                    </p>
+
+ */
 var How = React.createClass({displayName: "How",
     render: function() {
         return (
@@ -1808,39 +1840,19 @@ var How = React.createClass({displayName: "How",
                     React.createElement("h2", {style: {marginBottom: '10px'}}, "FAQ"), 
 
                     React.createElement("ul", null, 
-                        React.createElement("li", null, React.createElement("a", {href: "#what-is-genenetwork"}, "What is GeneNetwork?")), 
-                        React.createElement("li", null, React.createElement("a", {href: "#what-is-gado"}, "What is GADO?")), 
-                        React.createElement("li", null, React.createElement("a", {href: "#can-i-run-gado-locally"}, "Can I run GADO locally?")), 
+                        React.createElement("li", null, React.createElement("a", {href: "#what-is-genenetwork"}, "What is MetaBrain Network?")), 
                         React.createElement("li", null, React.createElement("a", {href: "#why-cant-my-term-be-used"}, "Why can’t my term be used?")), 
                         React.createElement("li", null, React.createElement("a", {href: "#why-is-my-term-not-found"}, "Why is my term not found?")), 
                         React.createElement("li", null, React.createElement("a", {href: "#gene-not-found"}, "My favorite candidate gene for patient is not found back in the top of the results?")), 
-                        React.createElement("li", null, React.createElement("a", {href: "#gene-predict-score"}, "What is the gene predictability score?")), 
-                        React.createElement("li", null, React.createElement("a", {href: "#how-to-cite"}, "How to cite?"))
+                        React.createElement("li", null, React.createElement("a", {href: "#gene-predict-score"}, "What is the gene predictability score?"))
                     ), 
 
-                    React.createElement("h3", {id: "what-is-genenetwork"}, "What is GeneNetwork?"), 
+                    React.createElement("h3", {id: "what-is-genenetwork"}, "What is MetaBrain Network?"), 
                     React.createElement("p", null, 
-                        "GeneNetwork uses gene co-regulation to predict pathway membership and HPO term associations." + ' ' +
-                        "This is done by integrating 31,499 public RNA-seq sample."
+                        "MetaBrain Network uses gene co-regulation to predict pathway membership and HPO term associations." + ' ' +
+                        "This is done by integrating over 8000 (semi) public RNA-seq samples from brain."
                     ), 
                     React.createElement("img", {title: "GeneNetwork", style: {width: '1000px'}, src: GN.urls.main + '/images/genenetwork.png'}), 
-
-
-                    React.createElement("h3", {id: "what-is-gado"}, "What is GADO?"), 
-                    React.createElement("p", null, 
-                        "GADO (GeneNetwork Assisted Diagnostic Optimization) is a method that can predict phenotypic" + ' ' +
-                        "consequences of genes when mutated, using public RNA-seq data of 31,499 samples. Using the" + ' ' +
-                        "phenotypes of a patient denoted as Human Phenotype Ontology (HPO) terms we can prioritize genes" + ' ' +
-                        "harbouring candidate mutations. This saves time interpreting identified variants and aids in" + ' ' +
-                        "the discovery of new disease-causing genes."
-                    ), 
-                    React.createElement("img", {title: "GeneNetwork", style: {width: '800px'}, src: GN.urls.main + '/images/gado.png'}), 
-
-                    React.createElement("h3", {id: "can-i-run-gado-locally"}, "Can I run GADO locally?"), 
-                    React.createElement("p", null, 
-                        "We have created a standalone version of GADO that can easily be integrated in an automated analysis pipeline." + ' ' +
-                        "For more information see: ", React.createElement("a", {href: "https://github.com/molgenis/systemsgenetics/wiki/GADO-Command-line"}, "GADO Command Line")
-                    ), 
 
                     React.createElement("h3", {id: "why-cant-my-term-be-used"}, "Why can’t my term be used?"), 
                     React.createElement("p", null, 
@@ -1866,13 +1878,8 @@ var How = React.createClass({displayName: "How",
                         "The gene predictability score is an indicator on how informative gene expression is in" + ' ' +
                         "predicting gene functions. For details please see: ", React.createElement("a", {href: "https://www.biorxiv.org/content/early/2018/07/25/375766", target: "_blank"}, "Improving the diagnostic yield of exome-sequencing, by predicting gene-phenotype" + ' ' +
                         "associations using large-scale gene expression analysis")
-                    ), 
-
-                    React.createElement("h3", {id: "how-to-cite"}, "How to cite?"), 
-                    React.createElement("p", null, 
-                        React.createElement("a", {href: "https://www.nature.com/articles/s41467-019-10649-4", target: "_blank"}, "Improving the diagnostic yield of exome-sequencing, by predicting gene-phenotype" + ' ' +
-                            "associations using large-scale gene expression analysis")
                     )
+
 
 
                 )
@@ -3234,6 +3241,9 @@ var history = createBrowserHistory();
 ReactDOM.render(React.createElement(Router, {history: history}, 
                     React.createElement(Route, null, 
                         React.createElement(Route, {path: "/", component: Landing}, 
+                            React.createElement(Route, {path: "/qtl"}, 
+                                "MetaBrain QTLs"
+                            ), 
                             React.createElement(Route, {path: "/faq", component: FAQ}), 
                             React.createElement(Route, {path: "/about", component: About}), 
                             React.createElement(Route, {path: "/api", component: API}), 
@@ -3564,11 +3574,13 @@ var Landing = React.createClass({displayName: "Landing",
                 this.renderSearchBar()
             ))
         }
+        //<Logo w={33} h={60} mirrored={true} style={{float: 'left', paddingRight: '10px'}} />
         return (React.createElement("div", {className: "gn-app vflex"}, 
                 React.createElement("div", {className: "gn-top flex00 flexcenter hflex"}, 
                     React.createElement("div", {className: "gn-top-logo clickable flex00", style: {margin: '10px 0'}, onClick: this.onLogoClick}, 
-                        React.createElement(Logo, {w: 33, h: 60, mirrored: true, style: {float: 'left', paddingRight: '10px'}}), 
-                        React.createElement("div", {className: "noselect", style: {fontSize: '1.5em', color: color.colors.gndarkgray, float: 'left'}}, 
+                        React.createElement("img", {className: "metabrain", title: "MetaBrain", src: GN.urls.main + '/images/brain_logo.png', width: "60", height: "60"}), 
+
+                        React.createElement("div", {className: "noselect", style: {fontSize: '1.5em', color: color.colors.gndarkgray, float: 'right'}}, 
                             "MetaBrain", React.createElement("br", null), "Network"
                         )
                     ), 
@@ -7094,7 +7106,7 @@ var DiagnosisMain = React.createClass({displayName: "DiagnosisMain",
 
     renderModal: function () {
         if (this.state.isOpen) {
-            const backdropStyle = {
+            var backdropStyle = {
                 position: 'absolute',
                 zIndex: '1',
                 top: 0,
@@ -7381,9 +7393,12 @@ var Footer = React.createClass({displayName: "Footer",
         return (
             React.createElement("div", {className: "gn-footer hflex flexcenter flexwrap flexspacebetween"}, 
 
-                React.createElement("div", null, "© 2018 ", React.createElement("a", {title: "Department of Genetics", href: "http://www.rug.nl/research/genetics/?lang=en", target: "_blank"}, 
+                React.createElement("div", null, "© 2019 ", React.createElement("a", {title: "Department of Genetics", href: "http://www.rug.nl/research/genetics/?lang=en", target: "_blank"}, 
                     "Department of Genetics"), ", ", React.createElement("a", {title: "University Medical Center Groningen", href: "https://www.umcg.nl/EN", target: "_blank"}, 
                     "University Medical Center Groningen")
+                ), 
+
+                React.createElement("div", null, "Contact:  ", React.createElement("a", {href: "mailto: ellen.tsai@biogen.com"}, " Ellen Tsai"), " or ", React.createElement("a", {href: "mailto: niekdeklein@gmail.com"}, "Niek de Klein")
                 ), 
 
                 React.createElement("div", {className: "flex01 hflex flexcenter flexwrap"}, 
@@ -7403,8 +7418,8 @@ var Footer = React.createClass({displayName: "Footer",
                         )
                     ), 
                     React.createElement("div", {style: {padding: '0 5px 0 5px'}}, 
-                        React.createElement("a", {href: "http://www.bbmri.nl", target: "_blank"}, 
-                            React.createElement("img", {className: "bbmri", title: "BBMRI", src: GN.urls.main + '/images/bbmri_nl.png'})
+                        React.createElement("a", {href: "https://www.biogen.com", target: "_blank"}, 
+                            React.createElement("img", {className: "biogen", title: "Biogen", src: 'https://upload.wikimedia.org/wikipedia/en/thumb/b/bc/Biogen.svg/1200px-Biogen.svg.png'})
                         )
                     )
                 )
@@ -9158,16 +9173,20 @@ var BoxFunctionEnrichment = require('./BoxFunctionEnrichment');
 var GN = require("../../config/gn");
 var color = require('../js/color');
 
+/*
+Removed because not working:
+<Box
+                    title="GADO: GeneNetwork Assisted Diagnostic Optimization"
+                    text="Prioritize genes based on one or multiple HPO phenotypes."
+                    url={GN.urls.diagnosisPage} />
+ */
 var Tools = React.createClass({displayName: "Tools",
 
     render: function() {
         return (
             React.createElement("div", {style: {backgroundColor: color.colors.gnwhite, marginTop: '10px', padding: '20px', flex: '1'}}, 
                 React.createElement("h2", {style: {display: 'inline'}}, "TOOLS"), 
-                React.createElement(Box, {
-                    title: "GADO: GeneNetwork Assisted Diagnostic Optimization", 
-                    text: "Prioritize genes based on one or multiple HPO phenotypes.", 
-                    url: GN.urls.diagnosisPage}), 
+
                 React.createElement(BoxFunctionEnrichment, {
                     title: "Function enrichment", 
                     text: "Predict which pathways are enriched for a set of genes.", 
@@ -9184,7 +9203,7 @@ module.exports = Tools;
 // https://www.genenetwork.nl for prod
 // empty for debug
 module.exports = {
-    domain: ''
+    domain: 'https://www.genenetwork.nl'
 };
 
 },{}],51:[function(require,module,exports){
@@ -9193,8 +9212,13 @@ var DOMAIN = require('./domain').domain;
 module.exports.domain = DOMAIN;
 
 module.exports.menuItems = [{
-    name: 'HOME',
-    route: '/'
+    name: 'MetaBrain eQTLs',
+    route: '/qtl'
+},
+    {
+        name: 'HOME',
+        route: '/'
+
 },
     {
     name: 'FAQ',

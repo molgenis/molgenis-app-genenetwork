@@ -311,11 +311,13 @@ var Landing = React.createClass({
                 {this.renderSearchBar()}
             </div>)
         }
+        //<Logo w={33} h={60} mirrored={true} style={{float: 'left', paddingRight: '10px'}} />
         return (<div className='gn-app vflex'>
                 <div className='gn-top flex00 flexcenter hflex'>
                     <div className='gn-top-logo clickable flex00' style={{margin: '10px 0'}} onClick={this.onLogoClick}>
-                        <Logo w={33} h={60} mirrored={true} style={{float: 'left', paddingRight: '10px'}} />
-                        <div className='noselect' style={{fontSize: '1.5em', color: color.colors.gndarkgray, float: 'left'}}>
+                        <img className='metabrain' title='MetaBrain' src={GN.urls.main + '/images/brain_logo.png'} width="60" height="60" />
+
+                        <div className='noselect' style={{fontSize: '1.5em', color: color.colors.gndarkgray, float: 'right'}}>
                             MetaBrain<br/>Network
                         </div>
                     </div>
