@@ -42,6 +42,8 @@ var DataTable = React.createClass({
 
         var that = this;
         var pathways = this.state.annotationsOnly ? this.props.data.pathways.annotated : this.props.data.pathways.predicted;
+        //window.alert(that.props.db);
+        //window.alert(that.props.db);
 
         pathways = _.filter(pathways, function(pathway) {
             return pathway.term.database.toUpperCase() === that.props.db
@@ -50,7 +52,6 @@ var DataTable = React.createClass({
         if (this.state.annotationsOnly) {
             pathways = _.sortBy(pathways, 'pValue')
         }
-
         var rows = _.map(pathways, function(pathway, i) {
 
             var isAnnotated = that.state.annotationsOnly || pathway.annotated;
@@ -60,6 +61,7 @@ var DataTable = React.createClass({
             var data= pathway;
             var isAnnotated= isAnnotated;
             var num= i;
+
         //       <Link className='nodecoration black' title={data.term.numAnnotatedGenes + ' annotated genes, prediction accuracy ' + Math.round(100 * data.term.auc) / 100} to={`/term/${data.term.id}`}>
                     // {data.term.name}
                     // </Link>
