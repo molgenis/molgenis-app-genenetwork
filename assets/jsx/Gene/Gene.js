@@ -42,8 +42,6 @@ var Gene = React.createClass({
                 dataType: 'json',
                 success: function(data) {
                     if (this.isMounted() && task.name == 'prediction') {
-                        //window.alert(JSON.stringify(data.gene));
-                        //window.alert(JSON.stringify(data));
 
                         this.setState({
                             gene: data.gene,
