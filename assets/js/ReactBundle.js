@@ -1935,8 +1935,6 @@ var Gene = React.createClass({displayName: "Gene",
                 dataType: 'json',
                 success: function(data) {
                     if (this.isMounted() && task.name == 'prediction') {
-                        //window.alert(JSON.stringify(data.gene));
-                        //window.alert(JSON.stringify(data));
 
                         this.setState({
                             gene: data.gene,
@@ -5992,8 +5990,6 @@ var DataTable = React.createClass({displayName: "DataTable",
 
         var that = this;
         var pathways = this.state.annotationsOnly ? this.props.data.pathways.annotated : this.props.data.pathways.predicted;
-        //window.alert(that.props.db);
-        //window.alert(that.props.db);
 
         pathways = _.filter(pathways, function(pathway) {
             return pathway.term.database.toUpperCase() === that.props.db
