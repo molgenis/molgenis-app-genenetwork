@@ -1,5 +1,5 @@
 // https://www.genenetwork.nl for prod
 // empty for debug
 module.exports = {
-    domain: 'https://www.genenetwork.nl'
+    domain: 'https://www.metabrain.nl'
 };

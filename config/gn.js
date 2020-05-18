@@ -1,5 +1,4 @@
 var DOMAIN = require('./domain').domain;
-
 module.exports.domain = DOMAIN;
 
 module.exports.menuItems = [{
