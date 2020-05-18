@@ -20,7 +20,8 @@ services:
     metabrainqtl:
         image: ndeklein/metabrainqtl:v1.5.server
         ports:
-        - "80:1338"
+        - "1338:80"
+        tty: true
         restart: always
     redis:
         image: redis
