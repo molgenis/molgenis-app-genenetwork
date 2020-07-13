@@ -17,12 +17,6 @@ services:
             - ELASTICSEARCH_URL=http://elasticsearch:9200"
             - ELASTICSEARCH_HOST=elasticsearch
         restart: always
-    metabrainqtl:
-        image: ndeklein/metabrainqtl:v1.6.server
-        ports:
-        - "1338:80"
-        tty: true
-        restart: always
     redis:
         image: redis
         expose:
