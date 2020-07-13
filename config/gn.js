@@ -3,7 +3,7 @@ module.exports.domain = DOMAIN;
 
 module.exports.menuItems = [{
     name: 'MetaBrain eQTLs',
-    route: '/qtl'
+    route: 'qtl.metabrain.nl'
 },
     {
         name: 'HOME',

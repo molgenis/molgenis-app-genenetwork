@@ -88,7 +88,7 @@ module.exports = function(req, res) {
                          sails.log.error(err)
                          return res.serverError()
                      }
-                     return res.download(filenameOut, 'GeneNetwork-'  + vanity + '.' + format)
+                     return res.download(filenameOut, 'MetaBrainNetwork-'  + vanity + '.' + format)
                  }
                 )
 };
