@@ -73,6 +73,8 @@ module.exports = function(req, res) {
             var opts = (format === 'pdf') ? '-f pdf' : '-f png -z 2'
             exec('rsvg-convert ' + opts + ' -o ' + filenameOut + ' ' + filenameSVG, function(err, stdout, stderr) {
                 if (err) {
+                    window.alert('rsvg-convert ' + opts + ' -o ' + filenameOut + ' ' + filenameSVG)
+                    window.alert(err.toString())
                     return callback(err)
                 } else {
                     sails.log.debug(format + ' file written to ' + filenameOut)
