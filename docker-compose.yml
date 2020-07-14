@@ -2,7 +2,7 @@ version: "3"
 services:
     metabrainnetwork:
         # replace username/repo:tag with your name and image details
-        image: ndeklein/metabrainnetwork:v1.9.server
+        image: ndeklein/metabrainnetwork:v1.10.server
         ports:
             - "1337:1337"
         depends_on:
