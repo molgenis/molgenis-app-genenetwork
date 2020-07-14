@@ -1,0 +1,8 @@
+DOMAIN=
+REDIS_HOST=redis
+#REDIS_HOST=localhost
+REDIS_PORT=6379
+#ELASTICSEARCH_HOST=localhost:9200
+ELASTICSEARCH_HOST=elasticsearch:9200
+GN_FILES_PATH=/srv/metabrainnetwork/data/
+#GN_FILES_PATH=/Users/NPK/UMCG/projects/biogen/cohorts/joined_analysis/2019-11-06-freeze2dot1/2020-02-28-MetaBrainNetwork/molgenis-app-genenetwork/metabrainnetwork/data/

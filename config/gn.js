@@ -2,10 +2,6 @@ var DOMAIN = require('./domain').domain;
 module.exports.domain = DOMAIN;
 
 module.exports.menuItems = [{
-    name: 'MetaBrain eQTLs',
-    route: 'qtl.metabrain.nl'
-},
-    {
         name: 'HOME',
         route: '/'
 

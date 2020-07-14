@@ -322,6 +322,9 @@ var Landing = React.createClass({
                         </div>
                     </div>
                     {topSearch}
+                    <form action="https://qtl.metabrain.nl">
+                        <input type="submit" value="MetaBrain eQTLs" />
+                    </form>
                     <MenuBar items={GN.menuItems} style={{padding: '30px 20px 20px 20px'}} />
                 </div>
                 {topBanner}

@@ -3586,6 +3586,9 @@ var Landing = React.createClass({displayName: "Landing",
                         )
                     ), 
                     topSearch, 
+                    React.createElement("form", {action: "https://qtl.metabrain.nl"}, 
+                        React.createElement("input", {type: "submit", value: "MetaBrain eQTLs"})
+                    ), 
                     React.createElement(MenuBar, {items: GN.menuItems, style: {padding: '30px 20px 20px 20px'}})
                 ), 
                 topBanner, 
@@ -5990,6 +5993,8 @@ var DataTable = React.createClass({displayName: "DataTable",
 
         var that = this;
         var pathways = this.state.annotationsOnly ? this.props.data.pathways.annotated : this.props.data.pathways.predicted;
+        //window.alert(that.props.db);
+        //window.alert(that.props.db);
 
         pathways = _.filter(pathways, function(pathway) {
             return pathway.term.database.toUpperCase() === that.props.db
@@ -7394,7 +7399,7 @@ var Footer = React.createClass({displayName: "Footer",
         return (
             React.createElement("div", {className: "gn-footer hflex flexcenter flexwrap flexspacebetween"}, 
 
-                React.createElement("div", null, "© 2020 ", React.createElement("a", {title: "Department of Genetics", href: "http://www.rug.nl/research/genetics/?lang=en", target: "_blank"},
+                React.createElement("div", null, "© 2019 ", React.createElement("a", {title: "Department of Genetics", href: "http://www.rug.nl/research/genetics/?lang=en", target: "_blank"}, 
                     "Department of Genetics"), ", ", React.createElement("a", {title: "University Medical Center Groningen", href: "https://www.umcg.nl/EN", target: "_blank"}, 
                     "University Medical Center Groningen")
                 ), 
@@ -9204,7 +9209,7 @@ module.exports = Tools;
 // https://www.genenetwork.nl for prod
 // empty for debug
 module.exports = {
-    domain: 'https://www.metabrain.nl'
+    domain: ''
 };
 
 },{}],51:[function(require,module,exports){
@@ -9212,10 +9217,6 @@ var DOMAIN = require('./domain').domain;
 module.exports.domain = DOMAIN;
 
 module.exports.menuItems = [{
-    name: 'MetaBrain eQTLs',
-    route: '/qtl'
-},
-    {
         name: 'HOME',
         route: '/'
 

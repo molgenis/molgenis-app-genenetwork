@@ -1,4 +1,4 @@
 docker login
-version=v1.7.server
-docker build -t ndeklein/metabrainnetwork:$version .
+version=v1.9.server
+docker build --no-cache -t ndeklein/metabrainnetwork:$version .
 docker push ndeklein/metabrainnetwork:$version
