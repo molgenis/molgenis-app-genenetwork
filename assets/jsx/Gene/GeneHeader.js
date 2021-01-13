@@ -48,9 +48,7 @@ var GeneHeader = React.createClass({
                         <div className='gn-gene-description-name' style={{display: 'flex'}}>
                             <span style={{fontWeight: 'bold', fontFamily: 'GG', fontSize: '1.5em', paddingRight: '10px'}}>{this.props.gene.name + ' '}</span>
                             <div style={{ flexGrow: 1 }}>
-                                <span>{description}</span><br/>
-                                <span style={{ marginRight: '5px'}}>Gene predictability score: {Math.round(this.props.gene.genePredScore * 100) / 100}</span>
-                                <SVGCollection.I title="Please see the FAQ for more information." style={{ marginLeft: '5px'}}/>
+
                             </div>
                         </div>
                         <div className='flex11' />

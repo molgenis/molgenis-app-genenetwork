@@ -2143,10 +2143,8 @@ var GeneHeader = React.createClass({displayName: "GeneHeader",
                     React.createElement("div", {className: "gn-gene-description-inner hflex flexcenter maxwidth"}, 
                         React.createElement("div", {className: "gn-gene-description-name", style: {display: 'flex'}}, 
                             React.createElement("span", {style: {fontWeight: 'bold', fontFamily: 'GG', fontSize: '1.5em', paddingRight: '10px'}}, this.props.gene.name + ' '), 
-                            React.createElement("div", {style: { flexGrow: 1}}, 
-                                React.createElement("span", null, description), React.createElement("br", null), 
-                                React.createElement("span", {style: { marginRight: '5px'}}, "Gene predictability score: ", Math.round(this.props.gene.genePredScore * 100) / 100), 
-                                React.createElement(SVGCollection.I, {title: "Please see the FAQ for more information.", style: { marginLeft: '5px'}})
+                            React.createElement("div", {style: { flexGrow: 1}}
+
                             )
                         ), 
                         React.createElement("div", {className: "flex11"}), 
@@ -2235,8 +2233,8 @@ var GeneMenu = React.createClass({displayName: "GeneMenu",
                 React.createElement("td", {style: {width: '8em'}}, "SHOW"), 
                 React.createElement("td", {style: {padding: 0}}, 
                 React.createElement("span", {className: topButtonStyles[0], onClick: this.props.onTopMenuClick.bind(null, 'prediction')}, "PATHWAYS & PHENOTYPES"), 
-                React.createElement("span", {className: topButtonStyles[1], onClick: this.props.onTopMenuClick.bind(null, 'similar')}, "CO-REGULATED GENES"), 
-                React.createElement("span", {className: topButtonStyles[2], onClick: this.props.onTopMenuClick.bind(null, 'tissues')}, "TISSUES")
+                React.createElement("span", {className: topButtonStyles[1], onClick: this.props.onTopMenuClick.bind(null, 'similar')}, "CO-REGULATED GENES")
+
             )
                 ), 
                 this.props.topMenuSelection == 'prediction' ?
@@ -3573,7 +3571,7 @@ var Landing = React.createClass({displayName: "Landing",
                     React.createElement("div", {className: "gn-top-logo clickable flex00", style: {margin: '10px 0'}, onClick: this.onLogoClick}, 
                         React.createElement(Logo, {w: 33, h: 60, mirrored: true, style: {float: 'left', paddingRight: '10px'}}), 
                         React.createElement("div", {className: "noselect", style: {fontSize: '1.5em', color: color.colors.gndarkgray, float: 'left'}}, 
-                            "GENE", React.createElement("br", null), "NETWORK"
+                            "KIDNEY", React.createElement("br", null), "NETWORK"
                         ), 
                         React.createElement("div", {className: "noselect", style: {fontSize: '1em', color: color.colors.gndarkgray, float: 'left', marginTop: '37px', marginLeft: '7px'}}, 
                             "v2.0"
@@ -9191,7 +9189,7 @@ module.exports = Tools;
 // https://www.genenetwork.nl for prod
 // empty for debug
 module.exports = {
-    domain: 'https://www.genenetwork.nl'
+    domain: ''
 };
 
 },{}],51:[function(require,module,exports){
