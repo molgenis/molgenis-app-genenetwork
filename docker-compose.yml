@@ -13,7 +13,7 @@ services:
             - predictionserver
             - pwaserver
         volumes:
-            - "/data:/data"
+            - "/home/genenetwork/data/kidneynetwork/:/home/genenetwork/data/kidneynetwork/"
         environment:
             - "discovery.zen.ping.unicast.hosts=elasticsearch"
             - ELASTICSEARCH_URL=http://elasticsearch:9200"
@@ -33,7 +33,7 @@ services:
             - redis
             - elasticsearch
         volumes:
-            - "/data:/data"
+            - "/home/genenetwork/data/kidneynetwork/:/home/genenetwork/data/kidneynetwork"
     pwaserver:
         image: pwaserver
         build: ./servers/PWAServer/
@@ -41,4 +41,4 @@ services:
             - redis
             - elasticsearch
         volumes:
-            - "/data:/data"
+            - "/home/genenetwork/data/kidneynetwork/:/home/genenetwork/data/kidneynetwork"

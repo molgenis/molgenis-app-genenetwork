@@ -105,7 +105,7 @@ module.exports = {
    * 'development' environment.                                              *
    ***************************************************************************/
 
-    // environment: process.env.NODE_ENV || 'development',
-    environment: process.env.NODE_ENV || 'production',
+    environment: process.env.NODE_ENV || 'development',
+    // environment: process.env.NODE_ENV || 'production',
     hookTimeout: 120000 // 2 minutes
 };
