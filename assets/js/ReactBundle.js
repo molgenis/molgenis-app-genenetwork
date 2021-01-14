@@ -9127,6 +9127,10 @@ var Tools = React.createClass({displayName: "Tools",
         return (
             React.createElement("div", {style: {backgroundColor: color.colors.gnwhite, marginTop: '10px', padding: '20px', flex: '1'}}, 
                 React.createElement("h2", {style: {display: 'inline'}}, "TOOLS"), 
+                React.createElement(Box, {
+                    title: "GADO: GeneNetwork Assisted Diagnostic Optimization", 
+                    text: "Prioritize genes based on one or multiple HPO phenotypes.", 
+                    url: GN.urls.diagnosisPage}), 
                 React.createElement(BoxFunctionEnrichment, {
                     title: "Function enrichment", 
                     text: "Predict which pathways are enriched for a set of genes.", 

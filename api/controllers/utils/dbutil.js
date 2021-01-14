@@ -1237,7 +1237,12 @@ exp.getHpoCorrelationMatrix = function(terms, callback){
 
     hpocorrelationdb.get('RNASEQ!HPOCORRELATIONS!HEADER', {valueEncoding: 'json'}, function(err, data){
         if (err){
-            handleDBError(err, callback)
+            //handleDBError(err, callback)
+            // doing this to make GADO possible without correlations?
+            var termsFound = []
+            var cormat = []
+            var results = {hpoCorrelationMatrix: cormat, termsFound: termsFound}
+            callback(null, results)
         } else {
 
             var indices = []
