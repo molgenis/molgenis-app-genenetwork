@@ -7692,7 +7692,7 @@ var Logo = React.createClass({displayName: "Logo",
             })
         }
         return (
-            React.createElement("img", {className: "kidneynetwork", title: "KidneyNetwork", src:GN.urls.main + '/images/kn_logo.png', width: this.props.w, height: this.props.h})
+            React.createElement("img", {className: "kidneynetwork", title: "KidneyNetwork", src:GN.urls.main + '/images/kn_logo.svg', width: this.props.w, height: this.props.h})
         )
         // return (
         //         <div style={this.props.style} title='Gene Network' >
