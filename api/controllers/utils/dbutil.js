@@ -134,14 +134,20 @@ var DBUTIL = {
 exp.DBUTIL = DBUTIL;
 
 getPathwaysFromDB(pathwaydb, function(err, dbs, pathways) {
-    if (err) sails.log.error(err);
+    if (err){
+        sails.log.error("getPathwaysFromDB:");
+        sails.log.error(err);
+    }
     else {
         DBUTIL.pathways = pathways;
         DBUTIL.dbIds = dbs
     }
 });
 getPathwayDatabasesFromDB(pathwaydb, function(err, databases) {
-    if (err) sails.log.error(err);
+    if (err){
+        sails.log.error("getPathwayDatabasesFromDB:");
+        sails.log.error(err);
+    }
     else {
         DBUTIL.databases = databases
     }
@@ -195,7 +201,7 @@ var getAnnotations = function(buffer, pathway, dbname, options) {
         }
         sails.log.debug(result.length + ' pathway annotations read (' + dbname + ')')
     } else { // gene annotations
-
+        sails.log.debug('getting gene annotations');
         //GET P-VALUES FOR ANNOTATIONS
         // solve this in a neat way
         // var predictions = []
@@ -714,7 +720,12 @@ exp.getNewTranscriptBars = function(transcripts, callback) {
 
 exp.getGivenGenesCoregArrayForGene = function(gene, geneIndices, callback) {
     correlationdb.get('RNASEQ!' + gene.id, function(err, data) {
-        if (err) return callback(err);
+        if (err){
+            sails.log.error("error on exp.getGivenGenesCoregArrayForGene for gene:");
+            // TODO CHECK IF CORRECT
+            // return callback(err);
+            return callback(null, []);
+        }
         var arr = _.map(geneIndices, function(index) {
             return lookup(data.readUInt16BE((index + 1) * 2))
         });
