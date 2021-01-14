@@ -720,13 +720,12 @@ exp.getNewTranscriptBars = function(transcripts, callback) {
 
 exp.getGivenGenesCoregArrayForGene = function(gene, geneIndices, callback) {
     correlationdb.get('RNASEQ!' + gene.id, function(err, data) {
+        var arr = [];
         if (err){
             sails.log.error("error on exp.getGivenGenesCoregArrayForGene for gene:");
-            // TODO CHECK IF CORRECT
-            // return callback(err);
-            return callback(null, []);
+            sails.log.error(err)
         }
-        var arr = _.map(geneIndices, function(index) {
+        arr = _.map(geneIndices, function(index) {
             return lookup(data.readUInt16BE((index + 1) * 2))
         });
         return callback(null, arr)
@@ -918,20 +917,24 @@ exp.getPathwayJSON = function(pathway, req, callback) {
 exp.getCorrelationsJSON = function(gene, options, callback) {
 
     correlationdb.get('RNASEQ!' + gene.id, function(err, data) {
-
+        var r = {
+            comment: sails.config.version.comment(),
+            version: sails.config.version.version,
+            data: []
+        };
         if (err) {
-            handleDBError(err, callback)
+            // THIS MIGHT BE TROUBLESOME!
+            sails.log.error(err)
+            //return callback(err)
+            return callback(null, r)
+
         } else {
 
             var arr = [];
             for (var i = 0; i < data.length / 2; i++) {
                 arr.push(lookup(data.readUInt16BE(i * 2)))
             }
-            var r = {
-                comment: sails.config.version.comment(),
-                version: sails.config.version.version,
-                data: []
-            };
+
             var verbose = (options.verbose === '' || options.verbose === 'true');
             for (var i = 0; i < arr.length; i++) {
                 var otherGene = genedesc.get(i);
@@ -982,7 +985,10 @@ exp.getPairwiseCorrelationsJSON = function(genes, callback) {
 
     async.map(genes, function(gene, cb) {
         correlationdb.get('RNASEQ!' + gene.id, function(err, data) {
-            if (err) cb(err);
+            if (err){
+                sails.log.error('exp.getPairwiseCorrelationsJSON')
+                cb(err);
+            }
             var arr = [];
             for (var i = 0; i < genes.length; i++) {
                 arr.push(lookup(data.readUInt16BE(genes[i].index_ * 2)))
@@ -1101,7 +1107,10 @@ exp.getCoregulationMatrixAndGenePValues = function(genes, callback) {
     var allGenes = genedesc.getAll();
     async.map(genes, function(gene, cb) {
         correlationdb.get('RNASEQ!' + gene.id, function(err, data) {
-            if (err) cb(err);
+            if (err){
+                sails.log.error('exp.getCoregulationMatrixAndGenePValues')
+                cb(err);
+            }
             var a1 = [];
             var a2 = [];
             var curA1 = 0;
