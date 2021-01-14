@@ -22,13 +22,6 @@ var How = React.createClass({
                     </p>
                     <img title='GeneNetwork' style={{width: '1000px'}} src={GN.urls.main + '/images/genenetwork.png'} />
 
-
-                    <h3 id="why-is-my-term-not-found">Why is my term not found?</h3>
-                    <p>
-                        At the moment we don’t support searching using the synonym names of HPO terms, this will be
-                        resolved in a future version. Try searching by the HPO number
-                    </p>
-
                     <h3 id="gene-not-found">My favorite candidate gene for patient is not found back in the top of the results?</h3>
                     <p>
                         Gene expression patterns are not informative for all genes. If an expected gene is not found

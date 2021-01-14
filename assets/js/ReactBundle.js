@@ -1825,13 +1825,6 @@ var How = React.createClass({displayName: "How",
                     ), 
                     React.createElement("img", {title: "GeneNetwork", style: {width: '1000px'}, src: GN.urls.main + '/images/genenetwork.png'}), 
 
-
-                    React.createElement("h3", {id: "why-is-my-term-not-found"}, "Why is my term not found?"), 
-                    React.createElement("p", null, 
-                        "At the moment we don’t support searching using the synonym names of HPO terms, this will be" + ' ' +
-                        "resolved in a future version. Try searching by the HPO number"
-                    ), 
-
                     React.createElement("h3", {id: "gene-not-found"}, "My favorite candidate gene for patient is not found back in the top of the results?"), 
                     React.createElement("p", null, 
                         "Gene expression patterns are not informative for all genes. If an expected gene is not found" + ' ' +
