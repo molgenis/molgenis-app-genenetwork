@@ -7692,15 +7692,7 @@ var Logo = React.createClass({displayName: "Logo",
             })
         }
         return (
-                React.createElement("div", {style: this.props.style, title: "Gene Network"}, 
-                React.createElement("svg", {viewBox: "0 0 55 100", width: this.props.w, height: this.props.h, fill: "none", strokeWidth: 6}, 
-                React.createElement("polyline", {points: x[0] + ',' + y[0] + ' ' + x[1] + ',' + y[1] + ' ' + x[2] + ',' + y[2] + ' ' + x[3] + ',' + y[3], style: {stroke: strokes[2]}}), 
-                React.createElement("polyline", {points: x[4] + ',' + y[4] + ' ' + x[5] + ',' + y[5] + ' ' + x[6] + ',' + y[6], style: {stroke: strokes[0]}}), 
-                React.createElement("line", {x1: x[7], y1: y[7], x2: x[8], y2: y[8], style: {stroke: strokes[0]}}), 
-                React.createElement("polyline", {points: x[9] + ',' + y[9] + ' ' + x[10] + ',' + y[10] + ' ' + x[11] + ',' + y[11], style: {stroke: strokes[1]}}), 
-                React.createElement("line", {x1: x[12], y1: y[12], x2: x[13], y2: y[13], style: {stroke: strokes[1]}})
-                )
-                )
+            React.createElement("img", {className: "kidneynetwork", title: "KidneyNetwork", src:GN.urls.main + '/images/kn_logo.png', width: this.props.w, height: this.props.h})
         )
         // return (
         //         <div style={this.props.style} title='Gene Network' >
