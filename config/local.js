@@ -14,7 +14,7 @@ module.exports = {
     transcriptMappingFile: 'xxx',
     mim2gene: geneNetworkFileDir+'files/new/mim2gene.txt',
 
-    geneDescFile: geneNetworkFileDir+'files/new/ENSGToGeneNameHGNCBiotypeChromosomeStartStopStrandAndDescriptionV98FilteredNonChromosomesRemovedDuplicateTranscriptsRemoved.txt',
+    geneDescFile: geneNetworkFileDir+'files/new/ENSGToGeneNameHGNCBiotypeChromosomeStartStopStrandAndDescriptionV98FilteredNonChromosomesRemovedDuplicateTranscriptsRemovedFilteredActualGenes.txt',
     genePredScoreFile: geneNetworkFileDir+'files/new/skewnessSummary.txt',
     geneDBPath: geneNetworkFileDir+'level/new/dbgenes_uint16be',
     pathwayDBPath: geneNetworkFileDir+'level/new/dbexternal_uint16be',

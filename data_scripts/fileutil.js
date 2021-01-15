@@ -45,7 +45,11 @@ exp.readGeneFile = function(filename) {
     var geneObjects = []
     for (var i = 1; i < lines.length; i++) {
         var split = lines[i].split('\t')
-        if (split.length > 8) {
+        if (split.length > 7) {
+            var description = ''
+            if (split.length > 8) {
+                description = split[8];
+            }
             geneObjects.push({
                 id: split[0],
                 // if you use 'index', it will be overwritten by something at some point:
@@ -58,10 +62,12 @@ exp.readGeneFile = function(filename) {
                 start: Number(split[5]),
                 stop: Number(split[6]),
                 strand: Number(split[7]),
-                description: split[8],
+                description: description,
                 biomartRelease: BIOMART_RELEASE,
                 assemblyRelease: ASSEMBLY_RELEASE
             })
+        }else{
+            console.log('skipped'+ i)
         }
     }
     console.log(geneObjects.length + ' genes read from ' + filename)

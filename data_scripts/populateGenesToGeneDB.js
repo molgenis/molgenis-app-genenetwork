@@ -22,7 +22,6 @@ for (var i = 1; i < genePredictFileLines.length-1; i++) {
     if (genes[i-1+indexOffset].id !== geneId) {
     	indexOffset++
     }
-
     genes[i-1+indexOffset].genePredScore = genePredScore
 
 }

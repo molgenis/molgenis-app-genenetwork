@@ -102,8 +102,11 @@ function readGenes() {
     var geneObjects = [];
     for (var i = 1; i < lines.length; i++) {
         var split = lines[i].split('\t');
-        if (split.length > 8) {
-            var desc = split[8];
+        if (split.length > 7) {
+            var desc = '';
+            if (split.length > 8) {
+                desc = split[8];
+            }
             if (desc.substring(0, 1) == '"') {
                 desc = desc.substring(1)
             }
