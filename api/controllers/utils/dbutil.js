@@ -258,16 +258,21 @@ var getPredictions = function(buffer, dbname, options) {
     if (dbname) { // pathway z scores
         for (var i = 1; i < buffer.length / 2; i++) {
             var z;
+            var raw;
             // TODO
             if ('OMIM' === dbname) {
-                z = buffer.readUInt16BE(i * 2) / 65535
+                raw = buffer.readUInt16BE(i * 2)
+                z = raw / 65535;
             } else {
-                z = (buffer.readUInt16BE(i * 2) - 32768) / 1000
+                raw = buffer.readUInt16BE(i * 2)
+                z = (raw - 32768) / 1000;
             }
+            sails.log.debug('Z:' +  z + ', raw:' + raw);
             if (options.verbose === '' || options.verbose === 'true') {
                 result.push({
                     href: sails.config.version.apiUrl + '/pathway/' + DBUTIL.pathways[dbname][i - 1].id,
                     term: DBUTIL.pathways[dbname][i - 1],
+                    raw: raw,
                     zScore: z,
                 })
             } else {
