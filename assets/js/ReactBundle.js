@@ -3559,7 +3559,7 @@ var Landing = React.createClass({displayName: "Landing",
         return (React.createElement("div", {className: "gn-app vflex"}, 
                 React.createElement("div", {className: "gn-top flex00 flexcenter hflex"}, 
                     React.createElement("div", {className: "gn-top-logo clickable flex00", style: {margin: '10px 0'}, onClick: this.onLogoClick}, 
-                        React.createElement(Logo, {w: 150, h: 75, mirrored: true, style: {float: 'left', paddingRight: '10px'}})
+                        React.createElement(Logo, {w: 180, h: 60, mirrored: true, style: {float: 'left', paddingRight: '10px'}})
                     ), 
                     topSearch, 
                     React.createElement(MenuBar, {items: GN.menuItems, style: {padding: '30px 20px 20px 20px'}})
