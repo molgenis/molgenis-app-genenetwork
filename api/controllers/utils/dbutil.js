@@ -1314,6 +1314,7 @@ exp.getTermCorrelationMatrix = function(terms, options, callback) {
                 if (options && options.standardnormalize) {
                     descriptives.standardNormalize(arr)
                 }
+                sails.log.debug(arr);
                 cb(null, arr)
             }
         })
