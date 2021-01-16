@@ -298,7 +298,11 @@ var getPredictions = function(buffer, dbname, options) {
         //sails.log.debug((new Date() - ts) + ' ms reading ' + result.length + ' ' + dbname + ' z-scores')
     } else { // gene z scores
         for (var i = 1; i < buffer.length / 2; i++) {
-            var z = lookup(buffer.readUInt16BE(i * 2));
+            // grab the value from the buffer
+            var raw = buffer.readUInt16BE(i * 2)
+            // a transformation is done when adding to the leveldb, that is reversed here
+            var z = (raw - 32768) / 1000;
+            sails.log.debug('Z:' +  z + ', raw:' + raw);
             var gene = genedesc.get(i - 1);
             if (options.array) {
                 result.push(z)
@@ -307,6 +311,7 @@ var getPredictions = function(buffer, dbname, options) {
                     result.push({
                         gene: gene,
                         href: sails.config.version.apiUrl + '/gene/' + gene.id,
+                        raw: raw,
                         zScore: z,
                     })
                 } else {
