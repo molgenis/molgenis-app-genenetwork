@@ -3544,10 +3544,10 @@ var Landing = React.createClass({displayName: "Landing",
                         null, 
                     
                     React.createElement("div", {className: "examples noselect defaultcursor"}, "For example: ", 
-                        React.createElement(Link, {className: "clickable", title: "SMIM1", to: "/gene/SMIM1"}, "SMIM1"), ", ", 
-                        React.createElement(Link, {className: "clickable", title: "Interferon signaling", to: "/network/REACTOME:R-HSA-913531"}, "Interferon signaling"), ", ", 
-                        React.createElement(Link, {className: "clickable", title: "Migraine", to: "/network/HP:0002076"}, "Migraine"), ", ", 
-                        React.createElement(Link, {className: "clickable", title: "Autism", to: "/network/HP:0000717"}, "Autism")
+                        React.createElement(Link, {className: "clickable", title: "ALG6", to: "/gene/ALG6"}, "ALG6"), ", ", 
+                        React.createElement(Link, {className: "clickable", title: "Cytochrome P450", to: "/network/REACTOME:R-HSA-211897"}, "Cytochrome P450"), ", ", 
+                        React.createElement(Link, {className: "clickable", title: "Hypomagnesemia", to: "/network/HP:0002917"}, "Hypomagnesemia"), ", ", 
+                        React.createElement(Link, {className: "clickable", title: "Nephritis", to: "/network/HP:0000123"}, "Nephritis")
                     )
                 ))
             }
@@ -3559,10 +3559,7 @@ var Landing = React.createClass({displayName: "Landing",
         return (React.createElement("div", {className: "gn-app vflex"}, 
                 React.createElement("div", {className: "gn-top flex00 flexcenter hflex"}, 
                     React.createElement("div", {className: "gn-top-logo clickable flex00", style: {margin: '10px 0'}, onClick: this.onLogoClick}, 
-                        React.createElement(Logo, {w: 33, h: 60, mirrored: true, style: {float: 'left', paddingRight: '10px'}}), 
-                        React.createElement("div", {className: "noselect", style: {fontSize: '1.5em', color: color.colors.gndarkgray, float: 'left'}}, 
-                            "KIDNEY", React.createElement("br", null), "NETWORK"
-                        ), 
+                        React.createElement(Logo, {w: 120, h: 60, mirrored: true, style: {float: 'left', paddingRight: '10px'}}), 
                         React.createElement("div", {className: "noselect", style: {fontSize: '1em', color: color.colors.gndarkgray, float: 'left', marginTop: '37px', marginLeft: '7px'}}, 
                             "v2.0"
                         )
