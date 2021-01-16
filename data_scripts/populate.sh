@@ -4,27 +4,28 @@
 ###
 
 node populateGenesToGeneDB.js \
-    /data/genenetwork/level/new/dbgenes_uint16be \
-    /data/genenetwork/files/Version2_01_04_2018/ENSGToGeneNameHGNCBiotypeChromosomeStartStopStrandAndDescriptionV83FilteredNonChromosomesRemovedDuplicateTranscriptsRemoved.txt
+	/Volumes/RoyExtSSD1T/kidneynetwork/level/new/dbgenes_uint16be \
+	/Volumes/RoyExtSSD1T/kidneynetwork/files/new/ENSGToGeneNameHGNCBiotypeChromosomeStartStopStrandAndDescriptionV98FilteredNonChromosomesRemovedDuplicateTranscriptsRemovedFilteredActualGenes.txt \
+	/Volumes/RoyExtSSD1T/kidneynetwork/files/new/skewnessSummary_sortedfiltered.txt
 
 ###
 ### HPO
 ###
 
 node populateGenesetDBTXT.js \
-    /data/genenetwork/level/new/dbgenes_uint16be \
-    /data/genenetwork/level/new/dbexternal_uint16be \
-    HPO \
-    /data/genenetwork/files/Version2_01_04_2018/HPO/hpoTerms_bonSigTerms_gnInputFormat.txt \
-    /data/genenetwork/files/Version2_01_04_2018/HPO/hpo_predictions_bonSigOnly_termNames_tranposed.txt \
-    /data/genenetwork/files/Version2_01_04_2018/HPO/hpo_predictions_auc_gnInputFormat.txt \
-    /data/genenetwork/files/Version2_01_04_2018/HPO/ALL_SOURCES_ALL_FREQUENCIES_phenotype_to_genes_matrix_gnInputFormat.txt
+	/Volumes/RoyExtSSD1T/kidneynetwork/level/new/dbgenes_uint16be \
+	/Volumes/RoyExtSSD1T/kidneynetwork/level/new/dbexternal_uint16be \
+	HPO \
+	/Volumes/RoyExtSSD1T/kidneynetwork/files/hpo/predictions_auc_bonf.bonSigTerms_gnInputFormat.txt \
+	/Volumes/RoyExtSSD1T/kidneynetwork/files/hpo/MetaBrain.hpo_predictions.bonSigOnly_termNames_tranposed.txt \
+	/Volumes/RoyExtSSD1T/kidneynetwork/files/hpo/predictions_auc_bonf_gnInputFormat.txt \
+	/Volumes/RoyExtSSD1T/kidneynetwork/files/hpo/phenotype_to_genes_V1268_OMIMandORPHA_matrix_filteredOnEigenVectorGenes_gnInputFormat.txt
 
 node rankPathwaysFromDataFileTXT.js \
-    /data/genenetwork/level/new/dbexternalranks \
-    HPO \
-    /data/genenetwork/files/Version2_01_04_2018/HPO/hpoTerms_bonSigTerms_gnInputFormat.txt \
-    /data/genenetwork/files/Version2_01_04_2018/HPO/hpo_predictions_bonSigOnly_termNames_tranposed.txt 
+	/Volumes/RoyExtSSD1T/kidneynetwork/level/new/dbexternalranks \
+	HPO \
+	/Volumes/RoyExtSSD1T/kidneynetwork/files/hpo/predictions_auc_bonf.bonSigTerms_gnInputFormat.txt \
+	/Volumes/RoyExtSSD1T/kidneynetwork/files/hpo/MetaBrain.hpo_predictions.bonSigOnly_termNames_tranposed.txt
 # elasticsearch autocomplete for HPO terms
 node data_scripts/parseHpoOboToElastic.js
 
@@ -33,19 +34,19 @@ node data_scripts/parseHpoOboToElastic.js
 ###
 
 node populateGenesetDBTXT.js \
-    /data/genenetwork/level/new/dbgenes_uint16be \
-    /data/genenetwork/level/new/dbexternal_uint16be \
-    REACTOME \
-    /data/genenetwork/files/Version2_01_04_2018/Reactome/reactomePathwaysHuman_bonSigTerms_gnInputFormat.txt \
-    /data/genenetwork/files/Version2_01_04_2018/Reactome/reactome_predictions_bonSigOnly_termNames_tranposed.txt \
-    /data/genenetwork/files/Version2_01_04_2018/Reactome/reactome_predictions_auc_gnInputFormat.txt \
-    /data/genenetwork/files/Version2_01_04_2018/Reactome/Ensembl2Reactome_All_Levels_matrix_gnInputFormat.txt
+	/Volumes/RoyExtSSD1T/kidneynetwork/level/new/dbgenes_uint16be \
+	/Volumes/RoyExtSSD1T/kidneynetwork/level/new/dbexternal_uint16be \
+	REACTOME \
+	/Volumes/RoyExtSSD1T/kidneynetwork/files/reactome/predictions_auc_bonf.bonSigTerms_gnInputFormat.txt \
+	/Volumes/RoyExtSSD1T/kidneynetwork/files/reactome/MetaBrain.reactome_predictions.bonSigOnly_termNames_tranposed.txt \
+	/Volumes/RoyExtSSD1T/kidneynetwork/files/reactome/predictions_auc_bonf_gnInputFormat.txt \
+	/Volumes/RoyExtSSD1T/kidneynetwork/files/reactome/Ensembl2Reactome_All_Levels_2020_07_18_matrix_filteredOnEigenVectorGenes_gnInputFormat.txt
 
 node rankPathwaysFromDataFileTXT.js \
-    /data/genenetwork/level/new/dbexternalranks \
-    REACTOME \
-    /data/genenetwork/files/Version2_01_04_2018/Reactome/reactomePathwaysHuman_bonSigTerms_gnInputFormat.txt \
-    /data/genenetwork/files/Version2_01_04_2018/Reactome/reactome_predictions_bonSigOnly_termNames_tranposed.txt 
+	/Volumes/RoyExtSSD1T/kidneynetwork/level/new/dbexternalranks \
+	REACTOME \
+	/Volumes/RoyExtSSD1T/kidneynetwork/files/reactome/predictions_auc_bonf.bonSigTerms_gnInputFormat.txt \
+	/Volumes/RoyExtSSD1T/kidneynetwork/files/reactome/MetaBrain.reactome_predictions.bonSigOnly_termNames_tranposed.txt
 
 ###
 ### GO
@@ -53,51 +54,51 @@ node rankPathwaysFromDataFileTXT.js \
 
 ## GO_F
 node populateGenesetDBTXT.js \
-    /data/genenetwork/level/new/dbgenes_uint16be \
-    /data/genenetwork/level/new/dbexternal_uint16be \
-    GO_F \
-    /data/genenetwork/files/Version2_01_04_2018/GO/GO_F/go_F_PathwaysClean_bonSigTerms_gnInputFormat.txt \
-    /data/genenetwork/files/Version2_01_04_2018/GO/GO_F/go_F_predictions_bonSigOnly_termNames_tranposed.txt \
-    /data/genenetwork/files/Version2_01_04_2018/GO/GO_F/go_F_predictions_auc_gnInputFormat.txt \
-    /data/genenetwork/files/Version2_01_04_2018/GO/GO_F/goa_human.gaf_F_matrix_gnInputFormat.txt
+	/Volumes/RoyExtSSD1T/kidneynetwork/level/new/dbgenes_uint16be \
+	/Volumes/RoyExtSSD1T/kidneynetwork/level/new/dbexternal_uint16be \
+	GO_F \
+	/Volumes/RoyExtSSD1T/kidneynetwork/files/go_f/predictions_auc_bonf.bonSigTerms_gnInputFormat.txt \
+	/Volumes/RoyExtSSD1T/kidneynetwork/files/go_f/MetaBrain.go_F_predictions.bonSigOnly_termNames_tranposed.txt \
+	/Volumes/RoyExtSSD1T/kidneynetwork/files/go_f/predictions_auc_bonf_gnInputFormat.txt \
+	/Volumes/RoyExtSSD1T/kidneynetwork/files/go_f/goa_human_2020_06_01.gaf_F_2020_06_01_matrix_filteredOnEigenVectorGenes_gnInputFormat.txt
 
 node rankPathwaysFromDataFileTXT.js \
-    /data/genenetwork/level/new/dbexternalranks \
-    GO_F \
-    /data/genenetwork/files/Version2_01_04_2018/GO/GO_F/go_F_PathwaysClean_bonSigTerms_gnInputFormat.txt \
-    /data/genenetwork/files/Version2_01_04_2018/GO/GO_F/go_F_predictions_bonSigOnly_termNames_tranposed.txt 
+	/Volumes/RoyExtSSD1T/kidneynetwork/level/new/dbexternalranks \
+	GO_F \
+	/Volumes/RoyExtSSD1T/kidneynetwork/files/go_f/predictions_auc_bonf.bonSigTerms_gnInputFormat.txt \
+	/Volumes/RoyExtSSD1T/kidneynetwork/files/go_f/MetaBrain.go_F_predictions.bonSigOnly_termNames_tranposed.txt
 
 ## GO_P
 node populateGenesetDBTXT.js \
-    /data/genenetwork/level/new/dbgenes_uint16be \
-    /data/genenetwork/level/new/dbexternal_uint16be \
-    GO_P \
-    /data/genenetwork/files/Version2_01_04_2018/GO/GO_P/go_P_PathwaysClean_bonSigTerms_gnInputFormat.txt \
-    /data/genenetwork/files/Version2_01_04_2018/GO/GO_P/go_P_predictions_bonSigOnly_termNames_tranposed.txt \
-    /data/genenetwork/files/Version2_01_04_2018/GO/GO_P/go_P_predictions_auc_gnInputFormat.txt \
-    /data/genenetwork/files/Version2_01_04_2018/GO/GO_P/goa_human.gaf_P_matrix_gnInputFormat.txt
+	/Volumes/RoyExtSSD1T/kidneynetwork/level/new/dbgenes_uint16be \
+	/Volumes/RoyExtSSD1T/kidneynetwork/level/new/dbexternal_uint16be \
+	GO_P \
+	/Volumes/RoyExtSSD1T/kidneynetwork/files/go_p/predictions_auc_bonf.bonSigTerms_gnInputFormat.txt \
+	/Volumes/RoyExtSSD1T/kidneynetwork/files/go_p/MetaBrain.go_P_predictions.bonSigOnly_termNames_tranposed.txt \
+	/Volumes/RoyExtSSD1T/kidneynetwork/files/go_p/predictions_auc_bonf_gnInputFormat.txt \
+	/Volumes/RoyExtSSD1T/kidneynetwork/files/go_p/goa_human_2020_06_01.gaf_P_2020_06_01_matrix_filteredOnEigenVectorGenes_gnInputFormat.txt
 
 node rankPathwaysFromDataFileTXT.js \
-    /data/genenetwork/level/new/dbexternalranks \
-    GO_P \
-    /data/genenetwork/files/Version2_01_04_2018/GO/GO_P/go_P_PathwaysClean_bonSigTerms_gnInputFormat.txt \
-    /data/genenetwork/files/Version2_01_04_2018/GO/GO_P/go_P_predictions_bonSigOnly_termNames_tranposed.txt 
+	/Volumes/RoyExtSSD1T/kidneynetwork/level/new/dbexternalranks \
+	GO_P \
+	/Volumes/RoyExtSSD1T/kidneynetwork/files/go_p/predictions_auc_bonf.bonSigTerms_gnInputFormat.txt \
+	/Volumes/RoyExtSSD1T/kidneynetwork/files/go_p/MetaBrain.go_P_predictions.bonSigOnly_termNames_tranposed.txt
 
 ## GO_C
 node populateGenesetDBTXT.js \
-    /data/genenetwork/level/new/dbgenes_uint16be \
-    /data/genenetwork/level/new/dbexternal_uint16be \
-    GO_C \
-    /data/genenetwork/files/Version2_01_04_2018/GO/GO_C/go_C_PathwaysClean_bonSigTerms_gnInputFormat.txt \
-    /data/genenetwork/files/Version2_01_04_2018/GO/GO_C/go_C_predictions_bonSigOnly_termNames_tranposed.txt \
-    /data/genenetwork/files/Version2_01_04_2018/GO/GO_C/go_C_predictions_auc_gnInputFormat.txt \
-    /data/genenetwork/files/Version2_01_04_2018/GO/GO_C/goa_human.gaf_C_matrix_gnInputFormat.txt
+	/Volumes/RoyExtSSD1T/kidneynetwork/level/new/dbgenes_uint16be \
+	/Volumes/RoyExtSSD1T/kidneynetwork/level/new/dbexternal_uint16be \
+	GO_C \
+	/Volumes/RoyExtSSD1T/kidneynetwork/files/go_c/predictions_auc_bonf.bonSigTerms_gnInputFormat.txt \
+	/Volumes/RoyExtSSD1T/kidneynetwork/files/go_c/MetaBrain.go_C_predictions.bonSigOnly_termNames_tranposed.txt \
+	/Volumes/RoyExtSSD1T/kidneynetwork/files/go_c/predictions_auc_bonf_gnInputFormat.txt \
+	/Volumes/RoyExtSSD1T/kidneynetwork/files/go_c/goa_human_2020_06_01.gaf_C_2020_06_01_matrix_filteredOnEigenVectorGenes_gnInputFormat.txt
 
 node rankPathwaysFromDataFileTXT.js \
-    /data/genenetwork/level/new/dbexternalranks \
-    GO_C \
-    /data/genenetwork/files/Version2_01_04_2018/GO/GO_C/go_C_PathwaysClean_bonSigTerms_gnInputFormat.txt \
-    /data/genenetwork/files/Version2_01_04_2018/GO/GO_C/go_C_predictions_bonSigOnly_termNames_tranposed.txt 
+	/Volumes/RoyExtSSD1T/kidneynetwork/level/new/dbexternalranks \
+	GO_C \
+	/Volumes/RoyExtSSD1T/kidneynetwork/files/go_c/predictions_auc_bonf.bonSigTerms_gnInputFormat.txt \
+	/Volumes/RoyExtSSD1T/kidneynetwork/files/go_c/MetaBrain.go_C_predictions.bonSigOnly_termNames_tranposed.txt
 
 
 ###
@@ -105,25 +106,24 @@ node rankPathwaysFromDataFileTXT.js \
 ###
 
 node populateGenesetDBTXT.js \
-    /data/genenetwork/level/new/dbgenes_uint16be \
-    /data/genenetwork/level/new/dbexternal_uint16be \
-    KEGG \
-    /data/genenetwork/files/Version2_01_04_2018/KEGG/kegg_PathwaysClean_bonSigTerms_gnInputFormat.txt \
-    /data/genenetwork/files/Version2_01_04_2018/KEGG/kegg_predictions_bonSigOnly_termNames_tranposed.txt \
-    /data/genenetwork/files/Version2_01_04_2018/KEGG/kegg_predictions_auc_gnInputFormat.txt \
-    /data/genenetwork/files/Version2_01_04_2018/KEGG/c2.cp.kegg.v6.1.entrez.gmt_matrix_gnInputFormat.txt
+	/Volumes/RoyExtSSD1T/kidneynetwork/level/new/dbgenes_uint16be \
+	/Volumes/RoyExtSSD1T/kidneynetwork/level/new/dbexternal_uint16be \
+	KEGG \
+	/Volumes/RoyExtSSD1T/kidneynetwork/files/kegg/predictions_auc_bonf.bonSigTerms_gnInputFormat.txt \
+	/Volumes/RoyExtSSD1T/kidneynetwork/files/kegg/MetaBrain.kegg_predictions.bonSigOnly_termNames_tranposed.txt \
+	/Volumes/RoyExtSSD1T/kidneynetwork/files/kegg/predictions_auc_bonf_gnInputFormat.txt \
+	/Volumes/RoyExtSSD1T/kidneynetwork/files/kegg/c2.cp.kegg.v7.1.entrez.gmt_matrix_filteredOnEigenVectorGenes_gnInputFormat.txt
 
 node rankPathwaysFromDataFileTXT.js \
-    /data/genenetwork/level/new/dbexternalranks \
-    KEGG \
-    /data/genenetwork/files/Version2_01_04_2018/KEGG/kegg_PathwaysClean_bonSigTerms_gnInputFormat.txt \
-    /data/genenetwork/files/Version2_01_04_2018/KEGG/kegg_predictions_bonSigOnly_termNames_tranposed.txt 
+	/Volumes/RoyExtSSD1T/kidneynetwork/level/new/dbexternalranks \
+	KEGG \
+	/Volumes/RoyExtSSD1T/kidneynetwork/files/kegg/predictions_auc_bonf.bonSigTerms_gnInputFormat.txt \
+	/Volumes/RoyExtSSD1T/kidneynetwork/files/kegg/MetaBrain.kegg_predictions.bonSigOnly_termNames_tranposed.txt
 
 
 ##
 ## Coregulation
 ##
 node populateCoregulationDBTXT.js \
-    /data/genenetwork/files/Version2_01_04_2018/Gene_Coregulation/eigenvectors_1588_stdNormRows_stdNormCols_correlation.txt.gz \
-    /data/genenetwork/level/new/dbpccorrelationzscores_uint16be_genescompsstdnorm 1588
-
+	/Volumes/RoyExtSSD1T/kidneynetwork/coregulationKN.txt.gz \
+	/Volumes/RoyExtSSD1T/kidneynetwork/level/new/dbpccorrelationzscores_uint16be_genescompsstdnorm 335

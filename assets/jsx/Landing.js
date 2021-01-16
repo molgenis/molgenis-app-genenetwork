@@ -314,10 +314,7 @@ var Landing = React.createClass({
         return (<div className='gn-app vflex'>
                 <div className='gn-top flex00 flexcenter hflex'>
                     <div className='gn-top-logo clickable flex00' style={{margin: '10px 0'}} onClick={this.onLogoClick}>
-                        <Logo w={120} h={60} mirrored={true} style={{float: 'left', paddingRight: '10px'}} />
-                        <div className='noselect' style={{fontSize: '1em', color: color.colors.gndarkgray, float: 'left', marginTop: '37px', marginLeft: '7px'}}>
-                            v2.0
-                        </div>
+                        <Logo w={150} h={75} mirrored={true} style={{float: 'left', paddingRight: '10px'}} />
                     </div>
                     {topSearch}
                     <MenuBar items={GN.menuItems} style={{padding: '30px 20px 20px 20px'}} />
