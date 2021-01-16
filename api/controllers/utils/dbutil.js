@@ -302,8 +302,8 @@ var getPredictions = function(buffer, dbname, options) {
             var raw = buffer.readUInt16BE(i * 2)
             // a transformation is done when adding to the leveldb, that is reversed here
             var z = (raw - 32768) / 1000;
-            sails.log.debug('gene' + gene, ', Z:' +  z + ', raw:' + raw);
             var gene = genedesc.get(i - 1);
+            sails.log.debug('gene' + gene.id, ', Z:' +  z + ', raw:' + raw);
             if (options.array) {
                 result.push(z)
             } else {
