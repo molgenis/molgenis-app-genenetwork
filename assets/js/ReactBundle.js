@@ -5735,7 +5735,7 @@ var Gene = React.createClass({displayName: "Gene",
         return (
                 React.createElement("div", null, 
                 React.createElement("h3", null, "Gene"), 
-                React.createElement("p", {className: "dont-break-out"}, React.createElement("code", null, "GET ", GN.urls.gene, "/", React.createElement("strong", null, "geneName"))), 
+                React.createElement("p", {className: "dont-break-out"}, React.createElement("code", null, "GET ", GN.urls.external.gene, "/", React.createElement("strong", null, "geneName"))), 
                 React.createElement("p", null, "Get annotation and prediction information for a given gene."), 
 
                 React.createElement("h4", null, "Returns"), 
@@ -5757,8 +5757,8 @@ var Gene = React.createClass({displayName: "Gene",
             "returned."), 
                 
                 React.createElement("h4", null, "Examples"), 
-                React.createElement("p", {className: "dont-break-out"}, React.createElement("code", null, "GET ", GN.urls.gene, "/rps27l")), 
-                React.createElement("p", {className: "dont-break-out"}, React.createElement("code", null, "GET ", GN.urls.gene, "/rps27l?db=GO-CC&verbose"))
+                React.createElement("p", {className: "dont-break-out"}, React.createElement("code", null, "GET ", GN.urls.external.gene, "/rps27l")), 
+                React.createElement("p", {className: "dont-break-out"}, React.createElement("code", null, "GET ", GN.urls.external.gene, "/rps27l?db=GO-CC&verbose"))
                 )
         )
     }
@@ -5770,7 +5770,7 @@ var Term = React.createClass({displayName: "Term",
         return (
                 React.createElement("div", null, 
                 React.createElement("h3", null, "Pathway / phenotype"), 
-                React.createElement("p", {className: "dont-break-out"}, React.createElement("code", null, "GET ", GN.urls.pathway, "/", React.createElement("strong", null, "termId"))), 
+                React.createElement("p", {className: "dont-break-out"}, React.createElement("code", null, "GET ", GN.urls.external.pathway, "/", React.createElement("strong", null, "termId"))), 
                 React.createElement("p", null, "Get annotation and prediction information for a given pathway or phenotype."), 
 
                 React.createElement("h4", null, "Parameters"), 
@@ -5786,8 +5786,8 @@ var Term = React.createClass({displayName: "Term",
                 React.createElement("li", null, "List of predicted genes")
                 ), 
                 React.createElement("h4", null, "Examples"), 
-                React.createElement("p", {className: "dont-break-out"}, React.createElement("code", null, "GET ", GN.urls.pathway, "/GO:0000302")), 
-                React.createElement("p", {className: "dont-break-out"}, React.createElement("code", null, "GET ", GN.urls.pathway, "/GO:0000302?verbose"))
+                React.createElement("p", {className: "dont-break-out"}, React.createElement("code", null, "GET ", GN.urls.external.pathway, "/GO:0000302")), 
+                React.createElement("p", {className: "dont-break-out"}, React.createElement("code", null, "GET ", GN.urls.external.pathway, "/GO:0000302?verbose"))
                 )
         )
     }
@@ -5800,7 +5800,7 @@ var Prioritization = React.createClass({displayName: "Prioritization",
         return (
                 React.createElement("div", null, 
                 React.createElement("h3", null, "Prioritization"), 
-                React.createElement("p", {className: "dont-break-out"}, React.createElement("code", null, "GET ", GN.urls.prioritization, "/", React.createElement("strong", null, "termId1,termId2,..."))), 
+                React.createElement("p", {className: "dont-break-out"}, React.createElement("code", null, "GET ", GN.urls.external.prioritization, "/", React.createElement("strong", null, "termId1,termId2,..."))), 
                 React.createElement("p", null, "Get prioritized genes for given pathways or phenotypes."), 
 
                 React.createElement("h4", null, "Parameters"), 
@@ -5816,8 +5816,8 @@ var Prioritization = React.createClass({displayName: "Prioritization",
                 ), 
                 React.createElement("p", null, "In the returned gene list, the \"predicted\" array contains prediction Z-scores for each found pathway/phenotype. The order of the values in the array corresponds to the order of the \"terms\" array in the returned JSON. The \"annotated\" array contains the pathways/phenotypes to which the gene has been annotated, if any."), 
                 React.createElement("h4", null, "Examples"), 
-                React.createElement("p", {className: "dont-break-out"}, React.createElement("code", null, "GET ", GN.urls.prioritization, "/HP:0001874,HP:0001419,HP:0002718,HP:0004313,HP:0000951")), 
-                React.createElement("p", {className: "dont-break-out"}, React.createElement("code", null, "GET ", GN.urls.prioritization, "/HP:0001874,HP:0001419,HP:0002718,HP:0004313,HP:0000951?verbose"))
+                React.createElement("p", {className: "dont-break-out"}, React.createElement("code", null, "GET ", GN.urls.external.prioritization, "/HP:0001874,HP:0001419,HP:0002718,HP:0004313,HP:0000951")), 
+                React.createElement("p", {className: "dont-break-out"}, React.createElement("code", null, "GET ", GN.urls.external.prioritization, "/HP:0001874,HP:0001419,HP:0002718,HP:0004313,HP:0000951?verbose"))
                 )
         )
     }
@@ -9230,9 +9230,16 @@ module.exports.urls = {
     fileupload: DOMAIN + '/api/v1/fileupload',
 
     diagnosisVCF: DOMAIN + '/api/v1/vcf',
+
+    // dirty workaround, should do this the other way around, where internal does not have to go over internet
+    external: {
+        gene: 'https://kidney-network.gcc.rug.nl' + '/api/v1/gene',
+        pathway: 'https://kidney-network.gcc.rug.nl' + '/api/v1/pathway',
+        prioritization: 'https://kidney-network.gcc.rug.nl' + '/api/v1/prioritization',
+    },
 };
 
-module.exports.pageTitleSuffix = ' - Gene Network';
+module.exports.pageTitleSuffix = ' - Kidney Network';
 
 },{"./domain":50}],52:[function(require,module,exports){
 (function (global){

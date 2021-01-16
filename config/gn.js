@@ -54,6 +54,13 @@ module.exports.urls = {
     fileupload: DOMAIN + '/api/v1/fileupload',
 
     diagnosisVCF: DOMAIN + '/api/v1/vcf',
+
+    // dirty workaround, should do this the other way around, where internal does not have to go over internet
+    external: {
+        gene: 'https://kidney-network.gcc.rug.nl' + '/api/v1/gene',
+        pathway: 'https://kidney-network.gcc.rug.nl' + '/api/v1/pathway',
+        prioritization: 'https://kidney-network.gcc.rug.nl' + '/api/v1/prioritization',
+    },
 };
 
-module.exports.pageTitleSuffix = ' - Gene Network';
+module.exports.pageTitleSuffix = ' - Kidney Network';
