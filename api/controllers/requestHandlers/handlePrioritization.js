@@ -74,7 +74,6 @@ module.exports = function(req, res) {
                         r.results = _.filter(r.results, function(item){
                             return genes.indexOf(item.gene.id) != -1
                         }).slice(0, sails.config.api.prioritizationMaxNumEntries)
-                        sails.log.debug(r.results)
                         r['genesNotFound'] = notFound
 
                     } else {
@@ -84,6 +83,7 @@ module.exports = function(req, res) {
                 }
 
                 for (var i = 0; i < r.results.length; i++) {
+                    sails.log.debug(JSON.stringify(r.results[i]));
                     r.results[i].weightedZScore = Number(r.results[i].weightedZScore.toPrecision(4))
                 }
 
