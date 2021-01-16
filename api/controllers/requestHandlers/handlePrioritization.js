@@ -74,7 +74,7 @@ module.exports = function(req, res) {
                         r.results = _.filter(r.results, function(item){
                             return genes.indexOf(item.gene.id) != -1
                         }).slice(0, sails.config.api.prioritizationMaxNumEntries)
-                        
+                        sails.log.debug(r.results)
                         r['genesNotFound'] = notFound
 
                     } else {
