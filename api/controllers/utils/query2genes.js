@@ -49,7 +49,8 @@ var getGenes = function(query, options, callback) {
     	    var pw = dbutil.pathwayObject(q);
     	    if (pw) {
     	        dbutil.getAnnotatedGenes(pw, function(err, genes) {
-    		    return err ? cb(err) : cb(null, {genes: genes, groupNum: groupNum})
+    		        sails.log.debug(JSON.stringify(genes))
+    	            return err ? cb(err) : cb(null, {genes: genes, groupNum: groupNum})
     		})
     	    } else {
     	        return cb(null, {not_found: q})

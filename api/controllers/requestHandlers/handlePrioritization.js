@@ -83,7 +83,6 @@ module.exports = function(req, res) {
                 }
 
                 for (var i = 0; i < r.results.length; i++) {
-                    sails.log.debug(JSON.stringify(r.results[i]));
                     r.results[i].weightedZScore = Number(r.results[i].weightedZScore.toPrecision(4))
                 }
 
