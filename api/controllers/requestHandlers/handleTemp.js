@@ -7,7 +7,9 @@ var quicksort = require('../utils/quicksort')
 var quicksortobj = require('../utils/quicksortobj')
 var cholesky = require('../../../stats/cholesky')
 var ziggurat = require('../../../stats/ziggurat')
-var elasticHostAddress = properties.get('ELASTICSEARCH_HOST');
+
+var PropertiesReader = require('properties-reader');
+var properties = PropertiesReader('config/config.properties');
 // get the location of the GN files
 var genenetworkFilePath = properties.get('GN_FILES_PATH')
 
