@@ -6,7 +6,7 @@
 node populateGenesToGeneDB.js \
 	/Volumes/RoyExtSSD1T/kidneynetwork/level/new/dbgenes_uint16be \
 	/Volumes/RoyExtSSD1T/kidneynetwork/files/new/ENSGToGeneNameHGNCBiotypeChromosomeStartStopStrandAndDescriptionV98FilteredNonChromosomesRemovedDuplicateTranscriptsRemovedFilteredActualGenes.txt \
-	/Volumes/RoyExtSSD1T/kidneynetwork/files/new/skewnessSummary_sortedfiltered.txt
+	/Volumes/RoyExtSSD1T/kidneynetwork/files/new/skewnessSummary.txt
 
 ###
 ### HPO

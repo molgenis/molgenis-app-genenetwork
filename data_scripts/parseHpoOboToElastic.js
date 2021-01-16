@@ -5,7 +5,7 @@ var level = require('level');
 var elasticsearch = require('elasticsearch')
 // get the address for elastic search host
 var PropertiesReader = require('properties-reader');
-var properties = PropertiesReader('config/config.properties');
+var properties = PropertiesReader('../config/config.properties');
 var elasticHostAddress = properties.get('ELASTICSEARCH_HOST');
 // get the location of the GN files
 var genenetworkFilePath = properties.get('GN_FILES_PATH');
