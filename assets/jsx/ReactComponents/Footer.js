@@ -33,6 +33,11 @@ var Footer = React.createClass({
                             <img className='bbmri' title='BBMRI' src={GN.urls.main + '/images/bbmri_nl.png'} />
                         </a>
                     </div>
+                    <div style={{padding: '0 5px 0 5px'}}>
+                        <a href='https://www.umcutrecht.nl/' target='_blank'>
+                            <img className='umcu' title='University Medical Center Utrecht' src={GN.urls.main + '/images/umcu_black.jpg'} />
+                        </a>
+                    </div>
                 </div>
             </div>
         )

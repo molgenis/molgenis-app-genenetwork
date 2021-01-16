@@ -7401,6 +7401,11 @@ var Footer = React.createClass({displayName: "Footer",
                         React.createElement("a", {href: "http://www.bbmri.nl", target: "_blank"}, 
                             React.createElement("img", {className: "bbmri", title: "BBMRI", src: GN.urls.main + '/images/bbmri_nl.png'})
                         )
+                    ), 
+                    React.createElement("div", {style: {padding: '0 5px 0 5px'}}, 
+                        React.createElement("a", {href: "https://www.umcutrecht.nl/", target: "_blank"}, 
+                            React.createElement("img", {className: "umcu", title: "University Medical Center Utrecht", src: GN.urls.main + '/images/umcu_black.jpg'})
+                        )
                     )
                 )
             )
