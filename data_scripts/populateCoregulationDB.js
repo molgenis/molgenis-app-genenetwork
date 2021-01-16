@@ -5,6 +5,11 @@ var async = require('async')
 //var stats = require('../stats/stats.js')
 //var prob = require('../stats/probability.js')
 var prob = require('genstats').probability
+var properties = PropertiesReader('config/config.properties');
+// get the location of the GN files
+var genenetworkFilePath = properties.get('GN_FILES_PATH')
+
+
 var encoding = require('../api/controllers/utils/encoding.js')
 
 if (process.argv.length != 4) {
@@ -19,7 +24,7 @@ var datafile = process.argv[3]
 //    valueEncoding: 'binary'
 //})
 
-var corrDB = level('/data/genenetwork/dbpccorrelationzscores_uint16benpy', {
+var corrDB = level(genenetworkFilePath+'/dbpccorrelationzscores_uint16benpy', {
     valueEncoding: 'binary'
 })
 
@@ -54,7 +59,7 @@ function readwrite(geneIDs, i) {
 
     readDataAndInsertToDBUInt16BE(
         corrDB,
-        '/data/genenetwork/final/CorrelationMatrix/169ComponentsGeneCorrelationMatrix.binary.' + i + '.binary.dat',
+        genenetworkFilePath+'/final/CorrelationMatrix/169ComponentsGeneCorrelationMatrix.binary.' + i + '.binary.dat',
         geneIDs.slice(i <= 50000 ? i - 10000 : i - 4715, i),
         function(err) {
             if (err) console.log(err)

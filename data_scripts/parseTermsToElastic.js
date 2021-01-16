@@ -6,13 +6,16 @@ var elasticsearch = require('elasticsearch')
 var PropertiesReader = require('properties-reader');
 var properties = PropertiesReader('config/config.properties');
 var elasticHostAddress = properties.get('ELASTICSEARCH_HOST');
+// get the location of the GN files
+var genenetworkFilePath = properties.get('GN_FILES_PATH')
+
 
 var client = new elasticsearch.Client({
     host: elasticHostAddress,
     log: 'info'
 })
 
-var db = level('/data/genenetwork/level/new/dbexternal_uint16be', {valueEncoding: 'binary'})
+var db = level(genenetworkFilePath+'/level/new/dbexternal_uint16be', {valueEncoding: 'binary'})
 
 async.waterfall([
     function(cb) {
@@ -57,6 +60,6 @@ async.waterfall([
         console.log('writing bulk, numTerms:', bulk.length / 2)
         client.bulk({body: bulk}, function(err, resp) {
             if (err) console.log(err)
-            else console.log('bulk written')
+            else console.log('bulk written parseTermsToElastic')
         })
     })

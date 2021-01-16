@@ -198,18 +198,23 @@ function readDataAndInsertToDBUInt16BE(db, dbname, filename, ids, cb) {
                     console.error(new Date(), headers.length + ' headers read')
                 } else {
                     var buf = new Buffer((headers.length + 1) * 2)
-	            buf.writeUInt16BE(2, 0) // TODO number of significant genes
-                    for (var i = 1; i < split.length; i++) {
-		        var z = +split[i]
-		        var value = Math.min(65535, Math.round(1000 * z) + 32768)
+	                buf.writeUInt16BE(2, 0) // TODO number of significant genes
+                    for (var i = 1; i < split.length; i++) { // at zero is the row name, the term, so skip that one
+		                // grab the specific Z value
+                        var z = split[i]
+                        // the Z is converted to a number from negative infinity to 32768
+		                var value = Math.min(65535, Math.round(1000 * z) + 32768)
                         if (lineNum === 2 && i === 2) {
-                            console.error('check', z, value)
+                            console.log('check', z, value)
                         }
-		        try {
+		                try {
                             buf.writeUInt16BE(value, i * 2)
-		        } catch (e) {
+                            if('HP:0000107' == split[0]){
+                                console.log('written ' + headers[i-1] + ' ' + split[0] + ' ' + z + ' ' + value)
+                            }
+		                } catch (e) {
                             console.error(headers.length, z, value, e)
-		        }
+		                }
                     }
                     var key = 'RNASEQ!PREDICTIONS!' + dbname.toUpperCase() + '!' + split[0]
                     if ('REACTOME' === dbname.toUpperCase() && split[0].indexOf('REACTOME:') != 0) {
@@ -217,11 +222,11 @@ function readDataAndInsertToDBUInt16BE(db, dbname, filename, ids, cb) {
                     }
                     batch.put(key, buf)
                     if (++lineNum % 100 === 0) {
-		        console.error(new Date(), lineNum + ' rows read, writing batch')
-		        batch.write(function() {
+		                console.error(new Date(), lineNum + ' rows read, writing batch')
+		                batch.write(function() {
                             console.error(new Date(), 'batch written')
-		        })
-		        batch = db.batch()
+		                })
+		                batch = db.batch()
                     }
                 }
             }

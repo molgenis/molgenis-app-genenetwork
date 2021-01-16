@@ -57,6 +57,6 @@ function processBulk(bulk) {
     console.log('processing bulk')
     client.bulk({body: bulk}, function(err, resp) {
         if (err) console.log(err)
-        else console.log('bulk written')
+        else console.log('bulk written parseGenesToElastic')
     })
 }

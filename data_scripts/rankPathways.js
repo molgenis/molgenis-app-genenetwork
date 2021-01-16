@@ -1,12 +1,16 @@
 var _ = require('lodash')
 var rank = require('../stats/rank.js')
 var level = require('level')
+var properties = PropertiesReader('config/config.properties');
+// get the location of the GN files
+var genenetworkFilePath = properties.get('GN_FILES_PATH')
 
-var db = level('/data/genenetwork/final/dbexternal_uint16be_', {
+
+var db = level(genenetworkFilePath+'/final/dbexternal_uint16be_', {
     valueEncoding: 'binary'
 })
 
-var rankdb = level('/data/genenetwork/final/dbexternalranks_', {
+var rankdb = level(genenetworkFilePath+'/final/dbexternalranks_', {
     valueEncoding: 'binary'
 })
 

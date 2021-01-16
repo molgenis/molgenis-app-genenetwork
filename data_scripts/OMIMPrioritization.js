@@ -5,7 +5,7 @@ var lookup = function(value) { return (value - 32768) / 1000 }
 
 
 
-var hpo = fs.readFileSync('/data/genenetwork/files/HPO/ALL_SOURCES_ALL_FREQUENCIES_diseases_to_genes_to_phenotypes.txt', 'utf8').split('\n')
+var hpo = fs.readFileSync(genenetworkFilePath+'/files/HPO/ALL_SOURCES_ALL_FREQUENCIES_diseases_to_genes_to_phenotypes.txt', 'utf8').split('\n')
 hpo.splice(0,1)
 hpo.splice(-1,1)
 

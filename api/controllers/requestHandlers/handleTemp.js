@@ -7,10 +7,14 @@ var quicksort = require('../utils/quicksort')
 var quicksortobj = require('../utils/quicksortobj')
 var cholesky = require('../../../stats/cholesky')
 var ziggurat = require('../../../stats/ziggurat')
+var elasticHostAddress = properties.get('ELASTICSEARCH_HOST');
+// get the location of the GN files
+var genenetworkFilePath = properties.get('GN_FILES_PATH')
+
 
 module.exports = function(req, res) {
 
-    var hpo = fs.readFileSync('/data/genenetwork/files/HPO/ALL_SOURCES_ALL_FREQUENCIES_diseases_to_genes_to_phenotypes.txt', 'utf8').split('\n')
+    var hpo = fs.readFileSync(genenetworkFilePath+'/files/HPO/ALL_SOURCES_ALL_FREQUENCIES_diseases_to_genes_to_phenotypes.txt', 'utf8').split('\n')
     hpo.splice(0,1)
     if (!_.last(hpo)) {
         hpo.splice(-1,1)

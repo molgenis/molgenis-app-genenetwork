@@ -3,6 +3,11 @@ var fs = require('fs')
 var level = require('level')
 var split = require('split')
 
+var properties = PropertiesReader('config/config.properties');
+// get the location of the GN files
+var genenetworkFilePath = properties.get('GN_FILES_PATH')
+
+
 var termFile = process.argv[2] //'/data/genenetwork/files/Reactome/Reactome_terms.txt'
 var idFile = process.argv[3] //'/data/genenetwork/files/Reactome/ReactomePathways.txt'
 var relationFile = process.argv[4] //'/data/genenetwork/files/Reactome/ReactomePathwaysRelation.txt'
@@ -61,7 +66,7 @@ ReactomeNetwork.edges = _.compact(_.map(fs.readFileSync(relationFile, 'utf8').sp
 
 console.log(ReactomeNetwork.nodes.length + ' nodes', ReactomeNetwork.edges.length + ' edges')
 
-var genesetDB = level('/data/genenetwork/level/dbexternal_uint16be', {valueEncoding: 'binary'})
+var genesetDB = level(genenetworkFilePath+'/level/dbexternal_uint16be', {valueEncoding: 'binary'})
 genesetDB.get('!RNASEQ!REACTOME', {valueEncoding: 'json'}, function(err, json) {
     if (err) {
         console.log(err)
