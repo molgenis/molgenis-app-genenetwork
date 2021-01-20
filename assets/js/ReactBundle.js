@@ -1825,9 +1825,8 @@ var How = React.createClass({displayName: "How",
                     React.createElement("h3", {id: "what-is-genenetwork"}, "What is KidneyNetwork?"), 
                     React.createElement("p", null, 
                         "KidneyNetwork uses gene co-regulation to predict pathway membership and HPO term associations." + ' ' +
-                        "This is done by integrating 31,499 public RNA-seq sample."
+                        "This is done by combining and integrating 31,499 multi-tissue public RNA-seq samples with 898 kidney-specific public RNA-seq samples."
                     ), 
-                    React.createElement("img", {title: "GeneNetwork", style: {width: '1000px'}, src: GN.urls.main + '/images/genenetwork.png'}), 
 
 
                     React.createElement("h3", {id: "what-is-gado"}, "What is GADO?"), 
@@ -1836,7 +1835,7 @@ var How = React.createClass({displayName: "How",
                         "Using the phenotypes of a patient denoted as Human Phenotype Ontology (HPO) terms we can prioritize genes harbouring candidate mutations." + ' ' +
                         "This saves time interpreting identified variants and aids in the discovery of new disease-causing genes."
                     ), 
-                    React.createElement("img", {title: "GeneNetwork", style: {width: '800px'}, src: GN.urls.main + '/images/gado.png'}), 
+
 
                     React.createElement("h3", {id: "can-i-run-gado-locally"}, "Can I run GADO locally?"), 
                     React.createElement("p", null, 
@@ -3545,9 +3544,9 @@ var Landing = React.createClass({displayName: "Landing",
                     
                     React.createElement("div", {className: "examples noselect defaultcursor"}, "For example: ", 
                         React.createElement(Link, {className: "clickable", title: "ALG6", to: "/gene/ALG6"}, "ALG6"), ", ", 
-                        React.createElement(Link, {className: "clickable", title: "Cytochrome P450", to: "/network/REACTOME:R-HSA-211897"}, "Cytochrome P450"), ", ", 
+                        React.createElement(Link, {className: "clickable", title: "Kidney development", to: "/network/GO:0001822"}, "Kidney development"), ", ", 
                         React.createElement(Link, {className: "clickable", title: "Hypomagnesemia", to: "/network/HP:0002917"}, "Hypomagnesemia"), ", ", 
-                        React.createElement(Link, {className: "clickable", title: "Nephritis", to: "/network/HP:0000123"}, "Nephritis")
+                        React.createElement(Link, {className: "clickable", title: "Tubulointerstitial abnormality", to: "/network/HP:0001969"}, "Tubulointerstitial abnormality")
                     )
                 ))
             }
@@ -7399,6 +7398,16 @@ var Footer = React.createClass({displayName: "Footer",
                     React.createElement("div", {style: {padding: '0 5px 0 5px'}}, 
                         React.createElement("a", {href: "https://www.umcutrecht.nl/", target: "_blank"}, 
                             React.createElement("img", {className: "umcu", title: "University Medical Center Utrecht", src: GN.urls.main + '/images/umcu_black.jpg'})
+                        )
+                    ), 
+                    React.createElement("div", {style: {padding: '0 5px 0 5px'}}, 
+                        React.createElement("a", {href: "https://www.https://www.umcutrecht.nl/nl/ziekenhuis/wetenschappelijk-onderzoek/genepher-data-en-biobank/", target: "_blank"}, 
+                            React.createElement("img", {className: "genepher", title: "GeNepher", src: GN.urls.main + '/images/genepher_logo.png'})
+                        )
+                    ), 
+                    React.createElement("div", {style: {padding: '0 5px 0 5px'}}, 
+                        React.createElement("a", {href: "https://www.https://nierstichting.nl/", target: "_blank"}, 
+                            React.createElement("img", {className: "nierstichting", title: "Nierstichting", src: GN.urls.main + '/images/nierstichting_logo.png'})
                         )
                     )
                 )

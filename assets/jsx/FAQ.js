@@ -22,9 +22,8 @@ var How = React.createClass({
                     <h3 id="what-is-genenetwork">What is KidneyNetwork?</h3>
                     <p>
                         KidneyNetwork uses gene co-regulation to predict pathway membership and HPO term associations.
-                        This is done by integrating 31,499 public RNA-seq sample.
+                        This is done by combining and integrating 31,499 multi-tissue public RNA-seq samples with 898 kidney-specific public RNA-seq samples.
                     </p>
-                    <img title='GeneNetwork' style={{width: '1000px'}} src={GN.urls.main + '/images/genenetwork.png'} />
 
 
                     <h3 id="what-is-gado">What is GADO?</h3>
@@ -33,7 +32,7 @@ var How = React.createClass({
                         Using the phenotypes of a patient denoted as Human Phenotype Ontology (HPO) terms we can prioritize genes harbouring candidate mutations.
                         This saves time interpreting identified variants and aids in the discovery of new disease-causing genes.
                     </p>
-                    <img title='GeneNetwork' style={{width: '800px'}} src={GN.urls.main + '/images/gado.png'} />
+
 
                     <h3 id="can-i-run-gado-locally">Can I run GADO locally?</h3>
                     <p>

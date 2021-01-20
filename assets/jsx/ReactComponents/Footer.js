@@ -38,6 +38,16 @@ var Footer = React.createClass({
                             <img className='umcu' title='University Medical Center Utrecht' src={GN.urls.main + '/images/umcu_black.jpg'} />
                         </a>
                     </div>
+                    <div style={{padding: '0 5px 0 5px'}}>
+                        <a href='https://www.https://www.umcutrecht.nl/nl/ziekenhuis/wetenschappelijk-onderzoek/genepher-data-en-biobank/' target='_blank'>
+                            <img className='genepher' title='GeNepher' src={GN.urls.main + '/images/genepher_logo.png'} />
+                        </a>
+                    </div>
+                    <div style={{padding: '0 5px 0 5px'}}>
+                        <a href='https://www.https://nierstichting.nl/' target='_blank'>
+                            <img className='nierstichting' title='Nierstichting' src={GN.urls.main + '/images/nierstichting_logo.png'} />
+                        </a>
+                    </div>
                 </div>
             </div>
         )
