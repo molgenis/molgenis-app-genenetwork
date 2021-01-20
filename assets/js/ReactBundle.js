@@ -7401,12 +7401,12 @@ var Footer = React.createClass({displayName: "Footer",
                         )
                     ), 
                     React.createElement("div", {style: {padding: '0 5px 0 5px'}}, 
-                        React.createElement("a", {href: "https://www.https://www.umcutrecht.nl/nl/ziekenhuis/wetenschappelijk-onderzoek/genepher-data-en-biobank/", target: "_blank"}, 
+                        React.createElement("a", {href: "https://www.umcutrecht.nl/nl/ziekenhuis/wetenschappelijk-onderzoek/genepher-data-en-biobank/", target: "_blank"}, 
                             React.createElement("img", {className: "genepher", title: "GeNepher", src: GN.urls.main + '/images/genepher_logo.png'})
                         )
                     ), 
                     React.createElement("div", {style: {padding: '0 5px 0 5px'}}, 
-                        React.createElement("a", {href: "https://www.https://nierstichting.nl/", target: "_blank"}, 
+                        React.createElement("a", {href: "https://www.nierstichting.nl/", target: "_blank"}, 
                             React.createElement("img", {className: "nierstichting", title: "Nierstichting", src: GN.urls.main + '/images/nierstichting_logo.png'})
                         )
                     )

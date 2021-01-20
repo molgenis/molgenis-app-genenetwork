@@ -39,12 +39,12 @@ var Footer = React.createClass({
                         </a>
                     </div>
                     <div style={{padding: '0 5px 0 5px'}}>
-                        <a href='https://www.https://www.umcutrecht.nl/nl/ziekenhuis/wetenschappelijk-onderzoek/genepher-data-en-biobank/' target='_blank'>
+                        <a href='https://www.umcutrecht.nl/nl/ziekenhuis/wetenschappelijk-onderzoek/genepher-data-en-biobank/' target='_blank'>
                             <img className='genepher' title='GeNepher' src={GN.urls.main + '/images/genepher_logo.png'} />
                         </a>
                     </div>
                     <div style={{padding: '0 5px 0 5px'}}>
-                        <a href='https://www.https://nierstichting.nl/' target='_blank'>
+                        <a href='https://www.nierstichting.nl/' target='_blank'>
                             <img className='nierstichting' title='Nierstichting' src={GN.urls.main + '/images/nierstichting_logo.png'} />
                         </a>
                     </div>
