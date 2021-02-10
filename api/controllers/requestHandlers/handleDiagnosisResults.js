@@ -172,7 +172,7 @@ module.exports = function(req, res) {
                 sails.log.debug(err)
             }
             sails.log.debug('diagnosis file written to ' + filename)
-            return res.download(filename, 'GeneNetwork-Diagnosis.txt')
+            return res.download(filename, 'KidneyNetwork-Diagnosis.txt')
         })
     })
 }

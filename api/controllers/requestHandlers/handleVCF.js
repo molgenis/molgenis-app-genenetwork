@@ -16,7 +16,7 @@ module.exports = function(req, res) {
         console.log(file)
     })
 
-    res.attachment('GeneNetwork-Diagnosis.vcf')
+    res.attachment('KidneyNetwork-Diagnosis.vcf')
     return res.send('jee')
     //return res.download(filenameOut, 'GeneNetwork-Diagnosis.vcf')
 }
