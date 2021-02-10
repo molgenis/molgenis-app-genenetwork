@@ -1,6 +1,6 @@
 <h2>REST API</h2>
 
-<p>The Gene Network REST API provides programmatic access to read Gene Network data.
+<p>The Kidney Network REST API provides programmatic access to read Kidney Network data.
 No authorization is needed. Responses are available in JSON format. When
 using the data in a publication, please cite XXX.</p>
 
@@ -27,7 +27,7 @@ annotations and predictions are returned</p>
 
 <p><code>GET <%= sails.config.version.mainUrl %>/api/gene/rps27l?db=GO:CC</code></p>
 <p><pre><code>{
-  "comment": "Gene Network | Department of Genetics, University Medical Center Groningen | genenetwork.nl",
+  "comment": "Kidney Network | Department of Genetics, University Medical Center Groningen | <%= sails.config.version.mainUrl %>",
   "version": "0.1",
   "gene": {
     "id": "ENSG00000185088",
@@ -78,7 +78,7 @@ annotations and predictions are returned</p>
 
 <p><code>GET <%= sails.config.version.mainUrl %>/api/pathway/GO:0000302</code></p>
 <p><pre><code>{
-  "comment": "Gene Network | Department of Genetics, University Medical Center Groningen | genenetwork.nl",
+  "comment": "Kidney Network | Department of Genetics, University Medical Center Groningen | <%= sails.config.version.mainUrl %>",
   "version": "0.1",
   "pathway": {
     "database": "GO:BP",
@@ -137,7 +137,7 @@ names or Ensembl identifiers.</p>
 
 <p><code>GET <%= sails.config.version.mainUrl %>/api/coregulation/rps27l,brca1,brca2</code></p>
 <p><pre><code>{
-  "comment": "Gene Network | Department of Genetics, University Medical Center Groningen | genenetwork.nl",
+  "comment": "Kidney Network | Department of Genetics, University Medical Center Groningen | <%= sails.config.version.mainUrl %>",
   "version": "0.1",
   "data": [
     {
@@ -190,7 +190,7 @@ names or Ensembl identifiers.</p>
 
 <p><code>GET <%= sails.config.version.mainUrl %>/api/cofunction/rps27l,brca1,brca2?db=GO:BP,GO:MF</code></p>
 <p><pre><code>{
-  "comment": "Gene Network | Department of Genetics, University Medical Center Groningen | http://genenetwork.nl",
+  "comment": "Kidney Network | Department of Genetics, University Medical Center Groningen | <%= sails.config.version.mainUrl %>",
   "version": "0.1",
   "data": [
     {

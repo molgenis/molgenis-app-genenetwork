@@ -9,7 +9,7 @@ var Description = React.createClass({
 
     render: function() {
         return (
-                <p>The Gene Network API provides programmatic access for reading Gene Network data using http <code>GET</code> requests. Responses are available in JSON format.</p>
+                <p>The Kidney Network API provides programmatic access for reading Kidney Network data using http <code>GET</code> requests. Responses are available in JSON format.</p>
         )
     }
 })

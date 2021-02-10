@@ -26,7 +26,7 @@ var GeneOpenMenu = React.createClass({
         var that = this
 
         var services = [
-            {id: 'GN', name: 'Gene Network', url: GN.urls.main + '/#/gene/', useid: 'name'},
+            {id: 'GN', name: 'Kidney Network', url: GN.urls.main + '/#/gene/', useid: 'name'},
             {id: 'EXAC', name: 'ExAC Browser', url: 'http://exac.broadinstitute.org/gene/', useid: 'id'},
             {id: 'ENSEMBL', name: 'Ensembl', url: 'http://www.ensembl.org/Homo_sapiens/Gene/Summary?db=core;g=', useid: 'id'},
             {id: 'PUBMED', name: 'PubMed search', url: 'http://www.ncbi.nlm.nih.gov/pubmed/?term=', useid: 'name'},

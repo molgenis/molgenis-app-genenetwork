@@ -373,7 +373,7 @@ var PWAPanel = React.createClass({
             }
             var buttonTitles = this.state.pwaRunning
                 ? ['Waiting for the analysis to finish', 'Waiting for the analysis to finish']
-                : ['Color genes by Gene Network prediction score', 'Color genes by ' + (this.state.currentDatabase || '') + ' annotation']
+                : ['Color genes by Kidney Network prediction score', 'Color genes by ' + (this.state.currentDatabase || '') + ' annotation']
 
             var databaseButtons = _.map(this.state.availableDatabases, function(db) {
                 var cls = 'button small noselect ' + (that.state.pwaRunning ? 'disabled' : 'clickable')

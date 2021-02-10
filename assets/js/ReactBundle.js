@@ -3863,7 +3863,7 @@ var GenePanel = React.createClass({displayName: "GenePanel",
     render: function() {
 
         var services = [
-            {id: 'GN', name: 'Gene Network', url: GN.urls.main + '/gene/', useid: 'name'},
+            {id: 'GN', name: 'Kidney Network', url: GN.urls.main + '/gene/', useid: 'name'},
             {id: 'EXAC', name: 'ExAC Browser', url: 'http://exac.broadinstitute.org/gene/', useid: 'id'},
             {id: 'ENSEMBL', name: 'Ensembl', url: 'http://www.ensembl.org/Homo_sapiens/Gene/Summary?db=core;g=', useid: 'id'},
             {id: 'PUBMED', name: 'PubMed search', url: 'http://www.ncbi.nlm.nih.gov/pubmed/?term=', useid: 'name'},
@@ -3886,7 +3886,7 @@ var GenePanel = React.createClass({displayName: "GenePanel",
 	return (
 		React.createElement("div", {id: "genepanel", className: "networkleftpanel smallpadding bordered", style: {marginBottom: '0px'}}, 
 		React.createElement("div", null, 
-                React.createElement("a", {className: "externallink nodecoration black", title: 'Open ' + this.props.gene.name + ' in Gene Network', href: GN.urls.genePage + this.props.gene.name, target: "_blank"}, 
+                React.createElement("a", {className: "externallink nodecoration black", title: 'Open ' + this.props.gene.name + ' in Kidney Network', href: GN.urls.genePage + this.props.gene.name, target: "_blank"}, 
                 this.props.gene.name)
                 ), 
                 React.createElement("div", {style: {paddingTop: '0.875em'}}, 
@@ -5633,7 +5633,7 @@ var PWAPanel = React.createClass({displayName: "PWAPanel",
             }
             var buttonTitles = this.state.pwaRunning
                 ? ['Waiting for the analysis to finish', 'Waiting for the analysis to finish']
-                : ['Color genes by Gene Network prediction score', 'Color genes by ' + (this.state.currentDatabase || '') + ' annotation']
+                : ['Color genes by Kidney Network prediction score', 'Color genes by ' + (this.state.currentDatabase || '') + ' annotation']
 
             var databaseButtons = _.map(this.state.availableDatabases, function(db) {
                 var cls = 'button small noselect ' + (that.state.pwaRunning ? 'disabled' : 'clickable')
@@ -5709,7 +5709,7 @@ var Description = React.createClass({displayName: "Description",
 
     render: function() {
         return (
-                React.createElement("p", null, "The Gene Network API provides programmatic access for reading Gene Network data using http ", React.createElement("code", null, "GET"), " requests. Responses are available in JSON format.")
+                React.createElement("p", null, "The Kidney Network API provides programmatic access for reading Kidney Network data using http ", React.createElement("code", null, "GET"), " requests. Responses are available in JSON format.")
         )
     }
 })
@@ -7447,7 +7447,7 @@ var GeneOpenMenu = React.createClass({displayName: "GeneOpenMenu",
         var that = this
 
         var services = [
-            {id: 'GN', name: 'Gene Network', url: GN.urls.main + '/#/gene/', useid: 'name'},
+            {id: 'GN', name: 'Kidney Network', url: GN.urls.main + '/#/gene/', useid: 'name'},
             {id: 'EXAC', name: 'ExAC Browser', url: 'http://exac.broadinstitute.org/gene/', useid: 'id'},
             {id: 'ENSEMBL', name: 'Ensembl', url: 'http://www.ensembl.org/Homo_sapiens/Gene/Summary?db=core;g=', useid: 'id'},
             {id: 'PUBMED', name: 'PubMed search', url: 'http://www.ncbi.nlm.nih.gov/pubmed/?term=', useid: 'name'},

@@ -2,7 +2,7 @@
   "name": "gn",
   "private": true,
   "version": "0.0.0",
-  "description": "Gene Network",
+  "description": "Kidney Network",
   "keywords": [],
   "dependencies": {
     "async": "^1.4.2",

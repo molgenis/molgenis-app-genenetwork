@@ -13,7 +13,7 @@ var GenePanel = React.createClass({
     render: function() {
 
         var services = [
-            {id: 'GN', name: 'Gene Network', url: GN.urls.main + '/gene/', useid: 'name'},
+            {id: 'GN', name: 'Kidney Network', url: GN.urls.main + '/gene/', useid: 'name'},
             {id: 'EXAC', name: 'ExAC Browser', url: 'http://exac.broadinstitute.org/gene/', useid: 'id'},
             {id: 'ENSEMBL', name: 'Ensembl', url: 'http://www.ensembl.org/Homo_sapiens/Gene/Summary?db=core;g=', useid: 'id'},
             {id: 'PUBMED', name: 'PubMed search', url: 'http://www.ncbi.nlm.nih.gov/pubmed/?term=', useid: 'name'},
@@ -36,7 +36,7 @@ var GenePanel = React.createClass({
 	return (
 		<div id='genepanel' className='networkleftpanel smallpadding bordered' style={{marginBottom: '0px'}}>
 		<div>
-                <a className='externallink nodecoration black' title={'Open ' + this.props.gene.name + ' in Gene Network'} href={GN.urls.genePage + this.props.gene.name} target='_blank'>
+                <a className='externallink nodecoration black' title={'Open ' + this.props.gene.name + ' in Kidney Network'} href={GN.urls.genePage + this.props.gene.name} target='_blank'>
                 {this.props.gene.name}</a>
                 </div>
                 <div style={{paddingTop: '0.875em'}}>
