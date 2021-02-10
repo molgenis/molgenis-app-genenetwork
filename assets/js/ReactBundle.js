@@ -7254,11 +7254,11 @@ var DiagnosisMain = React.createClass({displayName: "DiagnosisMain",
                                     React.createElement("li", null, 
                                         React.createElement("span", {style: textsize}, 
                                             "Fill in the phenotypes of a patient as HPO terms" + ' ' +
-                                            "(", React.createElement("a", {href: "http://compbio.charite.de/hpoweb/showterm?id=HP:0000118", className: "externallink", target: "_blank"}, "compbio.charite.de/hpoweb/showterm?id=HP:0000118"), ")." + ' ' +
+                                            "(", React.createElement("a", {href: "https://hpo.jax.org/app/browse/term/HP:0002917", className: "externallink", target: "_blank"}, "https://hpo.jax.org/app/browse/term/HP:0002917"), ")." + ' ' +
                                             "Try to be as specific as possible, if a term cannot be used then a more generic can be selected." + ' ' +
                                             "If the exact phenotype of a patient is unclear it is better to use a more general term, as a wrongly assigned" + ' ' +
                                             "specific term might hinder accurate ranking. For example, there are many subclasses of seizures" + ' ' +
-                                            "(", React.createElement("a", {href: "http://compbio.charite.de/hpoweb/showterm?id=HP:0001250", className: "externallink", target: "_blank"}, "compbio.charite.de/hpoweb/showterm?id=HP:0001250"), ")," + ' ' +
+                                            "(", React.createElement("a", {href: "https://hpo.jax.org/app/browse/term/HP:0001969", className: "externallink", target: "_blank"}, "https://hpo.jax.org/app/browse/term/HP:0001969"), ")," + ' ' +
                                             "if it clear that a patient shows a specific subclass then the HPO term for this subclass should be used, if" + ' ' +
                                             "this is not clear then it is best to use the general seizures term. It is also best to only use distinct HPO" + ' ' +
                                             "terms to describe a patient’s phenotypes. If two close related terms are used to describe the same phenotype," + ' ' +
@@ -7268,7 +7268,7 @@ var DiagnosisMain = React.createClass({displayName: "DiagnosisMain",
                                     ), 
                                     React.createElement("li", null, 
                                         React.createElement("span", {style: textsize}, 
-                                            "Optional list of genes to be ranked using the HPO terms. This could for instance be the genes in which a patient" + ' ' +
+                                            "Optional but recommended list of genes to be ranked using the HPO terms. This could for instance be the genes in which a patient" + ' ' +
                                             "has candidate disease causing mutations that require classification or follow-up analysis. The genes that prioritize" + ' ' +
                                             "on top are the most likely candidates based on our HPO term predictions. If no gene list is provided we will simply" + ' ' +
                                             "rank all genes based on the provided HPO terms."

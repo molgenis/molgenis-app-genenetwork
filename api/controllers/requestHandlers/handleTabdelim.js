@@ -40,7 +40,7 @@ module.exports = function(req, res) {
         rows.push('gene_set_id\tgene_set_name\tp-value');
         rows.push.apply(rows, _.map(geneSets, function(geneSet) { return geneSet.pathway.id + '\t' + geneSet.pathway.name + '\t' + geneSet.p }));
 
-        res.setHeader('Content-disposition', 'attachment; filename=GeneNetwork-GeneSetAnalysis-' + geneIds.length + '-Genes.txt');
+        res.setHeader('Content-disposition', 'attachment; filename=KidneyNetwork-GeneSetAnalysis-' + geneIds.length + '-Genes.txt');
         res.setHeader('Content-type', 'text/plain');
         res.charset = 'UTF-8';
         res.write(rows.join('\n'));
@@ -71,7 +71,7 @@ module.exports = function(req, res) {
             rows.push(str)
         }
 
-        res.setHeader('Content-disposition', 'attachment; filename=GeneNetwork-GenePrediction-' + geneIds.length + '-Genes.txt');
+        res.setHeader('Content-disposition', 'attachment; filename=KidneyNetwork-GenePrediction-' + geneIds.length + '-Genes.txt');
         res.setHeader('Content-type', 'text/plain');
         res.charset = 'UTF-8';
         res.write(rows.join('\n'));
@@ -110,7 +110,7 @@ module.exports = function(req, res) {
             }))
         }
 
-        res.setHeader('Content-disposition', 'attachment; filename=GeneNetwork-GeneList-' + geneIds.length + '-Genes.txt');
+        res.setHeader('Content-disposition', 'attachment; filename=KidneyNetwork-GeneList-' + geneIds.length + '-Genes.txt');
         res.setHeader('Content-type', 'text/plain');
         res.charset = 'UTF-8';
         res.write(rows.join('\n'));
@@ -136,7 +136,7 @@ module.exports = function(req, res) {
             _.forEach(json, function(prediction) {
                 rows.push(prediction.gene.id + '\t' + prediction.gene.name + '\t' + prediction.pValue + '\t' + prediction.zScore);
             });
-            res.setHeader('Content-disposition', 'attachment; filename=GeneNetwork-' + req.body.termId + '-GenePrediction.txt');
+            res.setHeader('Content-disposition', 'attachment; filename=KidneyNetwork-' + req.body.termId + '-GenePrediction.txt');
             res.setHeader('Content-type', 'text/plain');
             res.charset = 'UTF-8';
             res.write(rows.join('\n'));
@@ -162,7 +162,7 @@ module.exports = function(req, res) {
             rows.push('term_id\tterm_name\tz-score\tannotated');
             dbutil.getGeneJSON(gene, req.body.db, {query: {verbose: 'true', array: true}}, function(err, json) {
                 if (err) {
-                    res.setHeader('Content-disposition', 'attachment; filename=GeneNetwork-' + geneName + '-' + req.body.db + '.txt');
+                    res.setHeader('Content-disposition', 'attachment; filename=KidneyNetwork-' + geneName + '-' + req.body.db + '.txt');
                     res.setHeader('Content-type', 'text/plain');
                     res.charset = 'UTF-8';
                     res.write(rows.join('\n'));
@@ -174,7 +174,7 @@ module.exports = function(req, res) {
                         rows.push(predictions[i].term.id + '\t' + predictions[i].term.name + '\t' + predictions[i].zScore)
                     }
                 }
-                res.setHeader('Content-disposition', 'attachment; filename=GeneNetwork-' + geneName + '-' + req.body.db + '.txt');
+                res.setHeader('Content-disposition', 'attachment; filename=KidneyNetwork-' + geneName + '-' + req.body.db + '.txt');
                 res.setHeader('Content-type', 'text/plain');
                 res.charset = 'UTF-8';
                 res.write(rows.join('\n'));
@@ -201,7 +201,7 @@ module.exports = function(req, res) {
                         rows.push("EMPTY RECORD")
                     }
                 }
-                res.setHeader('Content-disposition', 'attachment; filename=GeneNetwork-' + geneName + '-' + req.body.db + '.txt');
+                res.setHeader('Content-disposition', 'attachment; filename=KidneyNetwork-' + geneName + '-' + req.body.db + '.txt');
                 res.setHeader('Content-type', 'text/plain');
                 res.charset = 'UTF-8';
                 res.write(rows.join('\n'));
@@ -221,7 +221,7 @@ module.exports = function(req, res) {
             for (var i = 0; i < tissues.length; i++){
                 rows.push(tissues[i].tissue + '\t' + tissues[i].samples + '\t' + tissues[i].avg + '\t' + tissues[i].auc)
             }
-            res.setHeader('Content-disposition', 'attachment; filename=GeneNetwork-' + geneName + '-' + req.body.db + '.txt');
+            res.setHeader('Content-disposition', 'attachment; filename=KidneyNetwork-' + geneName + '-' + req.body.db + '.txt');
             res.setHeader('Content-type', 'text/plain');
             res.charset = 'UTF-8';
             res.write(rows.join('\n'));
@@ -270,7 +270,7 @@ module.exports = function(req, res) {
                     + '\t' + hpoZscores
                 )
             }
-            res.setHeader('Content-disposition', 'attachment; filename=GeneNetwork-Diagnosis-' + terms.split(',').join('-') + '.txt');
+            res.setHeader('Content-disposition', 'attachment; filename=KidneyNetwork-Diagnosis-' + terms.split(',').join('-') + '.txt');
             res.setHeader('Content-type', 'text/plain');
             res.charset = 'UTF-8';
             res.write(rows.join('\n'));
