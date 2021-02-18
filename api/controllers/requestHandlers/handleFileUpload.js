@@ -8,15 +8,21 @@ module.exports = function(req, res) {
         if (err) {
             return res.serverError
         }
-        var file = files[0].fd
+        var file = '.tmp/uploads/'+files[0].fd
         fs.readFile(file, 'utf8', function(err, data){
             if (err) {
-                console.log(err)
+                sails.log.error(err)
+                // premature exit
+                return res.serverError
             }
             data = data.trim().replace(/ /g, '')
             data = data.replace(/(\r\n|\n|\r|\t|\s|;)/g, ',')
             fs.unlink(file, function(err){
-                if (err) sails.log.err(err)
+                if (err){
+                    sails.log.error(err)
+                    // premature exit
+                    return res.serverError
+                }
                 else {
                     sails.log.info('deleted file ' + file)
                 }
