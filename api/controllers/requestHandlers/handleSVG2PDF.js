@@ -73,6 +73,8 @@ module.exports = function(req, res) {
             var opts = (format === 'pdf') ? '-f pdf' : '-f png -z 2'
             exec('rsvg-convert ' + opts + ' -o ' + filenameOut + ' ' + filenameSVG, function(err, stdout, stderr) {
                 if (err) {
+                    console.log('rsvg-convert ' + opts + ' -o ' + filenameOut + ' ' + filenameSVG)
+                    console.log(err.toString())
                     return callback(err)
                 } else {
                     sails.log.debug(format + ' file written to ' + filenameOut)
@@ -88,7 +90,7 @@ module.exports = function(req, res) {
                          sails.log.error(err)
                          return res.serverError()
                      }
-                     return res.download(filenameOut, 'GeneNetwork-'  + vanity + '.' + format)
+                     return res.download(filenameOut, 'MetaBrainNetwork-'  + vanity + '.' + format)
                  }
                 )
 };

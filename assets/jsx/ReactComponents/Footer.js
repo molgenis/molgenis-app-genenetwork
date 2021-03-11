@@ -6,7 +6,6 @@ var Footer = React.createClass({
     render: function() {
         return (
             <div className='gn-footer hflex flexcenter flexwrap flexspacebetween'>
-
                 <div>&copy; 2021 <a title='Department of Genetics' href='http://www.rug.nl/research/genetics/?lang=en' target='_blank'>
                     Department of Genetics</a>, <a title='University Medical Center Groningen' href='https://www.umcg.nl/EN' target='_blank'>
                     University Medical Center Groningen</a>

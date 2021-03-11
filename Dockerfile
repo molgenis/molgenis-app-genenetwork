@@ -4,6 +4,9 @@ FROM node:11.9.0
 # Set the working directory to /app
 WORKDIR /app
 
+RUN apt-get update && apt-get install -y librsvg2-bin
+
+
 # Copy the current directory contents into the container at /app
 COPY package*.json entrypoint.sh ./
 
@@ -11,7 +14,6 @@ COPY package*.json entrypoint.sh ./
 RUN npm install
 # If you are building your code for production
 # RUN npm ci --only=production
-
 #
 
 RUN npm build
