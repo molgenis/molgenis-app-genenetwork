@@ -7,12 +7,12 @@ var Footer = React.createClass({
         return (
             <div className='gn-footer hflex flexcenter flexwrap flexspacebetween'>
 
-                <div>&copy; 2019 <a title='Department of Genetics' href='http://www.rug.nl/research/genetics/?lang=en' target='_blank'>
+                <div>&copy; 2021 <a title='Department of Genetics' href='http://www.rug.nl/research/genetics/?lang=en' target='_blank'>
                     Department of Genetics</a>, <a title='University Medical Center Groningen' href='https://www.umcg.nl/EN' target='_blank'>
                     University Medical Center Groningen</a>
                 </div>
 
-                <div>Contact:  <a href='mailto: ellen.tsai@biogen.com'> Ellen Tsai</a> or <a href='mailto: niekdeklein@gmail.com'>Niek de Klein</a>
+                <div>Contact: <a href='mailto: ellen.tsai@biogen.com'>Ellen Tsai</a>, <a href='mailto: niekdeklein@gmail.com'>Niek de Klein</a>, or <a href='mailto: h.j.westra@umcg.nl'>Harm-Jan Westra</a>
                 </div>
 
                 <div className='flex01 hflex flexcenter flexwrap'>

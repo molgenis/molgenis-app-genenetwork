@@ -2,27 +2,28 @@ var DOMAIN = require('./domain').domain;
 
 module.exports.domain = DOMAIN;
 
-module.exports.menuItems = [{
-    name: 'MetaBrain eQTLs',
-    route: '/qtl'
-},
+module.exports.menuItems = [
     {
         name: 'HOME',
         route: '/'
-
-},
+    },
     {
-    name: 'FAQ',
-    route: '/faq'
-},
+        name: 'FAQ',
+        route: '/faq'
+    },
 //     {
 //     name: 'ABOUT',
 //     route: '/about'
 // },
     {
-    name: 'API',
-    route: '/api'
-}];
+        name: 'API',
+        route: '/api'
+    },
+    {
+        name: 'MetaBrain eQTLs',
+        route: '/qtl'
+    }   
+];
 
 module.exports.urls = {
     main: module.exports.domain,

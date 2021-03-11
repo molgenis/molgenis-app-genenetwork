@@ -299,8 +299,8 @@ var Landing = React.createClass({
                         null
                     }
                     <div className='examples noselect defaultcursor'>For example:&nbsp;
-                        <Link className='clickable' title='SMIM1' to='/gene/SMIM1'>SMIM1</Link>,&nbsp;
-                        <Link className='clickable' title='Interferon signaling' to='/network/REACTOME:R-HSA-913531'>Interferon signaling</Link>,&nbsp;
+                        <Link className='clickable' title='CYP24AI' to='/gene/CYP24A1'>SMIM1</Link>,&nbsp;
+                        <Link className='clickable' title='CLECL1' to='/gene/CLECL1'>CLECL1</Link>,&nbsp;
                         <Link className='clickable' title='Migraine' to='/network/HP:0002076'>Migraine</Link>,&nbsp;
                         <Link className='clickable' title='Autism' to='/network/HP:0000717'>Autism</Link>
                     </div>
