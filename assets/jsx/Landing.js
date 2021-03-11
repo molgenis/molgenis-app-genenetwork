@@ -318,10 +318,13 @@ var Landing = React.createClass({
                         <img className='metabrain' title='MetaBrain' src={GN.urls.main + '/images/brain_logo.png'} width="60" height="60" />
 
                         <div className='noselect' style={{fontSize: '1.5em', color: color.colors.gndarkgray, float: 'right'}}>
-                            MetaBrain<br/>Network
+                            MetaBrain<br/>Network<sub>2.1</sub>
                         </div>
                     </div>
                     {topSearch}
+                    <form action="https://qtl.metabrain.nl">
+                        <input type="submit" value="MetaBrain eQTLs" />
+                    </form>
                     <MenuBar items={GN.menuItems} style={{padding: '30px 20px 20px 20px'}} />
                 </div>
                 {topBanner}

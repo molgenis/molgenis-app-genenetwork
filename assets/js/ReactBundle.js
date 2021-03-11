@@ -1925,7 +1925,6 @@ var Gene = React.createClass({displayName: "Gene",
                       name: 'prediction'},
                      {url: GN.urls.coregulation + '/' + geneId + '?verbose',
                       name: 'similar'}];
-
         if (this.state.topMenuSelection == 'similar') tasks.reverse();
 
 
@@ -1936,6 +1935,7 @@ var Gene = React.createClass({displayName: "Gene",
                 dataType: 'json',
                 success: function(data) {
                     if (this.isMounted() && task.name == 'prediction') {
+
                         this.setState({
                             gene: data.gene,
                             celltypes: data.celltypes,
@@ -2042,7 +2042,6 @@ var Gene = React.createClass({displayName: "Gene",
 
             var data = this.state.topMenuSelection == 'prediction' ? this.state.prediction : this.state.similar;
             if (data) {
-
                 var tableContent = null;
                 if (this.state.topMenuSelection == 'prediction') {
                     tableContent = React.createElement(DataTable, {data: data, db: this.state.databaseSelection})
@@ -2138,7 +2137,10 @@ var GeneHeader = React.createClass({displayName: "GeneHeader",
                 )
             )
         }
-        
+
+        // gene predic score is remove because this is the score for blood, have to redo for brain
+        //                                <span style={{ marginRight: '5px'}}>Gene predictability score: {Math.round(this.props.gene.genePredScore * 100) / 100}</span>
+        //                                 <SVGCollection.I title="Please see the FAQ for more information." style={{ marginLeft: '5px'}}
         var description = (this.props.gene.description || 'no description').replace(/\[[^\]]+]/g, '');
         return (
                 React.createElement("div", {className: "gn-gene-description-outer", style: {backgroundColor: color.colors.gnwhite, padding: '20px'}}, 
@@ -2146,9 +2148,8 @@ var GeneHeader = React.createClass({displayName: "GeneHeader",
                         React.createElement("div", {className: "gn-gene-description-name", style: {display: 'flex'}}, 
                             React.createElement("span", {style: {fontWeight: 'bold', fontFamily: 'GG', fontSize: '1.5em', paddingRight: '10px'}}, this.props.gene.name + ' '), 
                             React.createElement("div", {style: { flexGrow: 1}}, 
-                                React.createElement("span", null, description), React.createElement("br", null), 
-                                React.createElement("span", {style: { marginRight: '5px'}}, "Gene predictability score: ", Math.round(this.props.gene.genePredScore * 100) / 100), 
-                                React.createElement(SVGCollection.I, {title: "Please see the FAQ for more information.", style: { marginLeft: '5px'}})
+                                React.createElement("span", null, description), React.createElement("br", null)
+
                             )
                         ), 
                         React.createElement("div", {className: "flex11"}), 
@@ -3581,10 +3582,13 @@ var Landing = React.createClass({displayName: "Landing",
                         React.createElement("img", {className: "metabrain", title: "MetaBrain", src: GN.urls.main + '/images/brain_logo.png', width: "60", height: "60"}), 
 
                         React.createElement("div", {className: "noselect", style: {fontSize: '1.5em', color: color.colors.gndarkgray, float: 'right'}}, 
-                            "MetaBrain", React.createElement("br", null), "Network"
+                            "MetaBrain", React.createElement("br", null), "Network", React.createElement("sub", null, "2.1")
                         )
                     ), 
                     topSearch, 
+                    React.createElement("form", {action: "https://qtl.metabrain.nl"}, 
+                        React.createElement("input", {type: "submit", value: "MetaBrain eQTLs"})
+                    ), 
                     React.createElement(MenuBar, {items: GN.menuItems, style: {padding: '30px 20px 20px 20px'}})
                 ), 
                 topBanner, 
@@ -5989,6 +5993,8 @@ var DataTable = React.createClass({displayName: "DataTable",
 
         var that = this;
         var pathways = this.state.annotationsOnly ? this.props.data.pathways.annotated : this.props.data.pathways.predicted;
+        //window.alert(that.props.db);
+        //window.alert(that.props.db);
 
         pathways = _.filter(pathways, function(pathway) {
             return pathway.term.database.toUpperCase() === that.props.db
@@ -5997,7 +6003,6 @@ var DataTable = React.createClass({displayName: "DataTable",
         if (this.state.annotationsOnly) {
             pathways = _.sortBy(pathways, 'pValue')
         }
-
         var rows = _.map(pathways, function(pathway, i) {
 
             var isAnnotated = that.state.annotationsOnly || pathway.annotated;
@@ -6007,6 +6012,7 @@ var DataTable = React.createClass({displayName: "DataTable",
             var data= pathway;
             var isAnnotated= isAnnotated;
             var num= i;
+
         //       <Link className='nodecoration black' title={data.term.numAnnotatedGenes + ' annotated genes, prediction accuracy ' + Math.round(100 * data.term.auc) / 100} to={`/term/${data.term.id}`}>
                     // {data.term.name}
                     // </Link>
@@ -7393,7 +7399,7 @@ var Footer = React.createClass({displayName: "Footer",
         return (
             React.createElement("div", {className: "gn-footer hflex flexcenter flexwrap flexspacebetween"}, 
 
-                React.createElement("div", null, "© 2019 ", React.createElement("a", {title: "Department of Genetics", href: "http://www.rug.nl/research/genetics/?lang=en", target: "_blank"}, 
+                React.createElement("div", null, "© 2020 ", React.createElement("a", {title: "Department of Genetics", href: "http://www.rug.nl/research/genetics/?lang=en", target: "_blank"}, 
                     "Department of Genetics"), ", ", React.createElement("a", {title: "University Medical Center Groningen", href: "https://www.umcg.nl/EN", target: "_blank"}, 
                     "University Medical Center Groningen")
                 ), 
@@ -9203,19 +9209,14 @@ module.exports = Tools;
 // https://www.genenetwork.nl for prod
 // empty for debug
 module.exports = {
-    domain: 'https://www.genenetwork.nl'
+    domain: ''
 };
 
 },{}],51:[function(require,module,exports){
 var DOMAIN = require('./domain').domain;
-
 module.exports.domain = DOMAIN;
 
 module.exports.menuItems = [{
-    name: 'MetaBrain eQTLs',
-    route: '/qtl'
-},
-    {
         name: 'HOME',
         route: '/'
 

@@ -32,7 +32,6 @@ var Gene = React.createClass({
                       name: 'prediction'},
                      {url: GN.urls.coregulation + '/' + geneId + '?verbose',
                       name: 'similar'}];
-
         if (this.state.topMenuSelection == 'similar') tasks.reverse();
 
 
@@ -43,6 +42,7 @@ var Gene = React.createClass({
                 dataType: 'json',
                 success: function(data) {
                     if (this.isMounted() && task.name == 'prediction') {
+
                         this.setState({
                             gene: data.gene,
                             celltypes: data.celltypes,
@@ -149,7 +149,6 @@ var Gene = React.createClass({
 
             var data = this.state.topMenuSelection == 'prediction' ? this.state.prediction : this.state.similar;
             if (data) {
-
                 var tableContent = null;
                 if (this.state.topMenuSelection == 'prediction') {
                     tableContent = <DataTable data={data} db={this.state.databaseSelection} />

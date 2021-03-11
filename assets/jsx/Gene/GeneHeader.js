@@ -40,7 +40,10 @@ var GeneHeader = React.createClass({
                 </div>
             )
         }
-        
+
+        // gene predic score is remove because this is the score for blood, have to redo for brain
+        //                                <span style={{ marginRight: '5px'}}>Gene predictability score: {Math.round(this.props.gene.genePredScore * 100) / 100}</span>
+        //                                 <SVGCollection.I title="Please see the FAQ for more information." style={{ marginLeft: '5px'}}
         var description = (this.props.gene.description || 'no description').replace(/\[[^\]]+]/g, '');
         return (
                 <div className='gn-gene-description-outer' style={{backgroundColor: color.colors.gnwhite, padding: '20px'}}>
@@ -48,10 +51,8 @@ var GeneHeader = React.createClass({
                         <div className='gn-gene-description-name' style={{display: 'flex'}}>
                             <span style={{fontWeight: 'bold', fontFamily: 'GG', fontSize: '1.5em', paddingRight: '10px'}}>{this.props.gene.name + ' '}</span>
                             <div style={{ flexGrow: 1 }}>
-                                <!-- below commented out because this was calculated on blood, needs to be redone in brain -->
-                                <!-- <span>{description}</span><br/> -->
-                                <!-- <span style={{ marginRight: '5px'}}>Gene predictability score: {Math.round(this.props.gene.genePredScore * 100) / 100}</span> -->
-                                <!-- <SVGCollection.I title="Please see the FAQ for more information." style={{ marginLeft: '5px'}}/> -->
+                                <span>{description}</span><br/>
+
                             </div>
                         </div>
                         <div className='flex11' />
