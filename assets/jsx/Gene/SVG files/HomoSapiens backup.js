@@ -289,7 +289,7 @@ module.exports = React.createClass({
 					<path id="thymus_stroke" fill="none" stroke="#000000" strokeWidth="0.5" d="M345.4,269.4c0,0-15.2-17.9-10.9-29.5"/>
 				</g>
 
-				<g id="adrenal_glands" onClick={this.props.onClick.bind(null, 'Adrenal gland')} onMouseOver={this.props.onMouseOver.bind(null, 'Adrenal gland')} onMouseOut={this.props.onMouseOver.bind(null, undefined)} fill={getRGB(this.props.values.avg[this.props.fixed.indices['Adrenal gland']])} stroke={hoverName === 'Adrenal gland' || clickedItem === 'Adrenal gland' ? "rgb(255,255,0)" : "rgba(0,0,0,0.5)"} strokeWidth={hoverName === "Adrenal gland" || clickedItem === 'Adrenal gland'  ? "5" : "2"}>
+				<g id="adrenal_glands" onClick={this.props.onClick.bind(null, 'Adrenal gland')} onMouseOver={this.props.onMouseOver.bind(null, 'Adrenal gland')} onMouseOut={this.props.onMouseOver.bind(null, undefined)} fill={getRGB(this.props.values.avg[this.props.fixed.indices['Adrenal gland']])} stroke={hoverName === 'Adrenal gland' || clickedItem === 'Adrenal gland' ? "rgb(57,170,255)" : "rgba(0,0,0,0.5)"} strokeWidth={hoverName === "Adrenal gland" || clickedItem === 'Adrenal gland'  ? "5" : "2"}>
 					<path style={{transition: 'stroke .25s ease-in-out, stroke-width .25s ease-in-out'}} id="left_adrenal_gland" d="M368.5,459.1c0,0,13.6-4.7,21.3-2.6s1.2-10.6-7.6-11.7C373.4,443.7,368.5,459.1,368.5,459.1z"/>
 					<path style={{transition: 'stroke .25s ease-in-out, stroke-width .25s ease-in-out'}} id="right_adrenal_gland" d="M301.2,460.8c0,0,14.5-2.1,21,3.7c6.5,5.8,1.2-16.4-2.2-17.2C316.6,446.4,301.7,454.8,301.2,460.8z"/>
 				</g>

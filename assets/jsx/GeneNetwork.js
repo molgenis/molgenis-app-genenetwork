@@ -29,9 +29,7 @@ var history = createBrowserHistory();
 ReactDOM.render(<Router history={history}>
                     <Route>
                         <Route path='/' component = {Landing}>
-                            <Route path='/qtl'>
-                                MetaBrain QTLs
-                            </Route>
+                            <Route path='/qtl'>MetaBrain QTLs</Route>
                             <Route path='/faq' component = {FAQ} />
                             <Route path='/about' component = {About} />
                             <Route path='/api' component = {API} />

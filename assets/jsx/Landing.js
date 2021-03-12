@@ -299,10 +299,15 @@ var Landing = React.createClass({
                         null
                     }
                     <div className='examples noselect defaultcursor'>For example:&nbsp;
-                        <Link className='clickable' title='CYP24AI' to='/gene/CYP24A1'>SMIM1</Link>,&nbsp;
-                        <Link className='clickable' title='CLECL1' to='/gene/CLECL1'>CLECL1</Link>,&nbsp;
+                        <Link className='clickable' title='MAPT' to='/gene/MAPT'><i>MAPT</i></Link>,&nbsp;
+                        <Link className='clickable' title='TMEM106B' to='/gene/TMEM106B'><i>TMEM106B</i></Link>,&nbsp;
+                        <Link className='clickable' title='CYP24A1' to='/gene/CYP24A1'><i>CYP24A1</i></Link>,&nbsp;
+                        <Link className='clickable' title='CLECL1' to='/gene/CLECL1'><i>CLECL1</i></Link>,&nbsp;
                         <Link className='clickable' title='Migraine' to='/network/HP:0002076'>Migraine</Link>,&nbsp;
-                        <Link className='clickable' title='Autism' to='/network/HP:0000717'>Autism</Link>
+                        <Link className='clickable' title='Autism' to='/network/HP:0000717'>Autism</Link>,&nbsp;
+                        <Link className='clickable' title='Depressivity' to='/network/HP:0000716'>Depressivity</Link>,&nbsp;
+                        <Link className='clickable' title='Gait disturbance' to='/network/HP:0001288'>Gait disturbance</Link>
+                        
                     </div>
                 </div>)
             }
@@ -315,16 +320,12 @@ var Landing = React.createClass({
         return (<div className='gn-app vflex'>
                 <div className='gn-top flex00 flexcenter hflex'>
                     <div className='gn-top-logo clickable flex00' style={{margin: '10px 0'}} onClick={this.onLogoClick}>
-                        <img className='metabrain' title='MetaBrain' src={GN.urls.main + '/images/brain_logo.png'} width="60" height="60" />
-
+                        <img className='metabrain' title='MetaBrain' src={GN.urls.main + '/images/MetaBrainLogo_100x100.png'} width="60" height="60" />
                         <div className='noselect' style={{fontSize: '1.5em', color: color.colors.gndarkgray, float: 'right'}}>
-                            MetaBrain<br/>Network<sub>2.1</sub>
+                            MetaBrain<br/>Network
                         </div>
                     </div>
                     {topSearch}
-                    <form action="https://qtl.metabrain.nl">
-                        <input type="submit" value="MetaBrain eQTLs" />
-                    </form>
                     <MenuBar items={GN.menuItems} style={{padding: '30px 20px 20px 20px'}} />
                 </div>
                 {topBanner}

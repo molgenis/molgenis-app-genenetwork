@@ -1,7 +1,7 @@
 var exp = module.exports
 
 exp.colors = {
-    gnyellow: '#ffe100', // rgb(255, 225, 0)
+    gnyellow: '#39aaff', // rgb(255, 225, 0)
     gnred: '#ff3c00', // rgb(255, 60, 0)
     gngreen: '#a0d200',
     gnblue: '#00a0d2',

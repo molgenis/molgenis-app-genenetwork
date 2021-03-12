@@ -224,7 +224,7 @@ h1, h2, h3, h4, h5 {
 }
 
 .searchheader {
-    color: rgb(255,225,0);
+    color: rgb(57,170,255);
     font-family: GPC;
     font-size: 2em;
     font-style: italic;
@@ -245,7 +245,7 @@ h1, h2, h3, h4, h5 {
 }
 
 .examples > a {
-    color: rgb(255,225,0);
+    color: rgb(57,170,255);
     text-decoration: none;
 }
 
@@ -277,7 +277,7 @@ h1, h2, h3, h4, h5 {
 }
 
 .button:hover {
-    background-color: #ffe100;
+    background-color: #38a6f9;
     color: #4d4d4d;
 }
 
@@ -288,7 +288,7 @@ h1, h2, h3, h4, h5 {
 
 
 .inversebutton {
-    background-color: #ffe100;
+    background-color: #38a6f9;
     color: #4d4d4d;
 }
 
@@ -308,7 +308,7 @@ h1, h2, h3, h4, h5 {
 }
 
 .xbutton:hover svg {
-    /* stroke: rgb(255,225,0); */
+    /* stroke: rgb(57,170,255); */
 }
 
 
@@ -332,7 +332,7 @@ h1, h2, h3, h4, h5 {
 }
 
 .dropdown:hover .dropdowntriangle svg {
-    fill: rgb(255,225,0);
+    fill: rgb(57,170,255);
 }
 
 .dropdown:hover .dropdowntriangle {
@@ -342,7 +342,7 @@ h1, h2, h3, h4, h5 {
 .dropdowntriangle {
     float: right;
     color: #4d4d4d;
-    background-color: rgb(255,225,0);
+    background-color: rgb(57,170,255);
     padding: 8px;
 }
 
@@ -360,7 +360,7 @@ h1, h2, h3, h4, h5 {
 }
 
 .dropdownoption:hover {
-    background-color: rgb(255,225,0);
+    background-color: rgb(57,170,255);
 }
 
 .dropup {
@@ -379,7 +379,7 @@ h1, h2, h3, h4, h5 {
 }
 
 .dropup:hover .dropuptriangle svg {
-    fill: rgb(255,225,0);
+    fill: rgb(57,170,255);
 }
 
 .dropup:hover .dropuptriangle {
@@ -389,7 +389,7 @@ h1, h2, h3, h4, h5 {
 .dropuptriangle {
     float: right;
     color: #4d4d4d;
-    background-color: rgb(255,225,0);
+    background-color: rgb(57,170,255);
     padding: 8px;
 }
 
@@ -407,7 +407,7 @@ h1, h2, h3, h4, h5 {
 }
 
 .dropupoption:hover {
-    background-color: rgb(255,225,0);
+    background-color: rgb(57,170,255);
 }
 
 .directiontriangledown {
@@ -443,21 +443,22 @@ h1, h2, h3, h4, h5 {
 }
 
 .smallbutton:hover {
-    background-color: #ffe100;
+    background-color: #38a6f9;
     color: #4d4d4d;
 }
 
 .selectedbutton {
     cursor: pointer;
     cursor: hand;
-    background-color: #ffe100;
+    background-color: #38a6f9;
     color: #4d4d4d;
 }
 
 .arrow {
     margin-top: 8px;
-    background-color: rgb(255,225,0);
-    stroke: rgb(77,77,77);
+    background-color: rgb(57,170,255);
+    stroke: rgb(255,255,255);
+    stroke-width: 10;
     fill: none;
 }
 
@@ -477,7 +478,7 @@ h1, h2, h3, h4, h5 {
 }
 
 .disabled.selectedbutton:hover {
-    background-color: rgb(255,225,0);
+    background-color: rgb(57,170,255);
 }
 
 a.externallink:link {
@@ -561,15 +562,15 @@ a.externallink {
 }
 
 .chrline {
-    stroke: rgb(255,225,0);
-    fill: rgb(255,225,0);
+    stroke: rgb(57,170,255);
+    fill: rgb(57,170,255);
     stroke-width: 2;
     shape-rendering: crispEdges !important;
 }
 
 .chrlinethin {
-    stroke: rgb(255,225,0);
-    fill: rgb(255,225,0);
+    stroke: rgb(57,170,255);
+    fill: rgb(57,170,255);
     stroke-width: 1;
     shape-rendering: crispEdges !important;
 }
@@ -633,12 +634,12 @@ line.link {
 }
 
 .datarow:hover {
-    background-color: rgb(255,225,0);
+    background-color: rgb(57,170,255);
     color: rgb(77,77,77);
 }
 
 .selectedrow {
-    background-color: rgb(255,225,0);
+    background-color: rgb(57,170,255);
     color: rgb(77,77,77);
 }
 
@@ -670,7 +671,7 @@ line.link {
 }
 
 .delete:hover {
-    stroke: rgb(255,225,0);
+    stroke: rgb(57,170,255);
 }
 
 .underline {
@@ -1471,27 +1472,27 @@ label > input + img {
 .buttondarkbg {
     font-family: 'GG';
     text-decoration: none;
-    color: #ffe100;
+    color: #39aaff;
     background-color: #4d4d4d;
     display: inline-block;
     padding: 8px;
-    border: 1px solid #ffe100;
+    border: 1px solid #39aaff;
 }
 /*
 .buttondarkbg {
     font-family: 'GG';
     text-decoration: none;
     color: #4d4d4d;
-    background-color: #ffe100;
+    background-color: #39aaff;
     display: inline-block;
     padding: 8px;
     border: 1px solid #4d4d4d;
 }*/
 
 .buttondarkbg:hover {
-    background-color: #ffe100;
+    background-color: #39aaff;
     color: #4d4d4d;
-    border: 1px solid #ffe100;
+    border: 1px solid #39aaff;
     cursor: pointer;
 }
 .d3-tip {

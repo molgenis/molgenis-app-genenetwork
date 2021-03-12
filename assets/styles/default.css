@@ -172,7 +172,7 @@
 }
 .Select-option.is-focused {
   /* background-color: #f2f9fc; */
-  background-color: rgb(255, 225, 0);
+  background-color: rgb(57,170,255);
   color: #333333;
 }
 .Select-option.is-disabled {
