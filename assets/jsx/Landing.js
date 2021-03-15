@@ -307,7 +307,6 @@ var Landing = React.createClass({
                         <Link className='clickable' title='Autism' to='/network/HP:0000717'>Autism</Link>,&nbsp;
                         <Link className='clickable' title='Depressivity' to='/network/HP:0000716'>Depressivity</Link>,&nbsp;
                         <Link className='clickable' title='Gait disturbance' to='/network/HP:0001288'>Gait disturbance</Link>
-                        
                     </div>
                 </div>)
             }

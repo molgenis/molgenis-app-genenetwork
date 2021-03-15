@@ -10,6 +10,10 @@ module.exports.menuItems = [
         name: 'FAQ',
         route: '/faq'
     },
+    {
+        name: 'DISCLOSURE / TERMS OF USE',
+        route: '/disclosure'
+    },
 //     {
 //     name: 'ABOUT',
 //     route: '/about'
@@ -17,11 +21,7 @@ module.exports.menuItems = [
     {
         name: 'API',
         route: '/api'
-    },
-    {
-        name: 'MetaBrain eQTLs',
-        route: '/qtl'
-    }   
+    }
 ];
 
 module.exports.urls = {
@@ -52,6 +52,7 @@ module.exports.urls = {
     networkPage: DOMAIN + '/network/',
     diagnosisPage: DOMAIN + '/gado',
     faqPage: DOMAIN + '/faq',
+    disclosurePage: DOMAIN + '/disclosure',
 
     svg2pdf: DOMAIN + '/api/v1/svg2pdf',
     // diagnosisResults: domain + '/api/v1/diagnosisResults',

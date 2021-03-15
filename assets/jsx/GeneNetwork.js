@@ -12,6 +12,7 @@ var createBrowserHistory = require('history/lib/createBrowserHistory');
 
 var Landing = require('./Landing');
 var FAQ = require('./FAQ');
+var Disclosure = require('./Disclosure');
 var About = require('./About');
 var GeneList = require('./GeneList');
 var API = require('./ReactComponents/API');
@@ -29,9 +30,10 @@ var history = createBrowserHistory();
 ReactDOM.render(<Router history={history}>
                     <Route>
                         <Route path='/' component = {Landing}>
-                            <Route path='/qtl'>MetaBrain QTLs</Route>
+                            <Route path='https://qtl.metabrain.nl'>MetaBrain QTLs</Route>
                             <Route path='/faq' component = {FAQ} />
                             <Route path='/about' component = {About} />
+                            <Route path='/disclosure' component = {Disclosure} />
                             <Route path='/api' component = {API} />
                             <Route path='/gene-list' component = {GeneList} />
                             <Route path='/gene/:geneId' component = {Gene} />

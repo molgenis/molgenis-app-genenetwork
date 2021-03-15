@@ -81,4 +81,8 @@ module.exports.routes = {
         view: 'homepage'
     },
 
+    '/disclosure*': {
+        view: 'homepage'
+    },
+
 };
