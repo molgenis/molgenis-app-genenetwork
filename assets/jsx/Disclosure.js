@@ -2,7 +2,7 @@ var React = require('react');
 var DocumentTitle = require('react-document-title');
 var color = require('../js/color.js');
 
-var How = React.createClass({
+var Disclosure = React.createClass({
     render: function() {
         return (
             <DocumentTitle title={'DISCLOSURE' + GN.pageTitleSuffix}>
@@ -27,8 +27,8 @@ var How = React.createClass({
 
                     <h3 id="how-to-cite">How to cite</h3>
                     <ol>
-                            <li>MetaBrain: <a href="https://www.biorxiv.org/content/10.1101/2021.03.01.433439v2">Brain expression quantitative trait locus and network analysis reveals downstream effects and putative drivers for brain-related diseases.</a>, de Klein et al, bioRxiv 2021, <a href="https://doi.org/10.1101/2021.03.01.433439">https://doi.org/10.1101/2021.03.01.433439</a></li>
-                            <li>Gene Network methodology: <a href="https://www.nature.com/articles/s41467-019-10649-4">Improving the diagnostic yield of exome- sequencing by predicting gene–phenotype associations using large-scale gene expression analysis</a>, Deelen et al, Nature Communications, 2019, <a href="https://doi.org/10.1038/s41467-019-10649-4">https://doi.org/10.1038/s41467-019-10649-4</a></li>
+                            <li>MetaBrain: <a href="https://www.biorxiv.org/content/10.1101/2021.03.01.433439v2" target="_blank">Brain expression quantitative trait locus and network analysis reveals downstream effects and putative drivers for brain-related diseases.</a>, de Klein <i>et al.</i>, bioRxiv 2021, <a href="https://doi.org/10.1101/2021.03.01.433439" target="_blank">https://doi.org/10.1101/2021.03.01.433439</a></li>
+                            <li>Gene Network methodology: <a href="https://www.nature.com/articles/s41467-019-10649-4" target="_blank">Improving the diagnostic yield of exome- sequencing by predicting gene–phenotype associations using large-scale gene expression analysis</a>, Deelen <i>et al.</i>, Nature Communications, 2019, <a href="https://doi.org/10.1038/s41467-019-10649-4" target="_blank">https://doi.org/10.1038/s41467-019-10649-4</a></li>
                     </ol>
 
                     

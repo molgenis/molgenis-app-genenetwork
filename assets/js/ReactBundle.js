@@ -1805,7 +1805,7 @@ var React = require('react');
 var DocumentTitle = require('react-document-title');
 var color = require('../js/color.js');
 
-var How = React.createClass({displayName: "How",
+var Disclosure = React.createClass({displayName: "Disclosure",
     render: function() {
         return (
             React.createElement(DocumentTitle, {title: 'DISCLOSURE' + GN.pageTitleSuffix}, 
@@ -1830,8 +1830,8 @@ var How = React.createClass({displayName: "How",
 
                     React.createElement("h3", {id: "how-to-cite"}, "How to cite"), 
                     React.createElement("ol", null, 
-                            React.createElement("li", null, "MetaBrain: ", React.createElement("a", {href: "https://www.biorxiv.org/content/10.1101/2021.03.01.433439v2"}, "Brain expression quantitative trait locus and network analysis reveals downstream effects and putative drivers for brain-related diseases."), ", de Klein et al, bioRxiv 2021, ", React.createElement("a", {href: "https://doi.org/10.1101/2021.03.01.433439"}, "https://doi.org/10.1101/2021.03.01.433439")), 
-                            React.createElement("li", null, "Gene Network methodology: ", React.createElement("a", {href: "https://www.nature.com/articles/s41467-019-10649-4"}, "Improving the diagnostic yield of exome- sequencing by predicting gene–phenotype associations using large-scale gene expression analysis"), ", Deelen et al, Nature Communications, 2019, ", React.createElement("a", {href: "https://doi.org/10.1038/s41467-019-10649-4"}, "https://doi.org/10.1038/s41467-019-10649-4"))
+                            React.createElement("li", null, "MetaBrain: ", React.createElement("a", {href: "https://www.biorxiv.org/content/10.1101/2021.03.01.433439v2", target: "_blank"}, "Brain expression quantitative trait locus and network analysis reveals downstream effects and putative drivers for brain-related diseases."), ", de Klein ", React.createElement("i", null, "et al."), ", bioRxiv 2021, ", React.createElement("a", {href: "https://doi.org/10.1101/2021.03.01.433439", target: "_blank"}, "https://doi.org/10.1101/2021.03.01.433439")), 
+                            React.createElement("li", null, "Gene Network methodology: ", React.createElement("a", {href: "https://www.nature.com/articles/s41467-019-10649-4", target: "_blank"}, "Improving the diagnostic yield of exome- sequencing by predicting gene–phenotype associations using large-scale gene expression analysis"), ", Deelen ", React.createElement("i", null, "et al."), ", Nature Communications, 2019, ", React.createElement("a", {href: "https://doi.org/10.1038/s41467-019-10649-4", target: "_blank"}, "https://doi.org/10.1038/s41467-019-10649-4"))
                     )
 
                     
@@ -1893,10 +1893,11 @@ var How = React.createClass({displayName: "How",
                     React.createElement("h3", {id: "what-is-genenetwork"}, "What is MetaBrain Network?"), 
                     React.createElement("p", null, 
                         "MetaBrain Network uses gene co-regulation to predict pathway membership and HPO term associations." + ' ' +
-                        "This is done by integrating over 8000 (semi) public RNA-seq samples from brain."
+                        "This is done by integrating over 8000 (semi) public RNA-seq samples from brain. For more information, please refer to our paper: ", React.createElement("a", {href: "https://www.biorxiv.org/content/10.1101/2021.03.01.433439v2", target: "_blank"}, "Brain expression quantitative trait locus and network analysis reveals downstream effects and putative drivers for brain-related diseases."), ", de Klein ", React.createElement("i", null, "et al."), ", bioRxiv 2021, ", React.createElement("a", {href: "https://doi.org/10.1101/2021.03.01.433439", target: "_blank"}, "https://doi.org/10.1101/2021.03.01.433439"), React.createElement("br", null), 
+                        "The MetaBrain Network was created using the same procedures as our ", React.createElement("a", {href: "https://www.genenetwork.nl", target: "_blank"}, "tissue-heterogeneous Gene Network"), "."
+                        
                     ), 
-                    React.createElement("img", {title: "GeneNetwork", style: {width: '1000px'}, src: GN.urls.main + '/images/genenetwork.png'}), 
-
+                    
                     React.createElement("h3", {id: "why-cant-my-term-be-used"}, "Why can’t my term be used?"), 
                     React.createElement("p", null, 
                         "We do not have significant predictions for all HPO terms. Either because very few genes are" + ' ' +
@@ -1919,8 +1920,7 @@ var How = React.createClass({displayName: "How",
                     React.createElement("h3", {id: "gene-predict-score"}, "What is the gene predictability score?"), 
                     React.createElement("p", null, 
                         "The gene predictability score is an indicator on how informative gene expression is in" + ' ' +
-                        "predicting gene functions. For details please see: ", React.createElement("a", {href: "https://www.biorxiv.org/content/early/2018/07/25/375766", target: "_blank"}, "Improving the diagnostic yield of exome-sequencing, by predicting gene-phenotype" + ' ' +
-                        "associations using large-scale gene expression analysis")
+                        "predicting gene functions. For details please see: ", React.createElement("a", {href: "https://www.nature.com/articles/s41467-019-10649-4", target: "_blank"}, "Improving the diagnostic yield of exome- sequencing by predicting gene–phenotype associations using large-scale gene expression analysis"), ", Deelen ", React.createElement("i", null, "et al."), ", Nature Communications, 2019, ", React.createElement("a", {href: "https://doi.org/10.1038/s41467-019-10649-4"}, "https://doi.org/10.1038/s41467-019-10649-4")
                     )
 
 
@@ -3286,7 +3286,6 @@ var history = createBrowserHistory();
 ReactDOM.render(React.createElement(Router, {history: history}, 
                     React.createElement(Route, null, 
                         React.createElement(Route, {path: "/", component: Landing}, 
-                            React.createElement(Route, {path: "https://qtl.metabrain.nl"}, "MetaBrain QTLs"), 
                             React.createElement(Route, {path: "/faq", component: FAQ}), 
                             React.createElement(Route, {path: "/about", component: About}), 
                             React.createElement(Route, {path: "/disclosure", component: Disclosure}), 
@@ -3297,7 +3296,11 @@ ReactDOM.render(React.createElement(Router, {history: history},
                             React.createElement(Route, {path: "/network/:ids", component: Network}), 
                             React.createElement(Route, {path: "/ontology/:id", component: Ontology}), 
                             React.createElement(Route, {path: "/gado", component: DiagnosisMain}), 
-                            React.createElement(Route, {path: "/gado/:id", component: Diagnosis})
+                            React.createElement(Route, {path: "/gado/:id", component: Diagnosis}), 
+                            React.createElement(Route, {path: "/eqtls", component: () => { 
+                                    window.location.href = 'https://www.metabrain.nl/'; 
+                                    return null;
+                                }})
                         )
                     )
                 ),
@@ -9270,6 +9273,10 @@ module.exports.menuItems = [
     {
         name: 'DISCLOSURE / TERMS OF USE',
         route: '/disclosure'
+    },
+    {
+        name: 'EQTLS',
+        route: '/eqtls'
     },
 //     {
 //     name: 'ABOUT',

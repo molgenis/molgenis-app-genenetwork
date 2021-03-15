@@ -47,10 +47,11 @@ var How = React.createClass({
                     <h3 id="what-is-genenetwork">What is MetaBrain Network?</h3>
                     <p>
                         MetaBrain Network uses gene co-regulation to predict pathway membership and HPO term associations.
-                        This is done by integrating over 8000 (semi) public RNA-seq samples from brain.
+                        This is done by integrating over 8000 (semi) public RNA-seq samples from brain. For more information, please refer to our paper: <a href="https://www.biorxiv.org/content/10.1101/2021.03.01.433439v2" target="_blank">Brain expression quantitative trait locus and network analysis reveals downstream effects and putative drivers for brain-related diseases.</a>, de Klein <i>et al.</i>, bioRxiv 2021, <a href="https://doi.org/10.1101/2021.03.01.433439" target="_blank">https://doi.org/10.1101/2021.03.01.433439</a><br/>
+                        The MetaBrain Network was created using the same procedures as our <a href="https://www.genenetwork.nl" target="_blank">tissue-heterogeneous Gene Network</a>.
+                        
                     </p>
-                    <img title='GeneNetwork' style={{width: '1000px'}} src={GN.urls.main + '/images/genenetwork.png'} />
-
+                    
                     <h3 id="why-cant-my-term-be-used">Why can’t my term be used?</h3>
                     <p>
                         We do not have significant predictions for all HPO terms. Either because very few genes are
@@ -73,8 +74,7 @@ var How = React.createClass({
                     <h3 id="gene-predict-score">What is the gene predictability score?</h3>
                     <p>
                         The gene predictability score is an indicator on how informative gene expression is in
-                        predicting gene functions. For details please see: <a href="https://www.biorxiv.org/content/early/2018/07/25/375766" target="_blank">Improving the diagnostic yield of exome-sequencing, by predicting gene-phenotype
-                        associations using large-scale gene expression analysis</a>
+                        predicting gene functions. For details please see: <a href="https://www.nature.com/articles/s41467-019-10649-4" target="_blank">Improving the diagnostic yield of exome- sequencing by predicting gene–phenotype associations using large-scale gene expression analysis</a>, Deelen <i>et al.</i>, Nature Communications, 2019, <a href="https://doi.org/10.1038/s41467-019-10649-4">https://doi.org/10.1038/s41467-019-10649-4</a>
                     </p>
 
 

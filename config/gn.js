@@ -14,6 +14,10 @@ module.exports.menuItems = [
         name: 'DISCLOSURE / TERMS OF USE',
         route: '/disclosure'
     },
+    {
+        name: 'EQTLS',
+        route: '/eqtls'
+    },
 //     {
 //     name: 'ABOUT',
 //     route: '/about'

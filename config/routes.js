@@ -85,4 +85,8 @@ module.exports.routes = {
         view: 'homepage'
     },
 
+    '/eqtls*': {
+        view: 'homepage'
+    }
+
 };

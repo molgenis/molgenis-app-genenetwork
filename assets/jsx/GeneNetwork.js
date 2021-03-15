@@ -30,7 +30,6 @@ var history = createBrowserHistory();
 ReactDOM.render(<Router history={history}>
                     <Route>
                         <Route path='/' component = {Landing}>
-                            <Route path='https://qtl.metabrain.nl'>MetaBrain QTLs</Route>
                             <Route path='/faq' component = {FAQ} />
                             <Route path='/about' component = {About} />
                             <Route path='/disclosure' component = {Disclosure} />
@@ -42,6 +41,10 @@ ReactDOM.render(<Router history={history}>
                             <Route path='/ontology/:id' component = {Ontology} />
                             <Route path='/gado' component = {DiagnosisMain} />
                             <Route path='/gado/:id' component = {Diagnosis} />
+                            <Route path='/eqtls' component={() => { 
+                                    window.location.href = 'https://www.metabrain.nl/'; 
+                                    return null;
+                                }}/>
                         </Route>
                     </Route>
                 </Router>,
