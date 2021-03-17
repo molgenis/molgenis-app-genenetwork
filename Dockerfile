@@ -15,6 +15,7 @@ RUN npm install
 #
 
 RUN npm build
+RUN npm i forever
 RUN npm i natives
 RUN apt-get update && apt-get install -y librsvg2-bin
 
