@@ -31,4 +31,4 @@ ENTRYPOINT ["/app/entrypoint.sh"]
 
 # Run app.py when the container launches
 #CMD ["npm", "start"]
-CMD ["forever", "start"]
+RUN forever start app.js
