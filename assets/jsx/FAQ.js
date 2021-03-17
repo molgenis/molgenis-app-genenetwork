@@ -22,7 +22,7 @@ var How = React.createClass({
                     <h3 id="what-is-genenetwork">What is KidneyNetwork?</h3>
                     <p>
                         KidneyNetwork uses gene co-regulation to predict pathway membership and HPO term associations.
-                        This is done by combining and integrating 31,499 multi-tissue public RNA-seq samples with 898 kidney-specific public RNA-seq samples.
+                        This is done by combining and integrating 31,499 multi-tissue public RNA-seq samples with 878 kidney-specific public RNA-seq samples.
                     </p>
 
 
