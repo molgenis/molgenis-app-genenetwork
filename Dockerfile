@@ -15,7 +15,7 @@ RUN npm install
 #
 
 RUN npm build
-RUN npm i forever
+RUN npm i forever -g
 RUN npm i natives
 RUN apt-get update && apt-get install -y librsvg2-bin
 
@@ -31,4 +31,4 @@ ENTRYPOINT ["/app/entrypoint.sh"]
 
 # Run app.py when the container launches
 #CMD ["npm", "start"]
-RUN forever start app.js
+CMD ["forever", "start", "app.js"]
