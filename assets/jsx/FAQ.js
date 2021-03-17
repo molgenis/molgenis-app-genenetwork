@@ -61,8 +61,7 @@ var How = React.createClass({
 
                     <h3 id="how-to-cite">How to cite?</h3>
                     <p>
-                        <a href="https://www.nature.com/articles/s41467-019-10649-4" target="_blank">Improving the diagnostic yield of exome-sequencing, by predicting gene-phenotype
-                            associations using large-scale gene expression analysis</a>
+                        <a href="https://www.medrxiv.org/content/10.1101/2021.03.10.21253054v1" target="_blank">KidneyNetwork: Using kidney-derived gene expression data to predict and prioritize novel genes involved in kidney disease</a>
                     </p>
 
 
