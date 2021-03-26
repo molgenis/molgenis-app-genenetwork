@@ -64,6 +64,9 @@ module.exports.urls = {
     fileupload: DOMAIN + '/api/v1/fileupload',
 
     diagnosisVCF: DOMAIN + '/api/v1/vcf',
+
+    kidneyNetwork: DOMAIN + '/kidneynetwork',
+    geneNetwork: DOMAIN + '/genenetwork',
 };
 
 module.exports.pageTitleSuffix = ' - Gene Network';

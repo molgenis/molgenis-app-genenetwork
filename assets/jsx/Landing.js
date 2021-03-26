@@ -13,6 +13,7 @@ var MenuBar = require('./MenuBar');
 var Logo = require('./ReactComponents/Logo');
 var Footer = require('./ReactComponents/Footer');
 var Tools = require('./Tools');
+var Networks = require('./Networks');
 
 /**
  * Component for root url
@@ -330,6 +331,7 @@ var Landing = React.createClass({
                 {topBanner}
                 {this.props.children}
                 {!this.props.children ? <Tools onClick={this.onFunctionEnrichmentClick}/> : null}
+                {!this.props.children ? <Networks /> : null}
                 {!this.props.children || this.props.children.props.route.path.indexOf('network') < 0 ? <Footer /> : null}
             </div>
         )

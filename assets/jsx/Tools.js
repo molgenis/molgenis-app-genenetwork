@@ -17,7 +17,6 @@ var Tools = React.createClass({
         return (
             <div style={{backgroundColor: color.colors.gnwhite, marginTop: '10px', padding: '20px', flex: '1'}}>
                 <h2 style={{display: 'inline'}}>TOOLS</h2>
-
                 <BoxFunctionEnrichment
                     title="Function enrichment"
                     text="Predict which pathways are enriched for a set of genes."

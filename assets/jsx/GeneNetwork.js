@@ -45,6 +45,14 @@ ReactDOM.render(<Router history={history}>
                                     window.location.href = 'https://www.metabrain.nl/'; 
                                     return null;
                                 }}/>
+                            <Route path='/genenetwork' component={() => { 
+                                    window.location.href = 'https://www.genenetwork.nl/'; 
+                                    return null;
+                                }}/>
+                            <Route path='/kidneynetwork' component={() => { 
+                                    window.location.href = 'https://kidney.genenetwork.nl/'; 
+                                    return null;
+                                }}/>
                         </Route>
                     </Route>
                 </Router>,
