@@ -16,7 +16,7 @@ var Tools = React.createClass({
                     url={GN.urls.diagnosisPage} />
                 <BoxFunctionEnrichment
                     title="Function enrichment"
-                    text="Predict which pathways are enriched for a set of genes."
+                    text="Predict which pathways are enriched for a set of genes, find common pathway genes, find common hpo genes"
                     onClick={this.props.onClick}
                 />
             </div>

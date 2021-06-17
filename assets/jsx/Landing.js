@@ -44,7 +44,8 @@ var Landing = React.createClass({
      */
     isGeneList: function (geneList) {
         // TODO: Better logic to determine if input is a gene list
-        return (geneList.length > 10 && /[\n\r;,]+/.test(geneList) || geneList.length > 30);
+        //return (/[\n\r;,]+/.test(geneList));
+        return(false);
     },
 
     /**
@@ -239,7 +240,7 @@ var Landing = React.createClass({
                     name='search'
                     matchPos='any'
                     matchProp='label'
-                    placeholder='Search here or paste a list of multiple genes (Ensembl IDs or HGNC symbols)'
+                    placeholder='Search for gene/pathway/hpo term here'
                     autoload={false}
                     cacheAsyncResults={false}
                     loadOptions={this.getSuggestions}
