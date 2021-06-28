@@ -59,6 +59,11 @@ var How = React.createClass({
                         back this is the most likely explanation.
                     </p>
 
+                    <h3 id="kidney-network-download">Can KidneyNetwork be downloaded?</h3>
+                    <p>
+                        The KidneyNetwork gene-phenotype predictions can be downloaded from <a href="https://molgenis26.gcc.rug.nl/downloads/KidneyNetwork/" target="_blank">here</a>
+                    </p>
+
                     <h3 id="how-to-cite">How to cite?</h3>
                     <p>
                         <a href="https://www.medrxiv.org/content/10.1101/2021.03.10.21253054v1" target="_blank">KidneyNetwork: Using kidney-derived gene expression data to predict and prioritize novel genes involved in kidney disease</a>

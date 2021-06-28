@@ -1862,6 +1862,11 @@ var How = React.createClass({displayName: "How",
                         "back this is the most likely explanation."
                     ), 
 
+                    React.createElement("h3", {id: "kidney-network-download"}, "Can KidneyNetwork be downloaded?"), 
+                    React.createElement("p", null, 
+                        "The KidneyNetwork gene-phenotype predictions can be downloaded from ", React.createElement("a", {href: "https://molgenis26.gcc.rug.nl/downloads/KidneyNetwork/", target: "_blank"}, "here")
+                    ), 
+
                     React.createElement("h3", {id: "how-to-cite"}, "How to cite?"), 
                     React.createElement("p", null, 
                         React.createElement("a", {href: "https://www.medrxiv.org/content/10.1101/2021.03.10.21253054v1", target: "_blank"}, "KidneyNetwork: Using kidney-derived gene expression data to predict and prioritize novel genes involved in kidney disease")
