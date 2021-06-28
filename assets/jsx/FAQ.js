@@ -16,6 +16,7 @@ var How = React.createClass({
                         <li><a href={"#why-cant-my-term-be-used"}>Why can’t my term be used?</a></li>
                         <li><a href={"#why-is-my-term-not-found"}>Why is my term not found?</a></li>
                         <li><a href={"#gene-not-found"}>My favorite candidate gene for patient is not found back in the top of the results?</a></li>
+                        <li><a href={"#kidney-network-download"}>Can KidneyNetwork be downloaded?</a></li>
                         <li><a href={"#how-to-cite"}>How to cite?</a></li>
                     </ul>
 

@@ -1819,6 +1819,7 @@ var How = React.createClass({displayName: "How",
                         React.createElement("li", null, React.createElement("a", {href: "#why-cant-my-term-be-used"}, "Why can’t my term be used?")), 
                         React.createElement("li", null, React.createElement("a", {href: "#why-is-my-term-not-found"}, "Why is my term not found?")), 
                         React.createElement("li", null, React.createElement("a", {href: "#gene-not-found"}, "My favorite candidate gene for patient is not found back in the top of the results?")), 
+                        React.createElement("li", null, React.createElement("a", {href: "#kidney-network-download"}, "Can KidneyNetwork be downloaded?")), 
                         React.createElement("li", null, React.createElement("a", {href: "#how-to-cite"}, "How to cite?"))
                     ), 
 
