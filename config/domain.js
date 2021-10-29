@@ -1,5 +1,4 @@
-// https://www.genenetwork.nl for prod
-// empty for debug
+// empty for newer version
 module.exports = {
-    domain: 'https://www.genenetwork.nl'
+    domain: ''
 };
