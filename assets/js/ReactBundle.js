@@ -1814,6 +1814,7 @@ var How = React.createClass({displayName: "How",
 
                     React.createElement("ul", null, 
                         React.createElement("li", null, React.createElement("a", {href: "#what-is-genenetwork"}, "What is KidneyNetwork?")), 
+                        React.createElement("li", null, React.createElement("a", {href: "#how-do-i-use-this-website"}, "How do I use this website?")), 
                         React.createElement("li", null, React.createElement("a", {href: "#what-is-gado"}, "What is GADO?")), 
                         React.createElement("li", null, React.createElement("a", {href: "#can-i-run-gado-locally"}, "Can I run GADO locally?")), 
                         React.createElement("li", null, React.createElement("a", {href: "#why-cant-my-term-be-used"}, "Why can’t my term be used?")), 
@@ -1829,6 +1830,10 @@ var How = React.createClass({displayName: "How",
                         "This is done by combining and integrating 31,499 multi-tissue public RNA-seq samples with 878 kidney-specific public RNA-seq samples."
                     ), 
 
+                    React.createElement("h3", {id: "how-do-i-use-this-website"}, "What is KidneyNetwork?"), 
+                    React.createElement("p", null, 
+                        "There is a tutorial available ", React.createElement("a", {href: "https://kidney-network.gcc.rug.nl/Download/KidneyNetwork_tutorial.pdf"}, "here"), " to help run you through all the options"
+                    ), 
 
                     React.createElement("h3", {id: "what-is-gado"}, "What is GADO?"), 
                     React.createElement("p", null, 
