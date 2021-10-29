@@ -11,6 +11,7 @@ var How = React.createClass({
 
                     <ul>
                         <li><a href={"#what-is-genenetwork"}>What is KidneyNetwork?</a></li>
+                        <li><a href={"#how-do-i-use-this-website"}>How do I use this website?</a></li>
                         <li><a href={"#what-is-gado"}>What is GADO?</a></li>
                         <li><a href={"#can-i-run-gado-locally"}>Can I run GADO locally?</a></li>
                         <li><a href={"#why-cant-my-term-be-used"}>Why can’t my term be used?</a></li>
@@ -26,6 +27,10 @@ var How = React.createClass({
                         This is done by combining and integrating 31,499 multi-tissue public RNA-seq samples with 878 kidney-specific public RNA-seq samples.
                     </p>
 
+                    <h3 id="how-do-i-use-this-website">What is KidneyNetwork?</h3>
+                    <p>
+                        There is a tutorial available <a href="https://kidney-network.gcc.rug.nl/Download/KidneyNetwork_tutorial.pdf">here</a> to help run you through all the options
+                    </p>
 
                     <h3 id="what-is-gado">What is GADO?</h3>
                     <p>
