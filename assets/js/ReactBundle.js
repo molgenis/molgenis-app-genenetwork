@@ -1830,7 +1830,7 @@ var How = React.createClass({displayName: "How",
                         "This is done by combining and integrating 31,499 multi-tissue public RNA-seq samples with 878 kidney-specific public RNA-seq samples."
                     ), 
 
-                    React.createElement("h3", {id: "how-do-i-use-this-website"}, "What is KidneyNetwork?"), 
+                    React.createElement("h3", {id: "how-do-i-use-this-website"}, "How do I use this website?"), 
                     React.createElement("p", null, 
                         "There is a tutorial available ", React.createElement("a", {href: "https://kidney-network.gcc.rug.nl/Download/KidneyNetwork_tutorial.pdf"}, "here"), " to help run you through all the options"
                     ), 
