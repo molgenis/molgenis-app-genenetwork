@@ -43,7 +43,7 @@ ${FAQ ELEMENT XPATH}  //*[@class='menuitem ']
 ${FAQ GADO H XPATH}   //*[@id='can-i-run-gado-locally']
 ${FAQ GADO L XPATH}   //*[@href='#can-i-run-gado-locally']
 ${API ELEMENT XPATH}  //*[@class='menuitem last']
-${GADO ELEMENT XPATH}   //*[@class='nodecoration black clickable']
+${GADO ELEMENT XPATH}   //h3[contains(., 'GADO')]/../div/b[contains(., 'CONTINUE')]
 ${GADO SEARCH XPATH}    //*[@class='Select-placeholder']
 ${GADO SEARCH INPUT XPATH}    //*[@class='Select-input']/input
 ${GADO ADD TERM BUTTON XPATH}   //*[@class='button noselect clickable'][1]
