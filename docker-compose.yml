@@ -12,6 +12,7 @@ services:
             - elasticsearch
             - predictionserver
             - pwaserver
+        restart: always
         volumes:
             - "/data:/data"
         environment:
@@ -22,10 +23,12 @@ services:
         image: redis
         expose:
             - "6379"
+        restart: always
     elasticsearch:
         image: elasticsearch:2.4
         expose:
             - "9200"
+        restart: always
     predictionserver:
         image: predictionserver
         build: ./servers/PredictionServer/
@@ -34,6 +37,7 @@ services:
             - elasticsearch
         volumes:
             - "/data:/data"
+        restart: always
     pwaserver:
         image: pwaserver
         build: ./servers/PWAServer/
@@ -42,3 +46,4 @@ services:
             - elasticsearch
         volumes:
             - "/data:/data"
+        restart: always
