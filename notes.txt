@@ -30,3 +30,10 @@ then redo the build and run
 build a new minified reactbundle with "node_modules/browserify/bin/cmd.js -t reactify -t es6-templates -o assets/js/ReactBundle.js assets/jsx/GeneNetwork.js && node_modules/uglify-js/bin/uglifyjs --compress --mangle -- assets/js/ReactBundle.js > assets/js/ReactBundle.min.js" in the root directory of the project
 
 run the project with docker-compose, by modifying the properties files for the servers and the web, and using the regular compose commands (build and up)
+In the docker-compose.yml configuration file every service is set to: restart: always. This wil automatically start the service after a crash or server reboot.
+
+To start the docker daemon on start-up in centOS run:
+sudo systemctl enable docker.service
+sudo systemctl enable containerd.service
+
+
