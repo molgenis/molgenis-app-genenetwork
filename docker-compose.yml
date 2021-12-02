@@ -12,6 +12,7 @@ services:
             - elasticsearch
             - predictionserver
             - pwaserver
+        restart: always
         volumes:
             - "/home/genenetwork/data/kidneynetwork/:/home/genenetwork/data/kidneynetwork/"
         environment:
@@ -32,6 +33,7 @@ services:
         depends_on:
             - redis
             - elasticsearch
+        restart: always
         volumes:
             - "/home/genenetwork/data/kidneynetwork/:/home/genenetwork/data/kidneynetwork"
     pwaserver:
@@ -40,5 +42,6 @@ services:
         depends_on:
             - redis
             - elasticsearch
+        restart: always
         volumes:
             - "/home/genenetwork/data/kidneynetwork/:/home/genenetwork/data/kidneynetwork"
