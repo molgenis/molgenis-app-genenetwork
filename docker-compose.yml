@@ -27,6 +27,8 @@ services:
         image: elasticsearch:2.4
         expose:
             - "9200"
+        volumes:
+            - "/home/genenetwork/software/elasticsearch/:/home/genenetwork/software/elasticsearch"
     predictionserver:
         image: predictionserver
         build: ./servers/PredictionServer/
