@@ -8,7 +8,7 @@ var elasticHostAddress = properties.get('ELASTICSEARCH_HOST');
 
 var CLIENT = new elasticsearch.Client({
     host: elasticHostAddress,
-    log: 'info'
+    log: 'error'
 })
 
 var indices = ['search', 'diagnosis']
@@ -32,122 +32,128 @@ async.eachSeries(indices, function(index, callback) {
 })
 
 function createSearchIndex(callback) {
-    CLIENT.indices.create({
+    CLIENT.indices.create({ 
         index: 'search',
-        settings: {
-            analysis: {
-                analyzer: {
-                    analyzer_startswith: {
-                        tokenizer: 'keyword',
-                        filter: ['lowercase']
-                    }
-                }
-            }
-        },
-        mappings: {
-            body: {
-                gene: {
-                    properties: {
-                        id: {
-                            index: 'not_analyzed',
-                            type: 'string'
-                        },
-                        name: {
-                            index: 'analyzed',
-                            analyzer: 'analyzer_startswith',
-                            type: 'string'
-                        },
-                        description: {
-                            index: 'not_analyzed',
-                            type: 'string'
-                        }
-                    }
-                },
-                term: {
-                    properties: {
-                        id: {
-                            index: 'not_analyzed',
-                            type: 'string'
-                        },
-                        name: {
-                            index: 'analyzed',
-                            analyzer: 'analyzer_startswith',
-                            type: 'string'
-                        },
-                        database: {
-                            index: 'not_analyzed',
-                            type: 'string'
-                        },
-                        type: {
-                            index: 'not_analyzed',
-                            type: 'string'
-                        },
-                        genes: {
-                            index: 'not_analyzed',
-                            type: 'string'
-                        },
-                        numGenes: {
-                            index: 'not_analyzed',
-                            type: 'integer'
-                        }
-                    }
-                },
-                trait_mapped: {
-                    properties: {
-                        id: {
-                            index: 'not_analyzed',
-                            type: 'string'
-                        },
-                        name: {
-                            index: 'analyzed',
-                            analyzer: 'analyzer_startswith',
-                            type: 'string'
-                        },
-                        numGenes: {
-                            index: 'not_analyzed',
-                            type: 'integer'
+        body: {
+            settings: {
+                analysis: {
+                    analyzer: {
+                        analyzer_startswith: {
+                            tokenizer: 'keyword',
+                            filter: ['lowercase']
                         }
                     }
                 }
+            },
+            mappings: {
+                // body: {
+                    "gene": {
+                        properties: {
+                            id: {
+                                index: 'not_analyzed',
+                                type: 'string'
+                            }
+                            ,
+                            name: {
+                                index: 'analyzed',
+                                analyzer: 'analyzer_startswith',
+                                type: 'string'
+                            },
+                            description: {
+                                index: 'not_analyzed',
+                                type: 'string'
+                            }
+                        }
+                    }
+                    ,
+                    term: {
+                        properties: {
+                            id: {
+                                index: 'not_analyzed',
+                                type: 'string'
+                            },
+                            name: {
+                                index: 'analyzed',
+                                analyzer: 'analyzer_startswith',
+                                type: 'string'
+                            },
+                            database: {
+                                index: 'not_analyzed',
+                                type: 'string'
+                            },
+                            type: {
+                                index: 'not_analyzed',
+                                type: 'string'
+                            },
+                            genes: {
+                                index: 'not_analyzed',
+                                type: 'string'
+                            },
+                            numGenes: {
+                                index: 'not_analyzed',
+                                type: 'integer'
+                            }
+                        }
+                    }
+                    ,
+                    trait_mapped: {
+                        properties: {
+                            id: {
+                                index: 'not_analyzed',
+                                type: 'string'
+                            },
+                            name: {
+                                index: 'analyzed',
+                                analyzer: 'analyzer_startswith',
+                                type: 'string'
+                            },
+                            numGenes: {
+                                index: 'not_analyzed',
+                                type: 'integer'
+                            }
+                        }
+                    }
+                // }
             }
         }
+        
     }).then(function(resp) {
         return callback(null, resp)
     })
 }
-    
+
 function createDiagnosisIndex(callback) {
-    CLIENT.indices.create({
-        index: 'diagnosis',
-        settings: {
-            analysis: {
-                analyzer: {
-                    analyzer_startswith: {
-                        tokenizer: 'keyword',
-                        filter: ['lowercase']
-                    }
-                }
-            }
-        },
-        mappings: {
-            body: {
-                term: {
-                    properties: {
-                        id: {
-                            index: 'analyzed',
-                            analyzer: 'analyzer_startswith',
-                            type: 'string'
-                        },
-                        name: {
-                            index: 'analyzed',
-                            analyzer: 'analyzer_startswith',
-                            type: 'string'
-                        }
-                    }
-                }
-            }
-        }
-    }).then(function(resp) {
-        return callback(null, resp)
-    })
+    // CLIENT.indices.create({
+    //     index: 'diagnosis',
+    //     settings: {
+    //         analysis: {
+    //             analyzer: {
+    //                 analyzer_startswith: {
+    //                     tokenizer: 'keyword',
+    //                     filter: ['lowercase']
+    //                 }
+    //             }
+    //         }
+    //     },
+    //     mappings: {
+    //         body: {
+    //             term: {
+    //                 properties: {
+    //                     id: {
+    //                         index: 'analyzed',
+    //                         analyzer: 'analyzer_startswith',
+    //                         type: 'string'
+    //                     },
+    //                     name: {
+    //                         index: 'analyzed',
+    //                         analyzer: 'analyzer_startswith',
+    //                         type: 'string'
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }).then(function(resp) {
+    //     return callback(null, resp)
+    // })
 }
