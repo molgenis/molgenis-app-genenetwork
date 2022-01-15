@@ -1,15 +1,24 @@
 var _ = require('lodash')
 var fs = require('fs')
 
+// const { inputCSS } = require('react-select/dist/declarations/src/components/Input')
+
 var BIOMART_RELEASE = 'V75'
 var ASSEMBLY_RELEASE = 'GRCh37'
 
 var exp = module.exports
 
+var zlib = require('zlib')
+
 exp.readIDFile = function(filename, options) {
 
     options = options || {}
-    var ids = _.map(_.compact(fs.readFileSync(filename, 'utf8').split('\n')), function(line) { return line.split('\t')[0].trim()  })
+    var raw = fs.readFileSync(filename)
+    if(filename.endsWith(".gz")){
+        raw = zlib.gunzipSync(raw)
+    }
+    raw = raw.toString("utf8");
+    var ids = _.map(_.compact(raw.split('\n')), function(line) { return line.split('\t')[0].trim()  })
     if (options.header === true) {
         ids.splice(0,1)
     }
@@ -26,8 +35,13 @@ exp.readIDFile = function(filename, options) {
 }
 
 exp.readColumnFromFile = function(filename, colNumber, options) {
+    var raw = fs.readFileSync(filename)
+    if(filename.endsWith(".gz")){
+        raw = zlib.gunzipSync(raw)
+    }
+    raw = raw.toString("utf8");
 
-    var lines = _.compact(fs.readFileSync(filename, 'utf8').split('\n'))
+    var lines = _.compact(raw.split('\n'))
     if (options && options.header) {
         lines.splice(0,1)
     }
@@ -41,7 +55,13 @@ exp.readColumnFromFile = function(filename, colNumber, options) {
 }
 
 exp.readGeneFile = function(filename) {
-    var lines = fs.readFileSync(filename, 'utf8').split('\n')
+    var raw = fs.readFileSync(filename)
+    if(filename.endsWith(".gz")){
+        raw = zlib.gunzipSync(raw)
+    }
+    raw = raw.toString("utf8");
+
+    var lines = raw.split('\n')
     var geneObjects = []
     for (var i = 1; i < lines.length; i++) {
         var split = lines[i].split('\t')
@@ -70,7 +90,13 @@ exp.readGeneFile = function(filename) {
 
 exp.readGenesetFile = function(dbname, filename, limittothesesets) {
 
-    var genesetLines = fs.readFileSync(filename, 'utf8').split('\n')
+    var raw = fs.readFileSync(filename)
+    if(filename.endsWith(".gz")){
+        raw = zlib.gunzipSync(raw)
+    }
+    raw = raw.toString("utf8");
+
+    var genesetLines = raw.split('\n')
     if (genesetLines[genesetLines.length-1] === '') {
         genesetLines.splice(-1,1)
     }

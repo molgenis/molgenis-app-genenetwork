@@ -4,6 +4,7 @@ var splitter = require('split')
 var fileutil = require('./fileutil')
 var rank = require('./rank.js')
 var level = require('level')
+var zlib = require('zlib')
 
 if (process.argv.length != 6) {
     console.log('usage: node populategenesetdb.js rankdbpath dbname genesetdescriptionfile genesetdatafile')
@@ -37,8 +38,12 @@ function readDataAndInsertToDBUInt16BE(rankdb, dbname, filename, ids, cb) {
     var batch = rankdb.batch()
     var lineNum = 0
     var numBatched = 0
-    fs.createReadStream(filename)
-        .pipe(splitter())
+    if(!filename.endsWith(".gz")){
+        console.log("not a GZIP file: " + filename)
+        process.exit(1)
+    }
+    fs.createReadStream(process.argv[2])
+        .pipe(zlib.createGunzip())
         .on('error', function(err) {
             cb(err)
         })
@@ -54,7 +59,7 @@ function readDataAndInsertToDBUInt16BE(rankdb, dbname, filename, ids, cb) {
                         arr.push(+split[i])
                     }
                     var ranks = rank(arr)
-                    var rankBuffer = new Buffer(ranks.length * 2)
+                    var rankBuffer = new Buffer.alloc(ranks.length * 2)
                     for (var j = 0; j < ranks.length; j++) {
                         rankBuffer.writeUInt16BE(ranks[j], j * 2)
                     }
@@ -64,10 +69,10 @@ function readDataAndInsertToDBUInt16BE(rankdb, dbname, filename, ids, cb) {
                     }
                     //console.error(id + '\t' + ranks.join('\t'))
                     batch.put('RNASEQ!PREDICTIONS!' + dbname.toUpperCase() + '!' + id, rankBuffer)
-                    if (++numBatched % 100 === 0) {
+                    if (++numBatched % 2000 === 0) {
                         console.log(numBatched + ' done')
                     }
-                    if (numBatched % 1000 === 0) {
+                    if (numBatched % 2000 === 0) {
                         batch.write(function() {
                             console.log('batch written')
                         })

@@ -20,6 +20,10 @@ var lineNum = 0
 var batch = db.batch()
 var headers = null
 var buf = null
+if(!filename.endsWith(".gz")){
+    console.log("not a GZIP file: " + filename)
+    process.exit(1)
+}
 fs.createReadStream(process.argv[2])
     .pipe(zlib.createGunzip())
     .pipe(splitter())
