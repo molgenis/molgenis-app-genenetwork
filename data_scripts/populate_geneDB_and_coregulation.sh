@@ -29,6 +29,10 @@ populate_genes_to_geneDB(){
 	#																			second column doesn't matter what it is, can be empty,
 	#																			third column HGNC name
   mkdir -p $1/level/new/dbgenes_uint16be
+  echo "node $thisdir/populateGenesToGeneDB.js \
+	  $1/level/new/dbgenes_uint16be \
+	  $2 \
+      $3"
   node $thisdir/populateGenesToGeneDB.js \
 	  $1/level/new/dbgenes_uint16be \
 	  $2 \
@@ -41,6 +45,10 @@ populate_coregulation_DBTXT(){
 	# $2 = database base dir, e.g. "/data/genenetwork/"
 	# $3 = number of eigenvectors selected (e.g. for genenetwork.nl = 1588)
     mkdir -p $2/level/new/dbpccorrelationzscores_uint16be_genescompsstdnorm
+	echo "node $thisdir/populateCoregulationDBTXT.js \
+		$1 \
+		$2/level/new/dbpccorrelationzscores_uint16be_genescompsstdnorm \
+		$3"
 	node $thisdir/populateCoregulationDBTXT.js \
 		$1 \
 		$2/level/new/dbpccorrelationzscores_uint16be_genescompsstdnorm \

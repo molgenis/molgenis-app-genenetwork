@@ -18,6 +18,7 @@ var db = level(genenetworkFilePath+'level/new/dbgenes_uint16be', {valueEncoding:
 db.get('!RNASEQ', {valueEncoding: 'json'}, function(err, data) {
     var bulk = []
     var numBatched = 0
+    var batchsize = 10000
     if (err) return console.error(err)
     _.forEach(data, function(gene, i) {
         var desc = (gene.description.replace(/\[[^\]]+\]/g, '') || 'no description').trim()
@@ -25,6 +26,10 @@ db.get('!RNASEQ', {valueEncoding: 'json'}, function(err, data) {
         words.push(gene.name)
         words.push(gene.id)
         if (i % 10000 === 0) {
+            if ( i > 0){
+                processBulk(bulk)
+                bulk = []
+            }
             console.log(i, gene.name, desc)
         }
         bulk.push({
@@ -47,10 +52,14 @@ db.get('!RNASEQ', {valueEncoding: 'json'}, function(err, data) {
             //     weight: 10000
             // }
         })
-        if (++numBatched === data.length) {
-            processBulk(bulk)
-        }
+        // if (++numBatched === data.length) {
+            
+        // }
     })
+    if(bulk.length > 0){
+        console.log("Processing last bulk batch")
+        processBulk(bulk)
+    }
 })
 
 function processBulk(bulk) {

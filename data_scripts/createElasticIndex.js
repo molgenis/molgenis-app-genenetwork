@@ -6,6 +6,8 @@ var properties = PropertiesReader('config/config.properties');
 var elasticHostAddress = properties.get('ELASTICSEARCH_HOST');
 
 
+console.log("Elastic search host: "+elasticHostAddress)
+
 var CLIENT = new elasticsearch.Client({
     host: elasticHostAddress,
     log: 'error'
@@ -21,7 +23,8 @@ async.eachSeries(indices, function(index, callback) {
                 CLIENT.indices.delete({index: index})
                     .then(function(resp) {
                         console.log('index deleted:', resp)
-                        createSearchIndex(callback)
+                        if (index === 'search') createSearchIndex(callback)
+                        if (index === 'diagnosis') createDiagnosisIndex(callback)
                     })
             } else {
                 console.log('index does not exist yet: %s', index)
@@ -123,37 +126,40 @@ function createSearchIndex(callback) {
 }
 
 function createDiagnosisIndex(callback) {
-    // CLIENT.indices.create({
-    //     index: 'diagnosis',
-    //     settings: {
-    //         analysis: {
-    //             analyzer: {
-    //                 analyzer_startswith: {
-    //                     tokenizer: 'keyword',
-    //                     filter: ['lowercase']
-    //                 }
-    //             }
-    //         }
-    //     },
-    //     mappings: {
-    //         body: {
-    //             term: {
-    //                 properties: {
-    //                     id: {
-    //                         index: 'analyzed',
-    //                         analyzer: 'analyzer_startswith',
-    //                         type: 'string'
-    //                     },
-    //                     name: {
-    //                         index: 'analyzed',
-    //                         analyzer: 'analyzer_startswith',
-    //                         type: 'string'
-    //                     }
-    //                 }
-    //             }
-    //         }
-    //     }
-    // }).then(function(resp) {
-    //     return callback(null, resp)
-    // })
+    CLIENT.indices.create({
+        index: 'diagnosis',
+        body: {
+            settings: {
+                analysis: {
+                    analyzer: {
+                        analyzer_startswith: {
+                            tokenizer: 'keyword',
+                            filter: ['lowercase']
+                        }
+                    }
+                }
+            },
+            mappings: {
+                // body: {
+                    term: {
+                        properties: {
+                            id: {
+                                index: 'analyzed',
+                                analyzer: 'analyzer_startswith',
+                                type: 'string'
+                            },
+                            name: {
+                                index: 'analyzed',
+                                analyzer: 'analyzer_startswith',
+                                type: 'string'
+                            }
+                        }
+                    }
+                // }
+            }
+        }
+        
+    }).then(function(resp) {
+        return callback(null, resp)
+    })
 }

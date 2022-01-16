@@ -42,8 +42,10 @@ function readDataAndInsertToDBUInt16BE(rankdb, dbname, filename, ids, cb) {
         console.log("not a GZIP file: " + filename)
         process.exit(1)
     }
-    fs.createReadStream(process.argv[2])
+
+    fs.createReadStream(filename)
         .pipe(zlib.createGunzip())
+        .pipe(splitter())
         .on('error', function(err) {
             cb(err)
         })
@@ -69,7 +71,7 @@ function readDataAndInsertToDBUInt16BE(rankdb, dbname, filename, ids, cb) {
                     }
                     //console.error(id + '\t' + ranks.join('\t'))
                     batch.put('RNASEQ!PREDICTIONS!' + dbname.toUpperCase() + '!' + id, rankBuffer)
-                    if (++numBatched % 2000 === 0) {
+                    if (++numBatched % 100 === 0) {
                         console.log(numBatched + ' done')
                     }
                     if (numBatched % 2000 === 0) {

@@ -11,6 +11,7 @@ var elasticHostAddress = properties.get('ELASTICSEARCH_HOST');
 var genenetworkFilePath = properties.get('GN_FILES_PATH');
 
 var pathwayDb = level(genenetworkFilePath+'level/new/dbexternal_uint16be', { valueEncoding: 'binary' });
+
 var significantTerms = {};
 var allTerms = {};
 
@@ -20,8 +21,8 @@ var client = new elasticsearch.Client({
 });
 
 pathwayDb.createReadStream({
-    start: '!RNASEQ!HPO',
-    end: '!RNASEQ!HPO~',
+    gte: '!RNASEQ!HPO',
+    lte: '!RNASEQ!HPO~',
     valueEncoding: 'json'
 })
     .on('data', function(data) {
