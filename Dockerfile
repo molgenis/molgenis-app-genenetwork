@@ -1,5 +1,5 @@
 # author npklein
-FROM node:11.9.0
+FROM node:16.13.2
 
 # Set the working directory to /app
 WORKDIR /app
@@ -16,11 +16,12 @@ RUN npm install
 # RUN npm ci --only=production
 #
 
-RUN npm build
-RUN npm i natives
-
 # Bundle app source
 COPY . .
+
+RUN npm run build
+RUN npm i natives
+
 
 # Fill elasticsearch with entrypoint.sh script
 RUN chmod +x entrypoint.sh  # if not already executable

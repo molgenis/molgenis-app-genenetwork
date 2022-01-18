@@ -10,12 +10,12 @@ var geneNetworkFileDir = properties.get('GN_FILES_PATH')
 
 module.exports = {
 
-    genesToTranscripts: geneNetworkFileDir+'files/genesToTranscripts.txt',
+    genesToTranscripts: geneNetworkFileDir+'files/genesToTranscripts.txt.gz',
     transcriptMappingFile: 'xxx',
-    mim2gene: geneNetworkFileDir+'files/new/mim2gene.txt',
+    mim2gene: geneNetworkFileDir+'files/mim2gene.txt.gz',
 
-    geneDescFile: geneNetworkFileDir+'files/new/ENSGToGeneNameHGNCBiotypeChromosomeStartStopStrandAndDescriptionV98.txt',
-    genePredScoreFile: geneNetworkFileDir+'files/new/skewnessSummary.txt',
+    geneDescFile: geneNetworkFileDir+'files/ENSGToGeneNameHGNCBiotypeChromosomeStartStopStrandAndDescriptionV98.txt.gz',
+    genePredScoreFile: geneNetworkFileDir+'files/skewnessSummary.txt.gz',
     geneDBPath: geneNetworkFileDir+'level/new/dbgenes_uint16be',
     pathwayDBPath: geneNetworkFileDir+'level/new/dbexternal_uint16be',
     

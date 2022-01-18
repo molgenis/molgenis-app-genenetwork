@@ -17,7 +17,7 @@ var db = level('/data/genenetwork/level/new/dbexternal_uint16be', {valueEncoding
 async.waterfall([
     function(cb) {
         var numTotal = 0
-        db.createValueStream({start: '!RNASEQ!', end: '!RNASEQ!~', valueEncoding: 'json'})
+        db.createValueStream({gte: '!RNASEQ!', lte: '!RNASEQ!~', valueEncoding: 'json'})
             .on('data', function(data) {
                 numTotal += data.length
             })
@@ -29,7 +29,7 @@ async.waterfall([
    function(numTotal, cb) {
         var bulk = []
         var numBatched = 0
-        db.createReadStream({start: '!RNASEQ!', end: '!RNASEQ!~', valueEncoding: 'json'})
+        db.createReadStream({gte: '!RNASEQ!', lte: '!RNASEQ!~', valueEncoding: 'json'})
             .on('data', function(data) {
                 console.log(data.key, data.value.length + ' terms')
                 _.forEach(data.value, function(term) {

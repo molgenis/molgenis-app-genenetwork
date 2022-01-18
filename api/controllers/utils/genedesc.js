@@ -1,5 +1,6 @@
 var exp = module.exports;
 var fs = require('fs');
+var zlib = require('zlib')
 
 var genes = readGenes();
 var genesByENSG = {};
@@ -91,10 +92,21 @@ exp.getArray = function(names) {
 };
 
 function readGenes() {
-    var lines = fs.readFileSync(sails.config.geneDescFile, 'utf8').split('\n');
+
     console.log("Read: "+sails.config.geneDescFile)
-    var transcripts = fs.readFileSync(sails.config.genesToTranscripts, 'utf8').split('\n');
+    var lines = fs.readFileSync(sails.config.geneDescFile);
+    if(sails.config.geneDescFile.endsWith(".gz")){
+        lines = zlib.gunzipSync(lines)
+    }
+    lines = lines.toString("utf8").split("\n");
+
     console.log("Read: "+sails.config.genesToTranscripts)
+    var transcripts = fs.readFileSync(sails.config.genesToTranscripts);
+    if(sails.config.genesToTranscripts.endsWith(".gz")){
+        transcripts = zlib.gunzipSync(transcripts)
+    }
+    transcripts = transcripts.toString("utf8").split("\n");
+
     var transcriptsPerGene = {};
     for (var i = 1; i < transcripts.length; i++){
         var gene = transcripts[i].split('\t')[0];
@@ -132,10 +144,14 @@ function readGenes() {
         }
     }
 
-    var genePredictFileLines = fs.readFileSync(sails.config.genePredScoreFile, 'utf8').split('\n');
-
-    var indexOffset = 0;
     console.log("Reading through gene predict score file: "+sails.config.genePredScoreFile,)
+    var genePredictFileLines = fs.readFileSync(sails.config.genePredScoreFile);
+    var transcripts = fs.readFileSync(sails.config.genesToTranscripts);
+    if(sails.config.genePredScoreFile.endsWith(".gz")){
+        genePredictFileLines = zlib.gunzipSync(genePredictFileLines)
+    }
+    genePredictFileLines = genePredictFileLines.toString("utf8").split("\n");
+    var indexOffset = 0;
     for (var i = 1; i < genePredictFileLines.length-1; i++) {
         var split = genePredictFileLines[i].split('\t');
         var geneId = split[0];
@@ -145,9 +161,7 @@ function readGenes() {
         if (geneObjects[i-1+indexOffset].id !== geneId) {
             indexOffset++;
         }
-
         geneObjects[i-1+indexOffset].genePredScore = genePredScore;
-
     }
 
     sails.log.info(geneObjects.length + ' genes read from ' + sails.config.geneDescFile);

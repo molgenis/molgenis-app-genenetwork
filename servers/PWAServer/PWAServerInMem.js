@@ -98,8 +98,8 @@ var prefixLen = prefix.length;
 var curDB = null;
 var curArray = null;
 pathwayrankdb.createReadStream({
-    start: prefix,
-    end: prefix + '~'
+    gte: prefix,
+    lte: prefix + '~'
 })
     .on('data', function(data) {
         var dbThisData = data.key.substring(prefixLen, data.key.lastIndexOf('!'));

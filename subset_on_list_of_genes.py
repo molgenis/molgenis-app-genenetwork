@@ -11,6 +11,6 @@ with open('/Users/NPK//Downloads/ENSGToGeneNameHGNCBiotypeChromosomeStartStopStr
         gene_info[line.split('\t')[0]] = line
 
 
-with open('/srv/metabrainnetwork/data/files/new/ENSGToGeneNameHGNCBiotypeChromosomeStartStopStrandAndDescriptionV98.txt','w') as out:
+with open('/mnt/d/metabrainnetwork/data/files/new/ENSGToGeneNameHGNCBiotypeChromosomeStartStopStrandAndDescriptionV98.txt','w') as out:
     for gene in gene_list:
         out.write(gene_info[gene])
