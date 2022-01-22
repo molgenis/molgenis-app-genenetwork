@@ -27,7 +27,7 @@ module.exports = function (req, res) {
         search_type: 'scan',
         query: {match_all: {}}
     // }, getMoreUntilDone(error, response));
-    }, function getMoreUntilDone(err, { response, statusCode, headers, warnings }) {
+    }, function getMoreUntilDone(error, { response, statusCode, headers, warnings }) {
         response.hits.hits.forEach(function (term) {
             allTerms[term._id] = term._source ;
         });
