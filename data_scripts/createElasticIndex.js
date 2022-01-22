@@ -84,7 +84,7 @@ function createSearchIndex(callback) {
             mappings: {
                 properties: {
                     id: {
-                        index: false,
+                        index: true,
                         type: 'text'
                     },
                     name: {

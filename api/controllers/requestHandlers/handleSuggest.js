@@ -32,19 +32,26 @@ module.exports = function(req, res) {
                 }
             }
         }
-    }, function(err, result) {
+    }, (err, { body, statusCode, headers, warnings }) => {
         if (err) {
             sails.log.warn(err);
             return res.serverError()
         } else {
-            console.log(result[0])
-            sails.log.debug('Suggest options for %s: %d', query, result.hits.total);
-            if (result.hits.total > 0) {
-                return res.json(result.hits.hits)
+            // console.log("body: "+body)
+            // console.log(statusCode)
+            // console.log(headers)
+            // console.log(warnings)
+            // console.log("body: "+body)
+            // // console.log(body.hits.hits)
+            // console.log(body.hits.total.value)
+            sails.log.debug('Suggest options for %s: %d', query, body.hits.total.value);
+            if (body.hits.total.value > 0) {
+                return res.json(body.hits.hits)
             } else {
                 return res.notFound()
             }
         }
     })
-
+  // 
+      // function(err, result) {
 };

@@ -68,20 +68,23 @@ var Landing = React.createClass({
                 q: input
             },
             function(res, jwres) {
+                console.log(res)
+                // console.log(jwres)
+
                 if (jwres.statusCode === 200) {
                     var options = _.compact(_.map(res, function(result) {
-                        if (result.kind === 'gene') {
+                        if (result._source.kind === 'gene') {
                             return {
                                 value: 'gene!' + result._source.id,
                                 label: result._source.name + ' - ' + result._source.description + ' (' + result._source.id + ')'
                             }
-                        } else if (result.kind === 'term') {
+                        } else if (result._source.kind === 'term') {
                             var id = result._source.database === "HPO" ? '(' + result._source.id + ')' : ''
                             return {
                                 value: 'network!' + result._source.id,
                                 label: result._source.name + ' - ' + result._source.database + ' ' + result._source.type + ' ' + id
                             }
-                        } else if (result.kind === 'trait_mapped') {
+                        } else if (result._source.kind === 'trait_mapped') {
                             return {
                                 value: 'network!' + result._source.shortURL,
                                 label: result._source.name + ' - ' + result._source.numGenes + ' GWAS genes'
