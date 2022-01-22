@@ -1,10 +1,9 @@
-const elasticsearch = require('elasticsearch');
+const { Client } = require('@elastic/elasticsearch')
 const _ = require('lodash');
 
 if (sails.config.useElastic === true) {
-    var CLIENT = new elasticsearch.Client({
-        host: sails.config.elasticHost,
-        log: sails.config.elasticLogLevel
+    var CLIENT = new Client({
+        node: sails.config.elasticHost
     })
 }
 

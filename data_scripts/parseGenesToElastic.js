@@ -46,7 +46,8 @@ db.get('!RNASEQ', {valueEncoding: 'json'}, function(err, data) {
             id: gene.id,
             name: gene.name,
             biotype: gene.biotype,
-            description: desc
+            description: desc,
+            kind: 'gene'
             // suggest: {
             //     input: words,
             //     output: [gene.name + ' - ' + desc],

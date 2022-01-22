@@ -70,18 +70,18 @@ var Landing = React.createClass({
             function(res, jwres) {
                 if (jwres.statusCode === 200) {
                     var options = _.compact(_.map(res, function(result) {
-                        if (result._type === 'gene') {
+                        if (result.kind === 'gene') {
                             return {
                                 value: 'gene!' + result._source.id,
                                 label: result._source.name + ' - ' + result._source.description + ' (' + result._source.id + ')'
                             }
-                        } else if (result._type === 'term') {
+                        } else if (result.kind === 'term') {
                             var id = result._source.database === "HPO" ? '(' + result._source.id + ')' : ''
                             return {
                                 value: 'network!' + result._source.id,
                                 label: result._source.name + ' - ' + result._source.database + ' ' + result._source.type + ' ' + id
                             }
-                        } else if (result._type === 'trait_mapped') {
+                        } else if (result.kind === 'trait_mapped') {
                             return {
                                 value: 'network!' + result._source.shortURL,
                                 label: result._source.name + ' - ' + result._source.numGenes + ' GWAS genes'

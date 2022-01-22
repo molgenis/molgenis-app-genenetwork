@@ -1,6 +1,6 @@
 var _ = require('lodash')
 var fs = require('fs')
-var elasticsearch = require('elasticsearch')
+const { Client } = require('@elastic/elasticsearch')
 var request = require('request')
 var http = require('http')
 var split = require('split')
@@ -28,8 +28,8 @@ var COLUMNS = [{name: 'DATE ADDED TO CATALOG', field: 'dateAdded'},
                {name: 'P-VALUE', field: 'pValue'}
               ]
 
-var client = new elasticsearch.Client({
-    host: elasticHostAddress,
+var client = new Client({
+    node: elasticHostAddress,
 //    log: 'trace'
 })
 
@@ -181,7 +181,6 @@ async.waterfall([
                 bulk.push({
                     create: {
                         _index: 'search',
-                        _type: 'trait_mapped',
                         _id: cleanName
                     }
                 })
@@ -189,6 +188,7 @@ async.waterfall([
                     id: cleanName,
                     name: name,
                     shortURL: shortURL,
+                    kind: 'trait_mapped',
                     numGenes: trait.mappedGenes.length
                 })
             } else {

@@ -70,7 +70,6 @@ exp.readGeneFile = function(filename) {
                 id: split[0],
                 // if you use 'index', it will be overwritten by something at some point:
                 // in the browser (Chrome), the indices are overwritten according to the indices in the array...
-                // jesus christ
                 index_: (i - 1),
                 name: split[1],
                 biotype: split[3],

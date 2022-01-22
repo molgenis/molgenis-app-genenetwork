@@ -23,7 +23,7 @@ for (var i = 0; i < genes.length; i++) {
     })
 }
 var genesJSONStr = JSON.stringify(genesIDNameHref, null, 2);
-
+console.log("Genedesc.js done")
 exp.getAll = function() {
     return genes
 };
@@ -128,7 +128,6 @@ function readGenes() {
                 id: split[0],
                 // so if you use 'index', it will be overwritten by something at some point:
                 // in the browser, the indices are overwritten according to the indices in the array...
-                // jesus christ
                 index_: (i - 1),
                 name: split[1],
                 biotype: split[3],
@@ -146,7 +145,6 @@ function readGenes() {
 
     console.log("Reading through gene predict score file: "+sails.config.genePredScoreFile,)
     var genePredictFileLines = fs.readFileSync(sails.config.genePredScoreFile);
-    var transcripts = fs.readFileSync(sails.config.genesToTranscripts);
     if(sails.config.genePredScoreFile.endsWith(".gz")){
         genePredictFileLines = zlib.gunzipSync(genePredictFileLines)
     }
@@ -162,8 +160,11 @@ function readGenes() {
             indexOffset++;
         }
         geneObjects[i-1+indexOffset].genePredScore = genePredScore;
+        if( i % 10000 === 0){
+            console.log(i+" genes parsed")
+        }
     }
-
+    console.log(i+" done parsing genes")
     sails.log.info(geneObjects.length + ' genes read from ' + sails.config.geneDescFile);
     return geneObjects
 }

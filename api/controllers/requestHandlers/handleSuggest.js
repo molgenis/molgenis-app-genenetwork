@@ -1,9 +1,8 @@
-var elasticsearch = require('elasticsearch');
+const { Client } = require('@elastic/elasticsearch')
 
 if (sails.config.useElastic === true) {
-    var CLIENT = new elasticsearch.Client({
-        host: sails.config.elasticHost,
-        log: sails.config.elasticLogLevel
+    var CLIENT = new Client({
+        node: sails.config.elasticHost
     })
 }
 
@@ -16,9 +15,9 @@ module.exports = function(req, res) {
     if (!req.body || !req.body.q || !req.socket) {
         return res.badRequest()
     }
-
+    
     var query = req.body.q;
-
+    console.log(query)
     CLIENT.search({
         index: 'search',
         from: 0,

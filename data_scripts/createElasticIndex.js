@@ -1,4 +1,4 @@
-// var elasticsearch = require('elasticsearch')
+
 const { Client } = require('@elastic/elasticsearch')
 var async = require('async')
 // get the address for elastic search host
