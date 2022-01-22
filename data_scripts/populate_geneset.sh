@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
-
+echo "populate_geneset.sh"
 set -e
 set -u
 thisdir=$(dirname "$0")
+
+console.log("Parsing HPO terms into Elasticsearch diagnosis index..")
 
 # initialize variables that will be filled from command line
 # database base dir, e.g. "/data/genenetwork/"
@@ -20,8 +22,8 @@ transposed_matrix=
 main(){
   parse_commandline "$@"
   mkdir -p ${database_base_dir}
-  #populate_geneset_dbtxt ${database_base_dir} ${dbname} ${term_file} ${transposed_matrix} ${auc_table} ${identity_matrix}
-  #rankPathwaysFromDatafile ${database_base_dir} ${dbname} ${term_file} ${transposed_matrix}
+  populate_geneset_dbtxt ${database_base_dir} ${dbname} ${term_file} ${transposed_matrix} ${auc_table} ${identity_matrix}
+  rankPathwaysFromDatafile ${database_base_dir} ${dbname} ${term_file} ${transposed_matrix}
   if [ "$4" = "HPO" ];
   then
     mkdir -p ${database_base_dir}/files/new/

@@ -2,7 +2,7 @@ var _ = require('lodash');
 var fs = require('fs');
 var split = require('split');
 var level = require('level');
-var elasticsearch = require('elasticsearch')
+const { Client } = require('@elastic/elasticsearch')
 // get the address for elastic search host
 var PropertiesReader = require('properties-reader');
 var properties = PropertiesReader('config/config.properties');
@@ -15,10 +15,9 @@ var pathwayDb = level(genenetworkFilePath+'level/new/dbexternal_uint16be', { val
 var significantTerms = {};
 var allTerms = {};
 
-var client = new elasticsearch.Client({
-    host: elasticHostAddress,
-    log: 'info'
-});
+const client = new Client({
+    node: elasticHostAddress
+})
 
 pathwayDb.createReadStream({
     gte: '!RNASEQ!HPO',
@@ -80,7 +79,6 @@ function parseToElastic() {
         bulk.push({
             create: {
                 _index: 'diagnosis',
-                _type: 'term',
                 _id: term.id
             }
         });
