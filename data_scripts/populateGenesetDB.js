@@ -117,7 +117,7 @@ function readAnnotationsAndInsertToDBsUInt16BE(genedb, genesetdb, dbname, aucfil
                 }
             }
 	    if (indices.length > 0) {
-		var buf = new Buffer(indices.length * 2)
+		var buf = new Buffer.alloc(indices.length * 2)
 		for (var j = 0; j < indices.length; j++) {
 		    buf.writeUInt16BE(indices[j], j * 2)
 		}
@@ -131,7 +131,7 @@ function readAnnotationsAndInsertToDBsUInt16BE(genedb, genesetdb, dbname, aucfil
 
     batch = genesetdb.batch()
     for (var i = 0; i < geneset2genes.length; i++) {
-        var buf = new Buffer(geneset2genes[i].length * 2)
+        var buf = new Buffer.alloc(geneset2genes[i].length * 2)
         for (var j = 0; j < geneset2genes[i].length; j++) {
             buf.writeUInt16BE(geneset2genes[i][j], j * 2)
         }
@@ -182,7 +182,7 @@ function readDataAndInsertToDBUInt16BE(db, dbname, filename, ids, cb) {
 	    }
 	    console.log(numRows + ' rows in ' + filename)
 	    console.log(numCols + ' cols in ' + filename)
-	    buf = new Buffer((numCols + 1) * 2)
+	    buf = new Buffer.alloc((numCols + 1) * 2)
 	    buf.writeUInt16BE(2, 0) // TODO number of significant genes
         }
         for (var i = start; i < data.length; i += 8) {
@@ -205,7 +205,7 @@ function readDataAndInsertToDBUInt16BE(db, dbname, filename, ids, cb) {
                 if (++rowsRead % 1000 === 0) {
                     console.log(rowsRead + ' rows read')
                 }
-                buf = new Buffer((numCols + 1) * 2)
+                buf = new Buffer.alloc((numCols + 1) * 2)
                 buf.writeUInt16BE(2, 0) // TODO number of significant genes
             }
         }
@@ -260,7 +260,7 @@ function readDataAndInsertTransposedToDBUInt16BE(db, dbname, filename, ids, cb) 
 	    }
 	    bufs = []
 	    for (var i = 0; i < numCols; i++) {
-                var b = new Buffer((numRows + 1) * 2)
+                var b = new Buffer.alloc((numRows + 1) * 2)
                 b.writeUInt16BE(2, 0)
                 bufs.push(b)
 	    }

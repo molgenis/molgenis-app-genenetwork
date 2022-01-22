@@ -74,7 +74,7 @@ function readDataAndInsertToDBUInt16BE(rankdb, dbname, filename, ids, cb) {
 	    }
             if (++valuesRead === numCols) {
                 var ranks = rank(arr)
-                var rankBuffer = new Buffer(ranks.length * 2)
+                var rankBuffer = new Buffer.alloc(ranks.length * 2)
                 for (var j = 0; j < ranks.length; j++) {
                     rankBuffer.writeUInt16BE(ranks[j], j * 2)
                 }

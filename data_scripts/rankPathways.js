@@ -27,7 +27,7 @@ db.createReadStream()
                 arr.push(data.value.readFloatBE(i * 4))
             }
             var ranks = rank(arr)
-            var rankBuffer = new Buffer(ranks.length * 2)
+            var rankBuffer = new Buffer.alloc(ranks.length * 2)
             for (var i = 0; i < ranks.length; i++) {
                 rankBuffer.writeUInt16BE(ranks[i], i * 2)
             }

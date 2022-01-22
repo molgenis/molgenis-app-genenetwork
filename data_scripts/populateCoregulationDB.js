@@ -134,7 +134,7 @@ function readNPYAndInsertToDBUInt16BE(db, filename, ids, cb) {
 	    numCols = +desc.match(/\(([0-9]*),\s([0-9]*)\)/)[2]
             console.log(numRows + ' rows in ' + filename)
             console.log(numCols + ' cols in ' + filename)
-            buf = new Buffer(numCols * 2)
+            buf = new Buffer.alloc(numCols * 2)
             start = 10 + headerLen
         }
         for (var i = start; i < data.length; i += 8) {
@@ -165,7 +165,7 @@ function readNPYAndInsertToDBUInt16BE(db, filename, ids, cb) {
 			})
 			batch = db.batch()
                     }
-                    buf = new Buffer(numCols * 2)
+                    buf = new Buffer.alloc(numCols * 2)
 		}
             }
 	}
@@ -209,7 +209,7 @@ function calculateCorrelationZScores(fromdb, todb, datatype, numItemsAtATime, cb
         var batch = todb.batch()
         for (var i = 0; i < values.length; i++) {
             if (datatype === 'float') {
-                var buf = new Buffer(values.length * 4)
+                var buf = new Buffer.alloc(values.length * 4)
                 for (var j = 0; j < values.length; j++) {
                     if (i !== j) {
                         var corr = stats.correlation(values[i], values[j])
@@ -223,7 +223,7 @@ function calculateCorrelationZScores(fromdb, todb, datatype, numItemsAtATime, cb
                     }
                 }
             } else if (datatype === 'uint16be') {
-                var buf = new Buffer(values.length * 2)
+                var buf = new Buffer.alloc(values.length * 2)
                 for (var j = 0; j < values.length; j++) {
                     if (i !== j) {
                         var corr = stats.correlation(values[i], values[j])
@@ -277,7 +277,7 @@ function readDataAndInsertToDBUInt16BE(db, filename, ids, cb) {
             numCols = data.readInt32BE(4)
             console.log(numRows + ' rows in ' + filename)
             console.log(numCols + ' cols in ' + filename)
-            buf = new Buffer(numCols * 2)
+            buf = new Buffer.alloc(numCols * 2)
             start = 8
         }
         for (var i = start; i < data.length; i += 8) {
@@ -289,7 +289,7 @@ function readDataAndInsertToDBUInt16BE(db, filename, ids, cb) {
                 if (++rowsRead % 1000 === 0) {
                     console.log(rowsRead + ' rows read')
                 }
-                buf = new Buffer(numCols * 2)
+                buf = new Buffer.alloc(numCols * 2)
             }
         }
     })
@@ -328,7 +328,7 @@ function readDataAndInsertTransposedToDBFloat(db, filename, ids, cb) {
             console.log(numCols + ' cols in ' + filename)
             bufs = []
             for (var i = 0; i < numCols; i++) {
-                bufs.push(new Buffer(numRows * 4))
+                bufs.push(new Buffer.alloc(numRows * 4))
             }
             start = 8
         }

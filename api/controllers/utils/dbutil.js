@@ -1146,7 +1146,7 @@ exp.getCoregulationBuffer = function(genes, groups, tissue, shortURL, callback) 
         db.get(key + gene.id, function(err, data) {
             if (err) return cb(err);
             var hashI = hash[gene.id];
-            var buffer = new Buffer((genes.length - hashI - 1) * 2);
+            var buffer = new Buffer.alloc((genes.length - hashI - 1) * 2);
             for (var i = hashI + 1; i < genes.length; i++) {
                 buffer.writeUInt16BE(data.readUInt16BE(genes[i].index_ * 2), (i - hashI - 1) * 2)             
             }
