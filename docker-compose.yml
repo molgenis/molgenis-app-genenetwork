@@ -1,6 +1,7 @@
 version: "3"
 services:
     # metabrainnetwork:
+    #     hostname: metabrain-network
     #     # replace username/repo:tag with your name and image details
     #     # image: ndeklein/metabrainnetwork:v1.15.server
     #     image: metabrain-dev
@@ -27,6 +28,7 @@ services:
    #       - "6379"
    #     restart: always
     elasticsearch:
+        hostname: metabrain-elasticsearch
         image: elasticsearch:7.16.3
         environment:
           - bootstrap.memory_lock=true
@@ -41,6 +43,7 @@ services:
             - 9300:9300
         restart: always
     # predictionserver:
+    #     hostname: metabrain-predictionserver
     #     image: ndeklein/predictionserver:v1.3.server
     #     depends_on:
     #         - elasticsearch
@@ -48,6 +51,7 @@ services:
     #         - "/mnt/d/metabrainnetwork/data:/mnt/d/metabrainnetwork/data"
     #     restart: always
     # pwaserver:
+    #     hostname: metabrain-pwaserver
     #     image: ndeklein/pwasserver:v1.2.server
     #     depends_on:
     #         - elasticsearch
