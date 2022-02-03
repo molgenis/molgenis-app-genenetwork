@@ -17,7 +17,7 @@ module.exports = function(req, res) {
     }
     
     var query = req.body.q;
-    console.log(query)
+    // console.log(query)
     CLIENT.search({
         index: 'search',
         from: 0,

@@ -10,7 +10,7 @@ WORKDIR /app
 # installed. Should be better way to do this, e.g. https://stackoverflow.com/a/48243640/651779
 COPY package*.json ./
 RUN npm install
-RUN npm build
+#RUN npm build
 RUN npm i natives
 
 # Bundle app source

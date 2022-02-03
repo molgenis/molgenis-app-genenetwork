@@ -1,32 +1,33 @@
 version: "3"
 services:
-    # metabrainnetwork:
-    #     hostname: metabrain-network
-    #     # replace username/repo:tag with your name and image details
-    #     # image: ndeklein/metabrainnetwork:v1.15.server
-    #     image: metabrain-dev
-    #     ports:
-    #         - "1337:1337"
-    #     depends_on:
-    #         - redis
-    #         - elasticsearch
-    #         - predictionserver
-    #         - pwaserver
-    #     volumes:
-    #     #    - "/mnt/d/metabrainnetwork/data:/mnt/d/metabrainnetwork/data"
-    #         - "/mnt/d/metabrainnetwork/data:/mnt/d/metabrainnetwork/data"
-    #     environment:
-    #         - "discovery.zen.ping.unicast.hosts=elasticsearch"
-    #         - ELASTICSEARCH_URL=http://elasticsearch:9200"
-    #         - ELASTICSEARCH_HOST=elasticsearch
-    #     restart: always
-#    redis:
- #       image: redis
-  #      expose:
-   #       - "6379"
-   #     ports:
-   #       - "6379"
-   #     restart: always
+    metabrainnetwork:
+         hostname: metabrain-network
+         # replace username/repo:tag with your name and image details
+         # image: ndeklein/metabrainnetwork:v1.15.server
+         image: metabrain-dev
+         ports:
+             - "1337:1337"
+         depends_on:
+             - redis
+             - elasticsearch
+             - predictionserver
+             - pwaserver
+         volumes:
+         #    - "/data/metabrainnetwork-data:/mnt/d/metabrainnetwork/data"
+             - "/data/metabrainnetwork-data:/data/metabrainnetwork-data"
+         environment:
+             - "discovery.zen.ping.unicast.hosts=elasticsearch"
+             - ELASTICSEARCH_URL=http://elasticsearch:9200"
+             - ELASTICSEARCH_HOST=elasticsearch
+         restart: always
+    redis:
+        hostname: metabrain-redis
+        image: redis
+        expose:
+          - "6379"
+        ports:
+          - "6379"
+        restart: always
     elasticsearch:
         hostname: metabrain-elasticsearch
         image: elasticsearch:7.16.3
@@ -42,19 +43,19 @@ services:
             - 9200:9200
             - 9300:9300
         restart: always
-    # predictionserver:
-    #     hostname: metabrain-predictionserver
-    #     image: ndeklein/predictionserver:v1.3.server
-    #     depends_on:
-    #         - elasticsearch
-    #     volumes:
-    #         - "/mnt/d/metabrainnetwork/data:/mnt/d/metabrainnetwork/data"
-    #     restart: always
-    # pwaserver:
-    #     hostname: metabrain-pwaserver
-    #     image: ndeklein/pwasserver:v1.2.server
-    #     depends_on:
-    #         - elasticsearch
-    #     volumes:
-    #         - "/mnt/d/metabrainnetwork/data:/mnt/d/metabrainnetwork/data"
-    #     restart: always
+    predictionserver:
+        hostname: metabrain-predictionserver
+        image: ndeklein/predictionserver:v1.4.server
+        depends_on:
+            - elasticsearch
+        volumes:
+            - "/data/metabrainnetwork-data:/data/metabrainnetwork-data"
+        restart: always
+    pwaserver:
+         hostname: metabrain-pwaserver
+         image: ndeklein/pwasserver:v1.3.server
+         depends_on:
+             - elasticsearch
+         volumes:
+             - "/data/metabrainnetwork-data:/data/metabrainnetwork-data"
+         restart: always

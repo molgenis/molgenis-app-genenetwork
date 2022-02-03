@@ -28,4 +28,4 @@ RUN chmod +x entrypoint.sh  # if not already executable
 ENTRYPOINT ["/app/entrypoint.sh"]
 
 # Run app.py when the container launches
-CMD ["npm", "start"]
+CMD ["npm", "run", "start"]
