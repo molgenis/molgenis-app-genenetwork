@@ -5,12 +5,13 @@
   "description": "Gene Network",
   "keywords": [],
   "dependencies": {
-    "async": "^3.2.3",
-    "bull": "^4.5.0",
+    "async": "^1.4.2",
+    "kue": "^0.9.5",
     "level": "^7.0.1",
     "leveldown": "^6.1.0",
     "lodash": "^4.17.21",
-      "properties-reader": "^2.2.0",
+      "properties-reader": "^0.3.1",
+      "natives": "^1.1.6",
       "genstats": "^0.0.1"
   },
   "scripts": {

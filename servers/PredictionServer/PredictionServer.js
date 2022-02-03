@@ -2,18 +2,14 @@ var _ = require('lodash')
 // get location of GN files
 var PropertiesReader = require('properties-reader');
 var properties = PropertiesReader('./config.properties');
-
-const Queue = require('bull');
-const queue = new Queue('DEFAULT', properties.get('REDIS_HOST')+":"+properties.get('REDIS_PORT'));
-
-// var Queue = require('kue').createQueue(
-//     {
-//         redis:{
-//             host: properties.get('REDIS_HOST'),
-//             port: properties.get('REDIS_PORT')
-//         }
-//     }
-// );
+var Queue = require('kue').createQueue(
+    {
+        redis:{
+            host: properties.get('REDIS_HOST'),
+            port: properties.get('REDIS_PORT')
+        }
+    }
+);
 var genstats = require('genstats')
 var prob = genstats.probability
 var wilcoxon = genstats.wilcoxon
@@ -207,7 +203,7 @@ readData(function(err) {
         return console.log(err)
     }
     console.log(new Date(), 'Data read, ready to predict')
-    queue.process('geneprediction', function(job, done) {
+    Queue.process('geneprediction', function(job, done) {
         console.log(job.data.ip + '\tStarting gene prediction\t' + job.data.genes.length + ':' + job.data.geneOfInterest + '\t' + job.data.socketID)
         predict(job.data.genes, job.data.numGenes, {ip: job.data.ip, socketID: job.data.socketID, testType: 'welch'}, function(err, someResults) {
             if (err) {

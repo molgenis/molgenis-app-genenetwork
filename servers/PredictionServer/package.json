@@ -6,8 +6,9 @@
   "keywords": [],
   "dependencies": {
     "async": "^3.2.3",
-    "bull": "^4.5.0",
+    "kue": "^0.11.6",
     "lodash": "^4.17.21",
+    "natives": "^1.1.6",
     "numeric": "^1.2.6",
     "properties-reader": "^2.2.0",
       "genstats": "^0.0.1",

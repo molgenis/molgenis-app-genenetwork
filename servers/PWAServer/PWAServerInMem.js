@@ -3,19 +3,14 @@ var async = require('async');
 // get location of GN files
 var PropertiesReader = require('properties-reader');
 var properties = PropertiesReader('./config.properties');
-
-const Queue = require('bull');
-const queue = new Queue('DEFAULT', properties.get('REDIS_HOST')+":"+properties.get('REDIS_PORT'));
-
-// var queue = require('kue').createQueue(
-//     {
-//         redis:{
-//             host: properties.get('REDIS_HOST'),
-//             port: properties.get('REDIS_PORT')
-//         }
-//     }
-// );
-
+var Queue = require('kue').createQueue(
+    {
+        redis:{
+            host: properties.get('REDIS_HOST'),
+            port: properties.get('REDIS_PORT')
+        }
+    }
+);
 var genstats = require('genstats');
 var quicksort = require('./quicksort');
 var quicksortobj = require('./quicksortobj');
@@ -138,7 +133,7 @@ pathwayrankdb.createReadStream({
             console.log(db + ': ' + (TERM_SERVER.dbStopIndices[db] - TERM_SERVER.dbStartIndices[db]) + ' gene sets')
         });
         console.log('Ready to consume queue');
-        queue.process('pathwayanalysis', function(job, done) {
+        Queue.process('pathwayanalysis', function(job, done) {
             console.log(new Date() + '\t' + job.data.ip + '\tStarting pathway analysis\t' + job.data.db + ':' + job.data.genes.length + '\t' + job.data.socketID);
             var tstart = new Date();
             TERM_SERVER.analyseDB(job.data.genes, job.data.db, {ip: job.data.ip, socketID: job.data.socketID, testType: 'wilcoxonr'},
