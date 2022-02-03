@@ -16,9 +16,9 @@ services:
          #    - "/data/metabrainnetwork-data:/mnt/d/metabrainnetwork/data"
              - "/data/metabrainnetwork-data:/data/metabrainnetwork-data"
          environment:
-             - "discovery.zen.ping.unicast.hosts=elasticsearch"
-             - ELASTICSEARCH_URL=http://elasticsearch:9200"
-             - ELASTICSEARCH_HOST=elasticsearch
+             - "discovery.zen.ping.unicast.hosts=metabrain-elasticsearch"
+             - ELASTICSEARCH_URL=http://metabrain-elasticsearch:9200"
+             - ELASTICSEARCH_HOST=http://metabrain-elasticsearch:9200"
          restart: always
     redis:
         hostname: metabrain-redis
