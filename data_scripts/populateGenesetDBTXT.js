@@ -4,6 +4,7 @@ var fs = require('fs')
 var splitter = require('split')
 var level = require('level')
 var fileutil = require('./fileutil')
+var zlib = require('zlib')
 
 if (process.argv.length != 9) {
     console.log('usage: node populategenesetdb.js genedbpath genesetdbpath dbname genesetdescriptionfile genesetdatafile genesetaucfile genetotermfile')
@@ -43,7 +44,7 @@ run()
 function run() {
     async.series([
         function(callback) {
-            console.log('starting')
+            console.log('starting populateGenesetDBTXT')
             callback(null)
         },
         function(callback) {
@@ -118,7 +119,13 @@ function readAnnotationsAndInsertToDBsUInt16BE(genedb, genesetdb, dbname, aucfil
 	throw {name: 'DataError', message: 'auc file length different from number of gene sets: ' + genesetsInAUCFile.length + ' vs ' + genesets.length}
     }
 
-    var lines = _.compact(fs.readFileSync(genetotermfile, 'utf8').split('\n'))
+    var raw = fs.readFileSync(genetotermfile)
+    if(genetotermfile.endsWith(".gz")){
+        raw = zlib.gunzipSync(raw)
+    }
+    raw = raw.toString("utf8");
+
+    var lines = _.compact(raw.split('\n'))
 
     var batch = genedb.batch()
     var geneset2genes = []
@@ -144,7 +151,7 @@ function readAnnotationsAndInsertToDBsUInt16BE(genedb, genesetdb, dbname, aucfil
                 }
             }
 	    if (indices.length > 0) {
-		var buf = new Buffer(indices.length * 2)
+		var buf = new Buffer.alloc(indices.length * 2)
 		for (var j = 0; j < indices.length; j++) {
 		    buf.writeUInt16BE(indices[j], j * 2)
 		}
@@ -158,7 +165,7 @@ function readAnnotationsAndInsertToDBsUInt16BE(genedb, genesetdb, dbname, aucfil
         console.log(num + ' annotations written to genedb')
         var setbatch = genesetdb.batch()
         for (var i = 0; i < geneset2genes.length; i++) {
-            var buf = new Buffer(geneset2genes[i].length * 2)
+            var buf = new Buffer.alloc(geneset2genes[i].length * 2)
             for (var j = 0; j < geneset2genes[i].length; j++) {
                 buf.writeUInt16BE(geneset2genes[i][j], j * 2)
             }
@@ -184,7 +191,12 @@ function readDataAndInsertToDBUInt16BE(db, dbname, filename, ids, cb) {
     var buf = null
     var data = []
     var headers = null
+    if(!filename.endsWith(".gz")){
+        console.log("not a GZIP file: " + filename)
+        process.exit(1)
+    }
     fs.createReadStream(filename)
+        .pipe(zlib.createGunzip())
         .pipe(splitter())
         .on('error', function(err) {
             cb(err)
@@ -197,14 +209,14 @@ function readDataAndInsertToDBUInt16BE(db, dbname, filename, ids, cb) {
                     ++lineNum
                     console.error(new Date(), headers.length + ' headers read')
                 } else {
-                    var buf = new Buffer((headers.length + 1) * 2)
+                    var buf = new Buffer.alloc((headers.length + 1) * 2)
 	            buf.writeUInt16BE(2, 0) // TODO number of significant genes
                     for (var i = 1; i < split.length; i++) {
 		        var z = +split[i]
 		        var value = Math.min(65535, Math.round(1000 * z) + 32768)
-                        if (lineNum === 2 && i === 2) {
-                            console.error('check', z, value)
-                        }
+                        // if (lineNum === 2 && i === 2) {
+                        //     console.error('check', z, value)
+                        // }
 		        try {
                             buf.writeUInt16BE(value, i * 2)
 		        } catch (e) {
@@ -244,7 +256,12 @@ function readDataAndInsertTransposedToDBUInt16BE(db, dbname, filename, ids, cb) 
     var batch = db.batch()
     var lineNum = 0
     var bufs = null
+    if(!filename.endsWith(".gz")){
+        console.log("not a GZIP file: " + filename)
+        process.exit(1)
+    }   
     fs.createReadStream(filename)
+        .pipe(zlib.createGunzip())
         .pipe(splitter())
         .on('error', function(err) {
             cb(err)
@@ -255,7 +272,7 @@ function readDataAndInsertTransposedToDBUInt16BE(db, dbname, filename, ids, cb) 
                 if (lineNum === 0) {
 	            bufs = []
 	            for (var i = 1; i < split.length; i++) {
-                        var b = new Buffer((NUM_ROWS + 1) * 2)
+                        var b = new Buffer.alloc((NUM_ROWS + 1) * 2)
                         b.writeUInt16BE(2, 0)
                         bufs.push(b)
 	            }

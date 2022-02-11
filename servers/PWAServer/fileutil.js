@@ -1,5 +1,6 @@
 var fs = require('fs')
 var splitter = require('split')
+var zlib = require('zlib')
 
 var exp = module.exports
 
@@ -70,13 +71,20 @@ exp.readTXT = function(filename, cb) {
     var timeStart = new Date().getTime()
     var rowsRead = 0
     var result = []
+
+    if(!filename.endsWith(".gz")){
+        console.log("not a GZIP file: " + filename)
+        process.exit(1)
+    }
     
-    fs.createReadStream(filename, 'utf8')
+    fs.createReadStream(filename)
+        .pipe(zlib.createGunzip())
         .pipe(splitter())
         .on('error', function(err) {
             cb(err)
         })
         .on('data', function(line) {
+            line = line.toString("utf8")
             var split = line.split(/\t/)
             if (split.length > 1) {
                 if (rowsRead === 0) {

@@ -1,9 +1,8 @@
-var elasticsearch = require('elasticsearch');
+const { Client } = require('@elastic/elasticsearch')
 
 if (sails.config.useElastic === true) {
-    var CLIENT = new elasticsearch.Client({
-        host: sails.config.elasticHost,
-        log: sails.config.elasticLogLevel
+    var CLIENT = new Client({
+        node: sails.config.elasticHost       
     })
 }
 
@@ -33,13 +32,13 @@ module.exports = function(req, res) {
                 }
             }
         }
-    }, function(err, result) {
+    }, (err, { result, statusCode, headers, warnings }) => {
         if (err) {
             sails.log.warn(err);
             return res.serverError()
         } else {
-            sails.log.debug('Suggest options for %s: %d', query, result.hits.total);
-            if (result.hits.total > 0) {
+            sails.log.debug('Suggest options for %s: %d', query, result.hits.total.value);
+            if (result.hits.total.value > 0) {
                 return res.json(result.hits.hits)
             } else {
                 return res.notFound()

@@ -13,7 +13,7 @@ with open('/srv/metabrainnetwork_v2.0/data/files/new/skewnessSummary.txt') as in
         gene_skewness[line.split('\t')[0]] = line
 
 
-with open('/srv/metabrainnetwork/data/files/new/skewnessSummary.txt','w') as out:
+with open('/mnt/d/metabrainnetwork/data/files/new/skewnessSummary.txt','w') as out:
     out.write(header)
     for gene in gene_order:
         if gene in gene_skewness:

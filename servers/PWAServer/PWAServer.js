@@ -45,8 +45,8 @@ var analyse = function(genes, dbname, pathways, options, batchDone) {
     var testType = options.testType || 'wilcoxonr'
 
     pathwayrankdb.createReadStream({
-        start: 'RNASEQ!PREDICTIONS!' + dbname.toUpperCase() + '!',
-        end: 'RNASEQ!PREDICTIONS!' + dbname.toUpperCase() + '!~'
+        gte: 'RNASEQ!PREDICTIONS!' + dbname.toUpperCase() + '!',
+        lte: 'RNASEQ!PREDICTIONS!' + dbname.toUpperCase() + '!~'
     })
         .on('data', function(d) {
             

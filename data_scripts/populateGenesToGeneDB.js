@@ -6,6 +6,13 @@ if (process.argv.length != 5) {
     return console.log('usage: node populateGenesToGeneDB.js path/to/db path/to/genefile path/to/genePredictFile')
 }
 
+
+console.log(process.argv[0])
+console.log(process.argv[1])
+console.log(process.argv[2])
+console.log(process.argv[3])
+console.log(process.argv[4])
+
 var filename = process.argv[3]
 console.log("Read "+filename)
 var genes = fileutil.readGeneFile(filename)

@@ -25,7 +25,7 @@ fs.createReadStream(process.argv[2])
 				db.put('RNASEQ!HPOCORRELATIONS!HEADER', headers, {valueEncoding: 'json'})
 				lineNum++
 			} else {
-				var buf = new Buffer(headers.length * 2)
+				var buf = new Buffer.alloc(headers.length * 2)
 				for (var i = 1; i < split.length; i++){
 					var corr = Math.round(split[i] * 1000)/1000
 					//transform correlation to 16bit integer.

@@ -1,6 +1,6 @@
 var fs = require('fs')
 var os = require('os')
-var elasticsearch = require('elasticsearch')
+const { Client } = require('@elastic/elasticsearch')
 var sortby = require('./utils/sort').sortby
 
 var PUBMINE = {}
@@ -36,12 +36,11 @@ var initialise = function() {
                 }
         }
     })
-    
-    PUBMINE.client = new elasticsearch.Client({
-        host: sails.config.elasticHost,
-            log: sails.config.elasticLogLevel
+
+    PUBMINE.client = new Client({
+        node: sails.config.elasticHost
     })
-    
+       
     // get total number of articles per journal per year, also making sure elasticsearch is fine
     PUBMINE.client.search({
 

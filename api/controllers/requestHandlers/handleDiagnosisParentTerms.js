@@ -1,10 +1,9 @@
-const elasticsearch = require('elasticsearch');
+const { Client } = require('@elastic/elasticsearch')
 const _ = require('lodash');
 
 if (sails.config.useElastic === true) {
-    var CLIENT = new elasticsearch.Client({
-        host: sails.config.elasticHost,
-        log: sails.config.elasticLogLevel
+    var CLIENT = new Client({
+        node: sails.config.elasticHost
     })
 }
 
@@ -20,6 +19,7 @@ module.exports = function (req, res) {
 
     var allTerms = [];
 
+    // (err, { body, statusCode, headers, warnings }) => {
     CLIENT.search({
         index: 'diagnosis',
         scroll: '30s',
@@ -27,11 +27,11 @@ module.exports = function (req, res) {
         search_type: 'scan',
         query: {match_all: {}}
     // }, getMoreUntilDone(error, response));
-    }, function getMoreUntilDone(error, response) {
+    }, function getMoreUntilDone(error, { response, statusCode, headers, warnings }) {
         response.hits.hits.forEach(function (term) {
             allTerms[term._id] = term._source ;
         });
-        if (response.hits.total !== Object.keys(allTerms).length) {
+        if (response.hits.total.value !== Object.keys(allTerms).length) {
             CLIENT.scroll({
                 scrollId: response._scroll_id,
                 scroll: '30s'
@@ -60,7 +60,7 @@ module.exports = function (req, res) {
         response.hits.hits.forEach(function (term) {
             allTerms[term._id] = term._source ;
         });
-        if (response.hits.total !== Object.keys(allTerms).length) {
+        if (response.hits.total.value !== Object.keys(allTerms).length) {
             CLIENT.scroll({
                 scrollId: response._scroll_id,
                 scroll: '30s'

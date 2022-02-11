@@ -1,15 +1,14 @@
 var _ = require('lodash')
 var async = require('async')
 var level = require('level')
-var elasticsearch = require('elasticsearch')
+const { Client } = require('@elastic/elasticsearch')
 // read address of elasticsearch host
 var PropertiesReader = require('properties-reader');
 var properties = PropertiesReader('config/config.properties');
 var elasticHostAddress = properties.get('ELASTICSEARCH_HOST');
 
-var client = new elasticsearch.Client({
-    host: elasticHostAddress,
-    log: 'info'
+var client = new Client({
+    node: elasticHostAddress
 })
 
 var db = level('/data/genenetwork/level/new/dbexternal_uint16be', {valueEncoding: 'binary'})
@@ -17,7 +16,7 @@ var db = level('/data/genenetwork/level/new/dbexternal_uint16be', {valueEncoding
 async.waterfall([
     function(cb) {
         var numTotal = 0
-        db.createValueStream({start: '!RNASEQ!', end: '!RNASEQ!~', valueEncoding: 'json'})
+        db.createValueStream({gte: '!RNASEQ!', lte: '!RNASEQ!~', valueEncoding: 'json'})
             .on('data', function(data) {
                 numTotal += data.length
             })
@@ -29,14 +28,13 @@ async.waterfall([
    function(numTotal, cb) {
         var bulk = []
         var numBatched = 0
-        db.createReadStream({start: '!RNASEQ!', end: '!RNASEQ!~', valueEncoding: 'json'})
+        db.createReadStream({gte: '!RNASEQ!', lte: '!RNASEQ!~', valueEncoding: 'json'})
             .on('data', function(data) {
                 console.log(data.key, data.value.length + ' terms')
                 _.forEach(data.value, function(term) {
                     bulk.push({
                         create: {
                             _index: 'search',
-                            _type: 'term',
                             _id: term.id
                         }
                     })
@@ -45,7 +43,8 @@ async.waterfall([
                         name: term.name,
                         database: term.database,
                         type: term.id.indexOf('HP:') === 0 ? 'phenotype' : 'pathway',
-                        numGenes: term.numAnnotatedGenes
+                        numGenes: term.numAnnotatedGenes,
+                        kind: 'term'
                     })
                     if (++numBatched === numTotal) {
                         cb(null, bulk)

@@ -20,7 +20,12 @@ var lineNum = 0
 var batch = db.batch()
 var headers = null
 var buf = null
-fs.createReadStream(process.argv[2])
+var filename = process.argv[2]
+if(!filename.endsWith(".gz")){
+    console.log("not a GZIP file: " + filename)
+    process.exit(1)
+}
+fs.createReadStream(filename)
     .pipe(zlib.createGunzip())
     .pipe(splitter())
     .on('data', function (line) {
@@ -34,7 +39,7 @@ fs.createReadStream(process.argv[2])
                 ++lineNum
                 console.error(new Date(), 'headers read')
             } else {
-                var buf = new Buffer(headers.length * 2)
+                var buf = new Buffer.alloc(headers.length * 2)
                 for (var i = 1; i < split.length; i++) {
                     var corr = +split[i]
                     var z = prob.corrToZ(corr, numComps)

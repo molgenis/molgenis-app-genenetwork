@@ -1,48 +1,61 @@
 version: "3"
 services:
     metabrainnetwork:
-        # replace username/repo:tag with your name and image details
-        image: ndeklein/metabrainnetwork:v1.15.server
-        ports:
-            - "1337:1337"
-        depends_on:
-            - redis
-            - elasticsearch
-            - predictionserver
-            - pwaserver
-        volumes:
-            - "/srv/metabrainnetwork/data:/srv/metabrainnetwork/data"
-        environment:
-            - "discovery.zen.ping.unicast.hosts=elasticsearch"
-            - ELASTICSEARCH_URL=http://elasticsearch:9200"
-            - ELASTICSEARCH_HOST=elasticsearch
-        restart: always
+         hostname: metabrain-network
+         # replace username/repo:tag with your name and image details
+         image: ndeklein/metabrainnetwork:v1.16.server
+         #image: metabrain-dev
+         ports:
+             - "1337:1337"
+         depends_on:
+             - redis
+             - elasticsearch
+             - predictionserver
+             - pwaserver
+         volumes:
+         #    - "/data/metabrainnetwork-data:/mnt/d/metabrainnetwork/data"
+             - "/data/metabrainnetwork-data:/data/metabrainnetwork-data"
+         environment:
+             - "discovery.zen.ping.unicast.hosts=metabrain-elasticsearch"
+             - ELASTICSEARCH_URL=http://metabrain-elasticsearch:9200"
+             - ELASTICSEARCH_HOST=http://metabrain-elasticsearch:9200"
+         restart: always
     redis:
+        hostname: metabrain-redis
         image: redis
-        expose:
-          - "6379"
+        #expose:
+        #  - "6379"
+        #ports:
+        #  - "6379"
         restart: always
     elasticsearch:
-        image: elasticsearch:5.6
+        hostname: metabrain-elasticsearch
+        image: elasticsearch:7.16.3
         environment:
           - bootstrap.memory_lock=true
           - "ES_JAVA_OPTS=-Xms2g -Xmx2g"
           - xpack.security.enabled=false
           - discovery.type=single-node
-        expose:
-            - "9200"
+        #expose:
+        #    - "9200"
+        #    - "9300"
+        #ports:
+        #    - 9200:9200
+        #    - 9300:9300
         restart: always
     predictionserver:
-        image: ndeklein/predictionserver:v1.3.server
+        hostname: metabrain-predictionserver
+        image: ndeklein/predictionserver:v1.4.server
         depends_on:
             - elasticsearch
         volumes:
-            - "/srv/metabrainnetwork/data:/srv/metabrainnetwork/data"
+            - "/data/metabrainnetwork-data:/data/metabrainnetwork-data"
         restart: always
     pwaserver:
-        image: ndeklein/pwasserver:v1.2.server
-        depends_on:
-            - elasticsearch
-        volumes:
-            - "/srv/metabrainnetwork/data:/srv/metabrainnetwork/data"
-        restart: always
+         hostname: metabrain-pwaserver
+         image: ndeklein/pwasserver:v1.3.server
+         depends_on:
+             - elasticsearch
+         volumes:
+             - "/data/metabrainnetwork-data:/data/metabrainnetwork-data"
+         restart: always

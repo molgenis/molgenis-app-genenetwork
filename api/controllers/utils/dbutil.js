@@ -99,8 +99,8 @@ var getPathwaysFromDB = function(db, callback) {
     var dbArray = [];
     var pathways = {};
     db.createReadStream({
-            start: '!RNASEQ!',
-            end: '!RNASEQ!~',
+            gte: '!RNASEQ!',
+            lte: '!RNASEQ!~',
             valueEncoding: 'json'
         })
         .on('data', function(data) {
@@ -465,8 +465,8 @@ exp.getGeneJSON = function(gene, db, req, callback) {
         async.series([
             function(cb) {
                 genedb.createReadStream({
-                    start: 'RNASEQ!ANNOTATIONS!' + gene.id + '!',
-                    end: 'RNASEQ!ANNOTATIONS!' + gene.id + '!~'
+                    gte: 'RNASEQ!ANNOTATIONS!' + gene.id + '!',
+                    lte: 'RNASEQ!ANNOTATIONS!' + gene.id + '!~'
                 })
                     .on('data', function(data) {
                         var db = data.key.substring(data.key.lastIndexOf('!') + 1, data.key.length);
@@ -484,8 +484,8 @@ exp.getGeneJSON = function(gene, db, req, callback) {
             },
             function(cb) {
                 genedb.createReadStream({
-                    start: 'RNASEQ!PREDICTIONS!' + gene.id + '!',
-                    end: 'RNASEQ!PREDICTIONS!' + gene.id + '!~'
+                    gte: 'RNASEQ!PREDICTIONS!' + gene.id + '!',
+                    lte: 'RNASEQ!PREDICTIONS!' + gene.id + '!~'
                 })
                     .on('data', function(data) {
                         var db = data.key.substring(data.key.lastIndexOf('!') + 1, data.key.length);
@@ -532,8 +532,8 @@ exp.getGeneJSON = function(gene, db, req, callback) {
                 });
 
                 celltypedb.createReadStream({
-                    start: 'RNASEQ!' + gene.id + '!CELLTYPE!',
-                    end: 'RNASEQ!' + gene.id + '!CELLTYPE!~'
+                    gte: 'RNASEQ!' + gene.id + '!CELLTYPE!',
+                    lte: 'RNASEQ!' + gene.id + '!CELLTYPE!~'
                 })
 
                 .on('data', function(buffer) {
@@ -578,8 +578,8 @@ exp.getGeneJSON = function(gene, db, req, callback) {
                     });
 
                     transcriptbardb.createReadStream({
-                        start: 'RNASEQ!' + gene.id + '!TRANSCRIPTBARS!',
-                        end: 'RNASEQ!' + gene.id + '!TRANSCRIPTBARS!~'
+                        gte: 'RNASEQ!' + gene.id + '!TRANSCRIPTBARS!',
+                        lte: 'RNASEQ!' + gene.id + '!TRANSCRIPTBARS!~'
                     })
 
                     .on('data', function(buffer) {
@@ -633,8 +633,8 @@ exp.getTranscriptJSON = function(transcript, callback) {
     async.series([
         function(cb) {
             transcriptdb.createReadStream({
-                start: 'RNASEQ!' + transcript + '!CELLTYPE!',
-                end: 'RNASEQ!' + transcript + '!CELLTYPE!~'
+                gte: 'RNASEQ!' + transcript + '!CELLTYPE!',
+                lte: 'RNASEQ!' + transcript + '!CELLTYPE!~'
             })
 
             .on('data', function(buffer) {
@@ -690,8 +690,8 @@ exp.getNewTranscriptBars = function(transcripts, callback) {
             });
 
             transcriptbardb.createReadStream({
-                start: 'RNASEQ!' + gene + '!TRANSCRIPTBARS!',
-                end: 'RNASEQ!' + gene + '!TRANSCRIPTBARS!~'
+                gte: 'RNASEQ!' + gene + '!TRANSCRIPTBARS!',
+                lte: 'RNASEQ!' + gene + '!TRANSCRIPTBARS!~'
             })
 
             .on('data', function(buffer) {
@@ -786,8 +786,8 @@ exp.getAnnotatedPathwayIDsForGene = function(gene, dbname, callback) {
 
     var result = [];
     genedb.createReadStream({
-            start: 'RNASEQ!ANNOTATIONS!' + gene.id + '!',
-            end: 'RNASEQ!ANNOTATIONS!' + gene.id + '!~'
+            gte: 'RNASEQ!ANNOTATIONS!' + gene.id + '!',
+            lte: 'RNASEQ!ANNOTATIONS!' + gene.id + '!~'
         })
         .on('data', function(data) {
             var db = data.key.substring(data.key.lastIndexOf('!') + 1);
@@ -1010,8 +1010,8 @@ exp.getPairwiseCofunctionsJSON = function(genes, dbs, callback) {
 
         var arr = [];
         genedb.createReadStream({
-                start: 'RNASEQ!PREDICTIONS!' + gene.id + '!',
-                end: 'RNASEQ!PREDICTIONS!' + gene.id + '!~'
+                gte: 'RNASEQ!PREDICTIONS!' + gene.id + '!',
+                lte: 'RNASEQ!PREDICTIONS!' + gene.id + '!~'
             })
             .on('data', function(data) {
                 if (dbs.indexOf(data.key.substring(data.key.lastIndexOf('!') + 1)) > -1) {
@@ -1056,8 +1056,8 @@ exp.getCofunctionMatrix = function(genes, dbs, callback) {
 
         var arr = [];
         genedb.createReadStream({
-                start: 'RNASEQ!PREDICTIONS!' + gene.id + '!',
-                end: 'RNASEQ!PREDICTIONS!' + gene.id + '!~'
+                gte: 'RNASEQ!PREDICTIONS!' + gene.id + '!',
+                lte: 'RNASEQ!PREDICTIONS!' + gene.id + '!~'
             })
             .on('data', function(data) {
                 if (dbs.indexOf(data.key.substring(data.key.lastIndexOf('!') + 1)) > -1) {
@@ -1146,7 +1146,7 @@ exp.getCoregulationBuffer = function(genes, groups, tissue, shortURL, callback) 
         db.get(key + gene.id, function(err, data) {
             if (err) return cb(err);
             var hashI = hash[gene.id];
-            var buffer = new Buffer((genes.length - hashI - 1) * 2);
+            var buffer = new Buffer.alloc((genes.length - hashI - 1) * 2);
             for (var i = hashI + 1; i < genes.length; i++) {
                 buffer.writeUInt16BE(data.readUInt16BE(genes[i].index_ * 2), (i - hashI - 1) * 2)             
             }

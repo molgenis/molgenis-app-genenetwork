@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
-
+echo "populate_geneset.sh"
 set -e
 set -u
 thisdir=$(dirname "$0")
+
+console.log("Parsing HPO terms into Elasticsearch diagnosis index..")
 
 # initialize variables that will be filled from command line
 # database base dir, e.g. "/data/genenetwork/"
@@ -45,7 +47,7 @@ populate_geneset_dbtxt(){
 	#														 third column AUC, fourth column number of genes
 	# $6 = Identity matrix with 1 if a gene is in a geneset, 0 if it is not in the geneset, with on the columns IDs (e.g. GO IDs)
   mkdir -p $1/level/new/dbexternal_uint16be
-  echo "node $thisdir/populateGenesetDBTXT.js \\
+  echo "node --trace-deprecation $thisdir/populateGenesetDBTXT.js \\
         $1/level/new/dbgenes_uint16be \\
         $1/level/new/dbexternal_uint16be \\
         $2 \\
@@ -54,7 +56,9 @@ populate_geneset_dbtxt(){
         $5 \\
         $6
 "
-  node $thisdir/populateGenesetDBTXT.js \
+    echo "---------"
+
+  node --trace-deprecation $thisdir/populateGenesetDBTXT.js \
 	    $1/level/new/dbgenes_uint16be \
 	    $1/level/new/dbexternal_uint16be \
 	    $2 \
@@ -73,12 +77,13 @@ rankPathwaysFromDatafile(){
 	#														 third column description (e.g. Abnormality of body height)
 	# $4 = Matrix with transposed terms
     mkdir -p $1/level/new/dbexternalranks
-    echo "    node $thisdir/rankPathwaysFromDataFileTXT.js \
+    echo "    node --trace-deprecation $thisdir/rankPathwaysFromDataFileTXT.js \
         $1/level/new/dbexternalranks \
         $2 \
         $3 \
         $4"
-	node $thisdir/rankPathwaysFromDataFileTXT.js \
+    echo "---------"
+	node --trace-deprecation $thisdir/rankPathwaysFromDataFileTXT.js \
 		$1/level/new/dbexternalranks \
 		$2 \
 		$3 \
