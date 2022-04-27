@@ -6,7 +6,7 @@
   "keywords": [],
   "dependencies": {
     "affinity-propagation": "0.0.1",
-    "async": "^1.4.2",
+    "async": "^2.6.4",
     "base62": "^1.2.8",
     "connect-redis": "1.4.5",
     "cookies-js": "^1.2.3",
