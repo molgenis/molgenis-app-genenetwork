@@ -3,8 +3,8 @@ services:
     metabrainnetwork:
          # hostname: metabrain-network
          # replace username/repo:tag with your name and image details
-         image: ndeklein/metabrainnetwork:v1.16.server
-         #image: metabrain-dev
+         image: ndeklein/metabrainnetwork:v1.17.server
+         # image: metabrain-dev
          ports:
              - "1337:1337"
          depends_on:
@@ -13,8 +13,9 @@ services:
              - predictionserver
              - pwaserver
          volumes:
-         #    - "/data/metabrainnetwork-data:/mnt/d/metabrainnetwork/data"
-             - "/data/metabrainnetwork-data:/data/metabrainnetwork-data"
+             - /data/metabrainnetwork-data:/data/metabrainnetwork-data
+             # - /mnt/docker/metabrainnetwork/data:/data/metabrainnetwork-data
+             
          environment:
              - "discovery.zen.ping.unicast.hosts=metabrain-elasticsearch"
              - ELASTICSEARCH_URL=http://elasticsearch:9200"
@@ -36,6 +37,7 @@ services:
           - "ES_JAVA_OPTS=-Xms2g -Xmx2g"
           - xpack.security.enabled=false
           - discovery.type=single-node
+          - ingest.geoip.downloader.enabled=false
         #expose:
         #    - "9200"
         #    - "9300"
@@ -49,7 +51,8 @@ services:
         depends_on:
             - elasticsearch
         volumes:
-            - "/data/metabrainnetwork-data:/data/metabrainnetwork-data"
+            - /data/metabrainnetwork-data:/data/metabrainnetwork-data
+            # - /mnt/docker/metabrainnetwork/data:/data/metabrainnetwork-data
         restart: always
     pwaserver:
          # hostname: metabrain-pwaserver
@@ -57,5 +60,6 @@ services:
          depends_on:
              - elasticsearch
          volumes:
-             - "/data/metabrainnetwork-data:/data/metabrainnetwork-data"
+             - /data/metabrainnetwork-data:/data/metabrainnetwork-data
+             # - /mnt/docker/metabrainnetwork/data:/data/metabrainnetwork-data
          restart: always
