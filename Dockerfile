@@ -1,17 +1,20 @@
 # author npklein
-FROM node:16.13.2
+FROM node:12.22.12
 
 # Set the working directory to /app
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y librsvg2-bin
+RUN apt-get update && apt-get install -y librsvg2-bin; set -eux; apt-get install curl;
 
 
 # Copy the current directory contents into the container at /app
 COPY package*.json entrypoint.sh ./
 
+# fix npm getting stuck on GIT urls
+RUN git config --global url."https://".insteadOf git://
 # Install any needed packages specified in requirements.txt
-RUN npm install
+RUN npm install --legacy-peer-deps
+# --loglevel verbose
 # If you are building your code for production
 # RUN npm ci --only=production
 #
