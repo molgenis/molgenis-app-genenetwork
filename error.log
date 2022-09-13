@@ -1,0 +1,42 @@
+ERROR: no description for GO:0044798
+populate_geneset.sh
+node --trace-deprecation data_scripts/populateGenesetDBTXT.js \
+        /mnt/docker/metabrainnetwork/data//level/new/dbgenes_uint16be \
+        /mnt/docker/metabrainnetwork/data//level/new/dbexternal_uint16be \
+        GO_C \
+        /mnt/y/metabrainnetwork/2020-02-28-MetaBrainNetwork/output/11_ImportToWebsite//575/2020-03-23-goa_human_C.575_eigenvectors.predictions.AUC.bonSigTerms_gnInputFormat.txt.gz \
+        /mnt/y/metabrainnetwork/2020-02-28-MetaBrainNetwork/output/11_ImportToWebsite//575/2020-03-23-goa_human_C.575_eigenvectors.predictions.bonSigOnly_termNames_tranposed.txt.gz \
+        /mnt/y/metabrainnetwork/2020-02-28-MetaBrainNetwork/output/11_ImportToWebsite//575/2020-03-23-goa_human_C.575_eigenvectors.predictions.AUC.bonferonni_gnInputFormat.txt.gz \
+        /mnt/y/metabrainnetwork/2020-02-28-MetaBrainNetwork/output/11_ImportToWebsite//575/2020-03-23-goa_human_C.matrix_gnInputFormat.txt.gz
+
+---------
+59055 ids read from /mnt/y/metabrainnetwork/2020-02-28-MetaBrainNetwork/output/11_ImportToWebsite//575/2020-03-23-goa_human_C.matrix_gnInputFormat.txt.gz
+451 ids read from /mnt/y/metabrainnetwork/2020-02-28-MetaBrainNetwork/output/11_ImportToWebsite//575/2020-03-23-goa_human_C.575_eigenvectors.predictions.AUC.bonSigTerms_gnInputFormat.txt.gz
+starting populateGenesetDBTXT
+451 lines read from /mnt/y/metabrainnetwork/2020-02-28-MetaBrainNetwork/output/11_ImportToWebsite//575/2020-03-23-goa_human_C.575_eigenvectors.predictions.AUC.bonferonni_gnInputFormat.txt.gz
+451 gene sets read from /mnt/y/metabrainnetwork/2020-02-28-MetaBrainNetwork/output/11_ImportToWebsite//575/2020-03-23-goa_human_C.575_eigenvectors.predictions.AUC.bonSigTerms_gnInputFormat.txt.gz
+451 lines read from /mnt/y/metabrainnetwork/2020-02-28-MetaBrainNetwork/output/11_ImportToWebsite//575/2020-03-23-goa_human_C.575_eigenvectors.predictions.AUC.bonferonni_gnInputFormat.txt.gz
+451 lines read from /mnt/y/metabrainnetwork/2020-02-28-MetaBrainNetwork/output/11_ImportToWebsite//575/2020-03-23-goa_human_C.575_eigenvectors.predictions.AUC.bonferonni_gnInputFormat.txt.gz
+451 lines read from /mnt/y/metabrainnetwork/2020-02-28-MetaBrainNetwork/output/11_ImportToWebsite//575/2020-03-23-goa_human_C.575_eigenvectors.predictions.AUC.bonferonni_gnInputFormat.txt.gz
+59055 ids read from /mnt/y/metabrainnetwork/2020-02-28-MetaBrainNetwork/output/11_ImportToWebsite//575/2020-03-23-goa_human_C.matrix_gnInputFormat.txt.gz
+451 ids read from /mnt/y/metabrainnetwork/2020-02-28-MetaBrainNetwork/output/11_ImportToWebsite//575/2020-03-23-goa_human_C.575_eigenvectors.predictions.AUC.bonferonni_gnInputFormat.txt.gz
+18108 annotations written to genedb
+annotations written to genesetdb
+reading data from /mnt/y/metabrainnetwork/2020-02-28-MetaBrainNetwork/output/11_ImportToWebsite//575/2020-03-23-goa_human_C.575_eigenvectors.predictions.bonSigOnly_termNames_tranposed.txt.gz
+insert data done
+2022-09-12T16:06:43.034Z writing batch
+2022-09-12T16:06:43.290Z batch written
+insert data transposed done
+all done
+    node --trace-deprecation data_scripts/rankPathwaysFromDataFileTXT.js         /mnt/docker/metabrainnetwork/data//level/new/dbexternalranks         GO_C         /mnt/y/metabrainnetwork/2020-02-28-MetaBrainNetwork/output/11_ImportToWebsite//575/2020-03-23-goa_human_C.575_eigenvectors.predictions.AUC.bonSigTerms_gnInputFormat.txt.gz         /mnt/y/metabrainnetwork/2020-02-28-MetaBrainNetwork/output/11_ImportToWebsite//575/2020-03-23-goa_human_C.575_eigenvectors.predictions.bonSigOnly_termNames_tranposed.txt.gz
+---------
+451 ids read from /mnt/y/metabrainnetwork/2020-02-28-MetaBrainNetwork/output/11_ImportToWebsite//575/2020-03-23-goa_human_C.575_eigenvectors.predictions.AUC.bonSigTerms_gnInputFormat.txt.gz
+reading data from /mnt/y/metabrainnetwork/2020-02-28-MetaBrainNetwork/output/11_ImportToWebsite//575/2020-03-23-goa_human_C.575_eigenvectors.predictions.bonSigOnly_termNames_tranposed.txt.gz
+100 done
+200 done
+300 done
+400 done
+/mnt/y/metabrainnetwork/2020-02-28-MetaBrainNetwork/output/11_ImportToWebsite//575/2020-03-23-goa_human_C.575_eigenvectors.predictions.bonSigOnly_termNames_tranposed.txt.gz read in 101.187 s
+writing batch
+batch written in 0.127 s
+done!
