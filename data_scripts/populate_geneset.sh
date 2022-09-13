@@ -4,7 +4,7 @@ set -e
 set -u
 thisdir=$(dirname "$0")
 
-console.log("Parsing HPO terms into Elasticsearch diagnosis index..")
+# console.log("Parsing HPO terms into Elasticsearch diagnosis index..")
 
 # initialize variables that will be filled from command line
 # database base dir, e.g. "/data/genenetwork/"
